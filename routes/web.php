@@ -19,6 +19,7 @@ use App\Http\Controllers\SaleController;
 use App\Http\Controllers\SalesReturnController;
 use App\Http\Controllers\ReceivedModeController;
 use App\Http\Controllers\ReceivedAddController;
+use App\Http\Controllers\PaymentAddController;
 use App\Http\Controllers\CompanySettingController;
 use App\Http\Controllers\FinancialYearController;
 
@@ -82,6 +83,8 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::resource('received-modes', ReceivedModeController::class);
     Route::resource('received-add', ReceivedAddController::class);
     Route::get('/received-add/{receivedAdd}/print', [ReceivedAddController::class, 'print'])->name('received-add.print');
+    Route::resource('payment-add', PaymentAddController::class);
+    Route::get('/payment-add/{paymentAdd}/print', [PaymentAddController::class, 'print'])->name('payment-add.print');
 
     Route::get('company-settings', [CompanySettingController::class, 'edit'])->name('company-settings.edit');
     Route::put('company-settings', [CompanySettingController::class, 'update'])->name('company-settings.update');
