@@ -4,7 +4,7 @@ import { NavUser } from '@/components/nav-user';
 import { Sidebar, SidebarContent, SidebarFooter, SidebarHeader, SidebarMenu, SidebarMenuButton, SidebarMenuItem } from '@/components/ui/sidebar';
 import { type NavItem } from '@/types';
 import { Link, usePage } from '@inertiajs/react';
-import { BookOpen, FileText, Folder, LayoutGrid, Lock, Shield, Users, Settings2, CalendarCheck2, Building2, Landmark, Banknote,ClipboardList,ReceiptText,RotateCcw,ShoppingCart,Package, Boxes, FolderKanban, InfoIcon, BanknoteIcon } from 'lucide-react';
+import { BookOpen, FileText, Folder, LayoutGrid, Lock, Wallet, Shield, Users, Settings2, CalendarCheck2, Building2, Landmark, Banknote,ClipboardList,ReceiptText,RotateCcw,ShoppingCart,Package, Boxes, FolderKanban, InfoIcon, BanknoteIcon } from 'lucide-react';
 import AppLogo from './app-logo';
 
 interface Role {
@@ -109,6 +109,11 @@ const mainNavItems: NavItem[] = [
                 title: 'Received Add',
                 href: '/received-add',
                 icon: Folder,
+            },
+            {
+                title: 'Payment Add',
+                href: '/payment-add',
+                icon: Wallet,
             },
             
             // Later you can add more inventory-related items here (e.g., Products, Stock Transfers, etc.)

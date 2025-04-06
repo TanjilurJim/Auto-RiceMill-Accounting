@@ -2,7 +2,7 @@ import AppLayout from '@/layouts/app-layout';
 import { Head, router } from '@inertiajs/react';
 import React, { useEffect, useState } from 'react';
 
-export default function Create({ paymentModes, accountLedgers }: any) {
+export default function Edit({ payment, paymentModes, accountLedgers }: any) {
     const [rows, setRows] = useState([
         {
             payment_mode_id: '',
@@ -17,14 +17,23 @@ export default function Create({ paymentModes, accountLedgers }: any) {
     const [description, setDescription] = useState('');
     const [sendSms, setSendSms] = useState(false);
 
-    const totalAmount = rows.reduce((acc, row) => acc + parseFloat(row.amount || 0), 0);
-
     useEffect(() => {
-        const today = new Date().toISOString().slice(0, 10);
-        setDate(today);
-        const rand = Math.floor(Math.random() * 10000);
-        setVoucherNo(`PMT-${today.replace(/-/g, '')}-${rand}`);
-    }, []);
+        // Load existing payment data into form
+        setVoucherNo(payment.voucher_no);
+        setDate(payment.date);
+        setDescription(payment.description);
+        setSendSms(payment.send_sms);
+
+        setRows([
+            {
+                payment_mode_id: payment.payment_mode_id,
+                account_ledger_id: payment.account_ledger_id,
+                amount: payment.amount,
+                payment_balance: 0,
+                ledger_balance: 0,
+            },
+        ]);
+    }, [payment]);
 
     const handleChange = (index: number, field: string, value: any) => {
         const newRows = [...rows];
@@ -52,27 +61,10 @@ export default function Create({ paymentModes, accountLedgers }: any) {
         setRows(newRows);
     };
 
-    const addRow = () => {
-        setRows([
-            ...rows,
-            {
-                payment_mode_id: '',
-                account_ledger_id: '',
-                amount: '',
-                payment_balance: 0,
-                ledger_balance: 0,
-            },
-        ]);
-    };
-
-    const removeRow = (index: number) => {
-        setRows(rows.filter((_, i) => i !== index));
-    };
-
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
 
-        router.post('/payment-add', {
+        router.put(`/payment-add/${payment.id}`, {
             date,
             voucher_no: voucherNo,
             description,
@@ -81,12 +73,14 @@ export default function Create({ paymentModes, accountLedgers }: any) {
         });
     };
 
+    const totalAmount = rows.reduce((acc, row) => acc + parseFloat(row.amount || 0), 0);
+
     return (
         <AppLayout>
-            <Head title="Add Payment" />
+            <Head title="Edit Payment" />
 
             <div className="p-6">
-                <h1 className="mb-4 text-xl font-bold">Add Payment</h1>
+                <h1 className="mb-4 text-xl font-bold">Edit Payment</h1>
 
                 <form onSubmit={handleSubmit} className="space-y-4">
                     <div className="grid grid-cols-3 gap-4">
@@ -123,7 +117,7 @@ export default function Create({ paymentModes, accountLedgers }: any) {
                                             <option value="">Select</option>
                                             {paymentModes.map((mode: any) => (
                                                 <option key={mode.id} value={mode.id}>
-                                                    {mode.mode_name} ({Number(mode.closing_balance ?? mode.opening_balance ?? 0).toFixed(2)})
+                                                    {mode.mode_name}
                                                 </option>
                                             ))}
                                         </select>
@@ -138,8 +132,7 @@ export default function Create({ paymentModes, accountLedgers }: any) {
                                             <option value="">Select</option>
                                             {accountLedgers.map((ledger: any) => (
                                                 <option key={ledger.id} value={ledger.id}>
-                                                    {ledger.account_ledger_name} (
-                                                    {Number(ledger.closing_balance ?? ledger.opening_balance ?? 0).toFixed(2)})
+                                                    {ledger.account_ledger_name}
                                                 </option>
                                             ))}
                                         </select>
@@ -181,10 +174,6 @@ export default function Create({ paymentModes, accountLedgers }: any) {
                                 </div>
                             ))}
                         </div>
-
-                        <button type="button" onClick={addRow} className="mb-2 text-sm text-blue-600">
-                            + Add Row
-                        </button>
                     </div>
 
                     <div>
@@ -201,7 +190,7 @@ export default function Create({ paymentModes, accountLedgers }: any) {
 
                     <div className="flex gap-4">
                         <button type="submit" className="rounded bg-green-600 px-4 py-2 text-white hover:bg-green-700">
-                            Save
+                            Update
                         </button>
                         <button type="button" onClick={() => window.history.back()} className="rounded bg-gray-300 px-4 py-2">
                             Cancel

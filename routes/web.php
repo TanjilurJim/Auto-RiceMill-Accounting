@@ -89,6 +89,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('company-settings', [CompanySettingController::class, 'edit'])->name('company-settings.edit');
     Route::put('company-settings', [CompanySettingController::class, 'update'])->name('company-settings.update');
     Route::resource('financial-years', FinancialYearController::class);
+    Route::get('/payment-add/{voucher_no}/print', [PaymentAddController::class, 'print'])->name('payment-add.print');
 });
 
 require __DIR__ . '/settings.php';
