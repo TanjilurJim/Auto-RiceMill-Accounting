@@ -115,6 +115,16 @@ const mainNavItems: NavItem[] = [
                 href: '/payment-add',
                 icon: Wallet,
             },
+            {
+                title: 'Contra Add',
+                href: '/contra-add',
+                icon: Wallet,
+            },
+            {
+                title: 'Journal Add',
+                href: '/journal-add',
+                icon: Wallet,
+            },
             
             // Later you can add more inventory-related items here (e.g., Products, Stock Transfers, etc.)
         ],

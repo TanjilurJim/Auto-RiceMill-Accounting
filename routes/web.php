@@ -22,6 +22,8 @@ use App\Http\Controllers\ReceivedAddController;
 use App\Http\Controllers\PaymentAddController;
 use App\Http\Controllers\CompanySettingController;
 use App\Http\Controllers\FinancialYearController;
+use App\Http\Controllers\ContraAddController;
+use App\Http\Controllers\JournalAddController;
 
 use App\Models\Purchase;
 use App\Models\SalesReturn;
@@ -90,6 +92,10 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::put('company-settings', [CompanySettingController::class, 'update'])->name('company-settings.update');
     Route::resource('financial-years', FinancialYearController::class);
     Route::get('/payment-add/{voucher_no}/print', [PaymentAddController::class, 'print'])->name('payment-add.print');
+    Route::resource('contra-add', ContraAddController::class);
+    Route::get('/contra-add/{voucher}/print', [ContraAddController::class, 'print'])->name('contra-add.print');
+    Route::resource('journal-add', JournalAddController::class);
+    Route::get('/journal-add/{voucher_no}/print', [JournalAddController::class, 'print'])->name('journal-add.print');
 });
 
 require __DIR__ . '/settings.php';
