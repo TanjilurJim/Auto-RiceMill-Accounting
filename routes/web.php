@@ -24,6 +24,9 @@ use App\Http\Controllers\CompanySettingController;
 use App\Http\Controllers\FinancialYearController;
 use App\Http\Controllers\ContraAddController;
 use App\Http\Controllers\JournalAddController;
+use App\Http\Controllers\ProductionController;
+use App\Http\Controllers\StockTransferController;
+use App\Http\Controllers\WorkingOrderController;
 
 use App\Models\Purchase;
 use App\Models\SalesReturn;
@@ -96,6 +99,9 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('/contra-add/{voucher}/print', [ContraAddController::class, 'print'])->name('contra-add.print');
     Route::resource('journal-add', JournalAddController::class);
     Route::get('/journal-add/{voucher_no}/print', [JournalAddController::class, 'print'])->name('journal-add.print');
+    Route::resource('stock-transfers', StockTransferController::class);
+    Route::resource('working-orders', ProductionController::class);
+    
 });
 
 require __DIR__ . '/settings.php';

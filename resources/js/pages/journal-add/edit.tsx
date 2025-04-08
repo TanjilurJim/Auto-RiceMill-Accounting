@@ -1,67 +1,64 @@
 import AppLayout from '@/layouts/app-layout';
-import { Head, router } from '@inertiajs/react';
-import { useEffect, useState } from 'react';
+import { Head, useForm } from '@inertiajs/react';
+import { useState } from 'react';
 
-export default function Create({ accountLedgers = [] }: any) {
-    const [voucherNo, setVoucherNo] = useState('');
-    const [date, setDate] = useState('');
-    const [rows, setRows] = useState([{ ledger_id: '', type: 'debit', amount: '', note: '' }]);
-    const [errors, setErrors] = useState<any>({});
+export default function Edit({ journal, accountLedgers, errors }: any) {
+    // Map journal entries to include ledger_id for initial state
+    const initialRows = journal.entries.map((entry) => ({
+        ledger_id: entry.ledger.id,
+        type: entry.type,
+        amount: entry.amount,
+        note: entry.note,
+    }));
 
-    // Calculate debit and credit totals
-    const getTotalDebit = () => {
-        return rows.filter((row) => row.type === 'debit').reduce((sum, row) => sum + parseFloat(row.amount || '0'), 0);
-    };
+    const [rows, setRows] = useState(initialRows); // Use mapped entries
+    const { data, setData, put } = useForm({
+        date: journal.date,
+        voucher_no: journal.voucher_no,
+        rows: initialRows, // Use the same initial structure for form data
+    });
 
-    const getTotalCredit = () => {
-        return rows.filter((row) => row.type === 'credit').reduce((sum, row) => sum + parseFloat(row.amount || '0'), 0);
-    };
-
-    // Handle row changes
+    // Handle row changes (keep existing logic)
     const handleChangeRow = (index: number, field: string, value: any) => {
         const updated = [...rows];
         updated[index][field] = value;
         setRows(updated);
+        setData('rows', updated);
     };
 
     const addRow = () => {
-        setRows([...rows, { ledger_id: '', type: 'debit', amount: '', note: '' }]);
+        const newRow = { ledger_id: '', type: 'debit', amount: '', note: '' };
+        setRows([...rows, newRow]);
+        setData('rows', [...rows, newRow]);
     };
 
     const removeRow = (index: number) => {
-        if (rows.length > 2) {
-            setRows(rows.filter((_, i) => i !== index));
+        if (rows.length > 1) {
+            const updatedRows = rows.filter((_, i) => i !== index);
+            setRows(updatedRows);
+            setData('rows', updatedRows);
         }
     };
 
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
 
-        router.post(
-            '/journal-add',
+        put(
+            `/journal-add/${journal.id}`,
             {
-                date,
-                voucher_no: voucherNo,
-                rows,
+                ...data,
             },
             {
-                onError: (err) => setErrors(err),
+                onError: (err) => console.log(err),
             },
         );
     };
 
-    useEffect(() => {
-        const today = new Date().toISOString().slice(0, 10);
-        const random = Math.floor(1000 + Math.random() * 9000);
-        setVoucherNo(`JOURNAL-${today.replace(/-/g, '')}-${random}`);
-        setDate(today);
-    }, []);
-
     return (
         <AppLayout>
-            <Head title="Add Journal Entry" />
+            <Head title="Edit Journal Entry" />
             <div className="mx-auto max-w-5xl p-6">
-                <h1 className="mb-6 text-2xl font-bold">Add Journal Entry</h1>
+                <h1 className="mb-6 text-2xl font-bold">Edit Journal Entry</h1>
 
                 <form onSubmit={handleSubmit} className="space-y-6">
                     <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
@@ -69,8 +66,8 @@ export default function Create({ accountLedgers = [] }: any) {
                             <label className="mb-1 block text-sm font-medium">Date</label>
                             <input
                                 type="date"
-                                value={date}
-                                onChange={(e) => setDate(e.target.value)}
+                                value={data.date}
+                                onChange={(e) => setData('date', e.target.value)}
                                 className="w-full rounded border-gray-300 px-3 py-2 shadow-sm focus:border-blue-500 focus:ring-blue-500"
                             />
                             {errors.date && <p className="mt-1 text-sm text-red-500">{errors.date}</p>}
@@ -79,7 +76,7 @@ export default function Create({ accountLedgers = [] }: any) {
                             <label className="mb-1 block text-sm font-medium">Voucher No</label>
                             <input
                                 type="text"
-                                value={voucherNo}
+                                value={data.voucher_no}
                                 readOnly
                                 className="w-full rounded border-gray-300 bg-gray-100 px-3 py-2 shadow-sm"
                             />
@@ -94,7 +91,7 @@ export default function Create({ accountLedgers = [] }: any) {
                                     <th className="w-1/6 border p-2">Type</th>
                                     <th className="w-1/6 border p-2 text-right">Amount</th>
                                     <th className="border p-2">Note</th>
-                                    <th className="w-1/12 border p-2 text-center">Action</th>
+                                    <th className="border p-2 text-center">Action</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -102,7 +99,7 @@ export default function Create({ accountLedgers = [] }: any) {
                                     <tr key={index} className="hover:bg-gray-50">
                                         <td className="border p-2">
                                             <select
-                                                value={row.ledger_id}
+                                                value={row.ledger_id} // Set the ledger_id to the value from the existing row
                                                 onChange={(e) => handleChangeRow(index, 'ledger_id', e.target.value)}
                                                 className="w-full rounded border px-2 py-1"
                                             >
@@ -168,19 +165,9 @@ export default function Create({ accountLedgers = [] }: any) {
                         {errors.rows && <p className="px-3 pt-2 text-sm text-red-500">{errors.rows}</p>}
                     </div>
 
-                    {/* Running Totals Display */}
-                    <div className="mt-4 flex justify-between text-sm">
-                        <div className="font-semibold">
-                            Total Debit: <span className="text-green-600">{getTotalDebit().toFixed(2)}</span>
-                        </div>
-                        <div className="font-semibold">
-                            Total Credit: <span className="text-red-600">{getTotalCredit().toFixed(2)}</span>
-                        </div>
-                    </div>
-
                     <div className="flex items-center justify-between">
                         <button type="submit" className="rounded bg-blue-600 px-5 py-2 text-sm text-white hover:bg-blue-700">
-                            Save Journal
+                            Update Journal
                         </button>
                     </div>
                 </form>

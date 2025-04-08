@@ -37,24 +37,39 @@ export default function Index({ journals }: any) {
                             <tr>
                                 <th className="border p-2">Date</th>
                                 <th className="border p-2">Voucher No</th>
-                                <th className="border p-2">Ledger</th>
-                                <th className="border p-2">Dr/Cr</th>
-                                <th className="border p-2 text-right">Amount</th>
+                                <th className="border p-2">Ledgers</th>
+                                <th className="border p-2 text-right">Total Debit</th>
+                                <th className="border p-2 text-right">Total Credit</th>
                                 <th className="border p-2">Note</th>
                                 <th className="border p-2 text-center">Actions</th>
                             </tr>
                         </thead>
                         <tbody>
                             {journals.data.length > 0 ? (
-                                journals.data.map((journal: any) =>
-                                    journal.entries.map((entry: any, i: number) => (
-                                        <tr key={`${journal.id}-${i}`} className="hover:bg-gray-50">
+                                journals.data.map((journal: any) => {
+                                    // Group debits and credits together for the same voucher number
+                                    const debits = journal.entries.filter((entry: any) => entry.type === 'debit');
+                                    const credits = journal.entries.filter((entry: any) => entry.type === 'credit');
+
+                                    // Calculate total debit and total credit for the journal
+                                    const totalDebit = debits.reduce((sum: number, entry: any) => sum + parseFloat(entry.amount), 0);
+                                    const totalCredit = credits.reduce((sum: number, entry: any) => sum + parseFloat(entry.amount), 0);
+
+                                    // Prepare ledger names for display
+                                    const debitLedgers = debits.map((entry: any) => entry.ledger?.account_ledger_name).join(', ') || '—';
+                                    const creditLedgers = credits.map((entry: any) => entry.ledger?.account_ledger_name).join(', ') || '—';
+
+                                    return (
+                                        <tr key={journal.id} className="hover:bg-gray-50">
                                             <td className="border p-2">{journal.date}</td>
                                             <td className="border p-2">{journal.voucher_no}</td>
-                                            <td className="border p-2">{entry.ledger?.account_ledger_name || '—'}</td>
-                                            <td className="border p-2 uppercase">{entry.type}</td>
-                                            <td className="border p-2 text-right">{Number(entry.amount).toFixed(2)}</td>
-                                            <td className="border p-2">{entry.note || '—'}</td>
+                                            <td className="border p-2">
+                                                <div><strong>Debits:</strong> {debitLedgers}</div>
+                                                <div><strong>Credits:</strong> {creditLedgers}</div>
+                                            </td>
+                                            <td className="border p-2 text-right">{totalDebit.toFixed(2)}</td>
+                                            <td className="border p-2 text-right">{totalCredit.toFixed(2)}</td>
+                                            <td className="border p-2">{debits[0]?.note || credits[0]?.note || '—'}</td>
                                             <td className="border p-2 text-center">
                                                 <div className="flex justify-center gap-2">
                                                     <Link
@@ -79,8 +94,8 @@ export default function Index({ journals }: any) {
                                                 </div>
                                             </td>
                                         </tr>
-                                    ))
-                                )
+                                    );
+                                })
                             ) : (
                                 <tr>
                                     <td colSpan={7} className="text-center p-4 text-gray-500">

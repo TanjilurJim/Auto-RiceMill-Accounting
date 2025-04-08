@@ -61,11 +61,28 @@ class ItemController extends Controller
         ]);
 
         // Generate unique item code
-        $nextId = Item::max('id') + 1;
-        $itemCode = 'ITM' . str_pad($nextId, 4, '0', STR_PAD_LEFT);
+        do {
+            $nextId = Item::max('id') + 1;
+            $itemCode = 'ITM' . str_pad($nextId, 4, '0', STR_PAD_LEFT);
+            $exists = Item::where('item_code', $itemCode)->exists();
+        } while ($exists);
+        // Check if same item_code exists with different name
+        $conflictingItem = Item::where('item_code', $itemCode)
+            ->where('item_name', '!=', $request->item_name)
+            ->first();
 
-        // ✅ Fix: Ensure numeric values default to 0 if null
-        $validated['item_code'] = $itemCode;
+        if ($conflictingItem) {
+            return redirect()->back()->withErrors([
+                'item_code' => 'Item code already exists with a different item name.',
+            ])->withInput();
+        }
+
+        // Use same item_code if item_name is the same
+        $existingSameItem = Item::where('item_code', $itemCode)
+            ->where('item_name', $request->item_name)
+            ->first();
+
+        $validated['item_code'] = $existingSameItem ? $existingSameItem->item_code : $itemCode;
         $validated['created_by'] = auth()->id();
         $validated['purchase_price'] = $request->purchase_price ?? 0;
         $validated['sale_price'] = $request->sale_price ?? 0;

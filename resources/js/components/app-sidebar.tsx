@@ -4,7 +4,7 @@ import { NavUser } from '@/components/nav-user';
 import { Sidebar, SidebarContent, SidebarFooter, SidebarHeader, SidebarMenu, SidebarMenuButton, SidebarMenuItem } from '@/components/ui/sidebar';
 import { type NavItem } from '@/types';
 import { Link, usePage } from '@inertiajs/react';
-import { BookOpen, FileText, Folder, LayoutGrid, Lock, Wallet, Shield, Users, Settings2, CalendarCheck2, Building2, Landmark, Banknote,ClipboardList,ReceiptText,RotateCcw,ShoppingCart,Package, Boxes, FolderKanban, InfoIcon, BanknoteIcon } from 'lucide-react';
+import { BookOpen, FileText, Folder, LayoutGrid, Lock, Wallet, Shield, Users, Settings2, CalendarCheck2, Building2, Landmark, Banknote,ClipboardList,ReceiptText,RotateCcw,ShoppingCart,Package, Boxes, FolderKanban, InfoIcon, BanknoteIcon, Shuffle, Notebook } from 'lucide-react';
 import AppLogo from './app-logo';
 
 interface Role {
@@ -118,12 +118,17 @@ const mainNavItems: NavItem[] = [
             {
                 title: 'Contra Add',
                 href: '/contra-add',
-                icon: Wallet,
+                icon: Shuffle,
             },
             {
                 title: 'Journal Add',
                 href: '/journal-add',
-                icon: Wallet,
+                icon: Notebook,
+            },
+            {
+                title: 'Stock Transfer',
+                href: '/stock-transfers',
+                icon: Notebook,
             },
             
             // Later you can add more inventory-related items here (e.g., Products, Stock Transfers, etc.)
