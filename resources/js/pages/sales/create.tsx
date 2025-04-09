@@ -1,6 +1,7 @@
 import AppLayout from '@/layouts/app-layout';
 import { Head, Link, useForm } from '@inertiajs/react';
-import { useEffect } from 'react';
+import axios from 'axios';
+import { useEffect, useState } from 'react';
 
 interface Godown {
     id: number;
@@ -64,6 +65,16 @@ export default function SaleCreate({
         total_due: '',
         closing_balance: '',
     });
+    const [filteredItems, setFilteredItems] = useState<Item[]>(items);
+    useEffect(() => {
+        if (data.godown_id) {
+            axios.get(`/items/by-godown/${data.godown_id}`).then((res) => {
+                setFilteredItems(res.data);
+            });
+        } else {
+            setFilteredItems([]);
+        }
+    }, [data.godown_id]);
 
     // Auto-generate voucher no on mount
     useEffect(() => {
@@ -254,7 +265,7 @@ export default function SaleCreate({
                                         onChange={(e) => handleItemChange(index, 'product_id', e.target.value)}
                                     >
                                         <option value="">Select</option>
-                                        {items.map((p) => (
+                                        {filteredItems.map((p) => (
                                             <option key={p.id} value={p.id}>
                                                 {p.item_name} ({p.previous_stock} {p.unit})
                                             </option>

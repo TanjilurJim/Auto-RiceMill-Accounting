@@ -11,33 +11,31 @@ class WorkingOrder extends Model
     use HasFactory, SoftDeletes;
 
     protected $fillable = [
+        'tenant_id',
         'date',
         'voucher_no',
         'reference_no',
-        'product_id',
-        'godown_id',
-        'quantity',
-        'purchase_price',
-        'subtotal',
-        'total_price',
-        'created_by'
+        'production_status',
+        'total_amount',   // new header‑level total
+        'created_by',
+        'production_voucher_no', 
     ];
 
-    // Define relationship with the product (item)
-    public function product()
+    /* ─────────── Relationships ─────────── */
+
+    // all line items that belong to this order
+    public function items()
     {
-        return $this->belongsTo(Item::class, 'product_id');
+        return $this->hasMany(WorkingOrderItem::class);
     }
 
-    // Define relationship with the godown
-    public function godown()
-    {
-        return $this->belongsTo(Godown::class, 'godown_id');
-    }
-
-    // Define relationship with the creator (user)
+    // user who created the order (same as before)
     public function creator()
     {
         return $this->belongsTo(User::class, 'created_by');
+    }
+    public function extras()
+    {
+        return $this->hasMany(WorkingOrderExtra::class);
     }
 }

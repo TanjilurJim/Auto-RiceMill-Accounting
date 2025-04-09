@@ -37,7 +37,7 @@ class PurchaseReturnController extends Controller
         return Inertia::render('purchase_returns/create', [
             'godowns' => Godown::where('created_by', auth()->id())->get(),
             'ledgers' => AccountLedger::where('created_by', auth()->id())->get(),
-            'items' => Item::where('created_by', auth()->id())->get(),
+            'items' => Item::where('created_by', auth()->id())->get()->unique('item_name')->values(),
         ]);
     }
 

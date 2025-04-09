@@ -47,7 +47,7 @@ class PurchaseController extends Controller
             'godowns' => Godown::when(!auth()->user()->hasRole('admin'), fn($q) => $q->where('created_by', auth()->id()))->get(),
             'salesmen' => Salesman::when(!auth()->user()->hasRole('admin'), fn($q) => $q->where('created_by', auth()->id()))->get(),
             'ledgers' => AccountLedger::when(!auth()->user()->hasRole('admin'), fn($q) => $q->where('created_by', auth()->id()))->get(),
-            'items' => Item::when(!auth()->user()->hasRole('admin'), fn($q) => $q->where('created_by', auth()->id()))->get(),
+            'items' => Item::when(!auth()->user()->hasRole('admin'), fn($q) => $q->where('created_by', auth()->id()))->get()->unique('item_name')->values(),
         ]);
     }
 

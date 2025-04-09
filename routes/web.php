@@ -23,6 +23,7 @@ use App\Http\Controllers\PaymentAddController;
 use App\Http\Controllers\CompanySettingController;
 use App\Http\Controllers\FinancialYearController;
 use App\Http\Controllers\ContraAddController;
+use App\Http\Controllers\FinishedProductController;
 use App\Http\Controllers\JournalAddController;
 use App\Http\Controllers\ProductionController;
 use App\Http\Controllers\StockTransferController;
@@ -84,7 +85,8 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('/sales-returns/{salesReturn}/invoice', [SalesReturnController::class, 'invoice'])->name('sales-returns.invoice');
     Route::resource('sales-orders', SalesOrderController::class);
     Route::get('/sales-orders/{salesOrder}/invoice', [SalesOrderController::class, 'invoice'])->name('sales-orders.invoice');
-
+    Route::get('/items/by-godown/{godown}', [SaleController::class, 'getItemsByGodown']);
+    
     Route::resource('received-modes', ReceivedModeController::class);
     Route::resource('received-add', ReceivedAddController::class);
     Route::get('/received-add/{receivedAdd}/print', [ReceivedAddController::class, 'print'])->name('received-add.print');
@@ -101,6 +103,8 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('/journal-add/{voucher_no}/print', [JournalAddController::class, 'print'])->name('journal-add.print');
     Route::resource('stock-transfers', StockTransferController::class);
     Route::resource('working-orders', ProductionController::class);
+    Route::post('/production/{id}/mark-as-produced', [ProductionController::class, 'markAsProduced'])->name('production.markAsProduced');
+    Route::resource('finished-products', FinishedProductController::class);
     
 });
 

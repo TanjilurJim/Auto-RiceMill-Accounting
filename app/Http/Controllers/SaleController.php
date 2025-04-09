@@ -230,4 +230,13 @@ class SaleController extends Controller
             'sale_items.*.subtotal' => 'required|numeric|min:0',
         ]);
     }
+
+    public function getItemsByGodown($godownId)
+    {
+        $items = Item::where('godown_id', $godownId)
+            ->where('created_by', auth()->id())
+            ->get();
+
+        return response()->json($items);
+    }
 }
