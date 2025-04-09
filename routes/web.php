@@ -29,6 +29,15 @@ use App\Http\Controllers\ProductionController;
 use App\Http\Controllers\StockTransferController;
 use App\Http\Controllers\WorkingOrderController;
 
+
+
+use App\Http\Controllers\SalaryReceiveController;
+use App\Http\Controllers\DepartmentController;
+use App\Http\Controllers\DesignationController;
+use App\Http\Controllers\ShiftController;
+use App\Http\Controllers\EmployeeController;
+use App\Http\Controllers\SalarySlipController;
+
 use App\Models\Purchase;
 use App\Models\SalesReturn;
 
@@ -86,7 +95,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::resource('sales-orders', SalesOrderController::class);
     Route::get('/sales-orders/{salesOrder}/invoice', [SalesOrderController::class, 'invoice'])->name('sales-orders.invoice');
     Route::get('/items/by-godown/{godown}', [SaleController::class, 'getItemsByGodown']);
-    
+
     Route::resource('received-modes', ReceivedModeController::class);
     Route::resource('received-add', ReceivedAddController::class);
     Route::get('/received-add/{receivedAdd}/print', [ReceivedAddController::class, 'print'])->name('received-add.print');
@@ -105,7 +114,21 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::resource('working-orders', ProductionController::class);
     Route::post('/production/{id}/mark-as-produced', [ProductionController::class, 'markAsProduced'])->name('production.markAsProduced');
     Route::resource('finished-products', FinishedProductController::class);
-    
+    Route::get(
+        'finished-products/{id}/print',
+        [FinishedProductController::class, 'print']
+    )->name('finished-products.print');
+
+
+    // Tawhid Add
+    Route::resource('departments', DepartmentController::class);
+    Route::resource('designations', DesignationController::class);
+    Route::resource('shifts', ShiftController::class);
+    Route::resource('employees', EmployeeController::class);
+    // Salary
+    Route::resource('salary-slips', SalarySlipController::class);
+    Route::get('/salary-slips/{salarySlip}/invoice', [SalarySlipController::class, 'invoice'])->name('salary-slips.invoice');
+    Route::resource('salary-receives', SalaryReceiveController::class);
 });
 
 require __DIR__ . '/settings.php';

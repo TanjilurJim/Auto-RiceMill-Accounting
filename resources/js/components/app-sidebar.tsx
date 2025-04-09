@@ -11,6 +11,7 @@ import {
     Boxes,
     Building2,
     ClipboardList,
+    Factory,
     FileText,
     Folder,
     FolderKanban,
@@ -29,8 +30,8 @@ import {
     Users,
     Wallet,
     Workflow,
-    Factory,
 } from 'lucide-react';
+import { FiSettings, FiHome, FiAward, FiClock, FiUsers } from 'react-icons/fi';
 import AppLogo from './app-logo';
 
 interface Role {
@@ -156,7 +157,6 @@ const mainNavItems: NavItem[] = [
                 href: '/stock-transfers',
                 icon: Notebook,
             },
-            
 
             // Later you can add more inventory-related items here (e.g., Products, Stock Transfers, etc.)
         ],
@@ -175,12 +175,49 @@ const mainNavItems: NavItem[] = [
                 href: '/finished-products',
                 icon: Workflow,
             },
-            
-            
-
-        ]
-
+        ],
     },
+
+    {
+        title: 'Payroll',
+        icon: FiSettings,
+
+        children: [
+            {
+                title: 'Departament',
+                href: '/departments',
+                icon: FiHome,
+            },
+            {
+                title: 'Designation',
+                href: '/designations',
+                icon: FiAward,
+            },
+            {
+                title: 'Shift',
+                href: '/shifts',
+                icon: FiClock,
+            },
+            {
+                title: 'Employees',
+                href: '/employees',
+                icon: FiUsers,
+            },
+            {
+                title: 'Salary Payment',
+                href: '/salary-slips',
+                icon: FiUsers,
+            },
+            {
+                title: 'Salary Receive',
+                href: '/salary-receives',
+                icon: FiUsers,
+            },
+
+            // Later you can add more inventory-related items here (e.g., Products, Stock Transfers, etc.)
+        ],
+    },
+
     {
         title: 'Settings',
         icon: Settings2,

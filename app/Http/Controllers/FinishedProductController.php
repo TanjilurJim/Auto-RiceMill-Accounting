@@ -160,8 +160,18 @@ class FinishedProductController extends Controller
         $finishedProduct = FinishedProduct::with(['items.product', 'items.godown', 'workingOrder'])
             ->findOrFail($id);
 
-        return view('finished-products.print', compact('finishedProduct'));
+        $totalAmount = $finishedProduct->items->sum('total');
+        $amountInWords = numberToWords($totalAmount); // using your helper
+
+        $company = \App\Models\CompanySetting::where('created_by', auth()->id())->first();
+
+        return Inertia::render('finished-products/print', [
+            'finishedProduct' => $finishedProduct,
+            'company' => $company,
+            'amountInWords' => $amountInWords,
+        ]);
     }
+
 
     // Controller update for edit + update
 
