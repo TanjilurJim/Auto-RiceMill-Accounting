@@ -18,11 +18,18 @@ class SalesOrderController extends Controller
     //
     public function index()
     {
-        $salesOrders = SalesOrder::with('ledger', 'salesman', 'items.product')->latest()->paginate(10);
-
+        $salesOrders = SalesOrder::query()
+            ->with('ledger', 'salesman', 'items.product')
+            ->when(!auth()->user()->hasRole('admin'), function ($query) {
+                $query->where('created_by', auth()->id());
+            })
+            ->latest()
+            ->paginate(10);
 
         return Inertia::render('sales-orders/index', [
-            'salesOrders' => $salesOrders
+            'salesOrders' => $salesOrders,
+            'currentPage' => $salesOrders->currentPage(),
+            'perPage' => $salesOrders->perPage(),
         ]);
     }
 
@@ -84,6 +91,7 @@ class SalesOrderController extends Controller
             'delivered_to' => $data['delivered_to'],
             'total_qty' => collect($data['items'])->sum('quantity'),
             'total_amount' => collect($data['items'])->sum('subtotal'),
+            'created_by' => auth()->id(),
         ]);
 
         foreach ($data['items'] as $item) {

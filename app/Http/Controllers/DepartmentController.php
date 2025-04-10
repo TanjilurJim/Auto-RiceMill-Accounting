@@ -12,8 +12,12 @@ class DepartmentController extends Controller
     public function index()
     {
         // Get all departments with creator relationship
-        $departments = Department::with('creator')->get();
-        
+        $departments = Department::with('creator')
+            ->when(!auth()->user()->hasRole('admin'), function ($query) {
+                $query->where('created_by', auth()->id());
+            })
+            ->get();
+
         // Return the index view with departments data using Inertia
         return Inertia::render('departments/index', [
             'departments' => $departments

@@ -16,6 +16,7 @@ class SalaryReceive extends Model
         'received_by',
         'amount',
         'description',
+        'created_by',
     ];
 
     // Relationship to Employee model
@@ -28,5 +29,9 @@ class SalaryReceive extends Model
     public function receivedMode()
     {
         return $this->belongsTo(ReceivedMode::class, 'received_by');
+    }
+    public function journal()
+    {
+        return $this->belongsTo(Journal::class);
     }
 }

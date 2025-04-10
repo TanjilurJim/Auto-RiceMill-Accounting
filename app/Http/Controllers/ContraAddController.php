@@ -26,8 +26,9 @@ class ContraAddController extends Controller
     public function create()
     {
         return Inertia::render('contra-add/create', [
-            'paymentModes' => ReceivedMode::select('id', 'mode_name', 'opening_balance', 'closing_balance')->get()
-
+            'paymentModes' => ReceivedMode::select('id', 'mode_name', 'opening_balance', 'closing_balance')
+                ->when(!auth()->user()->hasRole('admin'), fn($q) => $q->where('created_by', auth()->id()))
+                ->get(),
         ]);
     }
 
@@ -75,12 +76,12 @@ class ContraAddController extends Controller
     public function edit($id)
     {
         $contra = ContraAdd::where('id', $id)
-            ->when(!auth()->user()->hasRole('admin'), function ($q) {
-                $q->where('created_by', auth()->id());
-            })
+            ->when(!auth()->user()->hasRole('admin'), fn($q) => $q->where('created_by', auth()->id()))
             ->firstOrFail();
 
-        $modes = ReceivedMode::select('id', 'mode_name')->get();
+        $modes = ReceivedMode::select('id', 'mode_name')
+            ->when(!auth()->user()->hasRole('admin'), fn($q) => $q->where('created_by', auth()->id()))
+            ->get();
 
         return Inertia::render('contra-add/edit', [
             'contra' => $contra,

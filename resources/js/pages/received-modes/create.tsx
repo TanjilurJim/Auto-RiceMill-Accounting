@@ -1,5 +1,8 @@
 import AppLayout from '@/layouts/app-layout';
-import { Head, useForm } from '@inertiajs/react';
+import { Head, useForm, usePage } from '@inertiajs/react';
+import { PageProps } from '@/types';
+import { AccountLedger } from '@/types'; 
+
 import React from 'react';
 
 export default function Create() {
@@ -8,7 +11,9 @@ export default function Create() {
         opening_balance: '',
         closing_balance: '',
         phone_number: '',
+        ledger_id: '',
     });
+    const { ledgers } = usePage<PageProps<{ ledgers: AccountLedger[] }>>().props;
 
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
@@ -57,6 +62,22 @@ export default function Create() {
                                 {errors.phone_number && <p className="mt-1 text-xs text-red-500">{errors.phone_number}</p>}
                             </div>
 
+                            <div>
+                                <label className="mb-2 block text-sm font-medium text-gray-700">Ledger</label>
+                                <select
+                                    value={data.ledger_id}
+                                    onChange={(e) => setData('ledger_id', e.target.value)}
+                                    className="block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring focus:ring-blue-200"
+                                >
+                                    <option value="">Select Ledger</option>
+                                    {ledgers.map((ledger) => (
+                                        <option key={ledger.id} value={ledger.id}>
+                                            {ledger.account_ledger_name} ({ledger.reference_number})
+                                        </option>
+                                    ))}
+                                </select>
+                                {errors.ledger_id && <p className="mt-1 text-xs text-red-500">{errors.ledger_id}</p>}
+                            </div>
                             {/* Opening Balance */}
                             <div>
                                 <label className="mb-2 block text-sm font-medium text-gray-700">Opening Balance</label>

@@ -12,6 +12,8 @@ class SalarySlip extends Model
     protected $fillable = [
         'voucher_number',
         'date',
+        'month',         // ✅ add this
+        'year',          // ✅ and this
         'created_by',
     ];
 

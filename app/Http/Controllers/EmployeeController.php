@@ -15,7 +15,12 @@ class EmployeeController extends Controller
     public function index()
     {
         // Fetch all employees with related data (department, designation, shift, reference_by)
-        $employees = Employee::with('department', 'designation', 'shift', 'referenceBy')->get();
+        $employees = Employee::query()
+            ->with('department', 'designation', 'shift', 'referenceBy')
+            ->when(!auth()->user()->hasRole('admin'), function ($query) {
+                $query->where('created_by', auth()->id());
+            })
+            ->get();
 
         // Return Inertia view with employee data
         return Inertia::render('employees/index', [
@@ -26,10 +31,18 @@ class EmployeeController extends Controller
     public function create()
     {
         // Fetch all the required relations data (departments, designations, shifts, references)
-        $departments = Department::all();
-        $designations = Designation::all();
-        $shifts = Shift::all();
-        $references = Employee::all(); // Assuming employees can refer to other employees
+        $departments = Department::when(!auth()->user()->hasRole('admin'), function ($q) {
+            $q->where('created_by', auth()->id());
+        })->get();
+        $designations = Designation::when(!auth()->user()->hasRole('admin'), function ($q) {
+            $q->where('created_by', auth()->id());
+        })->get();
+        $shifts = Shift::when(!auth()->user()->hasRole('admin'), function ($q) {
+            $q->where('created_by', auth()->id());
+        })->get();
+        $references = Employee::when(!auth()->user()->hasRole('admin'), function ($q) {
+            $q->where('created_by', auth()->id());
+        })->get(); // Assuming employees can refer to other employees
 
         // Return the create view
         return Inertia::render('employees/create', [
@@ -85,13 +98,15 @@ class EmployeeController extends Controller
 
     public function edit(Employee $employee)
     {
-        // Fetch required data for the edit view
+        if (!auth()->user()->hasRole('admin') && $employee->created_by !== auth()->id()) {
+            abort(403, 'Unauthorized');
+        }
+
         $departments = Department::all();
         $designations = Designation::all();
         $shifts = Shift::all();
-        $references = Employee::all(); // Assuming employees can refer to other employees
+        $references = Employee::all();
 
-        // Return the edit view
         return Inertia::render('employees/edit', [
             'employee' => $employee,
             'departments' => $departments,

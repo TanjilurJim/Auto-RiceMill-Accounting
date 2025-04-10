@@ -12,5 +12,16 @@ class ReceivedMode extends Model
         'opening_balance',
         'closing_balance',
         'phone_number',
+        'ledger_id',
+        'created_by',
     ];
+
+    public function ledger()
+    {
+        return $this->belongsTo(AccountLedger::class, 'ledger_id');
+    }
+    public function creator()
+    {
+        return $this->belongsTo(User::class, 'created_by');
+    }
 }

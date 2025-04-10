@@ -11,7 +11,11 @@ class DesignationController extends Controller
     public function index()
     {
         // Fetch all designations with their creator
-        $designations = Designation::with('creator')->get();
+        $designations = Designation::with('creator')
+            ->when(!auth()->user()->hasRole('admin'), function ($query) {
+                $query->where('created_by', auth()->id());
+            })
+            ->get();
 
         // Return Inertia view with data
         return Inertia::render('designations/index', [

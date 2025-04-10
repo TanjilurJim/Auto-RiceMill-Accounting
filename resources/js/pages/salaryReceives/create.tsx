@@ -24,7 +24,7 @@ export default function SalaryReceiveCreate({ employees, receivedModes }) {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    post('/salary-receives', { data });
+    post('/salary-receives');
   };
 
   return (

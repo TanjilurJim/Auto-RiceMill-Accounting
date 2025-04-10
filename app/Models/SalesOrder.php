@@ -18,6 +18,7 @@ class SalesOrder extends Model
         'delivered_to',
         'total_qty',
         'total_amount',
+        'created_by',
     ];
 
     public function ledger()
@@ -33,5 +34,9 @@ class SalesOrder extends Model
     public function items()
     {
         return $this->hasMany(SalesOrderItem::class);
+    }
+    public function creator()
+    {
+        return $this->belongsTo(User::class, 'created_by');
     }
 }

@@ -11,8 +11,12 @@ class ShiftController extends Controller
     public function index()
     {
         // Fetch all shifts with their creator
-        $shifts = Shift::with('creator')->get();
-        
+        $shifts = Shift::with('creator')
+            ->when(!auth()->user()->hasRole('admin'), function ($query) {
+                $query->where('created_by', auth()->id());
+            })
+            ->get();
+
         // Return the index view with data
         return Inertia::render('shifts/index', [
             'shifts' => $shifts

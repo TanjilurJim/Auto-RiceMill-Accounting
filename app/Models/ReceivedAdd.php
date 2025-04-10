@@ -14,6 +14,7 @@ class ReceivedAdd extends Model
         'amount',
         'description',
         'send_sms',
+        'created_by',
     ];
 
     public function receivedMode()
@@ -24,5 +25,9 @@ class ReceivedAdd extends Model
     public function accountLedger()
     {
         return $this->belongsTo(AccountLedger::class);
+    }
+    public function creator()
+    {
+        return $this->belongsTo(User::class, 'created_by');
     }
 }

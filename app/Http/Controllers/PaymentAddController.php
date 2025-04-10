@@ -59,7 +59,9 @@ class PaymentAddController extends Controller
         return Inertia::render('payment-add/index', [
             'paymentAdds' => $paymentAdds,
             'filters' => $request->only(['search', 'payment_mode_id', 'from_date', 'to_date']),
-            'paymentModes' => ReceivedMode::select('id', 'mode_name')->get(),
+            'paymentModes' => ReceivedMode::select('id', 'mode_name')
+                ->when(!auth()->user()->hasRole('admin'), fn($q) => $q->where('created_by', auth()->id()))
+                ->get(),
         ]);
     }
 
@@ -73,7 +75,9 @@ class PaymentAddController extends Controller
     public function create()
     {
         return Inertia::render('payment-add/create', [
-            'paymentModes' => ReceivedMode::select('id', 'mode_name', 'opening_balance', 'closing_balance')->get(),
+            'paymentModes' => ReceivedMode::select('id', 'mode_name', 'opening_balance', 'closing_balance')
+                ->when(!auth()->user()->hasRole('admin'), fn($q) => $q->where('created_by', auth()->id()))
+                ->get(),
             'accountLedgers' => AccountLedger::when(!auth()->user()->hasRole('admin'), fn($q) => $q->where('created_by', auth()->id()))->get(),
         ]);
     }

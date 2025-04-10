@@ -14,9 +14,20 @@ class ReceivedAddController extends Controller
 {
     public function create()
     {
+        $query = ReceivedMode::query();
+        $ledgerQuery = AccountLedger::query();
+
+        // Only show own data if not admin
+        if (!auth()->user()->hasRole('admin')) {
+            $query->where('created_by', auth()->id());
+            $ledgerQuery->where('created_by', auth()->id());
+        }
+
         return Inertia::render('received-add/create', [
-            'receivedModes' => ReceivedMode::select('id', 'mode_name')->get(),
-            'accountLedgers' => AccountLedger::select('id', 'account_ledger_name', 'phone_number', 'opening_balance', 'closing_balance')->get(),
+            'receivedModes' => $query->select('id', 'mode_name')->get(),
+            'accountLedgers' => $ledgerQuery
+                ->select('id', 'account_ledger_name', 'phone_number', 'opening_balance', 'closing_balance')
+                ->get(),
         ]);
     }
 
@@ -33,7 +44,10 @@ class ReceivedAddController extends Controller
         ]);
 
         // Create the received entry
-        $received = ReceivedAdd::create($request->all());
+        $received = ReceivedAdd::create([
+            ...$request->all(),
+            'created_by' => auth()->id(), // ✅ track the user
+        ]);
 
         // Fetch the ledger and update its balance
         $ledger = AccountLedger::findOrFail($request->account_ledger_id);
@@ -53,10 +67,17 @@ class ReceivedAddController extends Controller
 
     public function index()
     {
+        $receivedAdds = ReceivedAdd::with(['receivedMode', 'accountLedger'])
+            ->when(!auth()->user()->hasRole('admin'), function ($query) {
+                $query->where('created_by', auth()->id());
+            })
+            ->orderByDesc('date')
+            ->paginate(10);
+
         return Inertia::render('received-add/index', [
-            'receivedAdds' => ReceivedAdd::with(['receivedMode', 'accountLedger'])
-                ->orderByDesc('date')
-                ->paginate(10),
+            'receivedAdds' => $receivedAdds,
+            'currentPage' => $receivedAdds->currentPage(),
+            'perPage' => $receivedAdds->perPage(),
         ]);
     }
 

@@ -16,20 +16,19 @@ interface Employee {
 }
 
 export default function EmployeeIndex({ employees }: { employees: Employee[] }) {
-
     const handleDelete = (id: number) => {
         Swal.fire({
-            title: "Are you sure?",
-            text: "This action cannot be undone!",
-            icon: "warning",
+            title: 'Are you sure?',
+            text: 'This action cannot be undone!',
+            icon: 'warning',
             showCancelButton: true,
-            confirmButtonColor: "#d33",
-            cancelButtonColor: "#3085d6",
-            confirmButtonText: "Yes, delete it!"
+            confirmButtonColor: '#d33',
+            cancelButtonColor: '#3085d6',
+            confirmButtonText: 'Yes, delete it!',
         }).then((result) => {
             if (result.isConfirmed) {
                 router.delete(`/employees/${id}`);
-                Swal.fire("Deleted!", "Employee has been deleted.", "success");
+                Swal.fire('Deleted!', 'Employee has been deleted.', 'success');
             }
         });
     };
@@ -38,59 +37,64 @@ export default function EmployeeIndex({ employees }: { employees: Employee[] }) 
         <AppLayout>
             <Head title="Employees" />
             <div className="p-6">
-                {/* Page Header */}
-                <div className="flex flex-wrap items-center justify-between mb-6">
-                    <h1 className="text-2xl font-bold">Employees</h1>
-                    <Link href="/employees/create" className="px-4 py-2 rounded bg-green-600 text-white hover:bg-green-700">
-                        + Add New
+                {/* Header */}
+                <div className="mb-6 flex items-center justify-between">
+                    <h1 className="text-2xl font-semibold text-gray-800">Employees</h1>
+                    <Link
+                        href="/employees/create"
+                        className="rounded-md bg-green-600 px-4 py-2 text-white shadow hover:bg-green-700"
+                    >
+                        + Add Employee
                     </Link>
                 </div>
 
-                {/* Employee Table */}
-                <div className="overflow-x-auto bg-white shadow-md rounded-lg dark:bg-neutral-900">
-                    <table className="min-w-full border-collapse border border-gray-200 dark:border-neutral-700">
-                        <thead className="bg-gray-100 dark:bg-neutral-800">
+                {/* Table */}
+                <div className="overflow-x-auto rounded-lg border bg-white shadow-sm dark:border-neutral-800 dark:bg-neutral-900">
+                    <table className="min-w-full divide-y divide-gray-200 text-sm dark:divide-neutral-700">
+                        <thead className="bg-gray-50 dark:bg-neutral-800">
                             <tr>
-                                <th className="py-2 px-4 border">#</th>
-                                <th className="py-2 px-4 border">Name</th>
-                                <th className="py-2 px-4 border">Email</th>
-                                <th className="py-2 px-4 border">Mobile</th>
-                                <th className="py-2 px-4 border">Salary</th>
-                                <th className="py-2 px-4 border">Department</th>
-                                <th className="py-2 px-4 border">Designation</th>
-                                <th className="py-2 px-4 border">Shift</th>
-                                <th className="py-2 px-4 border">Status</th>
-                                <th className="py-2 px-4 border text-center">Actions</th>
+                                <th className="px-4 py-3 text-left font-medium text-gray-700 dark:text-white">#</th>
+                                <th className="px-4 py-3 text-left font-medium text-gray-700 dark:text-white">Name</th>
+                                <th className="px-4 py-3 text-left font-medium text-gray-700 dark:text-white">Email</th>
+                                <th className="px-4 py-3 text-left font-medium text-gray-700 dark:text-white">Mobile</th>
+                                <th className="px-4 py-3 text-left font-medium text-gray-700 dark:text-white">Salary</th>
+                                <th className="px-4 py-3 text-left font-medium text-gray-700 dark:text-white">Department</th>
+                                <th className="px-4 py-3 text-left font-medium text-gray-700 dark:text-white">Designation</th>
+                                <th className="px-4 py-3 text-left font-medium text-gray-700 dark:text-white">Shift</th>
+                                <th className="px-4 py-3 text-left font-medium text-gray-700 dark:text-white">Status</th>
+                                <th className="px-4 py-3 text-center font-medium text-gray-700 dark:text-white">Actions</th>
                             </tr>
                         </thead>
-                        <tbody>
+                        <tbody className="divide-y divide-gray-100 dark:divide-neutral-800">
                             {employees.map((employee, index) => (
-                                <tr key={employee.id} className="border-t border-gray-200 dark:border-neutral-700 text-gray-700 dark:text-white hover:bg-gray-100 dark:hover:bg-neutral-800">
-                                    <td className="py-2 px-4 text-center">{index + 1}</td>
-                                    <td className="py-2 px-4">{employee.name}</td>
-                                    <td className="py-2 px-4">{employee.email}</td>
-                                    <td className="py-2 px-4">{employee.mobile}</td>
-                                    <td className="py-2 px-4">{employee.salary}</td>
-                                    <td className="py-2 px-4">{employee.department.name}</td>
-                                    <td className="py-2 px-4">{employee.designation.name}</td>
-                                    <td className="py-2 px-4">{employee.shift.name}</td>
-                                    <td className="py-2 px-4">{employee.status}</td>
-                                    <td className="py-2 px-4 flex justify-center space-x-2">
-                                        {/* Edit button */}
-                                        <Link 
-                                            href={`/employees/${employee.id}/edit`} 
-                                            className="px-3 py-1 text-sm rounded bg-yellow-500 text-white hover:bg-yellow-600"
-                                        >
-                                            Edit
-                                        </Link>
-
-                                        {/* Delete button */}
-                                        <button 
-                                            onClick={() => handleDelete(employee.id)} 
-                                            className="px-3 py-1 text-sm rounded bg-red-600 text-white hover:bg-red-700"
-                                        >
-                                            Delete
-                                        </button>
+                                <tr
+                                    key={employee.id}
+                                    className="hover:bg-gray-50 dark:hover:bg-neutral-800"
+                                >
+                                    <td className="px-4 py-2 text-gray-800 dark:text-white">{index + 1}</td>
+                                    <td className="px-4 py-2 text-gray-800 dark:text-white">{employee.name}</td>
+                                    <td className="px-4 py-2 text-gray-800 dark:text-white">{employee.email}</td>
+                                    <td className="px-4 py-2 text-gray-800 dark:text-white">{employee.mobile}</td>
+                                    <td className="px-4 py-2 text-gray-800 dark:text-white">{employee.salary}</td>
+                                    <td className="px-4 py-2 text-gray-800 dark:text-white">{employee.department.name}</td>
+                                    <td className="px-4 py-2 text-gray-800 dark:text-white">{employee.designation.name}</td>
+                                    <td className="px-4 py-2 text-gray-800 dark:text-white">{employee.shift.name}</td>
+                                    <td className="px-4 py-2 text-gray-800 dark:text-white">{employee.status}</td>
+                                    <td className="px-4 py-2 text-center">
+                                        <div className="inline-flex gap-2">
+                                            <Link
+                                                href={`/employees/${employee.id}/edit`}
+                                                className="rounded bg-yellow-500 px-3 py-1 text-white hover:bg-yellow-600"
+                                            >
+                                                Edit
+                                            </Link>
+                                            <button
+                                                onClick={() => handleDelete(employee.id)}
+                                                className="rounded bg-red-600 px-3 py-1 text-white hover:bg-red-700"
+                                            >
+                                                Delete
+                                            </button>
+                                        </div>
                                     </td>
                                 </tr>
                             ))}
