@@ -144,6 +144,38 @@ class SalarySlipController extends Controller
         return redirect()->route('salary-slips.index')->with('success', 'Salary slip updated successfully!');
     }
 
+    public function show(SalarySlip $salarySlip)
+    {
+        $salarySlip->load([
+            'salarySlipEmployees.employee.designation',
+            'creator', // if you want to show who created it
+        ]);
+
+        return Inertia::render('salarySlips/show', [
+            'salarySlip' => [
+                'id' => $salarySlip->id,
+                'voucher_number' => $salarySlip->voucher_number,
+                'date' => $salarySlip->date,
+                'month' => $salarySlip->month,
+                'year' => $salarySlip->year,
+                'created_at' => $salarySlip->created_at->toDateTimeString(),
+                'employees' => $salarySlip->salarySlipEmployees->map(function ($entry) {
+                    return [
+                        'id' => $entry->id,
+                        'employee_name' => $entry->employee->name,
+                        'designation' => $entry->employee->designation->name ?? '',
+                        'basic_salary' => $entry->basic_salary,
+                        'additional_amount' => $entry->additional_amount,
+                        'total_amount' => $entry->total_amount,
+                        'paid_amount' => $entry->paid_amount,
+                        'status' => $entry->status ?? 'Unpaid',
+                    ];
+                }),
+            ]
+        ]);
+    }
+
+
     // Delete salary slip
     public function destroy(SalarySlip $salarySlip)
     {

@@ -1,148 +1,150 @@
 import AppLayout from '@/layouts/app-layout';
-import { Head, useForm, Link } from '@inertiajs/react'; // <-- Import Link here
-import { useEffect } from 'react';
+import { Head, useForm, Link } from '@inertiajs/react';
+import React from 'react';
 
-export default function SalaryReceiveEdit({ salaryReceive, employees, receivedModes }) {
-  // Use useForm hook to initialize form data with existing salaryReceive data
-  const { data, setData, put, processing, errors } = useForm({
-    vch_no: salaryReceive.vch_no || '',
-    date: salaryReceive.date || '',
-    employee_id: salaryReceive.employee_id|| '',
-    received_by: salaryReceive.receivedMode || '',
-    amount: salaryReceive.amount || '',
-    description: salaryReceive.description || '',
-  });
+export default function Edit({ salaryReceive, employees, receivedModes, salarySlipEmployees }: any) {
+    console.log('SalaryReceive object from server:', salaryReceive);
+    
+    const { data, setData, put, processing, errors } = useForm({
+        vch_no: salaryReceive.vch_no || '',
+        date: salaryReceive.date || '',
+        employee_id: salaryReceive.employee?.id || '',
+        received_by: salaryReceive.received_mode?.id || '',
+        amount: salaryReceive.amount || '',
+        description: salaryReceive.description || '',
+        salary_slip_employee_id: salaryReceive.salary_slip_employee?.id || '',
+    });
 
-  // Handle form submit
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    put(`/salary-receives/${salaryReceive.id}`, { data });
-  };
+    const handleSubmit = (e: React.FormEvent) => {
+        e.preventDefault();
+        put(route('salary-receives.update', salaryReceive.id));
+    };
 
-  return (
-    <AppLayout>
-      <Head title="Edit Salary Receive" />
-      <div className="bg-gray-50 min-h-screen flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
-        <div className="max-w-lg w-full space-y-8 bg-white shadow-lg rounded-lg p-8">
-          <h1 className="text-3xl font-bold text-center text-gray-700">Edit Salary Receive</h1>
-          <form onSubmit={handleSubmit} className="space-y-6">
-            {/* Voucher Number */}
-            <div className="flex flex-col">
-              <label htmlFor="vch_no" className="text-sm font-medium text-gray-700">Voucher Number</label>
-              <input
-                type="text"
-                id="vch_no"
-                name="vch_no"
-                value={data.vch_no}
-                readOnly
-                className="mt-1 px-4 py-2 border border-gray-300 rounded-md focus:ring-indigo-500 focus:border-indigo-500"
-              />
-              {errors.vch_no && <p className="text-sm text-red-500">{errors.vch_no}</p>}
+    return (
+        <AppLayout>
+            <Head title="Edit Salary Receive" />
+
+            <div className="max-w-3xl mx-auto mt-10 bg-white p-6 rounded shadow">
+                <h1 className="text-xl font-bold mb-6">Edit Salary Receive</h1>
+                <form onSubmit={handleSubmit} className="space-y-4">
+                    {/* Voucher No (read-only) */}
+                    <div>
+                        <label className="block mb-1 font-medium">Voucher No</label>
+                        <input
+                            type="text"
+                            value={data.vch_no}
+                            readOnly
+                            className="w-full border px-3 py-2 rounded bg-gray-100 text-gray-600 cursor-not-allowed"
+                        />
+                        {errors.vch_no && <div className="text-red-500 text-sm">{errors.vch_no}</div>}
+                    </div>
+
+                    {/* Date */}
+                    <div>
+                        <label className="block mb-1 font-medium">Date</label>
+                        <input
+                            type="date"
+                            value={data.date}
+                            onChange={(e) => setData('date', e.target.value)}
+                            className="w-full border px-3 py-2 rounded"
+                        />
+                        {errors.date && <div className="text-red-500 text-sm">{errors.date}</div>}
+                    </div>
+
+                    {/* Employee */}
+                    <div>
+                        <label className="block mb-1 font-medium">Employee</label>
+                        <select
+                            value={data.employee_id}
+                            onChange={(e) => setData('employee_id', e.target.value)}
+                            className="w-full border px-3 py-2 rounded"
+                        >
+                            <option value="">Select employee</option>
+                            {employees.map((emp: any) => (
+                                <option key={emp.id} value={emp.id}>
+                                    {emp.name}
+                                </option>
+                            ))}
+                        </select>
+                        {errors.employee_id && <div className="text-red-500 text-sm">{errors.employee_id}</div>}
+                    </div>
+
+                    {/* Received Mode */}
+                    <div>
+                        <label className="block mb-1 font-medium">Received By</label>
+                        <select
+                            value={data.received_by}
+                            onChange={(e) => setData('received_by', e.target.value)}
+                            className="w-full border px-3 py-2 rounded"
+                        >
+                            <option value="">Select mode</option>
+                            {receivedModes.map((mode: any) => (
+                                <option key={mode.id} value={mode.id}>
+                                    {mode.mode_name}
+                                </option>
+                            ))}
+                        </select>
+                        {errors.received_by && <div className="text-red-500 text-sm">{errors.received_by}</div>}
+                    </div>
+
+                    {/* Amount */}
+                    <div>
+                        <label className="block mb-1 font-medium">Amount</label>
+                        <input
+                            type="number"
+                            value={data.amount}
+                            onChange={(e) => setData('amount', e.target.value)}
+                            className="w-full border px-3 py-2 rounded"
+                        />
+                        {errors.amount && <div className="text-red-500 text-sm">{errors.amount}</div>}
+                    </div>
+
+                    {/* Salary Slip Reference */}
+                    <div>
+                        <label className="block mb-1 font-medium">Salary Slip Reference (optional)</label>
+                        <select
+                            value={data.salary_slip_employee_id}
+                            onChange={(e) => setData('salary_slip_employee_id', e.target.value)}
+                            className="w-full border px-3 py-2 rounded"
+                        >
+                            <option value="">None</option>
+                            {salarySlipEmployees.map((sse: any) => (
+                                <option key={sse.id} value={sse.id}>
+                                    {`${sse.salary_slip.voucher_no} - ${sse.employee.name} (${sse.status})`}
+                                </option>
+                            ))}
+                        </select>
+                        {errors.salary_slip_employee_id && (
+                            <div className="text-red-500 text-sm">{errors.salary_slip_employee_id}</div>
+                        )}
+                    </div>
+
+                    {/* Description */}
+                    <div>
+                        <label className="block mb-1 font-medium">Description</label>
+                        <textarea
+                            value={data.description}
+                            onChange={(e) => setData('description', e.target.value)}
+                            className="w-full border px-3 py-2 rounded"
+                        />
+                        {errors.description && <div className="text-red-500 text-sm">{errors.description}</div>}
+                    </div>
+
+                    {/* Action Buttons */}
+                    <div className="flex justify-between items-center">
+                        <Link href={route('salary-receives.index')} className="text-gray-600 underline">
+                            Cancel
+                        </Link>
+                        <button
+                            type="submit"
+                            disabled={processing}
+                            className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700"
+                        >
+                            Update
+                        </button>
+                    </div>
+                </form>
             </div>
-
-            {/* Date */}
-            <div className="flex flex-col">
-              <label htmlFor="date" className="text-sm font-medium text-gray-700">Date</label>
-              <input
-                type="date"
-                id="date"
-                name="date"
-                value={data.date}
-                onChange={(e) => setData('date', e.target.value)}
-                required
-                className="mt-1 px-4 py-2 border border-gray-300 rounded-md focus:ring-indigo-500 focus:border-indigo-500"
-              />
-              {errors.date && <p className="text-sm text-red-500">{errors.date}</p>}
-            </div>
-
-            {/* Employee Selection */}
-            <div className="flex flex-col">
-              <label htmlFor="employee_id" className="text-sm font-medium text-gray-700">Employee</label>
-              <select
-                id="employee_id"
-                name="employee_id"
-                value={data.employee_id}
-                onChange={(e) => setData('employee_id', e.target.value)}
-                required
-                className="mt-1 px-4 py-2 border border-gray-300 rounded-md focus:ring-indigo-500 focus:border-indigo-500"
-              >
-                {employees.map((emp) => (
-                  <option key={emp.id} value={emp.id}>{emp.name}</option>
-                ))}
-              </select>
-              {errors.employee_id && <p className="text-sm text-red-500">{errors.employee_id}</p>}
-            </div>
-
-            {/* Received Mode Selection */}
-            <div className="flex flex-col">
-              <label htmlFor="received_by" className="text-sm font-medium text-gray-700">Received Mode</label>
-              <select
-                id="received_by"
-                name="received_by"
-                value={data.received_by}
-                onChange={(e) => setData('received_by', e.target.value)}
-                required
-                className="mt-1 px-4 py-2 border border-gray-300 rounded-md focus:ring-indigo-500 focus:border-indigo-500"
-              >
-                {receivedModes.map((mode) => (
-                  <option key={mode.id} value={mode.id}>{mode.mode_name}</option>
-                ))}
-              </select>
-              {errors.received_by && <p className="text-sm text-red-500">{errors.received_by}</p>}
-            </div>
-
-            {/* Amount */}
-            <div className="flex flex-col">
-              <label htmlFor="amount" className="text-sm font-medium text-gray-700">Amount</label>
-              <input
-                type="number"
-                id="amount"
-                name="amount"
-                value={data.amount}
-                onChange={(e) => setData('amount', e.target.value)}
-                required
-                className="mt-1 px-4 py-2 border border-gray-300 rounded-md focus:ring-indigo-500 focus:border-indigo-500"
-              />
-              {errors.amount && <p className="text-sm text-red-500">{errors.amount}</p>}
-            </div>
-
-            {/* Description */}
-            <div className="flex flex-col">
-              <label htmlFor="description" className="text-sm font-medium text-gray-700">Description (Optional)</label>
-              <textarea
-                id="description"
-                name="description"
-                value={data.description}
-                onChange={(e) => setData('description', e.target.value)}
-                placeholder="Enter description"
-                className="mt-1 px-4 py-2 border border-gray-300 rounded-md focus:ring-indigo-500 focus:border-indigo-500"
-              />
-              {errors.description && <p className="text-sm text-red-500">{errors.description}</p>}
-            </div>
-
-            {/* Submit Button */}
-            <div className="flex justify-center">
-              <button
-                type="submit"
-                disabled={processing}
-                className="mt-4 w-full py-2 px-4 bg-indigo-600 text-white font-semibold rounded-md hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2"
-              >
-                {processing ? 'Saving...' : 'Save'}
-              </button>
-            </div>
-
-            {/* Back Link */}
-            <div className="flex justify-center mt-4">
-              <Link
-                href="/salary-receives"
-                className="text-sm text-indigo-600 hover:text-indigo-700"
-              >
-                Back to Salary Receives
-              </Link>
-            </div>
-          </form>
-        </div>
-      </div>
-    </AppLayout>
-  );
+        </AppLayout>
+    );
 }

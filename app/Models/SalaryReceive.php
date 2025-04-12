@@ -17,6 +17,7 @@ class SalaryReceive extends Model
         'amount',
         'description',
         'created_by',
+        'salary_slip_employee_id',
     ];
 
     // Relationship to Employee model
@@ -33,5 +34,13 @@ class SalaryReceive extends Model
     public function journal()
     {
         return $this->belongsTo(Journal::class);
+    }
+    public function salarySlipEmployee()
+    {
+        return $this->belongsTo(SalarySlipEmployee::class);
+    }
+    public function creator()
+    {
+        return $this->belongsTo(User::class, 'created_by');
     }
 }

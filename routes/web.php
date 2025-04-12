@@ -128,7 +128,9 @@ Route::middleware(['auth', 'verified'])->group(function () {
     // Salary
     Route::resource('salary-slips', SalarySlipController::class);
     Route::get('/salary-slips/{salarySlip}/invoice', [SalarySlipController::class, 'invoice'])->name('salary-slips.invoice');
-    Route::resource('salary-receives', SalaryReceiveController::class);
+    Route::resource('salary-receives', SalaryReceiveController::class)->parameters([
+        'salary-receives' => 'salaryReceive',
+    ]);
 });
 
 require __DIR__ . '/settings.php';

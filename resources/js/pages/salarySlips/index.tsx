@@ -4,6 +4,7 @@ import { useState } from 'react';
 import Select from 'react-select';
 import CreatableSelect from 'react-select/creatable';
 import Swal from 'sweetalert2';
+import { route } from 'ziggy-js';
 
 interface Employee {
     id: number;
@@ -152,7 +153,7 @@ export default function SalarySlipIndex({ salarySlips, employees }: Props) {
                                 <th className="border px-3 py-2">Date</th>
                                 <th className="border px-3 py-2">Salary For</th>
                                 <th className="border px-3 py-2">Total</th>
-                                <th className="border px-3 py-2">Status</th>
+                                <th className="border px-3 py-2">Status Journal</th>
                                 <th className="border px-3 py-2 text-center">Actions</th>
                             </tr>
                         </thead>
@@ -197,7 +198,7 @@ export default function SalarySlipIndex({ salarySlips, employees }: Props) {
                                                 <td className="border px-3 py-2 text-center">
                                                     <div className="flex justify-center gap-2">
                                                         <Link
-                                                            href={`/salary-slips/${salarySlip.id}/invoice`}
+                                                            href={route('salary-slips.show', salarySlip.id)}
                                                             className="rounded bg-blue-600 px-2 py-1 text-xs text-white hover:bg-blue-700"
                                                         >
                                                             View
@@ -228,6 +229,8 @@ export default function SalarySlipIndex({ salarySlips, employees }: Props) {
                                                                     <th className="border px-2 py-1">Basic</th>
                                                                     <th className="border px-2 py-1">Additional</th>
                                                                     <th className="border px-2 py-1">Total</th>
+                                                                    <th className="border px-2 py-1">Paid</th>
+                                                                    <th className="border px-2 py-1">Status</th>
                                                                 </tr>
                                                             </thead>
                                                             <tbody>
@@ -244,6 +247,22 @@ export default function SalarySlipIndex({ salarySlips, employees }: Props) {
                                                                         </td>
                                                                         <td className="border px-2 py-1">
                                                                             ৳ {parseFloat(emp.total_amount).toFixed(2)}
+                                                                        </td>
+                                                                        <td className="border px-2 py-1">
+                                                                            ৳ {parseFloat(emp.paid_amount || '0').toFixed(2)}
+                                                                        </td>
+                                                                        <td className="border px-2 py-1">
+                                                                            <span
+                                                                                className={`rounded-full px-2 py-1 text-xs font-medium ${
+                                                                                    emp.status === 'Paid'
+                                                                                        ? 'bg-green-100 text-green-800'
+                                                                                        : emp.status === 'Partially Paid'
+                                                                                          ? 'bg-yellow-100 text-yellow-800'
+                                                                                          : 'bg-red-100 text-red-800'
+                                                                                }`}
+                                                                            >
+                                                                                {emp.status || 'Unpaid'}
+                                                                            </span>
                                                                         </td>
                                                                     </tr>
                                                                 ))}
