@@ -40,6 +40,19 @@ export default function CategoryIndex({ categories }: { categories: PaginatedCat
                 destroy(`/categories/${id}`);
             }
         });
+
+        // confirmDialog(
+        //     {
+        //         // title: 'Are you sure?',
+        //         // text: "You won't be able to revert this!",
+        //         // confirmButtonText: 'Yes, delete it!',
+        //         // confirmButtonColor: '#d33',
+        //         // cancelButtonColor: '#3085d6',
+        //     },
+        //     () => {
+        //         destroy(`/categories/${id}`);
+        //     }
+        // );
     };
 
     const handleSubmit = (e: React.FormEvent) => {

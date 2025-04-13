@@ -8,7 +8,7 @@ interface Props {
     processing?: boolean;
 }
 
-const useInterface = (
+export const useInterface = (
     href?: string,
     children?: ReactNode,
     ledger?: { id: number },
@@ -24,4 +24,6 @@ const useInterface = (
     };
 };
 
-export default useInterface;
+
+
+// export default useInterface;

@@ -1,3 +1,6 @@
+import Button from '@/components/Btn&Link/Button';
+import CancelLink from '@/components/Btn&Link/CancelLink';
+import InputCheckbox from '@/components/Btn&Link/InputCheckbox';
 import AppLayout from '@/layouts/app-layout';
 import { Head, Link, useForm } from '@inertiajs/react';
 
@@ -186,36 +189,44 @@ export default function EditAccountLedger({
 
                         {/* Checkboxes */}
                         <div className="col-span-2 space-y-2">
-                            <label className="flex items-center gap-2">
+                            {/* <label className="flex items-center gap-2">
                                 <input
                                     type="checkbox"
                                     checked={data.for_transition_mode}
                                     onChange={(e) => setData('for_transition_mode', e.target.checked)}
                                 />
                                 For Transition Mode
-                            </label>
-                            <label className="flex items-center gap-2">
+                            </label> */}
+                            <InputCheckbox label="For Transition Mode" check={data.for_transition_mode} labelOnChange={(check) => setData('for_transition_mode', check)} />
+
+                            <InputCheckbox label="Mark for User" check={data.mark_for_user}  labelOnChange={(check) => setData('mark_for_user', check)} />
+                            {/* <label className="flex items-center gap-2">
                                 <input
                                     type="checkbox"
                                     checked={data.mark_for_user}
                                     onChange={(e) => setData('mark_for_user', e.target.checked)}
                                 />
                                 Mark for User
-                            </label>
+                            </label> */}
                         </div>
 
                         {/* Buttons */}
                         <div className="col-span-2 mt-4 flex justify-between">
-                            <Link href="/account-ledgers" className="rounded border px-4 py-2 hover:bg-neutral-100 dark:hover:bg-neutral-800">
+                            {/* <Link href="/account-ledgers" className="rounded border px-4 py-2 hover:bg-neutral-100 dark:hover:bg-neutral-800">
                                 Cancel
-                            </Link>
-                            <button
+                            </Link> */}
+                            <CancelLink href="/account-ledgers" />
+
+                            {/* <button
                                 type="submit"
                                 disabled={processing}
                                 className="rounded bg-blue-600 px-4 py-2 text-white hover:bg-blue-700 disabled:opacity-50"
                             >
                                 {processing ? 'Updating...' : 'Update'}
-                            </button>
+                            </button> */}
+                            <Button processing={processing}>
+                                {processing ? 'Updating...' : 'Update'}
+                            </Button>
                         </div>
                     </form>
                 </div>
