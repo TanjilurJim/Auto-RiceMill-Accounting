@@ -1,3 +1,7 @@
+import AddLink from '@/components/Btn&Link/AddLink';
+import DeleteBtn from '@/components/Btn&Link/DeleteBtn';
+import EditLink from '@/components/Btn&Link/EditLink';
+import { confirmDialog } from '@/components/confirmDialog';
 import AppLayout from '@/layouts/app-layout';
 import { Head, Link, router } from '@inertiajs/react';
 import Swal from 'sweetalert2';
@@ -15,20 +19,33 @@ interface Salesman {
 export default function SalesmanIndex({ salesmen }: { salesmen: Salesman[] }) {
 
     const handleDelete = (id: number) => {
-        Swal.fire({
-            title: "Are you sure?",
-            text: "You won't be able to revert this!",
-            icon: "warning",
-            showCancelButton: true,
-            confirmButtonColor: "#d33",
-            cancelButtonColor: "#3085d6",
-            confirmButtonText: "Yes, delete it!",
-        }).then((result) => {
-            if (result.isConfirmed) {
+        // Swal.fire({
+        //     title: "Are you sure?",
+        //     text: "You won't be able to revert this!",
+        //     icon: "warning",
+        //     showCancelButton: true,
+        //     confirmButtonColor: "#d33",
+        //     cancelButtonColor: "#3085d6",
+        //     confirmButtonText: "Yes, delete it!",
+        // }).then((result) => {
+        //     if (result.isConfirmed) {
+        //         router.delete(`/salesmen/${id}`);
+        //         Swal.fire("Deleted!", "Salesman has been deleted.", "success");
+        //     }
+        // });
+
+        confirmDialog(
+            {
+                // title: 'Are you sure?',
+                // text: "You won't be able to revert this!",
+                // confirmButtonText: 'Yes, delete it!',
+                // confirmButtonColor: '#F96D6D',
+                // cancelButtonColor: '#A9D7F6',
+            },
+            () => { 
                 router.delete(`/salesmen/${id}`);
-                Swal.fire("Deleted!", "Salesman has been deleted.", "success");
             }
-        });
+        );
     };
 
     return (
@@ -37,9 +54,10 @@ export default function SalesmanIndex({ salesmen }: { salesmen: Salesman[] }) {
             <div className="p-6">
                 <div className="flex items-center justify-between mb-6">
                     <h1 className="text-2xl font-bold">All Salesmen</h1>
-                    <Link href="/salesmen/create" className="px-4 py-2 rounded bg-green-600 text-white hover:bg-green-700">
+                    {/* <Link href="/salesmen/create" className="px-4 py-2 rounded bg-green-600 text-white hover:bg-green-700">
                         + Add New
-                    </Link>
+                    </Link> */}
+                    <AddLink href="/salesmen/create"/>
                 </div>
 
                 <div className="overflow-x-auto bg-white shadow-md rounded-lg">
@@ -68,15 +86,17 @@ export default function SalesmanIndex({ salesmen }: { salesmen: Salesman[] }) {
                                     <td className="py-2 px-4">{salesman.creator?.name || 'N/A'}</td>
 
                                     <td className="py-2 px-4 flex justify-center space-x-2">
-                                        <Link href={`/salesmen/${salesman.id}/edit`} className="px-3 py-1 text-sm rounded bg-yellow-500 text-white hover:bg-yellow-600">
+                                        {/* <Link href={`/salesmen/${salesman.id}/edit`} className="px-3 py-1 text-sm rounded bg-yellow-500 text-white hover:bg-yellow-600">
                                             Edit
-                                        </Link>
-                                        <button
+                                        </Link> */}
+                                        <EditLink href={`/salesmen/${salesman.id}/edit`} />
+                                        {/* <button
                                             onClick={() => handleDelete(salesman.id)}
                                             className="px-3 py-1 text-sm rounded bg-red-600 text-white hover:bg-red-700"
                                         >
                                             Delete
-                                        </button>
+                                        </button> */}
+                                        <DeleteBtn handleDelete={handleDelete} delId={salesman} />
                                     </td>
                                 </tr>
                             ))}

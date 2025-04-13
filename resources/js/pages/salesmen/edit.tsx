@@ -1,3 +1,5 @@
+import Button from '@/components/Btn&Link/Button';
+import CancelLink from '@/components/Btn&Link/CancelLink';
 import AppLayout from '@/layouts/app-layout';
 import { Head, Link, useForm } from '@inertiajs/react';
 
@@ -82,16 +84,21 @@ export default function EditSalesman({ salesman }: { salesman: any }) {
                         </div>
 
                         <div className="flex justify-between mt-4">
-                            <Link href="/salesmen" className="rounded border px-4 py-2 hover:bg-neutral-100 dark:hover:bg-neutral-800">
+                            {/* <Link href="/salesmen" className="rounded border px-4 py-2 hover:bg-neutral-100 dark:hover:bg-neutral-800">
                                 Cancel
-                            </Link>
-                            <button
+                            </Link> */}
+                            <CancelLink href="/salesmen" />
+
+                            {/* <button
                                 type="submit"
                                 disabled={processing}
                                 className="rounded bg-blue-600 px-4 py-2 text-white hover:bg-blue-700 disabled:opacity-50"
                             >
                                 {processing ? 'Updating...' : 'Update'}
-                            </button>
+                            </button> */}
+                            <Button processing={processing}>
+                                {processing ? 'Updating...' : 'Update'}
+                            </Button>
                         </div>
                     </form>
                 </div>

@@ -84,7 +84,7 @@ export default function AccountLedgerIndex({ accountLedgers }: { accountLedgers:
                                         {/* <Link href={`/account-ledgers/${ledger.id}/edit`} className="rounded bg-yellow-500 px-3 py-1 text-sm text-white hover:bg-yellow-600">Edit</Link> */}
                                         <EditLink href={`/account-ledgers/${ledger.id}/edit`} />
                                         {/* <button onClick={() => handleDelete(ledger.id)} className="rounded bg-red-600 px-3 py-1 text-sm text-white hover:bg-red-700" >Delete</button> */}
-                                        <DeleteBtn handleDelete={handleDelete} ledger={ledger} />
+                                        <DeleteBtn handleDelete={handleDelete} delId={ledger} />
                                     </td>
                                 </tr>
                             ))}
