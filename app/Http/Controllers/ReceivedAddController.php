@@ -24,7 +24,7 @@ class ReceivedAddController extends Controller
         }
 
         return Inertia::render('received-add/create', [
-            'receivedModes' => $query->select('id', 'mode_name')->get(),
+            'receivedModes' => $query->select('id', 'mode_name', 'ledger_id')->get(), // ✅ Add 'ledger_id'
             'accountLedgers' => $ledgerQuery
                 ->select('id', 'account_ledger_name', 'phone_number', 'opening_balance', 'closing_balance')
                 ->get(),
@@ -60,6 +60,16 @@ class ReceivedAddController extends Controller
 
         $ledger->closing_balance = $newBalance;
         $ledger->save();
+
+        $receivedMode = ReceivedMode::with('ledger')->find($request->received_mode_id);
+
+        if ($receivedMode && $receivedMode->ledger) {
+            $receiverLedger = $receivedMode->ledger;
+            $receiverCurrentBalance = $receiverLedger->closing_balance ?? $receiverLedger->opening_balance;
+            $receiverLedger->closing_balance = $receiverCurrentBalance + $request->amount;
+            $receiverLedger->save();
+        }
+
 
         return redirect()->route('received-add.index')->with('success', 'Received voucher saved successfully!');
     }
