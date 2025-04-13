@@ -2,6 +2,10 @@ import AppLayout from '@/layouts/app-layout';
 import { Head, Link, router } from '@inertiajs/react';
 import { SearchBar } from '@/components/ui/search-bar';
 import Swal from 'sweetalert2';
+import AddLink from '@/components/Btn&Link/AddLink';
+import EditLink from '@/components/Btn&Link/EditLink';
+import DeleteBtn from '@/components/Btn&Link/DeleteBtn';
+import { confirmDialog } from '@/components/confirmDialog';
 
 interface Godown {
     id: number;
@@ -17,20 +21,27 @@ interface PaginatedGodowns {
 
 export default function GodownIndex({ godowns }: { godowns: PaginatedGodowns }) {
     const handleDelete = (id: number) => {
-        Swal.fire({
-            title: 'Are you sure?',
-            text: "You won't be able to revert this!",
-            icon: 'warning',
-            showCancelButton: true,
-            confirmButtonColor: '#d33',
-            cancelButtonColor: '#3085d6',
-            confirmButtonText: 'Yes, delete it!',
-        }).then((result) => {
-            if (result.isConfirmed) {
+        // Swal.fire({
+        //     title: 'Are you sure?',
+        //     text: "You won't be able to revert this!",
+        //     icon: 'warning',
+        //     showCancelButton: true,
+        //     confirmButtonColor: '#d33',
+        //     cancelButtonColor: '#3085d6',
+        //     confirmButtonText: 'Yes, delete it!',
+        // }).then((result) => {
+        //     if (result.isConfirmed) {
+        //         router.delete(`/godowns/${id}`);
+        //         Swal.fire('Deleted!', 'The godown has been deleted.', 'success');
+        //     }
+        // });
+
+        confirmDialog(
+            {}, () => {
                 router.delete(`/godowns/${id}`);
-                Swal.fire('Deleted!', 'The godown has been deleted.', 'success');
             }
-        });
+        )
+
     };
 
     return (
@@ -39,9 +50,10 @@ export default function GodownIndex({ godowns }: { godowns: PaginatedGodowns }) 
             <div className="p-6">
                 <div className="mb-6 flex items-center justify-between">
                     <h1 className="text-2xl font-bold">All List Of Godowns</h1>
-                    <Link href="/godowns/create" className="rounded bg-green-600 px-4 py-2 text-white hover:bg-green-700">
+                    {/* <Link href="/godowns/create" className="rounded bg-green-600 px-4 py-2 text-white hover:bg-green-700">
                         + Add New
-                    </Link>
+                    </Link> */}
+                    <AddLink href="/godowns/create" />
                 </div>
 
                 {/* 🔍 Search Bar */}
@@ -68,18 +80,20 @@ export default function GodownIndex({ godowns }: { godowns: PaginatedGodowns }) 
                                     <td className="px-4 py-2">{godown.godown_code}</td>
                                     <td className="px-4 py-2">{godown.address || 'N/A'}</td>
                                     <td className="flex justify-center space-x-2 px-4 py-2">
-                                        <Link
+                                        {/* <Link
                                             href={`/godowns/${godown.id}/edit`}
                                             className="rounded bg-purple-500 px-3 py-1 text-sm text-white hover:bg-purple-600"
                                         >
                                             Edit
-                                        </Link>
-                                        <button
+                                        </Link> */}
+                                        <EditLink href={`/godowns/${godown.id}/edit`} />
+                                        {/* <button
                                             onClick={() => handleDelete(godown.id)}
                                             className="rounded bg-red-600 px-3 py-1 text-sm text-white hover:bg-red-700"
                                         >
                                             Delete
-                                        </button>
+                                        </button> */}
+                                        <DeleteBtn handleDelete={handleDelete} delId={godown}/>
                                     </td>
                                 </tr>
                             ))}

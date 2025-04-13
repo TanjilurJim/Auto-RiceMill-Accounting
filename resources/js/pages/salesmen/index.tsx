@@ -35,14 +35,7 @@ export default function SalesmanIndex({ salesmen }: { salesmen: Salesman[] }) {
         // });
 
         confirmDialog(
-            {
-                // title: 'Are you sure?',
-                // text: "You won't be able to revert this!",
-                // confirmButtonText: 'Yes, delete it!',
-                // confirmButtonColor: '#F96D6D',
-                // cancelButtonColor: '#A9D7F6',
-            },
-            () => { 
+            { }, () => { 
                 router.delete(`/salesmen/${id}`);
             }
         );

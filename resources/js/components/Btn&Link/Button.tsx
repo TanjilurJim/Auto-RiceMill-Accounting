@@ -1,4 +1,4 @@
-import useInterface from "@/hooks/useInterface";
+import { useInterface } from "@/hooks/useInterface";
 
 
 const Button = ({children, processing}: ReturnType<typeof useInterface>) => {
