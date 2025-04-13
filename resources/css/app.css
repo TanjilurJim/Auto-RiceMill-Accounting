@@ -188,3 +188,24 @@
         @apply bg-background text-foreground;
     }
 }
+
+@media print {
+    .no-print {
+      display: none !important;
+    }
+  
+    body {
+      background: white;
+      color: black;
+    }
+  
+    table {
+      border-collapse: collapse;
+      width: 100%;
+    }
+  
+    th, td {
+      border: 1px solid #333;
+      padding: 4px;
+    }
+  }

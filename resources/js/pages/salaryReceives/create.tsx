@@ -1,158 +1,187 @@
 import AppLayout from '@/layouts/app-layout';
-import { Head, useForm, Link } from '@inertiajs/react';  // <-- Import Link here
-import { useEffect } from 'react';
+import { Head, useForm } from '@inertiajs/react';
+import moment from 'moment';
+import React, { useEffect } from 'react';
 
-export default function SalaryReceiveCreate({ employees, receivedModes }) {
-  const { data, setData, post, processing, errors } = useForm({
-    vch_no: '',
-    date: '',
-    employee_id: '',
-    received_by: '',
-    amount: '',
-    description: '',
-  });
+interface Employee {
+    id: number;
+    name: string;
+}
 
-  useEffect(() => {
-    if (!data.vch_no) {
-      const today = new Date();
-      const dateStr = today.toISOString().slice(0, 10).replace(/-/g, '');
-      const randomId = Math.floor(1000 + Math.random() * 9000);
-      const voucher = `SR-${dateStr}-${randomId}`;
-      setData('vch_no', voucher);
-    }
-  }, []);
+interface ReceivedMode {
+    id: number;
+    mode_name: string;
+}
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    post('/salary-receives');
-  };
+interface SalarySlipEmployee {
+    id: number;
+    employee: { name: string };
+    salary_slip: { voucher_number: string };
+    status: string;
+    total_amount: number;
+}
 
-  return (
-    <AppLayout>
-      <Head title="Create Salary Receive" />
-      <div className="bg-gray-50 min-h-screen flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
-        <div className="max-w-lg w-full space-y-8 bg-white shadow-lg rounded-lg p-8">
-          <h1 className="text-3xl font-bold text-center text-gray-700">Create New Salary Receive</h1>
-          <form onSubmit={handleSubmit} className="space-y-6">
-            {/* Voucher Number */}
-            <div className="flex flex-col">
-              <label htmlFor="vch_no" className="text-sm font-medium text-gray-700">Voucher Number</label>
-              <input
-                type="text"
-                id="vch_no"
-                name="vch_no"
-                value={data.vch_no}
-                readOnly
-                className="mt-1 px-4 py-2 border border-gray-300 rounded-md focus:ring-indigo-500 focus:border-indigo-500"
-              />
-              {errors.vch_no && <p className="text-sm text-red-500">{errors.vch_no}</p>}
+interface Props {
+    employees: Employee[];
+    receivedModes: ReceivedMode[];
+    salarySlipEmployees: SalarySlipEmployee[];
+}
+
+export default function Create({ employees, receivedModes, salarySlipEmployees }: Props) {
+    const today = moment().format('YYYY-MM-DD');
+    const datePart = moment().format('YYYYMMDD');
+    const randomDigits = Math.floor(1000 + Math.random() * 9000); // 4 digit number
+    const defaultVchNo = `SR-${datePart}-${randomDigits}`;
+
+    const { data, setData, post, processing, errors } = useForm({
+        vch_no: defaultVchNo,
+        date: today,
+        employee_id: '',
+        received_by: '',
+        amount: '',
+        description: '',
+        salary_slip_employee_id: '',
+    });
+
+    const handleSubmit = (e: React.FormEvent) => {
+        e.preventDefault();
+        post(route('salary-receives.store'));
+    };
+
+    // Auto-fill amount when selecting a salary slip employee
+    useEffect(() => {
+        const selected = salarySlipEmployees.find((sse) => sse.id === parseInt(data.salary_slip_employee_id));
+        if (selected) {
+            setData('amount', selected.total_amount.toString());
+            setData('employee_id', selected.employee.id.toString()); // auto-select employee too
+        }
+    }, [data.salary_slip_employee_id]);
+
+    return (
+        <AppLayout>
+            <Head title="Create Salary Receive" />
+
+            <div className="mx-auto max-w-4xl rounded bg-white p-6 shadow">
+                <h1 className="mb-6 text-2xl font-bold">Create Salary Receive</h1>
+
+                <form onSubmit={handleSubmit} className="space-y-5">
+                    {/* Voucher No */}
+                    <div>
+                        <label className="block font-medium">Voucher No</label>
+                        <input
+                            type="text"
+                            value={data.vch_no}
+                            onChange={(e) => setData('vch_no', e.target.value)}
+                            className="w-full rounded border px-3 py-2"
+                            required
+                        />
+                        {errors.vch_no && <div className="text-red-600">{errors.vch_no}</div>}
+                    </div>
+
+                    {/* Date */}
+                    <div>
+                        <label className="block font-medium">Date</label>
+                        <input
+                            type="date"
+                            value={data.date}
+                            onChange={(e) => setData('date', e.target.value)}
+                            className="w-full rounded border px-3 py-2"
+                            required
+                        />
+                        {errors.date && <div className="text-red-600">{errors.date}</div>}
+                    </div>
+
+                    {/* Employee Dropdown */}
+                    <div>
+                        <label className="block font-medium">Employee</label>
+                        <select
+                            value={data.employee_id}
+                            onChange={(e) => setData('employee_id', e.target.value)}
+                            className="w-full rounded border px-3 py-2"
+                            required
+                        >
+                            <option value="">Select Employee</option>
+                            {employees.map((emp) => (
+                                <option key={emp.id} value={emp.id}>
+                                    {emp.name}
+                                </option>
+                            ))}
+                        </select>
+                        {errors.employee_id && <div className="text-red-600">{errors.employee_id}</div>}
+                    </div>
+
+                    {/* Received Mode Dropdown */}
+                    <div>
+                        <label className="block font-medium">Received By</label>
+                        <select
+                            value={data.received_by}
+                            onChange={(e) => setData('received_by', e.target.value)}
+                            className="w-full rounded border px-3 py-2"
+                            required
+                        >
+                            <option value="">Select Mode</option>
+                            {receivedModes.map((mode) => (
+                                <option key={mode.id} value={mode.id}>
+                                    {mode.mode_name}
+                                </option>
+                            ))}
+                        </select>
+                        {errors.received_by && <div className="text-red-600">{errors.received_by}</div>}
+                    </div>
+                    {/* Salary Slip Employee Dropdown */}
+                    <div>
+                        <label className="block font-medium">Link to Salary Slip (optional)</label>
+                        <select
+                            value={data.salary_slip_employee_id}
+                            onChange={(e) => setData('salary_slip_employee_id', e.target.value)}
+                            className="w-full rounded border px-3 py-2"
+                        >
+                            <option value="">Select Salary Slip</option>
+                            {salarySlipEmployees.map((sse) => (
+                                <option key={sse.id} value={sse.id.toString()}>
+                                    {`${sse.employee.name} - ${sse.salary_slip.voucher_number} [${sse.status}] - ৳${sse.total_amount}`}
+                                </option>
+                            ))}
+                        </select>
+                        {errors.salary_slip_employee_id && <div className="text-red-600">{errors.salary_slip_employee_id}</div>}
+                    </div>
+
+                    {/* Amount */}
+                    <div>
+                        <label className="block font-medium">Amount</label>
+                        <input
+                            type="number"
+                            step="0.01"
+                            value={data.amount}
+                            onChange={(e) => setData('amount', e.target.value)}
+                            className="w-full rounded border px-3 py-2"
+                            required
+                        />
+                        {errors.amount && <div className="text-red-600">{errors.amount}</div>}
+                    </div>
+
+                    
+
+                    {/* Description */}
+                    <div>
+                        <label className="block font-medium">Description</label>
+                        <textarea
+                            value={data.description}
+                            onChange={(e) => setData('description', e.target.value)}
+                            className="w-full rounded border px-3 py-2"
+                            rows={3}
+                        />
+                        {errors.description && <div className="text-red-600">{errors.description}</div>}
+                    </div>
+
+                    {/* Submit Button */}
+                    <div className="text-right">
+                        <button type="submit" className="rounded bg-blue-600 px-5 py-2 text-white hover:bg-blue-700" disabled={processing}>
+                            Save Salary Receive
+                        </button>
+                    </div>
+                </form>
             </div>
-
-            {/* Date */}
-            <div className="flex flex-col">
-              <label htmlFor="date" className="text-sm font-medium text-gray-700">Date</label>
-              <input
-                type="date"
-                id="date"
-                name="date"
-                value={data.date}
-                onChange={(e) => setData('date', e.target.value)}
-                required
-                className="mt-1 px-4 py-2 border border-gray-300 rounded-md focus:ring-indigo-500 focus:border-indigo-500"
-              />
-              {errors.date && <p className="text-sm text-red-500">{errors.date}</p>}
-            </div>
-
-            {/* Employee Selection */}
-            <div className="flex flex-col">
-              <label htmlFor="employee_id" className="text-sm font-medium text-gray-700">Employee</label>
-              <select
-                id="employee_id"
-                name="employee_id"
-                value={data.employee_id}
-                onChange={(e) => setData('employee_id', e.target.value)}
-                required
-                className="mt-1 px-4 py-2 border border-gray-300 rounded-md focus:ring-indigo-500 focus:border-indigo-500"
-              >
-                <option>Select Employee</option>
-                {employees.map((emp) => (
-                  <option key={emp.id} value={emp.id}>{emp.name}</option>
-                ))}
-              </select>
-              {errors.employee_id && <p className="text-sm text-red-500">{errors.employee_id}</p>}
-            </div>
-
-            {/* Received Mode Selection */}
-            <div className="flex flex-col">
-              <label htmlFor="received_by" className="text-sm font-medium text-gray-700">Received Mode</label>
-              <select
-                id="received_by"
-                name="received_by"
-                value={data.received_by}
-                onChange={(e) => setData('received_by', e.target.value)}
-                required
-                className="mt-1 px-4 py-2 border border-gray-300 rounded-md focus:ring-indigo-500 focus:border-indigo-500"
-              >
-                <option>Select Receive Mode</option>
-                {receivedModes.map((mode) => (
-                  <option key={mode.id} value={mode.id}>{mode.mode_name}</option>
-                ))}
-              </select>
-              {errors.received_by && <p className="text-sm text-red-500">{errors.received_by}</p>}
-            </div>
-
-            {/* Amount */}
-            <div className="flex flex-col">
-              <label htmlFor="amount" className="text-sm font-medium text-gray-700">Amount</label>
-              <input
-                type="number"
-                id="amount"
-                name="amount"
-                value={data.amount}
-                onChange={(e) => setData('amount', e.target.value)}
-                required
-                className="mt-1 px-4 py-2 border border-gray-300 rounded-md focus:ring-indigo-500 focus:border-indigo-500"
-              />
-              {errors.amount && <p className="text-sm text-red-500">{errors.amount}</p>}
-            </div>
-
-            {/* Description */}
-            <div className="flex flex-col">
-              <label htmlFor="description" className="text-sm font-medium text-gray-700">Description (Optional)</label>
-              <textarea
-                id="description"
-                name="description"
-                value={data.description}
-                onChange={(e) => setData('description', e.target.value)}
-                placeholder="Enter description"
-                className="mt-1 px-4 py-2 border border-gray-300 rounded-md focus:ring-indigo-500 focus:border-indigo-500"
-              />
-              {errors.description && <p className="text-sm text-red-500">{errors.description}</p>}
-            </div>
-
-            {/* Submit Button */}
-            <div className="flex justify-center">
-              <button
-                type="submit"
-                disabled={processing}
-                className="mt-4 w-full py-2 px-4 bg-indigo-600 text-white font-semibold rounded-md hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2"
-              >
-                {processing ? 'Saving...' : 'Save'}
-              </button>
-            </div>
-
-            {/* Back Link */}
-            <div className="flex justify-center mt-4">
-              <Link
-                href="/salary-receives"
-                className="text-sm text-indigo-600 hover:text-indigo-700"
-              >
-                Back to Salary Receives
-              </Link>
-            </div>
-          </form>
-        </div>
-      </div>
-    </AppLayout>
-  );
+        </AppLayout>
+    );
 }

@@ -29,16 +29,24 @@ class CompanySettingController extends Controller
             'country' => 'nullable|string|max:100',
             'email' => 'nullable|email',
             'website' => 'nullable|url',
-            'financial_year' => 'nullable|string|max:50',
+            'financial_year_id' => 'nullable|exists:financial_years,id',
             'mobile' => 'nullable|string|max:20',
             'address' => 'nullable|string',
             'description' => 'nullable|string',
         ]);
 
         $setting = CompanySetting::firstOrCreate(
-            ['created_by' => Auth::id()],
+            ['created_by' => auth()->id()],
             $validated
         );
+    
+        // 💡 If financial year is selected, also save its title in financial_year
+        if ($request->filled('financial_year_id')) {
+            $fy = \App\Models\FinancialYear::find($request->financial_year_id);
+            if ($fy) {
+                $validated['financial_year'] = $fy->title;
+            }
+        }
 
 
         $setting->fill($validated);

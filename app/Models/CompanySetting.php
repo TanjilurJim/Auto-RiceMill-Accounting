@@ -14,6 +14,7 @@ class CompanySetting extends Model
         'email',
         'website',
         'financial_year',
+        'financial_year_id',
         'mobile',
         'address',
         'description',
@@ -23,5 +24,10 @@ class CompanySetting extends Model
     public function creator()
     {
         return $this->belongsTo(User::class, 'created_by');
+    }
+
+    public function financialYear()
+    {
+        return $this->belongsTo(FinancialYear::class, 'financial_year_id');
     }
 }

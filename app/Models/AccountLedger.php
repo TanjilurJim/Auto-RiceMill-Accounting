@@ -12,6 +12,7 @@ class AccountLedger extends Model
     use HasFactory, SoftDeletes;
 
     protected $fillable = [
+        'employee_id',
         'account_ledger_name',
         'phone_number',
         'email',
@@ -49,5 +50,10 @@ class AccountLedger extends Model
     public function creator()
     {
         return $this->belongsTo(User::class, 'created_by');
+    }
+
+    public function employee()
+    {
+        return $this->belongsTo(Employee::class);
     }
 }

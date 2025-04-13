@@ -56,4 +56,9 @@ class Employee extends Model
     {
         return $this->belongsTo(Employee::class, 'reference_by');
     }
+    
+    public function ledger()
+    {
+        return $this->hasOne(AccountLedger::class); // if using employee_id
+    }
 }
