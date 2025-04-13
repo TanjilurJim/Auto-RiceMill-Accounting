@@ -1,3 +1,6 @@
+import AddLink from '@/components/Btn&Link/AddLink';
+import DeleteBtn from '@/components/Btn&Link/DeleteBtn';
+import EditLink from '@/components/Btn&Link/EditLink';
 import AppLayout from '@/layouts/app-layout';
 import { Head, Link, router } from '@inertiajs/react';
 import Swal from 'sweetalert2';
@@ -38,9 +41,8 @@ export default function AccountLedgerIndex({ accountLedgers }: { accountLedgers:
             <div className="p-6 bg-gray-100">
                 <div className="mb-6 flex items-center justify-between">
                     <h1 className="text-2xl font-bold">All List of Account Ledgers</h1>
-                    <Link href="/account-ledgers/create" className="rounded bg-green-600 px-4 py-2 text-white hover:bg-green-700">
-                        + Add New
-                    </Link>
+                    {/* <Link href="/account-ledgers/create" className="rounded bg-green-600 px-4 py-2 text-white hover:bg-green-700">+ Add New</Link> */}
+                    <AddLink href="/account-ledgers/create" />
                 </div>
 
                 {/* Make table more responsive */}
@@ -72,18 +74,10 @@ export default function AccountLedgerIndex({ accountLedgers }: { accountLedgers:
                                     <td className="px-4 py-2">{ledger.creator?.name || 'N/A'}</td>
 
                                     <td className="flex justify-center space-x-2 px-4 py-2">
-                                        <Link
-                                            href={`/account-ledgers/${ledger.id}/edit`}
-                                            className="rounded bg-yellow-500 px-3 py-1 text-sm text-white hover:bg-yellow-600"
-                                        >
-                                            Edit
-                                        </Link>
-                                        <button
-                                            onClick={() => handleDelete(ledger.id)}
-                                            className="rounded bg-red-600 px-3 py-1 text-sm text-white hover:bg-red-700"
-                                        >
-                                            Delete
-                                        </button>
+                                        {/* <Link href={`/account-ledgers/${ledger.id}/edit`} className="rounded bg-yellow-500 px-3 py-1 text-sm text-white hover:bg-yellow-600">Edit</Link> */}
+                                        <EditLink href={`/account-ledgers/${ledger.id}/edit`} />
+                                        {/* <button onClick={() => handleDelete(ledger.id)} className="rounded bg-red-600 px-3 py-1 text-sm text-white hover:bg-red-700" >Delete</button> */}
+                                        <DeleteBtn handleDelete={handleDelete} ledger={ledger} />
                                     </td>
                                 </tr>
                             ))}

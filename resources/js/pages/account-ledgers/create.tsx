@@ -1,6 +1,7 @@
 import React from 'react';
 import AppLayout from '@/layouts/app-layout';
 import { Head, Link, useForm } from '@inertiajs/react';
+import Button from '@/components/Btn&Link/Button';
 
 export default function CreateAccountLedger({
     groupUnders,
@@ -57,8 +58,7 @@ export default function CreateAccountLedger({
                             <select
                                 value={data.account_group_input}
                                 onChange={(e) => setData('account_group_input', e.target.value)}
-                                className="w-full rounded border p-2 dark:border-neutral-700 dark:bg-neutral-800"
-                            >
+                                className="w-full rounded border p-2 dark:border-neutral-700 dark:bg-neutral-800" >
                                 <option value="">Select Account Group</option>
                                 <optgroup label="Group Unders">
                                     {groupUnders.map((group) => (
@@ -181,13 +181,16 @@ export default function CreateAccountLedger({
                             <Link href="/account-ledgers" className="rounded border px-4 py-2 hover:bg-neutral-100 dark:hover:bg-neutral-800">
                                 Cancel
                             </Link>
-                            <button
+                            {/* <button
                                 type="submit"
                                 disabled={processing}
                                 className="rounded bg-green-600 px-4 py-2 text-white hover:bg-green-700 disabled:opacity-50"
                             >
                                 {processing ? 'Creating...' : 'Create'}
-                            </button>
+                            </button> */}
+                            <Button  processing={processing}>
+                                {processing ? 'Creating...' : 'Create'}
+                            </Button>
                         </div>
                     </form>
                 </div>
