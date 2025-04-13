@@ -2,6 +2,8 @@ import React from 'react';
 import AppLayout from '@/layouts/app-layout';
 import { Head, Link, useForm } from '@inertiajs/react';
 import Button from '@/components/Btn&Link/Button';
+import CancelLink from '@/components/Btn&Link/CancelLink';
+import InputCheckbox from '@/components/Btn&Link/InputCheckbox';
 
 export default function CreateAccountLedger({
     groupUnders,
@@ -78,8 +80,8 @@ export default function CreateAccountLedger({
                             {errors.account_group_id && <p className="text-sm text-red-500">{errors.account_group_id}</p>}
                         </div>
 
-                         {/* Reference Number field for Admin */}
-                         {isAdmin && (
+                        {/* Reference Number field for Admin */}
+                        {isAdmin && (
                             <div>
                                 <label className="mb-1 block font-medium">Reference Number</label>
                                 <input
@@ -162,35 +164,30 @@ export default function CreateAccountLedger({
                             {errors.address && <p className="text-sm text-red-500">{errors.address}</p>}
                         </div>
 
-                        <div className="col-span-2 space-y-2">
-                            <label className="flex items-center gap-2">
-                                <input
-                                    type="checkbox"
-                                    checked={data.for_transition_mode}
-                                    onChange={(e) => setData('for_transition_mode', e.target.checked)}
-                                />
-                                For Transition Mode
-                            </label>
-                            <label className="flex items-center gap-2">
-                                <input type="checkbox" checked={data.mark_for_user} onChange={(e) => setData('mark_for_user', e.target.checked)} />
-                                Mark for User
-                            </label>
+                        <div className="">
+                            {/* <label className="flex items-center gap-2">
+                                <input type="checkbox" checked={data.for_transition_mode} onChange={(e) => setData('for_transition_mode', e.target.checked)} /> 
+                                For Transition Mode 
+                            </label> */}
+                            <InputCheckbox label="For Transition Mode" check={data.for_transition_mode} labelOnChange={(check) => setData('for_transition_mode', check)} />
+
+                            <InputCheckbox label="Mark for User" check={data.mark_for_user}  labelOnChange={(check) => setData('mark_for_user', check)} />
+                            {/* <label className="flex items-center gap-2">
+                                <input type="checkbox" checked={data.mark_for_user} onChange={(e) => setData('mark_for_user', e.target.checked)} className="accent-info-hover" />
+                                Mark for User 
+                            </label> */}
                         </div>
 
                         <div className="col-span-2 mt-4 flex justify-between">
-                            <Link href="/account-ledgers" className="rounded border px-4 py-2 hover:bg-neutral-100 dark:hover:bg-neutral-800">
-                                Cancel
-                            </Link>
-                            {/* <button
-                                type="submit"
-                                disabled={processing}
-                                className="rounded bg-green-600 px-4 py-2 text-white hover:bg-green-700 disabled:opacity-50"
-                            >
-                                {processing ? 'Creating...' : 'Create'}
-                            </button> */}
-                            <Button  processing={processing}>
+
+                            {/* <Link href="/account-ledgers" className="rounded border px-4 py-2 hover:bg-neutral-100 dark:hover:bg-neutral-800"> Cancel </Link> */}
+                            <CancelLink href="/account-ledgers" />
+
+                            {/* <button type="submit" disabled={processing} className="rounded bg-green-600 px-4 py-2 text-white hover:bg-green-700 disabled:opacity-50" > {processing ? 'Creating...' : 'Create'} </button> */}
+                            <Button processing={processing}>
                                 {processing ? 'Creating...' : 'Create'}
                             </Button>
+
                         </div>
                     </form>
                 </div>

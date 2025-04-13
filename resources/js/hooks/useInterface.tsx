@@ -13,9 +13,15 @@ const useInterface = (
     children?: ReactNode,
     ledger?: { id: number },
     handleDelete?: (id: number) => void,
-    processing?: boolean = false
+    processing?: boolean,
 ): Props => {
-    return { href, children, ledger, handleDelete,processing };
+    return {
+        href,
+        children,
+        ledger,
+        handleDelete,
+        processing,
+    };
 };
 
 export default useInterface;
