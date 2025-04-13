@@ -30,7 +30,7 @@ use App\Http\Controllers\StockTransferController;
 use App\Http\Controllers\WorkingOrderController;
 
 
-
+use App\Http\Controllers\ReportController;
 use App\Http\Controllers\SalaryReceiveController;
 use App\Http\Controllers\DepartmentController;
 use App\Http\Controllers\DesignationController;
@@ -131,6 +131,8 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::resource('salary-receives', SalaryReceiveController::class)->parameters([
         'salary-receives' => 'salaryReceive',
     ]);
+    // Employee Report
+    Route::get('employee-ledger', [ReportController::class, 'employeeLedger'])->name('employee.ledger');
 });
 
 require __DIR__ . '/settings.php';

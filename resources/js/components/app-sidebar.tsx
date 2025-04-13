@@ -213,6 +213,11 @@ const mainNavItems: NavItem[] = [
                 href: '/salary-receives',
                 icon: FiUsers,
             },
+            {
+                title: 'Employee Report',
+                href: '/employee-ledger',
+                icon: FiUsers,
+            },
 
             // Later you can add more inventory-related items here (e.g., Products, Stock Transfers, etc.)
         ],

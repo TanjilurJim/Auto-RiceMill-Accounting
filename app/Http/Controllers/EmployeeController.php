@@ -9,6 +9,12 @@ use App\Models\Shift;
 use App\Models\Reference;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
+use App\Models\AccountGroup;
+use App\Models\GroupUnder;
+use App\Models\Nature;
+use App\Models\AccountLedger;
+use App\Models\User;
+use Illuminate\Support\Facades\DB;
 
 class EmployeeController extends Controller
 {
@@ -74,24 +80,55 @@ class EmployeeController extends Controller
         ]);
 
         // Create a new employee
-        Employee::create([
-            'name' => $request->name,
-            'mobile' => $request->mobile,
-            'email' => $request->email,
-            'nid' => $request->nid,
-            'present_address' => $request->present_address,
-            'permanent_address' => $request->permanent_address,
-            'salary' => $request->salary,
-            'joining_date' => $request->joining_date,
-            'status' => $request->status,
-            'advance_amount' => $request->advance_amount,
-            'department_id' => $request->department_id,
-            'designation_id' => $request->designation_id,
-            'shift_id' => $request->shift_id,
-            'reference_by' => $request->reference_by,
-            'created_by' => auth()->id(),
-        ]);
+        DB::transaction(function () use ($request) {
+            $employee = Employee::create([
+                'name' => $request->name,
+                'mobile' => $request->mobile,
+                'email' => $request->email,
+                'nid' => $request->nid,
+                'present_address' => $request->present_address,
+                'permanent_address' => $request->permanent_address,
+                'salary' => $request->salary,
+                'joining_date' => $request->joining_date,
+                'status' => $request->status,
+                'advance_amount' => $request->advance_amount,
+                'department_id' => $request->department_id,
+                'designation_id' => $request->designation_id,
+                'shift_id' => $request->shift_id,
+                'reference_by' => $request->reference_by,
+                'created_by' => auth()->id(),
+            ]);
 
+            // 🌟 Auto-create Ledger for Employee
+            $groupUnder = GroupUnder::where('name', 'Indirect Expenses')->firstOrFail();
+            $nature = Nature::where('name', 'Expenses')->firstOrFail();
+
+            $accountGroup = AccountGroup::firstOrCreate(
+                ['name' => 'Employee Salary Expense'],
+                [
+                    'nature_id' => $nature->id,
+                    'group_under_id' => $groupUnder->id,
+                    'description' => 'Ledger group for employee salary tracking',
+                    'created_by' => auth()->id(),
+                ]
+            );
+
+            AccountLedger::create([
+                'employee_id' => $employee->id,
+                'account_ledger_name' => $employee->name,
+                'phone_number' => $employee->mobile ?? '0000000000',
+                'email' => $employee->email ?? 'employee@example.com',
+                'opening_balance' => 0,
+                'debit_credit' => 'debit',
+                'status' => 'active',
+                'account_group_id' => $accountGroup->id,
+                'group_under_id' => $groupUnder->id,
+                'address' => $employee->present_address,
+                'for_transition_mode' => false,
+                'mark_for_user' => false,
+                'created_by' => auth()->id(),
+            ]);
+        });
         // Redirect with a success message
         return redirect()->route('employees.index')->with('success', 'Employee created successfully.');
     }

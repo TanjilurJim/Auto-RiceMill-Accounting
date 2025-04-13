@@ -1,267 +1,187 @@
-<?php
+import AppLayout from '@/layouts/app-layout';
+import { Head, useForm } from '@inertiajs/react';
+import moment from 'moment';
+import React, { useEffect } from 'react';
 
-namespace App\Http\Controllers;
+interface Employee {
+    id: number;
+    name: string;
+}
 
-use App\Models\SalaryReceive;
-use App\Models\Employee;
-use App\Models\ReceivedMode;
-use Illuminate\Http\Request;
-use Inertia\Inertia;
+interface ReceivedMode {
+    id: number;
+    mode_name: string;
+}
 
-use App\Models\SalarySlip;
-use App\Models\Journal;
-use App\Models\JournalEntry;
-use App\Models\AccountLedger;
+interface SalarySlipEmployee {
+    id: number;
+    employee: { name: string };
+    salary_slip: { voucher_number: string };
+    status: string;
+    total_amount: number;
+}
 
-use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Str;
+interface Props {
+    employees: Employee[];
+    receivedModes: ReceivedMode[];
+    salarySlipEmployees: SalarySlipEmployee[];
+}
 
-class SalaryReceiveController extends Controller
-{
-    // Show the list of salary receives
-    public function index()
-    {
-        $salaryReceives = SalaryReceive::with('employee', 'receivedMode')
-            ->when(!auth()->user()->hasRole('admin'), function ($query) {
-                $query->where('created_by', auth()->id());
-            })
-            ->orderByDesc('created_at')
-            ->paginate(10);
+export default function Create({ employees, receivedModes, salarySlipEmployees }: Props) {
+    const today = moment().format('YYYY-MM-DD');
+    const datePart = moment().format('YYYYMMDD');
+    const randomDigits = Math.floor(1000 + Math.random() * 9000); // 4 digit number
+    const defaultVchNo = `SR-${datePart}-${randomDigits}`;
 
-        return Inertia::render('salaryReceives/index', [
-            'salaryReceives' => $salaryReceives
-        ]);
-    }
+    const { data, setData, post, processing, errors } = useForm({
+        vch_no: defaultVchNo,
+        date: today,
+        employee_id: '',
+        received_by: '',
+        amount: '',
+        description: '',
+        salary_slip_employee_id: '',
+    });
 
-    // Show the create form
-    public function create()
-    {
-        $employees = Employee::query()
-            ->when(!auth()->user()->hasRole('admin'), fn($q) => $q->where('created_by', auth()->id()))
-            ->get();
+    const handleSubmit = (e: React.FormEvent) => {
+        e.preventDefault();
+        post(route('salary-receives.store'));
+    };
 
-        $receivedModes = ReceivedMode::query()
-            ->when(!auth()->user()->hasRole('admin'), fn($q) => $q->where('created_by', auth()->id()))
-            ->get();
-
-        // Fetch salary slips that are unpaid or partially paid
-        $unpaidSalarySlipEmployees = \App\Models\SalarySlipEmployee::with('employee', 'salarySlip')
-            ->whereIn('status', ['Unpaid', 'Partially Paid'])
-            ->get();
-
-        return Inertia::render('salaryReceives/create', [
-            'employees' => $employees,
-            'receivedModes' => $receivedModes,
-            'salarySlipEmployees' => $unpaidSalarySlipEmployees, // 👈 new data
-        ]);
-    }
-
-    // Store the new salary receive
-    public function store(Request $request)
-    {
-        // In your validate block:
-        $request->validate([
-            'vch_no' => 'required|unique:salary_receives,vch_no',
-            'date' => 'required|date',
-            'employee_id' => 'required|exists:employees,id',
-            'received_by' => 'required|exists:received_modes,id',
-            'amount' => 'required|numeric|min:0',
-            'description' => 'nullable|string',
-            'salary_slip_employee_id' => 'nullable|exists:salary_slip_employees,id', // 👈 add this
-        ]);
-
-        if ($request->filled('salary_slip_employee_id')) {
-            $salarySlipEmployee = \App\Models\SalarySlipEmployee::find($request->salary_slip_employee_id);
-
-            if ($salarySlipEmployee) {
-                $totalPaid = SalaryReceive::where('salary_slip_employee_id', $salarySlipEmployee->id)->sum('amount');
-
-                $remaining = $salarySlipEmployee->total_amount - $totalPaid;
-
-                if ($request->amount > $remaining) {
-                    // ❌ Block over-payment
-                    throw \Illuminate\Validation\ValidationException::withMessages([
-                        'amount' => "This payment exceeds the remaining salary. Remaining: ৳" . number_format($remaining, 2),
-                    ]);
-                }
-            }
+    // Auto-fill amount when selecting a salary slip employee
+    useEffect(() => {
+        const selected = salarySlipEmployees.find((sse) => sse.id === parseInt(data.salary_slip_employee_id));
+        if (selected) {
+            setData('amount', selected.total_amount.toString());
+            setData('employee_id', selected.employee.id.toString()); // auto-select employee too
         }
+    }, [data.salary_slip_employee_id]);
 
+    return (
+        <AppLayout>
+            <Head title="Create Salary Receive" />
 
-        DB::transaction(function () use ($request) {
-            // Create salary receive
-            $salaryReceive = SalaryReceive::create([
-                'vch_no' => $request->vch_no,
-                'date' => $request->date,
-                'employee_id' => $request->employee_id,
-                'received_by' => $request->received_by,
-                'amount' => $request->amount,
-                'description' => $request->description,
-                'created_by' => auth()->id(),
-                'salary_slip_employee_id' => $request->salary_slip_employee_id,
-            ]);
+            <div className="mx-auto max-w-4xl rounded bg-white p-6 shadow">
+                <h1 className="mb-6 text-2xl font-bold">Create Salary Receive</h1>
 
-            // Get ledgers
-            $salaryExpenseLedger = $this->getOrCreateSalaryExpenseLedger();
-            $receivedMode = ReceivedMode::with('ledger')->findOrFail($request->received_by);
-            $paymentLedger = $receivedMode->ledger;
+                <form onSubmit={handleSubmit} className="space-y-5">
+                    {/* Voucher No */}
+                    <div>
+                        <label className="block font-medium">Voucher No</label>
+                        <input
+                            type="text"
+                            value={data.vch_no}
+                            onChange={(e) => setData('vch_no', e.target.value)}
+                            className="w-full rounded border px-3 py-2"
+                            required
+                        />
+                        {errors.vch_no && <div className="text-red-600">{errors.vch_no}</div>}
+                    </div>
 
-            // Create journal
-            $journal = Journal::create([
-                'date' => $request->date,
-                'voucher_no' => 'JRN-' . strtoupper(Str::random(6)),
-                'narration' => 'Salary payment to Employee ID ' . $request->employee_id,
-                'created_by' => auth()->id(),
-            ]);
+                    {/* Date */}
+                    <div>
+                        <label className="block font-medium">Date</label>
+                        <input
+                            type="date"
+                            value={data.date}
+                            onChange={(e) => setData('date', e.target.value)}
+                            className="w-full rounded border px-3 py-2"
+                            required
+                        />
+                        {errors.date && <div className="text-red-600">{errors.date}</div>}
+                    </div>
 
-            // Create journal entries
-            JournalEntry::create([
-                'journal_id' => $journal->id,
-                'account_ledger_id' => $salaryExpenseLedger->id,
-                'type' => 'debit',
-                'amount' => $request->amount,
-                'note' => 'Salary Paid',
-            ]);
+                    {/* Employee Dropdown */}
+                    <div>
+                        <label className="block font-medium">Employee</label>
+                        <select
+                            value={data.employee_id}
+                            onChange={(e) => setData('employee_id', e.target.value)}
+                            className="w-full rounded border px-3 py-2"
+                            required
+                        >
+                            <option value="">Select Employee</option>
+                            {employees.map((emp) => (
+                                <option key={emp.id} value={emp.id}>
+                                    {emp.name}
+                                </option>
+                            ))}
+                        </select>
+                        {errors.employee_id && <div className="text-red-600">{errors.employee_id}</div>}
+                    </div>
 
-            JournalEntry::create([
-                'journal_id' => $journal->id,
-                'account_ledger_id' => $paymentLedger->id,
-                'type' => 'credit',
-                'amount' => $request->amount,
-                'note' => 'Paid via ' . $receivedMode->name,
-            ]);
+                    {/* Received Mode Dropdown */}
+                    <div>
+                        <label className="block font-medium">Received By</label>
+                        <select
+                            value={data.received_by}
+                            onChange={(e) => setData('received_by', e.target.value)}
+                            className="w-full rounded border px-3 py-2"
+                            required
+                        >
+                            <option value="">Select Mode</option>
+                            {receivedModes.map((mode) => (
+                                <option key={mode.id} value={mode.id}>
+                                    {mode.mode_name}
+                                </option>
+                            ))}
+                        </select>
+                        {errors.received_by && <div className="text-red-600">{errors.received_by}</div>}
+                    </div>
+                    {/* Salary Slip Employee Dropdown */}
+                    <div>
+                        <label className="block font-medium">Link to Salary Slip (optional)</label>
+                        <select
+                            value={data.salary_slip_employee_id}
+                            onChange={(e) => setData('salary_slip_employee_id', e.target.value)}
+                            className="w-full rounded border px-3 py-2"
+                        >
+                            <option value="">Select Salary Slip</option>
+                            {salarySlipEmployees.map((sse) => (
+                                <option key={sse.id} value={sse.id.toString()}>
+                                    {`${sse.employee.name} - ${sse.salary_slip.voucher_number} [${sse.status}] - ৳${sse.total_amount}`}
+                                </option>
+                            ))}
+                        </select>
+                        {errors.salary_slip_employee_id && <div className="text-red-600">{errors.salary_slip_employee_id}</div>}
+                    </div>
 
-            // Link journal to salary receive
-            $salaryReceive->journal_id = $journal->id;
-            $salaryReceive->save();
+                    {/* Amount */}
+                    <div>
+                        <label className="block font-medium">Amount</label>
+                        <input
+                            type="number"
+                            step="0.01"
+                            value={data.amount}
+                            onChange={(e) => setData('amount', e.target.value)}
+                            className="w-full rounded border px-3 py-2"
+                            required
+                        />
+                        {errors.amount && <div className="text-red-600">{errors.amount}</div>}
+                    </div>
 
-            if ($request->filled('salary_slip_employee_id')) {
-                $salarySlipEmployee = \App\Models\SalarySlipEmployee::find($request->salary_slip_employee_id);
+                    
 
-                if ($salarySlipEmployee) {
-                    // Calculate total received so far
-                    $totalPaid = SalaryReceive::where('salary_slip_employee_id', $salarySlipEmployee->id)->sum('amount');
-                    $salarySlipEmployee->paid_amount = $totalPaid;
+                    {/* Description */}
+                    <div>
+                        <label className="block font-medium">Description</label>
+                        <textarea
+                            value={data.description}
+                            onChange={(e) => setData('description', e.target.value)}
+                            className="w-full rounded border px-3 py-2"
+                            rows={3}
+                        />
+                        {errors.description && <div className="text-red-600">{errors.description}</div>}
+                    </div>
 
-                    if ($totalPaid >= $salarySlipEmployee->total_amount) {
-                        $salarySlipEmployee->status = 'Paid';
-                    } elseif ($totalPaid > 0) {
-                        $salarySlipEmployee->status = 'Partially Paid';
-                    } else {
-                        $salarySlipEmployee->status = 'Unpaid';
-                    }
-
-                    $salarySlipEmployee->save();
-                }
-            }
-        });
-
-        return redirect()->route('salary-receives.index')->with('success', 'Salary received and journal posted successfully!');
-    }
-
-    // Show the edit form
-    public function edit(SalaryReceive $salaryReceive)
-    {
-        // Ensure 'employee' and 'receivedMode' are loaded with the salaryReceive
-        $salaryReceive->load('employee', 'receivedMode'); // Ensure both relationships are loaded
-
-        $employees = Employee::all(); // Get all employees
-        $receivedModes = ReceivedMode::all(); // Get all received modes
-
-        return Inertia::render('salaryReceives/edit', [
-            'salaryReceive' => $salaryReceive,
-            'employees' => $employees,
-            'receivedModes' => $receivedModes,
-        ]);
-    }
-
-
-
-    // Update the salary receive
-    public function update(Request $request, SalaryReceive $salaryReceive)
-    {
-        $request->validate([
-            'vch_no' => 'required|unique:salary_receives,vch_no,' . $salaryReceive->id,
-            'date' => 'required|date',
-            'employee_id' => 'required|exists:employees,id',
-            'received_by' => 'required|exists:received_modes,id',
-            'amount' => 'required|numeric|min:0',
-            'description' => 'nullable|string',
-        ]);
-
-        $salaryReceive->update($request->all());
-
-        return redirect()->route('salary-receives.index')->with('success', 'Salary received updated successfully!');
-    }
-
-    // Delete the salary receive
-    public function destroy(SalaryReceive $salaryReceive)
-    {
-        $salaryReceive->delete();
-        return redirect()->route('salary-receives.index')->with('success', 'Salary receive deleted successfully!');
-    }
-
-    public function show(SalaryReceive $salaryReceive)
-    {
-        $salaryReceive->load([
-            'employee.designation',
-            'employee.department',
-            'receivedMode.ledger',
-            'salarySlipEmployee.salarySlip',
-            'journal.entries.ledger',
-            'creator',
-        ]);
-
-        return Inertia::render('salaryReceives/show', [
-            'salaryReceive' => [
-                'id' => $salaryReceive->id,
-                'vch_no' => $salaryReceive->vch_no,
-                'date' => $salaryReceive->date,
-                'amount' => $salaryReceive->amount,
-                'description' => $salaryReceive->description,
-                'created_at' => $salaryReceive->created_at,
-                'employee' => $salaryReceive->employee,
-                'received_mode' => $salaryReceive->receivedMode,
-                'salary_slip_employee' => $salaryReceive->salarySlipEmployee,
-                'journal' => $salaryReceive->journal,
-                'creator' => $salaryReceive->creator,
-            ],
-        ]);
-    }
-
-
-    private function getOrCreateSalaryExpenseLedger(): \App\Models\AccountLedger
-    {
-        // 1. Make sure the account group exists under Expenses > Indirect Expenses
-        $groupUnder = \App\Models\GroupUnder::where('name', 'Indirect Expenses')->firstOrFail();
-        $expenseNature = \App\Models\Nature::where('name', 'Expenses')->firstOrFail();
-
-        $accountGroup = \App\Models\AccountGroup::firstOrCreate(
-            ['name' => 'Salary Expense'],
-            [
-                'nature_id' => $expenseNature->id,
-                'group_under_id' => $groupUnder->id,
-                'description' => 'Auto-generated group for salary expenses',
-                'created_by' => auth()->id(),
-            ]
-        );
-
-        // 2. Create the AccountLedger under that group
-        return \App\Models\AccountLedger::firstOrCreate(
-            ['account_ledger_name' => 'Salary Expense'],
-            [
-                'phone_number' => '0000000000',
-                'email' => 'salary@company.com',
-                'opening_balance' => 0,
-                'debit_credit' => 'debit',
-                'status' => 'active',
-                'account_group_id' => $accountGroup->id,
-                'group_under_id' => $groupUnder->id,
-                'address' => 'Company HR',
-                'for_transition_mode' => false,
-                'mark_for_user' => false,
-                'created_by' => auth()->id(),
-            ]
-        );
-    }
+                    {/* Submit Button */}
+                    <div className="text-right">
+                        <button type="submit" className="rounded bg-blue-600 px-5 py-2 text-white hover:bg-blue-700" disabled={processing}>
+                            Save Salary Receive
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </AppLayout>
+    );
 }
