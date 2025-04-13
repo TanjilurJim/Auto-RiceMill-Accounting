@@ -1,20 +1,24 @@
 import AppLayout from '@/layouts/app-layout';
+import { AccountLedger, PageProps } from '@/types';
 import { Head, useForm, usePage } from '@inertiajs/react';
-import { PageProps } from '@/types';
-import { AccountLedger } from '@/types'; 
 
 import React from 'react';
 
 export default function Create() {
+    // Form data initialization
     const { data, setData, post, processing, errors } = useForm({
         mode_name: '',
-        opening_balance: '',
-        closing_balance: '',
+        amount_received: '',
+        amount_paid: '',
+        transaction_date: '',
         phone_number: '',
         ledger_id: '',
     });
+
+    // Fetch available ledgers
     const { ledgers } = usePage<PageProps<{ ledgers: AccountLedger[] }>>().props;
 
+    // Handle form submission
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
         post('/received-modes');
@@ -62,6 +66,7 @@ export default function Create() {
                                 {errors.phone_number && <p className="mt-1 text-xs text-red-500">{errors.phone_number}</p>}
                             </div>
 
+                            {/* Ledger Selection */}
                             <div>
                                 <label className="mb-2 block text-sm font-medium text-gray-700">Ledger</label>
                                 <select
@@ -78,32 +83,51 @@ export default function Create() {
                                 </select>
                                 {errors.ledger_id && <p className="mt-1 text-xs text-red-500">{errors.ledger_id}</p>}
                             </div>
-                            {/* Opening Balance */}
+
+                            {/* Amount Received */}
                             <div>
-                                <label className="mb-2 block text-sm font-medium text-gray-700">Opening Balance</label>
+                                <label className="mb-2 block text-sm font-medium text-gray-700">
+                                    Amount Received<span className="text-red-500">*</span>
+                                </label>
                                 <input
                                     type="number"
                                     step="0.01"
-                                    value={data.opening_balance}
-                                    onChange={(e) => setData('opening_balance', e.target.value)}
+                                    value={data.amount_received || ''} // Allow blank if null
+                                    onChange={(e) => setData('amount_received', e.target.value)}
                                     className="focus:ring-opacity-50 block w-full rounded-md border border-gray-300 px-4 py-2 text-sm shadow-sm focus:border-blue-500 focus:ring focus:ring-blue-200"
-                                    placeholder="0.00"
+                                    placeholder="Optional"
                                 />
-                                {errors.opening_balance && <p className="mt-1 text-xs text-red-500">{errors.opening_balance}</p>}
+                                {errors.amount_received && <p className="mt-1 text-xs text-red-500">{errors.amount_received}</p>}
                             </div>
 
-                            {/* Closing Balance */}
+                            {/* Amount Paid */}
                             <div>
-                                <label className="mb-2 block text-sm font-medium text-gray-700">Closing Balance</label>
+                                <label className="mb-2 block text-sm font-medium text-gray-700">
+                                    Amount Paid<span className="text-red-500">*</span>
+                                </label>
                                 <input
                                     type="number"
-                                    step="0.01"
-                                    value={data.closing_balance}
-                                    onChange={(e) => setData('closing_balance', e.target.value)}
+                                    step="0.00"
+                                    value={data.amount_paid}
+                                    onChange={(e) => setData('amount_paid', e.target.value)}
                                     className="focus:ring-opacity-50 block w-full rounded-md border border-gray-300 px-4 py-2 text-sm shadow-sm focus:border-blue-500 focus:ring focus:ring-blue-200"
                                     placeholder="0.00"
                                 />
-                                {errors.closing_balance && <p className="mt-1 text-xs text-red-500">{errors.closing_balance}</p>}
+                                {errors.amount_paid && <p className="mt-1 text-xs text-red-500">{errors.amount_paid}</p>}
+                            </div>
+
+                            {/* Transaction Date */}
+                            <div>
+                                <label className="mb-2 block text-sm font-medium text-gray-700">
+                                    Transaction Date<span className="text-red-500">*</span>
+                                </label>
+                                <input
+                                    type="date"
+                                    value={data.transaction_date}
+                                    onChange={(e) => setData('transaction_date', e.target.value)}
+                                    className="focus:ring-opacity-50 block w-full rounded-md border border-gray-300 px-4 py-2 text-sm shadow-sm focus:border-blue-500 focus:ring focus:ring-blue-200"
+                                />
+                                {errors.transaction_date && <p className="mt-1 text-xs text-red-500">{errors.transaction_date}</p>}
                             </div>
                         </div>
                     </div>

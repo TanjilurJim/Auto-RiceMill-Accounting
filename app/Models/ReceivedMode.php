@@ -14,6 +14,9 @@ class ReceivedMode extends Model
         'phone_number',
         'ledger_id',
         'created_by',
+        'amount_paid',
+        'amount_received',
+        'transaction_date',
     ];
 
     public function ledger()
