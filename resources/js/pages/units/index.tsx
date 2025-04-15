@@ -94,7 +94,7 @@ export default function UnitIndex({ units }: { units: PaginatedUnits }) {
                 {/* <div className="grid grid-cols-1 gap-4 p-6 md:grid-cols-3"> */}
                 <div className="flex flex-col-reverse justify-between gap-4 p-6 md:flex-row">
                     {/* Left: List */}
-                    <div className="col-span-2 space-y-4 rounded bg-white p-4 shadow lg:w-9/12">
+                    <div className="col-span-2 space-y-4 rounded bg-white p-4 shadow lg:w-2/3">
                         <h2 className="text-lg font-bold">All Unit Manage</h2>
                         <table className="min-w-full border-collapse border border-gray-200 text-left">
                             <thead className="bg-gray-100">
@@ -147,7 +147,7 @@ export default function UnitIndex({ units }: { units: PaginatedUnits }) {
                     </div>
 
                     {/* Right: Form */}
-                    <div className="rounded bg-white p-4 shadow lg:w-3/12">
+                    <div className="rounded bg-white p-4 shadow lg:w-1/3">
                         <h2 className="mb-4 text-lg font-bold">{editUnit ? 'Edit Unit' : 'Add Unit'}</h2>
                         <form onSubmit={handleSubmit} className="space-y-3">
                             <input
