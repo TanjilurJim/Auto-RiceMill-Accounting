@@ -2,6 +2,7 @@
 import AddLink from '@/components/Btn&Link/AddLink';
 import DeleteBtn from '@/components/Btn&Link/DeleteBtn';
 import EditLink from '@/components/Btn&Link/EditLink';
+import { confirmDialog } from '@/components/confirmDialog';
 import AppLayout from '@/layouts/app-layout';
 import { Head, Link, router } from '@inertiajs/react';
 import Swal from 'sweetalert2';
@@ -29,19 +30,25 @@ interface PaginatedItems {
 
 export default function ItemIndex({ items }: { items: PaginatedItems }) {
     const handleDelete = (id: number) => {
-        Swal.fire({
-            title: 'Are you sure?',
-            text: "You won't be able to revert this!",
-            icon: 'warning',
-            showCancelButton: true,
-            confirmButtonColor: '#d33',
-            cancelButtonColor: '#3085d6',
-            confirmButtonText: 'Yes, delete it!',
-        }).then((result) => {
-            if (result.isConfirmed) {
+        // Swal.fire({
+        //     title: 'Are you sure?',
+        //     text: "You won't be able to revert this!",
+        //     icon: 'warning',
+        //     showCancelButton: true,
+        //     confirmButtonColor: '#d33',
+        //     cancelButtonColor: '#3085d6',
+        //     confirmButtonText: 'Yes, delete it!',
+        // }).then((result) => {
+        //     if (result.isConfirmed) {
+        //         router.delete(`/items/${id}`);
+        //     }
+        // });
+
+        confirmDialog(
+            {}, () => {
                 router.delete(`/items/${id}`);
             }
-        });
+        )
     };
 
     return (
