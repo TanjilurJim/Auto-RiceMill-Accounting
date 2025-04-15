@@ -1,4 +1,6 @@
 // resources/js/pages/items/edit.tsx
+import Button from '@/components/Btn&Link/Button';
+import CancelLink from '@/components/Btn&Link/CancelLink';
 import AppLayout from '@/layouts/app-layout';
 import { Head, useForm } from '@inertiajs/react';
 import { Link } from '@inertiajs/react';
@@ -193,16 +195,19 @@ export default function EditItem({
                         </div>
 
                         <div className="flex justify-between">
-                            <Link href="/items" className="rounded border px-4 py-2 hover:bg-neutral-100 dark:hover:bg-neutral-800">
+                            {/* <Link href="/items" className="rounded border px-4 py-2 hover:bg-neutral-100 dark:hover:bg-neutral-800">
                                 Cancel
-                            </Link>
-                            <button
+                            </Link> */}
+                            <CancelLink href="/items" />
+
+                            {/* <button
                                 type="submit"
                                 disabled={processing}
                                 className="rounded bg-yellow-600 px-4 py-2 text-white hover:bg-yellow-700"
                             >
                                 Update
-                            </button>
+                            </button> */}
+                            <Button processing={processing} children={processing ? 'Updating...' : 'Update'}/>
                         </div>
                     </div>
                 </form>

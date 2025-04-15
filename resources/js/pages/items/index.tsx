@@ -1,4 +1,7 @@
 // resources/js/pages/items/index.tsx
+import AddLink from '@/components/Btn&Link/AddLink';
+import DeleteBtn from '@/components/Btn&Link/DeleteBtn';
+import EditLink from '@/components/Btn&Link/EditLink';
 import AppLayout from '@/layouts/app-layout';
 import { Head, Link, router } from '@inertiajs/react';
 import Swal from 'sweetalert2';
@@ -47,9 +50,10 @@ export default function ItemIndex({ items }: { items: PaginatedItems }) {
             <div className="p-6">
                 <div className="flex items-center justify-between mb-6">
                     <h1 className="text-2xl font-bold">All Items</h1>
-                    <Link href="/items/create" className="rounded bg-green-600 px-4 py-2 text-white hover:bg-green-700">
+                    {/* <Link href="/items/create" className="rounded bg-green-600 px-4 py-2 text-white hover:bg-green-700">
                         + Add Item
-                    </Link>
+                    </Link> */}
+                    <AddLink href='/items/create' children='+ Add Item'/>
                 </div>
 
                 <div className="overflow-x-auto rounded-lg bg-white shadow">
@@ -82,18 +86,21 @@ export default function ItemIndex({ items }: { items: PaginatedItems }) {
                                     <td className="border px-4 py-2">{item.creator?.name || 'N/A'}</td>
 
                                     <td className="flex justify-center gap-2 border px-4 py-2">
-                                        <Link
+                                        {/* <Link
                                             href={`/items/${item.id}/edit`}
                                             className="rounded bg-purple-500 px-3 py-1 text-xs text-white hover:bg-purple-600"
                                         >
                                             Edit
-                                        </Link>
-                                        <button
+                                        </Link> */}
+                                        <EditLink href={`/items/${item.id}/edit`} />
+
+                                        {/* <button
                                             onClick={() => handleDelete(item.id)}
                                             className="rounded bg-red-600 px-3 py-1 text-xs text-white hover:bg-red-700"
                                         >
                                             Delete
-                                        </button>
+                                        </button> */}
+                                        <DeleteBtn handleDelete={() => handleDelete(item.id)}>Delete</DeleteBtn>
                                     </td>
                                 </tr>
                             ))}

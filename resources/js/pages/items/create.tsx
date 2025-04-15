@@ -1,4 +1,6 @@
 // resources/js/pages/items/create.tsx
+import Button from '@/components/Btn&Link/Button';
+import CancelLink from '@/components/Btn&Link/CancelLink';
 import AppLayout from '@/layouts/app-layout';
 import { Head, Link, useForm } from '@inertiajs/react';
 
@@ -41,9 +43,10 @@ export default function ItemCreate({ categories, units, godowns }: { categories:
             <div className="bg-gray-100 p-6">
                 <div className="mb-6 flex items-center justify-between">
                     <h1 className="text-2xl font-bold">Add New Item</h1>
-                    <Link href="/items" className="rounded border bg-gray-300 px-4 py-2 hover:bg-neutral-100 dark:hover:bg-neutral-800">
+                    {/* <Link href="/items" className="rounded border bg-gray-300 px-4 py-2 hover:bg-neutral-100 dark:hover:bg-neutral-800">
                         Back
-                    </Link>
+                    </Link> */}
+                    <CancelLink href="/items" children="Back"/>
                 </div>
                 <form onSubmit={handleSubmit} className="mx-auto max-w-3xl space-y-4 rounded bg-white p-6 shadow-md">
                     {/* Basic Info Section */}
@@ -180,16 +183,21 @@ export default function ItemCreate({ categories, units, godowns }: { categories:
                     </div>
 
                     <div className="flex justify-end space-x-2">
-                        <Link href="/items" className="rounded border px-4 py-2 hover:bg-neutral-100">
+                        {/* <Link href="/items" className="rounded border px-4 py-2 hover:bg-neutral-100">
                             Cancel
-                        </Link>
-                        <button
+                        </Link> */}
+                        <CancelLink href="/items" />
+                        {/* <button
                             type="submit"
                             disabled={processing}
                             className="rounded bg-green-600 px-4 py-2 text-white hover:bg-green-700 disabled:opacity-50"
                         >
                             {processing ? 'Creating...' : 'Create Item'}
-                        </button>
+                        </button> */}
+                        <Button 
+                            processing={processing}
+                            children={processing ? 'Creating...' : 'Create Item'}
+                        />
                     </div>
                 </form>
             </div>
