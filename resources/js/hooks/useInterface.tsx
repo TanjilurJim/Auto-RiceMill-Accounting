@@ -6,14 +6,16 @@ interface Props {
     delId?: { id: number };
     handleDelete?: (id: number) => void;
     processing?: boolean;
+    className?: string; // Optional className prop for additional styling
 }
 
-export const useInterface = (
+const useInterface = (
     href?: string,
     children?: ReactNode,
     delId?: { id: number },
     handleDelete?: (id: number) => void,
     processing?: boolean,
+    className?: string,
 ): Props => {
     return {
         href,
@@ -21,9 +23,10 @@ export const useInterface = (
         delId,
         handleDelete,
         processing,
+        className
     };
 };
 
 
 
-// export default useInterface;
+export default useInterface;
