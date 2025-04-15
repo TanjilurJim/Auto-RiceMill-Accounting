@@ -1,9 +1,31 @@
 import AppLayout from '@/layouts/app-layout';
 import { Head, Link, useForm } from '@inertiajs/react';
-import { useEffect } from 'react';
+import axios from 'axios';
+import { useEffect, useState } from 'react';
 import Swal from 'sweetalert2';
 
+
+const scrollToFirstError = (errors: Record<string, any>) => {
+    const firstField = Object.keys(errors)[0];
+    if (firstField) {
+      const el = document.querySelector(`[name="${firstField}"]`);
+      if (el && el.scrollIntoView) {
+        el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        (el as HTMLElement).focus?.();
+      }
+    }
+  };
 interface Godown {
+    id: number;
+    name: string;
+}
+
+interface ReceivedMode {
+    id: number;
+    mode_name: string;
+    ledger_id: number;
+}
+interface AccountGroup {
     id: number;
     name: string;
 }
@@ -20,16 +42,30 @@ interface Item {
     item_name: string;
 }
 
+interface StockRow {
+    id: number;
+    qty: number;
+    item: { id: number; item_name: string };
+}
+
 export default function PurchaseCreate({
     godowns,
     salesmen,
     ledgers,
     items,
+    inventoryLedgers, // ✅ add
+    accountGroups,
+    receivedModes,
+    stockItemsByGodown, // ✅ add
 }: {
     godowns: Godown[];
     salesmen: Salesman[];
     ledgers: Ledger[];
     items: Item[];
+    inventoryLedgers: Ledger[]; // 👈
+    accountGroups: { id: number; name: string }[];
+    receivedModes: ReceivedMode[]; // 👈
+    stockItemsByGodown: { [k: number]: StockRow[] }; //  👈  NEW
 }) {
     const { data, setData, post, processing, errors } = useForm({
         date: '',
@@ -37,12 +73,26 @@ export default function PurchaseCreate({
         godown_id: '',
         salesman_id: '',
         account_ledger_id: '',
+        inventory_ledger_id: '',
         phone: '',
         address: '',
         shipping_details: '',
         delivered_to: '',
         purchase_items: [{ product_id: '', qty: '', price: '', discount: '', discount_type: 'bdt', subtotal: '' }],
+        received_mode_id: '', // 👈 new
+        amount_paid: '',
     });
+    useEffect(() => {
+        if (Object.keys(errors).length) {
+          scrollToFirstError(errors);
+        }
+      }, [errors]);
+
+      useEffect(() => {
+        if (Object.keys(errors).length > 0) {
+          scrollToFirstError(errors);
+        }
+      }, [errors]);
 
     useEffect(() => {
         if (!data.voucher_no) {
@@ -100,7 +150,23 @@ export default function PurchaseCreate({
         }));
         post('/purchases', { data: { ...data, purchase_items: cleanedItems } });
     };
+    function cn(...classes: (string | false | undefined)[]) {
+        return classes.filter(Boolean).join(' ');
+    }
 
+    // scroll to first error once errors arrive
+    function scrollToFirstError(errs: Record<string, any>) {
+        const first = Object.keys(errs)[0];
+        if (!first) return;
+
+        // field names like "purchase_items.0.qty" have dots – replace them
+        const el = document.querySelector(`[name="${first.replace(/\./g, '\\.')}"]`);
+        if (el) el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }
+    const [showLedgerModal, setShowLedgerModal] = useState(false);
+    const [newLedgerName, setNewLedgerName] = useState('');
+    const [newGroupId, setNewGroupId] = useState('');
+    const godownItems: StockRow[] = data.godown_id && stockItemsByGodown[data.godown_id] ? stockItemsByGodown[data.godown_id] : [];
     return (
         <AppLayout>
             <Head title="Add Purchase" />
@@ -121,7 +187,7 @@ export default function PurchaseCreate({
                         <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
                             <input
                                 type="date"
-                                className="border p-2"
+                                className="border p-2  ${errors.godown_id ? 'border-red-500' : 'border-gray-300'}"
                                 placeholder="Date"
                                 value={data.date}
                                 onChange={(e) => setData('date', e.target.value)}
@@ -135,7 +201,15 @@ export default function PurchaseCreate({
                                 readOnly // Optional, remove 'readOnly' if you want to allow manual edits
                             />
                             {errors.voucher_no && <p className="mt-1 text-sm text-red-500">{errors.voucher_no}</p>}
-                            <select className="border p-2" value={data.godown_id} onChange={(e) => setData('godown_id', e.target.value)}>
+                            <select
+                                name="godown_id" //  👈 name is important for scroll
+                                className={cn(
+                                    'w-full border p-2 ',
+                                    errors.godown_id && 'border-red-500', //  red border if error
+                                )}
+                                value={data.godown_id}
+                                onChange={(e) => setData('godown_id', e.target.value)}
+                            >
                                 <option value="">Select Godown</option>
                                 {godowns.map((g) => (
                                     <option key={g.id} value={g.id}>
@@ -143,6 +217,8 @@ export default function PurchaseCreate({
                                     </option>
                                 ))}
                             </select>
+
+                            {errors.godown_id && <p className="mt-1 text-sm text-red-500">{errors.godown_id}</p>}
                             <select className="border p-2" value={data.salesman_id} onChange={(e) => setData('salesman_id', e.target.value)}>
                                 <option value="">Select Salesman</option>
                                 {salesmen.map((s) => (
@@ -152,7 +228,7 @@ export default function PurchaseCreate({
                                 ))}
                             </select>
                             <select
-                                className="border p-2"
+                                className="border p-2  ${errors.godown_id ? 'border-red-500' : 'border-gray-300'}"
                                 value={data.account_ledger_id}
                                 onChange={(e) => setData('account_ledger_id', e.target.value)}
                             >
@@ -163,6 +239,26 @@ export default function PurchaseCreate({
                                     </option>
                                 ))}
                             </select>
+                            <div className="flex items-center gap-2">
+                                <select
+                                    className="w-full border p-2"
+                                    value={data.inventory_ledger_id}
+                                    onChange={(e) => setData('inventory_ledger_id', e.target.value)}
+                                >
+                                    <option value="">Select Inventory Ledger</option>
+                                    {inventoryLedgers.map((l) => (
+                                        <option key={l.id} value={l.id}>
+                                            {l.account_ledger_name}
+                                        </option>
+                                    ))}
+                                </select>
+
+                                {/* Placeholder for Add Button — next step will handle modal */}
+                                <button type="button" className="rounded bg-blue-500 px-2 py-1 text-white" onClick={() => setShowLedgerModal(true)}>
+                                    +
+                                </button>
+                            </div>
+
                             <input
                                 type="text"
                                 className="border p-2"
@@ -206,12 +302,22 @@ export default function PurchaseCreate({
                                                     onChange={(e) => handleItemChange(index, 'product_id', e.target.value)}
                                                 >
                                                     <option value="">Select</option>
-                                                    {items.map((p) => (
-                                                        <option key={p.id} value={p.id}>
-                                                            {p.item_name}
+                                                    {godownItems.map((stock) => (
+                                                        <option key={stock.item.id} value={stock.item.id}>
+                                                            {stock.item.item_name} ({stock.qty} in stock)
                                                         </option>
                                                     ))}
                                                 </select>
+                                                {/* Projected stock AFTER this purchase */}
+                                                {item.product_id && (
+                                                    <div className="text-xs text-gray-500">
+                                                        Projected stock:&nbsp;
+                                                        {(
+                                                            (parseFloat(godownItems.find((s) => s.item.id == item.product_id)?.qty as any) || 0) +
+                                                            (parseFloat(item.qty) || 0)
+                                                        ).toFixed(2)}
+                                                    </div>
+                                                )}
                                             </td>
                                             <td className="border px-2 py-1">
                                                 <input
@@ -278,6 +384,34 @@ export default function PurchaseCreate({
                             </table>
                         </div>
                     </div>
+                    {/* Payment Info Section */}
+                    <div className="mt-8 space-y-4 border-t pt-4">
+                        <h2 className="text-lg font-semibold">Payment Info</h2>
+
+                        <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+                            <select
+                                className="border p-2"
+                                value={data.received_mode_id}
+                                onChange={(e) => setData('received_mode_id', e.target.value)}
+                            >
+                                <option value="">Select Payment Mode</option>
+                                {receivedModes.map((mode) => (
+                                    <option key={mode.id} value={mode.id}>
+                                        {mode.mode_name}
+                                    </option>
+                                ))}
+                            </select>
+
+                            <input
+                                type="number"
+                                className="border p-2"
+                                placeholder="Amount Paid"
+                                value={data.amount_paid}
+                                onChange={(e) => setData('amount_paid', e.target.value)}
+                            />
+                        </div>
+                    </div>
+                    <hr />
 
                     {/* Totals Section */}
                     <div className="mt-6 grid grid-cols-1 gap-6 md:grid-cols-3">
@@ -346,6 +480,67 @@ export default function PurchaseCreate({
                         </Link>
                     </div>
                 </form>
+                {/* Ledger Modal */}
+                {showLedgerModal && (
+                    <div className="bg-opacity-50 fixed inset-0 z-50 flex items-center justify-center bg-black">
+                        <div className="w-full max-w-md rounded bg-white p-6 shadow-lg">
+                            <h2 className="mb-4 text-lg font-semibold text-gray-700">Create New Inventory Ledger</h2>
+
+                            <input
+                                type="text"
+                                placeholder="Ledger Name"
+                                className="mb-3 w-full rounded border p-2"
+                                value={newLedgerName}
+                                onChange={(e) => setNewLedgerName(e.target.value)}
+                            />
+
+                            <select className="mb-4 w-full rounded border p-2" value={newGroupId} onChange={(e) => setNewGroupId(e.target.value)}>
+                                <option value="">Select Group</option>
+                                {accountGroups.map((g) => (
+                                    <option key={g.id} value={g.id}>
+                                        {g.name}
+                                    </option>
+                                ))}
+                            </select>
+
+                            <div className="flex justify-end gap-3">
+                                <button className="rounded bg-gray-400 px-4 py-2 text-white" onClick={() => setShowLedgerModal(false)}>
+                                    Cancel
+                                </button>
+
+                                <button
+                                    className="rounded bg-green-600 px-4 py-2 text-white"
+                                    onClick={async () => {
+                                        try {
+                                            const response = await axios.post('/account-ledgers/modal', {
+                                                account_ledger_name: newLedgerName,
+                                                account_group_id: newGroupId,
+                                                for_transition_mode: 0,
+                                                mark_for_user: 0,
+                                                phone_number: '0',
+                                                opening_balance: 0,
+                                                debit_credit: 'debit', // usually for inventory
+                                                status: 'active',
+                                            });
+
+                                            // Add new ledger to dropdown and select it
+                                            const newLedger = response.data;
+                                            setData('inventory_ledger_id', newLedger.id);
+                                            setNewLedgerName('');
+                                            setNewGroupId('');
+                                            setShowLedgerModal(false);
+                                        } catch (err) {
+                                            console.error(err);
+                                            alert('Failed to create ledger');
+                                        }
+                                    }}
+                                >
+                                    Create Ledger
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                )}
             </div>
         </AppLayout>
     );

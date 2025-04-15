@@ -24,12 +24,21 @@ class Purchase extends Model
         'shipping_details',
         'delivered_to',
         'created_by',
+
+        // 🆕 Newly added:
+        'received_mode_id',
+        'amount_paid',
     ];
 
     // ✅ Relationship with Purchase Items
     public function purchaseItems()
     {
         return $this->hasMany(PurchaseItem::class);
+    }
+
+    public function receivedMode()
+    {
+        return $this->belongsTo(ReceivedMode::class, 'received_mode_id');
     }
 
     // ✅ Relationship with Godown

@@ -153,7 +153,7 @@ export default function SalarySlipIndex({ salarySlips, employees }: Props) {
                                 <th className="border px-3 py-2">Date</th>
                                 <th className="border px-3 py-2">Salary For</th>
                                 <th className="border px-3 py-2">Total</th>
-                                <th className="border px-3 py-2">Status Journal</th>
+                                {/* <th className="border px-3 py-2">Status Journal</th> */}
                                 <th className="border px-3 py-2 text-center">Actions</th>
                             </tr>
                         </thead>
@@ -188,13 +188,13 @@ export default function SalarySlipIndex({ salarySlips, employees }: Props) {
                                                 <td className="border px-3 py-2">{salarySlip.date}</td>
                                                 <td className="border px-3 py-2">{salaryFor}</td>
                                                 <td className="border px-3 py-2">৳ {total.toFixed(2)}</td>
-                                                <td className="border px-3 py-2">
+                                                {/* <td className="border px-3 py-2">
                                                     <span
                                                         className={`rounded-full px-2 py-0.5 text-xs font-semibold ${status === 'Posted' ? 'bg-green-100 text-green-700' : 'bg-yellow-100 text-yellow-700'}`}
                                                     >
                                                         {status}
                                                     </span>
-                                                </td>
+                                                </td> */}
                                                 <td className="border px-3 py-2 text-center">
                                                     <div className="flex justify-center gap-2">
                                                         <Link

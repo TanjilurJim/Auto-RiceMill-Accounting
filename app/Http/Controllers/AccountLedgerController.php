@@ -101,55 +101,55 @@ class AccountLedgerController extends Controller
     }
 
     public function update(Request $request, AccountLedger $accountLedger)
-{
-    // Validate incoming data
-    $request->validate([
-        'account_ledger_name' => 'required|string|max:255',
-        'phone_number' => 'required|string|max:20',
-        'email' => 'nullable|email',
-        'opening_balance' => 'required|numeric',
-        'debit_credit' => 'required|in:debit,credit',
-        'status' => 'required|in:active,inactive',
-        'account_group_input' => 'required|string',
-        'address' => 'nullable|string',
-        'for_transition_mode' => 'nullable|boolean',
-        'mark_for_user' => 'nullable|boolean',
-        'reference_number' => 'nullable|string', // Add validation for reference number if needed
-    ]);
+    {
+        // Validate incoming data
+        $request->validate([
+            'account_ledger_name' => 'required|string|max:255',
+            'phone_number' => 'required|string|max:20',
+            'email' => 'nullable|email',
+            'opening_balance' => 'required|numeric',
+            'debit_credit' => 'required|in:debit,credit',
+            'status' => 'required|in:active,inactive',
+            'account_group_input' => 'required|string',
+            'address' => 'nullable|string',
+            'for_transition_mode' => 'nullable|boolean',
+            'mark_for_user' => 'nullable|boolean',
+            'reference_number' => 'nullable|string', // Add validation for reference number if needed
+        ]);
 
-    // Update the ledger data
-    $parts = explode('-', $request->account_group_input);
-    $type = $parts[0];
-    $id = $parts[1];
+        // Update the ledger data
+        $parts = explode('-', $request->account_group_input);
+        $type = $parts[0];
+        $id = $parts[1];
 
-    $ledgerData = [
-        'account_ledger_name' => $request->account_ledger_name,
-        'phone_number' => $request->phone_number,
-        'email' => $request->email,
-        'opening_balance' => $request->opening_balance,
-        'debit_credit' => $request->debit_credit,
-        'status' => $request->status,
-        'address' => $request->address,
-        'for_transition_mode' => $request->has('for_transition_mode'),
-        'mark_for_user' => $request->has('mark_for_user'),
-        'reference_number' => $request->reference_number, // Ensure reference number is updated if changed
-    ];
+        $ledgerData = [
+            'account_ledger_name' => $request->account_ledger_name,
+            'phone_number' => $request->phone_number,
+            'email' => $request->email,
+            'opening_balance' => $request->opening_balance,
+            'debit_credit' => $request->debit_credit,
+            'status' => $request->status,
+            'address' => $request->address,
+            'for_transition_mode' => $request->has('for_transition_mode'),
+            'mark_for_user' => $request->has('mark_for_user'),
+            'reference_number' => $request->reference_number, // Ensure reference number is updated if changed
+        ];
 
-    // Reset both before updating
-    $ledgerData['account_group_id'] = null;
-    $ledgerData['group_under_id'] = null;
+        // Reset both before updating
+        $ledgerData['account_group_id'] = null;
+        $ledgerData['group_under_id'] = null;
 
-    if ($type === 'group_under') {
-        $ledgerData['group_under_id'] = $id;
-    } elseif ($type === 'account_group') {
-        $ledgerData['account_group_id'] = $id;
+        if ($type === 'group_under') {
+            $ledgerData['group_under_id'] = $id;
+        } elseif ($type === 'account_group') {
+            $ledgerData['account_group_id'] = $id;
+        }
+
+        // Update the Account Ledger
+        $accountLedger->update($ledgerData);
+
+        return redirect()->route('account-ledgers.index')->with('success', 'Account Ledger updated successfully.');
     }
-
-    // Update the Account Ledger
-    $accountLedger->update($ledgerData);
-
-    return redirect()->route('account-ledgers.index')->with('success', 'Account Ledger updated successfully.');
-}
 
 
 
@@ -163,5 +163,30 @@ class AccountLedgerController extends Controller
         $accountLedger->delete();
 
         return redirect()->route('account-ledgers.index')->with('success', 'Account Ledger deleted successfully.');
+    }
+
+    public function storeFromModal(Request $request)
+    {
+        $request->validate([
+            'account_ledger_name' => 'required|string|max:255',
+            'account_group_id' => 'required|exists:account_groups,id',
+        ]);
+
+        $ledger = \App\Models\AccountLedger::create([
+            'account_ledger_name' => $request->account_ledger_name,
+            'account_group_id' => $request->account_group_id,
+            'phone_number' => $request->phone_number ?? '',
+            'email' => $request->email ?? null,
+            'opening_balance' => 0,
+            'closing_balance' => 0,
+            'debit_credit' => $request->debit_credit ?? 'debit',
+            'status' => $request->status ?? 'active',
+            'for_transition_mode' => $request->for_transition_mode ?? 0,
+            'mark_for_user' => $request->mark_for_user ?? 0,
+            'created_by' => auth()->id(),
+        ]);
+
+        
+        return response()->json($ledger);
     }
 }

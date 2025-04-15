@@ -1,13 +1,10 @@
 <?php
 
-// StockTransferController.php
-
-// StockTransferController.php
-
 namespace App\Http\Controllers;
 
 use App\Models\StockTransfer;
 use App\Models\StockTransferItem;
+use App\Models\Stock;
 use App\Models\Item;
 use App\Models\Godown;
 use Illuminate\Http\Request;
@@ -15,37 +12,79 @@ use Inertia\Inertia;
 
 class StockTransferController extends Controller
 {
-    // Show list of stock transfers
+    /*--------------------------------------------------------------
+    |  LIST & FORM SCREENS
+    --------------------------------------------------------------*/
     public function index()
     {
-        $stockTransfers = StockTransfer::with(['fromGodown', 'toGodown', 'creator', 'items.item'])
+        $transfers = StockTransfer::with(['fromGodown', 'toGodown', 'creator', 'items.item'])
             ->where('created_by', auth()->id())
-            ->orderBy('id', 'desc')
+            ->latest('date')
             ->paginate(10);
 
         return Inertia::render('StockTransfer/Index', [
-            'stockTransfers' => $stockTransfers // Pass the entire paginator object
+            'stockTransfers' => $transfers,
         ]);
     }
 
-
-
-    // Show create form
     public function create()
     {
-        // Define query scope based on the user's role
-        $queryScope = auth()->user()->hasRole('admin')
-            ? fn($query) => $query
-            : fn($query) => $query->where('created_by', auth()->id());
-
-        // Return Inertia view with godowns and items
         return Inertia::render('StockTransfer/Create', [
-            'godowns' => Godown::when(!auth()->user()->hasRole('admin'), fn($q) => $q->where('created_by', auth()->id()))->get(),
-            'items' => Item::when(!auth()->user()->hasRole('admin'), fn($q) => $q->where('created_by', auth()->id()))->get(),
+            'godowns' => Godown::where('created_by', auth()->id())->get(),
+            'items' => \App\Models\Stock::with('item')
+                ->where('created_by', auth()->id())
+                ->get()
+                ->map(function ($stock) {
+                    return [
+                        'id' => $stock->item->id,
+                        'item_name' => $stock->item->item_name,
+                        'godown_id' => $stock->godown_id,
+                        'previous_stock' => $stock->qty,
+                    ];
+                }),
+
+            // 👇 NEW
+            'liveStock' => Stock::with('item')
+                ->where('created_by', auth()->id())
+                ->get(['id', 'item_id', 'godown_id', 'qty']),
         ]);
     }
 
-    // Store stock transfer
+    public function show($id)
+    {
+        $transfer = StockTransfer::with(['fromGodown', 'toGodown', 'items.item'])
+            ->where('created_by', auth()->id())
+            ->findOrFail($id);
+
+        return Inertia::render('StockTransfer/Show', ['stockTransfer' => $transfer]);
+    }
+
+    public function edit($id)
+    {
+        $userId = auth()->id();
+        $isAdmin = auth()->user()->hasRole('admin');
+
+        $transfer = StockTransfer::with(['items.item'])
+            ->when(!$isAdmin, fn($q) => $q->where('created_by', $userId))
+            ->findOrFail($id);
+
+        return Inertia::render('StockTransfer/Edit', [
+            'stockTransfer' => $transfer,
+            'godowns' => Godown::when(!$isAdmin, fn($q) => $q->where('created_by', $userId))->get(),
+
+            // 🟡 Only items that the user owns
+            'items' => \App\Models\Item::when(!$isAdmin, fn($q) => $q->where('created_by', $userId))->get(),
+
+            // 🟩 All stocks grouped by godown so frontend can filter easily
+            'stocks' => \App\Models\Stock::with('item')
+                ->when(!$isAdmin, fn($q) => $q->where('created_by', $userId))
+                ->get(),
+        ]);
+    }
+
+    /*--------------------------------------------------------------
+    |  STORE
+    --------------------------------------------------------------*/
     public function store(Request $request)
     {
         $request->validate([
@@ -82,86 +121,32 @@ class StockTransferController extends Controller
                 'amount' => $product['quantity'] * $product['rate'],
             ]);
 
-            // Update "From" godown stock
-            $fromItem = Item::where('id', $product['item_id'])
-                ->where('godown_id', $request->from_godown_id)
-                ->first();
+            // 🟢 Reduce stock in from_godown
+            $fromStock = \App\Models\Stock::firstOrNew([
+                'item_id' => $product['item_id'],
+                'godown_id' => $request->from_godown_id,
+                'created_by' => auth()->id(),
+            ]);
+            $fromStock->qty = max(0, $fromStock->qty - $product['quantity']);
+            $fromStock->save();
 
-            if ($fromItem) {
-                $fromItem->previous_stock -= $product['quantity'];
-                $fromItem->save();
-            }
-
-            // Update or create "To" godown stock
-            $toItem = Item::where('item_code', $fromItem->item_code)
-                ->where('godown_id', $request->to_godown_id)
-                ->first();
-
-            if ($toItem) {
-                $toItem->previous_stock += $product['quantity'];
-                $toItem->save();
-            } else {
-                $existingItem = Item::where('item_code', $fromItem->item_code)
-                    ->where('item_name', '!=', $fromItem->item_name)
-                    ->first();
-
-                if ($existingItem) {
-                    return redirect()->back()->withErrors([
-                        'item_code' => "Item code {$fromItem->item_code} already exists with a different item name.",
-                    ])->withInput();
-                }
-
-                Item::create([
-                    'item_name' => $fromItem->item_name,
-                    'item_code' => $fromItem->item_code,
-                    'category_id' => $fromItem->category_id,
-                    'unit_id' => $fromItem->unit_id,
-                    'godown_id' => $request->to_godown_id,
-                    'previous_stock' => $product['quantity'],
-                    'created_by' => auth()->id(),
-                ]);
-            }
+            // 🟢 Increase stock in to_godown
+            $toStock = \App\Models\Stock::firstOrNew([
+                'item_id' => $product['item_id'],
+                'godown_id' => $request->to_godown_id,
+                'created_by' => auth()->id(),
+            ]);
+            $toStock->qty += $product['quantity'];
+            $toStock->save();
         }
 
         return redirect()->route('stock-transfers.index')->with('success', 'Stock Transfer Successfully Completed');
     }
 
 
-    // Show a specific stock transfer
-    public function show($id)
-    {
-        $stockTransfer = StockTransfer::with('fromGodown', 'toGodown', 'items.item')->findOrFail($id);
-
-        // Access check
-        if ($stockTransfer->created_by !== auth()->id() && !auth()->user()->hasRole('admin')) {
-            abort(403);
-        }
-
-        return Inertia::render('StockTransfer/Show', [
-            'stockTransfer' => $stockTransfer,
-        ]);
-    }
-
-    // Show form to edit a stock transfer
-    public function edit($id)
-    {
-        $stockTransfer = StockTransfer::with('fromGodown', 'toGodown', 'items.item')
-            ->findOrFail($id);
-
-        // Check if the logged-in user is authorized to edit this transfer
-        if ($stockTransfer->created_by !== auth()->id() && !auth()->user()->hasRole('admin')) {
-            abort(403);
-        }
-
-        return Inertia::render('StockTransfer/Edit', [
-            'stockTransfer' => $stockTransfer,
-            'godowns' => Godown::when(!auth()->user()->hasRole('admin'), fn($q) => $q->where('created_by', auth()->id()))->get(),
-            'items' => Item::when(!auth()->user()->hasRole('admin'), fn($q) => $q->where('created_by', auth()->id()))->get(),
-        ]);
-    }
-
-
-    // Update an existing stock transfer
+    /*--------------------------------------------------------------
+    |  UPDATE
+    --------------------------------------------------------------*/
     public function update(Request $request, $id)
     {
         $request->validate([
@@ -175,37 +160,37 @@ class StockTransferController extends Controller
             'products.*.rate' => 'required|numeric|min:0.01',
         ]);
 
-        $stockTransfer = StockTransfer::findOrFail($id);
+        $stockTransfer = StockTransfer::with('items')->findOrFail($id);
 
         if ($stockTransfer->created_by !== auth()->id() && !auth()->user()->hasRole('admin')) {
             abort(403);
         }
 
-        // Reverse old stock changes
+        // 🧨 Rollback previous stock changes
         foreach ($stockTransfer->items as $oldItem) {
-            $fromItem = Item::where('item_code', $oldItem->item->item_code)
-                ->where('godown_id', $stockTransfer->from_godown_id)
-                ->first();
+            // ➖ Rollback from godown
+            $fromStock = \App\Models\Stock::firstOrNew([
+                'item_id' => $oldItem->item_id,
+                'godown_id' => $stockTransfer->from_godown_id,
+                'created_by' => auth()->id(),
+            ]);
+            $fromStock->qty += $oldItem->quantity;
+            $fromStock->save();
 
-            $toItem = Item::where('item_code', $oldItem->item->item_code)
-                ->where('godown_id', $stockTransfer->to_godown_id)
-                ->first();
-
-            if ($fromItem) {
-                $fromItem->previous_stock += $oldItem->quantity;
-                $fromItem->save();
-            }
-
-            if ($toItem) {
-                $toItem->previous_stock -= $oldItem->quantity;
-                $toItem->save();
-            }
+            // ➖ Rollback to godown
+            $toStock = \App\Models\Stock::firstOrNew([
+                'item_id' => $oldItem->item_id,
+                'godown_id' => $stockTransfer->to_godown_id,
+                'created_by' => auth()->id(),
+            ]);
+            $toStock->qty = max(0, $toStock->qty - $oldItem->quantity);
+            $toStock->save();
         }
 
-        // Delete old items
+        // Delete old transfer items
         $stockTransfer->items()->delete();
 
-        // Update stock transfer record
+        // 🟡 Update main record
         $stockTransfer->update([
             'date' => $request->date,
             'voucher_no' => $request->voucher_no,
@@ -216,7 +201,7 @@ class StockTransferController extends Controller
             'note' => $request->note,
         ]);
 
-        // Apply new stock changes
+        // 🟢 Re-apply new stock changes
         foreach ($request->products as $product) {
             $stockTransfer->items()->create([
                 'item_id' => $product['item_id'],
@@ -225,59 +210,73 @@ class StockTransferController extends Controller
                 'amount' => $product['quantity'] * $product['rate'],
             ]);
 
-            $fromItem = Item::where('id', $product['item_id'])
-                ->where('godown_id', $request->from_godown_id)
-                ->first();
+            // ➖ Reduce from godown
+            $fromStock = \App\Models\Stock::firstOrNew([
+                'item_id' => $product['item_id'],
+                'godown_id' => $request->from_godown_id,
+                'created_by' => auth()->id(),
+            ]);
+            $fromStock->qty = max(0, $fromStock->qty - $product['quantity']);
+            $fromStock->save();
 
-            if ($fromItem) {
-                $fromItem->previous_stock -= $product['quantity'];
-                $fromItem->save();
-            }
-
-            $toItem = Item::where('item_code', $fromItem->item_code)
-                ->where('godown_id', $request->to_godown_id)
-                ->first();
-
-            if ($toItem) {
-                $toItem->previous_stock += $product['quantity'];
-                $toItem->save();
-            } else {
-                $conflict = Item::where('item_code', $fromItem->item_code)
-                    ->where('item_name', '!=', $fromItem->item_name)
-                    ->first();
-
-                if ($conflict) {
-                    return redirect()->back()->withErrors([
-                        'item_code' => "Item code {$fromItem->item_code} already exists with a different item name.",
-                    ])->withInput();
-                }
-
-                Item::create([
-                    'item_name' => $fromItem->item_name,
-                    'item_code' => $fromItem->item_code,
-                    'category_id' => $fromItem->category_id,
-                    'unit_id' => $fromItem->unit_id,
-                    'godown_id' => $request->to_godown_id,
-                    'previous_stock' => $product['quantity'],
-                    'created_by' => auth()->id(),
-                ]);
-            }
+            // ➕ Add to godown
+            $toStock = \App\Models\Stock::firstOrNew([
+                'item_id' => $product['item_id'],
+                'godown_id' => $request->to_godown_id,
+                'created_by' => auth()->id(),
+            ]);
+            $toStock->qty += $product['quantity'];
+            $toStock->save();
         }
 
-        return redirect()->route('stock-transfers.index')->with('success', 'Stock Transfer Successfully Updated');
+        return redirect()->route('stock-transfers.index')->with('success', 'Stock Transfer Updated Successfully');
     }
 
 
-
-    // Delete a stock transfer
+    /*--------------------------------------------------------------
+    |  DELETE
+    --------------------------------------------------------------*/
     public function destroy(StockTransfer $stockTransfer)
     {
-        // Delete related items first if not using ON DELETE CASCADE
-        $stockTransfer->items()->delete();
+        if ($stockTransfer->created_by !== auth()->id()) {
+            abort(403);
+        }
 
-        // Delete the main record
+        foreach ($stockTransfer->items as $line) {
+            Stock::where([
+                'item_id'   => $line->item_id,
+                'godown_id' => $stockTransfer->from_godown_id,
+                'created_by' => auth()->id(),
+            ])->increment('qty', $line->quantity);
+
+            Stock::where([
+                'item_id'   => $line->item_id,
+                'godown_id' => $stockTransfer->to_godown_id,
+                'created_by' => auth()->id(),
+            ])->decrement('qty', $line->quantity);
+        }
+
+        $stockTransfer->items()->delete();
         $stockTransfer->delete();
 
-        return redirect()->back()->with('success', 'Stock Transfer deleted successfully!');
+        return back()->with('success', 'Stock transfer deleted.');
+    }
+
+    /*--------------------------------------------------------------
+    |  HELPER
+    --------------------------------------------------------------*/
+    private function validateTransfer(Request $request, $id = null): void
+    {
+        $rules = [
+            'date'            => 'required|date',
+            'voucher_no'      => 'nullable|unique:stock_transfers,voucher_no' . ($id ? ',' . $id : ''),
+            'from_godown_id'  => 'required|exists:godowns,id',
+            'to_godown_id'    => 'required|exists:godowns,id|different:from_godown_id',
+            'products'        => 'required|array|min:1',
+            'products.*.item_id'  => 'required|exists:items,id',
+            'products.*.quantity' => 'required|numeric|min:0.01',
+            'products.*.rate'     => 'required|numeric|min:0.01',
+        ];
+        $request->validate($rules);
     }
 }

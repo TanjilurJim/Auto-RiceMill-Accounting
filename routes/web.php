@@ -72,6 +72,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
     });
 
     Route::resource('account-groups', AccountGroupController::class);
+    Route::post('/account-ledgers/modal', [\App\Http\Controllers\AccountLedgerController::class, 'storeFromModal']);
     Route::resource('account-ledgers', AccountLedgerController::class);
 
     Route::resource('salesmen', SalesManController::class);
@@ -80,6 +81,11 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::resource('categories', CategoryController::class);
     Route::resource('items', ItemController::class);
     Route::resource('purchases', PurchaseController::class);
+
+    // 👇 Used only by the modal via axios
+   
+
+
     Route::get('/purchases/{purchase}/invoice', [PurchaseController::class, 'invoice'])
         ->name('purchases.invoice');
     Route::resource('purchase-returns', PurchaseReturnController::class);

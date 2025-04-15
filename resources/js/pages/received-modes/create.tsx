@@ -8,9 +8,9 @@ export default function Create() {
     // Form data initialization
     const { data, setData, post, processing, errors } = useForm({
         mode_name: '',
-        amount_received: '',
-        amount_paid: '',
-        transaction_date: '',
+      
+    
+       
         phone_number: '',
         ledger_id: '',
     });
@@ -82,52 +82,6 @@ export default function Create() {
                                     ))}
                                 </select>
                                 {errors.ledger_id && <p className="mt-1 text-xs text-red-500">{errors.ledger_id}</p>}
-                            </div>
-
-                            {/* Amount Received */}
-                            <div>
-                                <label className="mb-2 block text-sm font-medium text-gray-700">
-                                    Amount Received<span className="text-red-500">*</span>
-                                </label>
-                                <input
-                                    type="number"
-                                    step="0.01"
-                                    value={data.amount_received || ''} // Allow blank if null
-                                    onChange={(e) => setData('amount_received', e.target.value)}
-                                    className="focus:ring-opacity-50 block w-full rounded-md border border-gray-300 px-4 py-2 text-sm shadow-sm focus:border-blue-500 focus:ring focus:ring-blue-200"
-                                    placeholder="Optional"
-                                />
-                                {errors.amount_received && <p className="mt-1 text-xs text-red-500">{errors.amount_received}</p>}
-                            </div>
-
-                            {/* Amount Paid */}
-                            <div>
-                                <label className="mb-2 block text-sm font-medium text-gray-700">
-                                    Amount Paid<span className="text-red-500">*</span>
-                                </label>
-                                <input
-                                    type="number"
-                                    step="0.00"
-                                    value={data.amount_paid}
-                                    onChange={(e) => setData('amount_paid', e.target.value)}
-                                    className="focus:ring-opacity-50 block w-full rounded-md border border-gray-300 px-4 py-2 text-sm shadow-sm focus:border-blue-500 focus:ring focus:ring-blue-200"
-                                    placeholder="0.00"
-                                />
-                                {errors.amount_paid && <p className="mt-1 text-xs text-red-500">{errors.amount_paid}</p>}
-                            </div>
-
-                            {/* Transaction Date */}
-                            <div>
-                                <label className="mb-2 block text-sm font-medium text-gray-700">
-                                    Transaction Date<span className="text-red-500">*</span>
-                                </label>
-                                <input
-                                    type="date"
-                                    value={data.transaction_date}
-                                    onChange={(e) => setData('transaction_date', e.target.value)}
-                                    className="focus:ring-opacity-50 block w-full rounded-md border border-gray-300 px-4 py-2 text-sm shadow-sm focus:border-blue-500 focus:ring focus:ring-blue-200"
-                                />
-                                {errors.transaction_date && <p className="mt-1 text-xs text-red-500">{errors.transaction_date}</p>}
                             </div>
                         </div>
                     </div>

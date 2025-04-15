@@ -59,6 +59,7 @@ export default function PurchaseIndex({ purchases }: { purchases: PaginatedPurch
                                 <th className="border px-3 py-2">Total Qty</th>
                                 <th className="border px-3 py-2">Amount (Per Item)</th>
                                 <th className="border px-3 py-2">Total Amount</th>
+                                <th className="border px-3 py-2">Due</th>
                                 <th className="border px-3 py-2 text-center">Actions</th>
                             </tr>
                         </thead>
@@ -95,6 +96,9 @@ export default function PurchaseIndex({ purchases }: { purchases: PaginatedPurch
                                             ))}
                                         </td>
                                         <td className="border px-3 py-2 text-right font-semibold">{totalAmount.toFixed(2)} Tk</td>
+                                        <td className="border px-3 py-2 text-right font-semibold {purchase.due > 0 ? 'text-red-600' : 'text-gray-700'}">{purchase.due.toFixed(2)} </td>
+
+                                        
                                         <td className="border px-3 py-2 text-center">
                                             <div className="flex justify-center space-x-2">
                                                 <Link

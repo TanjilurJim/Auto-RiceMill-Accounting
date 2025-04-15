@@ -43,25 +43,17 @@ class ReceivedModeController extends Controller
     // Store a newly created received mode in storage
     public function store(Request $request)
     {
-        // Validate the incoming request
         $request->validate([
             'mode_name' => 'required|string|max:255',
-            'amount_received' => 'nullable|numeric|min:0.01',  // Nullable (allow 0 or no amount)
-            'amount_paid' => 'nullable|numeric|min:0', // Validate paid amount if needed
-            'transaction_date' => 'required|date',  // Transaction date must be provided
             'phone_number' => 'nullable|string|max:20',
-            'ledger_id' => 'required|exists:account_ledgers,id', // Ensure ledger exists
+            'ledger_id' => 'required|exists:account_ledgers,id',
         ]);
 
-        // Step 1: Create the Received Mode (transaction record)
         ReceivedMode::create([
             'mode_name' => $request->mode_name,
             'phone_number' => $request->phone_number,
-            'amount_received' => $request->amount_received,  // Store the received amount (nullable)
-            'amount_paid' => $request->amount_paid,  // Store the paid amount (nullable)
-            'transaction_date' => $request->transaction_date,  // Store the actual transaction date
             'ledger_id' => $request->ledger_id,
-            'created_by' => auth()->id(),  // Track the user who created the transaction
+            'created_by' => auth()->id(),
         ]);
 
         return redirect()->route('received-modes.index')->with('success', 'Received Mode created successfully.');
@@ -86,28 +78,21 @@ class ReceivedModeController extends Controller
     // Update the specified received mode in storage
     public function update(Request $request, ReceivedMode $receivedMode)
     {
-        // Validate the incoming request
         $request->validate([
             'mode_name' => 'required|string|max:255',
-            'amount_received' => 'nullable|numeric|min:0.00',  // Update received amount
-            'amount_paid' => 'nullable|numeric|min:0',  // Update paid amount
-            'transaction_date' => 'required|date',  // Update transaction date
-            'transaction_type' => 'required|in:received,paid', // Ensure it's either 'received' or 'paid'
             'phone_number' => 'nullable|string|max:20',
+            'ledger_id' => 'required|exists:account_ledgers,id',
         ]);
 
-        // Update the Received Mode with new details
         $receivedMode->update([
             'mode_name' => $request->mode_name,
             'phone_number' => $request->phone_number,
-            'amount_received' => $request->amount_received,
-            'amount_paid' => $request->amount_paid,
-            'transaction_date' => $request->transaction_date,
-            'transaction_type' => $request->transaction_type,
+            'ledger_id' => $request->ledger_id,
         ]);
 
         return redirect()->route('received-modes.index')->with('success', 'Received Mode updated successfully.');
     }
+
 
     // Remove the specified received mode from storage
     public function destroy(ReceivedMode $receivedMode)
