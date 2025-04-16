@@ -1,3 +1,5 @@
+import ActionFooter from '@/components/ActionFooter';
+import PageHeader from '@/components/PageHeader';
 import AppLayout from '@/layouts/app-layout';
 import { Head, useForm } from '@inertiajs/react';
 import React, { useEffect } from 'react';
@@ -92,7 +94,9 @@ export default function SalesOrderCreate({ ledgers, salesmen, products, units, g
             <div className="min-h-screen bg-gray-100 p-6">
                 <Head title="Create Sales Order" />
                 <div className="rounded border border-gray-200 bg-white p-6 shadow-md">
-                    <h2 className="mb-6 border-b pb-2 text-2xl font-bold text-gray-800">Create Sales Order</h2>
+                    {/* <h2 className="mb-6 border-b pb-2 text-2xl font-bold text-gray-800">Create Sales Order</h2> */}
+
+                    <PageHeader title='Create Sales Order' addLinkHref='/sales-orders' addLinkText='Back' />
 
                     <form onSubmit={handleSubmit} className="space-y-6">
                         {/* Basic Info */}
@@ -257,7 +261,7 @@ export default function SalesOrderCreate({ ledgers, salesmen, products, units, g
                                                         {i > 0 && (
                                                             <button
                                                                 type="button"
-                                                                className="rounded bg-red-500 px-3 py-1 text-white"
+                                                                className="rounded bg-danger hover:bg-danger-hover px-3 py-1 text-white"
                                                                 onClick={() => removeRow(i)}
                                                                 title="Remove Item"
                                                             >
@@ -267,7 +271,7 @@ export default function SalesOrderCreate({ ledgers, salesmen, products, units, g
                                                         {i === data.items.length - 1 && (
                                                             <button
                                                                 type="button"
-                                                                className="rounded bg-blue-500 px-3 py-1 text-white"
+                                                                className="rounded bg-primary hover:bg-primary-hover px-3 py-1 text-white"
                                                                 onClick={addRow}
                                                                 title="Add Item"
                                                             >
@@ -321,11 +325,19 @@ export default function SalesOrderCreate({ ledgers, salesmen, products, units, g
                         </div>
 
                         {/* Submit */}
-                        <div className="border-t pt-4 text-right">
+                        {/* <div className="border-t pt-4 text-right">
                             <button type="submit" disabled={processing} className="rounded bg-green-600 px-6 py-2 text-white hover:bg-green-700">
                                 {processing ? 'Saving...' : 'Submit Order'}
                             </button>
-                        </div>
+                        </div> */}
+                        <ActionFooter
+                            className='w-full justify-end'
+                            onSubmit={handleSubmit} // Function to handle form submission
+                            cancelHref="/sales-orders" // URL for the cancel action
+                            processing={processing} // Indicates whether the form is processing
+                            submitText={processing ? 'Saving...' : 'Submit Order'} // Text for the submit button
+                            cancelText="Cancel" // Text for the cancel button
+                        />
                     </form>
                 </div>
             </div>
