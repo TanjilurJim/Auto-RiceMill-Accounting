@@ -1,7 +1,6 @@
-import AddLink from '@/components/Btn&Link/AddLink';
-import DeleteBtn from '@/components/Btn&Link/DeleteBtn';
-import EditLink from '@/components/Btn&Link/EditLink';
+import ActionButtons from '@/components/ActionButtons';
 import { confirmDialog } from '@/components/confirmDialog';
+import PageHeader from '@/components/PageHeader';
 import AppLayout from '@/layouts/app-layout';
 import { Head, Link, router } from '@inertiajs/react';
 import Swal from 'sweetalert2';
@@ -35,7 +34,7 @@ export default function SalesmanIndex({ salesmen }: { salesmen: Salesman[] }) {
         // });
 
         confirmDialog(
-            { }, () => { 
+            {}, () => {
                 router.delete(`/salesmen/${id}`);
             }
         );
@@ -44,14 +43,16 @@ export default function SalesmanIndex({ salesmen }: { salesmen: Salesman[] }) {
     return (
         <AppLayout>
             <Head title="All Salesmen" />
-            <div className="p-6">
-                <div className="flex items-center justify-between mb-6">
+            <div className="p-6 bg-gray-100">
+                {/* <div className="flex items-center justify-between mb-6">
                     <h1 className="text-2xl font-bold">All Salesmen</h1>
-                    {/* <Link href="/salesmen/create" className="px-4 py-2 rounded bg-green-600 text-white hover:bg-green-700">
+                    <Link href="/salesmen/create" className="px-4 py-2 rounded bg-green-600 text-white hover:bg-green-700">
                         + Add New
-                    </Link> */}
-                    <AddLink href="/salesmen/create"/>
-                </div>
+                    </Link>
+                </div> */}
+                
+                {/* Use the PageHeader component */}
+                <PageHeader title='All Salesmen' addLinkHref='/salesmen/create' />
 
                 <div className="overflow-x-auto bg-white shadow-md rounded-lg">
                     <table className="min-w-full border-collapse border border-gray-200">
@@ -78,19 +79,22 @@ export default function SalesmanIndex({ salesmen }: { salesmen: Salesman[] }) {
                                     <td className="py-2 px-4">{salesman.address || 'N/A'}</td>
                                     <td className="py-2 px-4">{salesman.creator?.name || 'N/A'}</td>
 
-                                    <td className="py-2 px-4 flex justify-center space-x-2">
-                                        {/* <Link href={`/salesmen/${salesman.id}/edit`} className="px-3 py-1 text-sm rounded bg-yellow-500 text-white hover:bg-yellow-600">
+                                    {/* <td className="py-2 px-4 flex justify-center space-x-2">
+                                        <Link href={`/salesmen/${salesman.id}/edit`} className="px-3 py-1 text-sm rounded bg-yellow-500 text-white hover:bg-yellow-600">
                                             Edit
-                                        </Link> */}
-                                        <EditLink href={`/salesmen/${salesman.id}/edit`} />
-                                        {/* <button
+                                        </Link>
+                                        <button
                                             onClick={() => handleDelete(salesman.id)}
                                             className="px-3 py-1 text-sm rounded bg-red-600 text-white hover:bg-red-700"
                                         >
                                             Delete
-                                        </button> */}
-                                        <DeleteBtn handleDelete={handleDelete} delId={salesman} />
-                                    </td>
+                                        </button>
+                                    </td> */}
+
+                                    <ActionButtons
+                                        editHref={`/salesmen/${salesman.id}/edit`} // URL for the edit action
+                                        onDelete={() => handleDelete(salesman.id)} // Function to handle the delete action
+                                    />
                                 </tr>
                             ))}
                         </tbody>

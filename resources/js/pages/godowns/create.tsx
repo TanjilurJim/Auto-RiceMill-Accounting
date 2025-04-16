@@ -1,6 +1,5 @@
 // resources/js/pages/godowns/create.tsx
-import Button from '@/components/Btn&Link/Button';
-import CancelLink from '@/components/Btn&Link/CancelLink';
+import ActionFooter from '@/components/ActionFooter';
 import AppLayout from '@/layouts/app-layout';
 import { Head, Link, useForm } from '@inertiajs/react';
 
@@ -52,23 +51,28 @@ export default function CreateGodown() {
                             {errors.address && <p className="mt-1 text-sm text-red-500">{errors.address}</p>}
                         </div>
 
-                        <div className="flex justify-end space-x-2">
-                            {/* <Link href="/godowns" className="rounded border px-4 py-2 hover:bg-neutral-100 dark:hover:bg-neutral-800">
+                        {/* <div className="flex justify-end space-x-2">
+                            <Link href="/godowns" className="rounded border px-4 py-2 hover:bg-neutral-100 dark:hover:bg-neutral-800">
                                 Cancel
-                            </Link> */}
-                            <CancelLink href="/godowns" />
+                            </Link>
 
-                            {/* <button
+                            <button
                                 type="submit"
                                 disabled={processing}
                                 className="rounded bg-green-600 px-4 py-2 text-white hover:bg-green-700 disabled:opacity-50"
                             >
                                 {processing ? 'Creating...' : 'Create'}
-                            </button> */}
-                            <Button processing={processing}>
-                                {processing ? 'Creating...' : 'Create'}
-                            </Button>
-                        </div>
+                            </button>
+                        </div> */}
+
+                        <ActionFooter
+                            onSubmit={submit} // Function to handle form submission
+                            cancelHref="/godowns" // URL for the cancel action
+                            processing={processing} // Indicates whether the form is processing
+                            submitText={processing ? 'Creating...' : 'Create'} // Text for the submit button
+                            cancelText="Cancel" // Text for the cancel button
+                        />
+
                     </form>
                 </div>
             </div>

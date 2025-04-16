@@ -1,6 +1,5 @@
 // resources/js/pages/items/edit.tsx
-import Button from '@/components/Btn&Link/Button';
-import CancelLink from '@/components/Btn&Link/CancelLink';
+import ActionFooter from '@/components/ActionFooter';
 import AppLayout from '@/layouts/app-layout';
 import { Head, useForm } from '@inertiajs/react';
 import { Link } from '@inertiajs/react';
@@ -194,21 +193,31 @@ export default function EditItem({
                             />
                         </div>
 
-                        <div className="flex justify-between">
-                            {/* <Link href="/items" className="rounded border px-4 py-2 hover:bg-neutral-100 dark:hover:bg-neutral-800">
+                        {/* <div className="flex justify-between">
+                            <Link href="/items" className="rounded border px-4 py-2 hover:bg-neutral-100 dark:hover:bg-neutral-800">
                                 Cancel
-                            </Link> */}
-                            <CancelLink href="/items" />
+                            </Link>
 
-                            {/* <button
+                            <button
                                 type="submit"
                                 disabled={processing}
                                 className="rounded bg-yellow-600 px-4 py-2 text-white hover:bg-yellow-700"
                             >
                                 Update
-                            </button> */}
-                            <Button processing={processing} children={processing ? 'Updating...' : 'Update'}/>
+                            </button>
+                        </div> */}
+
+                        <div>
+                            <ActionFooter
+                                className='justify-end'
+                                onSubmit={handleSubmit} // Function to handle form submission
+                                cancelHref="/items" // URL for the cancel action
+                                processing={processing} // Indicates whether the form is processing
+                                submitText={processing ? 'Creating...' : 'Create Item'} // Text for the submit button
+                                cancelText="Cancel" // Text for the cancel button
+                            />
                         </div>
+
                     </div>
                 </form>
             </div>

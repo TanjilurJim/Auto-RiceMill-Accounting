@@ -1,8 +1,7 @@
 // resources/js/pages/items/index.tsx
-import AddLink from '@/components/Btn&Link/AddLink';
-import DeleteBtn from '@/components/Btn&Link/DeleteBtn';
-import EditLink from '@/components/Btn&Link/EditLink';
+import ActionButtons from '@/components/ActionButtons';
 import { confirmDialog } from '@/components/confirmDialog';
+import PageHeader from '@/components/PageHeader';
 import AppLayout from '@/layouts/app-layout';
 import { Head, Link, router } from '@inertiajs/react';
 import Swal from 'sweetalert2';
@@ -54,14 +53,18 @@ export default function ItemIndex({ items }: { items: PaginatedItems }) {
     return (
         <AppLayout>
             <Head title="Items" />
-            <div className="p-6">
-                <div className="flex items-center justify-between mb-6">
+            <div className="p-6 bg-gray-100">
+                {/* <div className="flex items-center justify-between mb-6">
                     <h1 className="text-2xl font-bold">All Items</h1>
-                    {/* <Link href="/items/create" className="rounded bg-green-600 px-4 py-2 text-white hover:bg-green-700">
+                    <Link href="/items/create" className="rounded bg-green-600 px-4 py-2 text-white hover:bg-green-700">
                         + Add Item
-                    </Link> */}
-                    <AddLink href='/items/create' children='+ Add Item'/>
-                </div>
+                    </Link>
+                </div> */}
+
+                {/* Use the PageHeader component */}
+                <PageHeader title='All Items' addLinkHref='/items/create' />
+
+
 
                 <div className="overflow-x-auto rounded-lg bg-white shadow">
                     <table className="min-w-full border-collapse border border-gray-200 text-left">
@@ -92,23 +95,25 @@ export default function ItemIndex({ items }: { items: PaginatedItems }) {
                                     <td className="border px-4 py-2">{item.previous_stock}</td>
                                     <td className="border px-4 py-2">{item.creator?.name || 'N/A'}</td>
 
-                                    <td className="flex justify-center gap-2 border px-4 py-2">
-                                        {/* <Link
+                                    {/* <td className="flex justify-center gap-2 border px-4 py-2">
+                                        <Link
                                             href={`/items/${item.id}/edit`}
                                             className="rounded bg-purple-500 px-3 py-1 text-xs text-white hover:bg-purple-600"
                                         >
                                             Edit
-                                        </Link> */}
-                                        <EditLink href={`/items/${item.id}/edit`} />
+                                        </Link>
 
-                                        {/* <button
+                                        <button
                                             onClick={() => handleDelete(item.id)}
                                             className="rounded bg-red-600 px-3 py-1 text-xs text-white hover:bg-red-700"
                                         >
                                             Delete
-                                        </button> */}
-                                        <DeleteBtn handleDelete={() => handleDelete(item.id)}>Delete</DeleteBtn>
-                                    </td>
+                                        </button>
+                                    </td> */}
+                                    <ActionButtons
+                                        editHref={`/items/${item.id}/edit`} // URL for the edit action
+                                        onDelete={() => handleDelete(item.id)} // Function to handle the delete action
+                                    />
                                 </tr>
                             ))}
                         </tbody>
@@ -121,11 +126,10 @@ export default function ItemIndex({ items }: { items: PaginatedItems }) {
                                 key={index}
                                 href={link.url || ''}
                                 dangerouslySetInnerHTML={{ __html: link.label }}
-                                className={`rounded px-3 py-1 text-sm ${
-                                    link.active
+                                className={`rounded px-3 py-1 text-sm ${link.active
                                         ? 'bg-blue-600 text-white'
                                         : 'hover:bg-neutral-200 dark:hover:bg-neutral-800'
-                                } ${!link.url && 'pointer-events-none opacity-50'}`}
+                                    } ${!link.url && 'pointer-events-none opacity-50'}`}
                             />
                         ))}
                     </div>

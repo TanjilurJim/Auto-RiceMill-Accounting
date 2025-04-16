@@ -1,3 +1,6 @@
+import ActionButtons from '@/components/ActionButtons';
+import { confirmDialog } from '@/components/confirmDialog';
+import PageHeader from '@/components/PageHeader';
 import AppLayout from '@/layouts/app-layout';
 import { Head, Link, router } from '@inertiajs/react';
 import Swal from 'sweetalert2';
@@ -33,18 +36,28 @@ export default function PurchaseIndex({ purchases }: { purchases: PaginatedPurch
                 Swal.fire('Deleted!', 'The purchase has been deleted.', 'success');
             }
         });
+
+        confirmDialog(
+            {}, () => {
+                router.delete(`/purchases/${id}`);
+                Swal.fire('Deleted!', 'The purchase has been deleted.', 'success');
+            }
+        );
     };
 
     return (
         <AppLayout>
             <Head title="All Purchases" />
             <div className="bg-gray-100 p-4">
-                <div className="mb-4 flex items-center justify-between">
+                {/* <div className="mb-4 flex items-center justify-between">
                     <h1 className="text-xl font-semibold">Purchase List</h1>
                     <Link href="/purchases/create" className="rounded bg-green-600 px-4 py-2 text-sm font-medium text-white hover:bg-green-700">
                         + Add New
                     </Link>
-                </div>
+                </div> */}
+                
+                {/* Use the PageHeader component  */}
+                <PageHeader title="Purchase List" addLinkHref="/purchases/create" />
 
                 <div className="overflow-x-auto rounded-lg border border-gray-300 bg-white shadow-sm">
                     <table className="min-w-full border-collapse text-[13px]">
@@ -95,7 +108,7 @@ export default function PurchaseIndex({ purchases }: { purchases: PaginatedPurch
                                             ))}
                                         </td>
                                         <td className="border px-3 py-2 text-right font-semibold">{totalAmount.toFixed(2)} Tk</td>
-                                        <td className="border px-3 py-2 text-center">
+                                        {/* <td className="border px-3 py-2 text-center">
                                             <div className="flex justify-center space-x-2">
                                                 <Link
                                                     href={`/purchases/${purchase.id}/edit`}
@@ -109,7 +122,6 @@ export default function PurchaseIndex({ purchases }: { purchases: PaginatedPurch
                                                 >
                                                     Delete
                                                 </button>
-                                                {/* 🟢 NEW: Print button */}
                                                 <Link
                                                     href={`/purchases/${purchase.id}/invoice`}
                                                     className="rounded bg-blue-600 px-2 py-1 text-xs text-white hover:bg-blue-700"
@@ -117,7 +129,8 @@ export default function PurchaseIndex({ purchases }: { purchases: PaginatedPurch
                                                     Print
                                                 </Link>
                                             </div>
-                                        </td>
+                                        </td> */}
+                                        <ActionButtons editHref={`/purchases/${purchase.id}/edit`} onDelete={() => handleDelete(purchase.id)} printHref={`/purchases/${purchase.id}/invoice`}/>
                                     </tr>
                                 );
                             })}

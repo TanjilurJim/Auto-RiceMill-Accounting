@@ -1,9 +1,8 @@
 import React from 'react';
 import AppLayout from '@/layouts/app-layout';
 import { Head, Link, useForm } from '@inertiajs/react';
-import Button from '@/components/Btn&Link/Button';
-import CancelLink from '@/components/Btn&Link/CancelLink';
 import InputCheckbox from '@/components/Btn&Link/InputCheckbox';
+import ActionFooter from '@/components/ActionFooter';
 
 export default function CreateAccountLedger({
     groupUnders,
@@ -164,31 +163,41 @@ export default function CreateAccountLedger({
                             {errors.address && <p className="text-sm text-red-500">{errors.address}</p>}
                         </div>
 
+                        {/* Checkboxes */}
                         <div className="">
-                            {/* <label className="flex items-center gap-2">
-                                <input type="checkbox" checked={data.for_transition_mode} onChange={(e) => setData('for_transition_mode', e.target.checked)} /> 
-                                For Transition Mode 
-                            </label> */}
-                            <InputCheckbox label="For Transition Mode" check={data.for_transition_mode} labelOnChange={(check) => setData('for_transition_mode', check)} />
-
-                            <InputCheckbox label="Mark for User" check={data.mark_for_user}  labelOnChange={(check) => setData('mark_for_user', check)} />
-                            {/* <label className="flex items-center gap-2">
-                                <input type="checkbox" checked={data.mark_for_user} onChange={(e) => setData('mark_for_user', e.target.checked)} className="accent-info-hover" />
-                                Mark for User 
-                            </label> */}
+                            <InputCheckbox
+                                label="For Transition Mode"
+                                checked={data.for_transition_mode}
+                                onChange={(checked) => setData("for_transition_mode", checked)}
+                            />
+                            <InputCheckbox
+                                label="Mark for User"
+                                checked={data.mark_for_user}
+                                onChange={(checked) => setData("mark_for_user", checked)}
+                            />
                         </div>
 
-                        <div className="col-span-2 mt-4 flex justify-between">
+                        {/* <div className="col-span-2 mt-4 flex justify-between">
 
-                            {/* <Link href="/account-ledgers" className="rounded border px-4 py-2 hover:bg-neutral-100 dark:hover:bg-neutral-800"> Cancel </Link> */}
+                            <Link href="/account-ledgers" className="rounded border px-4 py-2 hover:bg-neutral-100 dark:hover:bg-neutral-800"> Cancel </Link>
                             <CancelLink href="/account-ledgers" />
 
-                            {/* <button type="submit" disabled={processing} className="rounded bg-green-600 px-4 py-2 text-white hover:bg-green-700 disabled:opacity-50" > {processing ? 'Creating...' : 'Create'} </button> */}
+                            <button type="submit" disabled={processing} className="rounded bg-green-600 px-4 py-2 text-white hover:bg-green-700 disabled:opacity-50" > {processing ? 'Creating...' : 'Create'} </button>
                             <Button processing={processing}>
                                 {processing ? 'Creating...' : 'Create'}
                             </Button>
 
-                        </div>
+                        </div> */}
+
+                        {/*Custom Action Buttons */}
+                        <ActionFooter
+                            onSubmit={handleSubmit} // Function to handle form submission
+                            cancelHref="/account-ledgers" // URL for the cancel action
+                            processing={processing} // Indicates whether the form is processing
+                            submitText={processing ? 'Creating...' : 'Create'} // Text for the submit button
+                            cancelText="Cancel" // Text for the cancel button
+                        />
+
                     </form>
                 </div>
             </div>

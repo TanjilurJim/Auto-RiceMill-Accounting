@@ -1,10 +1,8 @@
-import AddLink from '@/components/Btn&Link/AddLink';
-import DeleteBtn from '@/components/Btn&Link/DeleteBtn';
-import EditLink from '@/components/Btn&Link/EditLink';
+import ActionButtons from '@/components/ActionButtons';
 import { confirmDialog } from '@/components/confirmDialog';
+import PageHeader from '@/components/PageHeader';
 import AppLayout from '@/layouts/app-layout';
 import { Head, Link, router } from '@inertiajs/react';
-import Swal from 'sweetalert2';
 
 interface AccountLedger {
     id: number;
@@ -20,20 +18,6 @@ interface AccountLedger {
 
 export default function AccountLedgerIndex({ accountLedgers }: { accountLedgers: AccountLedger[] }) {
     const handleDelete = (id: number) => {
-        // Swal.fire({
-        //     title: 'Are you sure?',
-        //     text: "You won't be able to revert this!",
-        //     icon: 'warning',
-        //     showCancelButton: true,
-        //     confirmButtonColor: '#F96D6D',
-        //     cancelButtonColor: '#A9D7F6',
-        //     confirmButtonText: 'Yes, delete it!',
-        // }).then((result) => {
-        //     if (result.isConfirmed) {
-        //         router.delete(`/account-ledgers/${id}`);
-        //         Swal.fire('Deleted!', 'The account ledger has been deleted.', 'success');
-        //     }
-        // });
         
         // Using custom confirmDialog(alert) function
         confirmDialog({}, () => {
@@ -46,11 +30,13 @@ export default function AccountLedgerIndex({ accountLedgers }: { accountLedgers:
         <AppLayout>
             <Head title="Account Ledgers" />
             <div className="p-6 bg-gray-100">
-                <div className="mb-6 flex items-center justify-between">
+                {/* <div className="mb-6 flex items-center justify-between">
                     <h1 className="text-2xl font-bold">All List of Account Ledgers</h1>
-                    {/* <Link href="/account-ledgers/create" className="rounded bg-green-600 px-4 py-2 text-white hover:bg-green-700">+ Add New</Link> */}
-                    <AddLink href="/account-ledgers/create" />
-                </div>
+                    <Link href="/account-ledgers/create" className="rounded bg-green-600 px-4 py-2 text-white hover:bg-green-700">+ Add New</Link>
+                </div> */}
+
+                {/* Use the PageHeader component */}
+                <PageHeader title='All List of Account Ledgers' addLinkHref='/account-ledgers/create' />
 
                 {/* Make table more responsive */}
                 <div className="bg-white shadow-md overflow-x-auto sm:overflow-visible sm:rounded-lg">
@@ -80,12 +66,12 @@ export default function AccountLedgerIndex({ accountLedgers }: { accountLedgers:
                                     <td className="px-4 py-2 capitalize">{ledger.debit_credit}</td>
                                     <td className="px-4 py-2">{ledger.creator?.name || 'N/A'}</td>
 
-                                    <td className="flex justify-center space-x-2 px-4 py-2">
-                                        {/* <Link href={`/account-ledgers/${ledger.id}/edit`} className="rounded bg-yellow-500 px-3 py-1 text-sm text-white hover:bg-yellow-600">Edit</Link> */}
-                                        <EditLink href={`/account-ledgers/${ledger.id}/edit`} />
-                                        {/* <button onClick={() => handleDelete(ledger.id)} className="rounded bg-red-600 px-3 py-1 text-sm text-white hover:bg-red-700" >Delete</button> */}
-                                        <DeleteBtn handleDelete={handleDelete} delId={ledger} />
-                                    </td>
+                                    {/* <td className="flex justify-center space-x-2 px-4 py-2">
+                                        <Link href={`/account-ledgers/${ledger.id}/edit`} className="rounded bg-yellow-500 px-3 py-1 text-sm text-white hover:bg-yellow-600">Edit</Link>
+                                        
+                                        <button onClick={() => handleDelete(ledger.id)} className="rounded bg-red-600 px-3 py-1 text-sm text-white hover:bg-red-700" >Delete</button>
+                                    </td> */}
+                                    <ActionButtons editHref={`/account-ledgers/${ledger.id}/edit`} onDelete={() => handleDelete(ledger.id)} />
                                 </tr>
                             ))}
                         </tbody>

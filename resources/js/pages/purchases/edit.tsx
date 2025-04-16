@@ -1,3 +1,6 @@
+import ActionFooter from '@/components/ActionFooter';
+import { confirmDialog } from '@/components/confirmDialog';
+import PageHeader from '@/components/PageHeader';
 import AppLayout from '@/layouts/app-layout';
 import { Head, Link, useForm } from '@inertiajs/react';
 import Swal from 'sweetalert2';
@@ -139,6 +142,14 @@ export default function PurchaseEdit({ purchase, godowns, salesmen, ledgers, ite
                 setData('purchase_items', updated);
             }
         });
+
+        confirmDialog(
+            { }, () => {
+                const updated = [...data.purchase_items];
+                updated.splice(index, 1);
+                setData('purchase_items', updated);
+            }
+        );
     };
 
     // 6) handleSubmit - same approach, but we do a PUT request to update
@@ -186,12 +197,14 @@ export default function PurchaseEdit({ purchase, godowns, salesmen, ledgers, ite
             <Head title="Update Purchase" />
             <div className="bg-gray-100 p-6">
                 {/* Header */}
-                <div className="mb-6 flex items-center justify-between">
+                {/* <div className="mb-6 flex items-center justify-between">
                     <h1 className="text-2xl font-semibold text-gray-800">Update Purchase</h1>
                     <Link href="/purchases" className="rounded bg-gray-300 px-4 py-2 hover:bg-neutral-100">
                         Back
                     </Link>
-                </div>
+                </div> */}
+
+                <PageHeader title="Update Purchase" addLinkHref="/purchases" addLinkText='Back'/>
 
                 {/* Form Card */}
                 <form onSubmit={handleSubmit} className="space-y-6 rounded bg-white p-6 shadow-md">
@@ -334,7 +347,7 @@ export default function PurchaseEdit({ purchase, godowns, salesmen, ledgers, ite
                                                         <button
                                                             type="button"
                                                             onClick={() => removeProductRow(index)}
-                                                            className="rounded bg-red-500 px-2 py-1 text-white"
+                                                            className="rounded bg-danger px-2 py-1 text-white hover:bg-danger-hover"
                                                         >
                                                             &minus;
                                                         </button>
@@ -343,7 +356,7 @@ export default function PurchaseEdit({ purchase, godowns, salesmen, ledgers, ite
                                                         <button
                                                             type="button"
                                                             onClick={addProductRow}
-                                                            className="rounded bg-blue-500 px-2 py-1 text-white"
+                                                            className="rounded bg-primary px-2 py-1 text-white hover:bg-primary-hover"
                                                         >
                                                             +
                                                         </button>
@@ -404,7 +417,7 @@ export default function PurchaseEdit({ purchase, godowns, salesmen, ledgers, ite
                     </div>
 
                     {/* Action Buttons */}
-                    <div className="mt-6 flex justify-end gap-3">
+                    {/* <div className="mt-6 flex justify-end gap-3">
                         <button
                             type="submit"
                             disabled={processing}
@@ -418,7 +431,19 @@ export default function PurchaseEdit({ purchase, godowns, salesmen, ledgers, ite
                         <Link href="/purchases" className="rounded border border-gray-400 px-5 py-2 font-semibold text-gray-700 hover:bg-gray-100">
                             Cancel
                         </Link>
-                    </div>
+                    </div> */}
+                    
+                    {/*Custom Action Buttons */}
+                    <ActionFooter 
+                        className='w-full justify-end'
+                        onSubmit={handleSubmit}
+                        onSaveAndPrint={handleSaveAndPrint}
+                        processing={processing}
+                        cancelText="Cancel"
+                        cancelHref="/purchases"
+                        submitText={processing ? 'Updating...' : 'Update'}
+                        saveAndPrintText="Save & Print"
+                    />
                 </form>
             </div>
         </AppLayout>

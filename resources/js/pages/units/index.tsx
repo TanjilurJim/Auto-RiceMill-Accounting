@@ -1,9 +1,7 @@
 // resources/js/pages/units/index.tsx
+import ActionButtons from '@/components/ActionButtons';
+import ActionFooter from '@/components/ActionFooter';
 import AddBtn from '@/components/Btn&Link/AddBtn';
-import Button from '@/components/Btn&Link/Button';
-import CancelBtn from '@/components/Btn&Link/CancelBtn';
-import DeleteBtn from '@/components/Btn&Link/DeleteBtn';
-import EditBtn from '@/components/Btn&Link/EditBtn';
 import { confirmDialog } from '@/components/confirmDialog';
 import AppLayout from '@/layouts/app-layout';
 import { Head, Link, useForm } from '@inertiajs/react';
@@ -57,6 +55,7 @@ export default function UnitIndex({ units }: { units: PaginatedUnits }) {
         //         });
         //     }
         // });
+
         confirmDialog(
             {}, () => {
                 destroy(`/units/${id}`, {
@@ -109,23 +108,25 @@ export default function UnitIndex({ units }: { units: PaginatedUnits }) {
                                     <tr key={unit.id} className="border-t hover:bg-gray-100">
                                         <td className="border px-4 py-2">{idx + 1}</td>
                                         <td className="border px-4 py-2">{unit.name}</td>
-                                        <td className="flex justify-center gap-1 border px-4 py-2">
-                                            {/* <button
+                                        {/* <td className="flex justify-center gap-1 border px-4 py-2">
+                                            <button
                                                 onClick={() => handleEdit(unit)}
                                                 className="rounded bg-purple-500 px-2 py-1 text-xs text-white hover:bg-purple-600"
                                             >
                                                 Edit
-                                            </button> */}
-                                            <EditBtn editbtnclick={() => handleEdit(unit)} />
+                                            </button>
 
-                                            {/* <button
+                                            <button
                                                 onClick={() => handleDelete(unit.id)}
                                                 className="rounded bg-red-600 px-2 py-1 text-xs text-white hover:bg-red-700"
                                             >
                                                 Delete
-                                            </button> */}
-                                            <DeleteBtn handleDelete={handleDelete} delId={unit}/>
-                                        </td>
+                                            </button>
+                                        </td> */}
+                                        <ActionButtons
+                                            onEdit={() => handleEdit(unit)} // Function to handle the edit action
+                                            onDelete={() => handleDelete(unit.id)} // Function to handle the delete action
+                                        />
                                     </tr>
                                 ))}
                             </tbody>
@@ -138,9 +139,8 @@ export default function UnitIndex({ units }: { units: PaginatedUnits }) {
                                     key={index}
                                     href={link.url || ''}
                                     dangerouslySetInnerHTML={{ __html: link.label }}
-                                    className={`rounded px-3 py-1 text-sm ${
-                                        link.active ? 'bg-blue-600 text-white' : 'hover:bg-neutral-200 dark:hover:bg-neutral-800'
-                                    } ${!link.url && 'pointer-events-none opacity-50'}`}
+                                    className={`rounded px-3 py-1 text-sm ${link.active ? 'bg-blue-600 text-white' : 'hover:bg-neutral-200 dark:hover:bg-neutral-800'
+                                        } ${!link.url && 'pointer-events-none opacity-50'}`}
                                 />
                             ))}
                         </div>
@@ -161,21 +161,29 @@ export default function UnitIndex({ units }: { units: PaginatedUnits }) {
 
                             <div className="flex justify-between">
                                 {editUnit ? (
-                                    <>
-                                        {/* <button
-                                            type="submit"
-                                            disabled={processing}
-                                            className="rounded bg-yellow-500 px-4 py-2 text-white hover:bg-yellow-600"
-                                        >
-                                            Update
-                                        </button> */}
-                                        <Button processing={processing} children="Update" />
+                                    // <>
+                                    //     <button
+                                    //         type="submit"
+                                    //         disabled={processing}
+                                    //         className="rounded bg-yellow-500 px-4 py-2 text-white hover:bg-yellow-600"
+                                    //     >
+                                    //         Update
+                                    //     </button>
 
-                                        {/* <button type="button" onClick={handleCancel} className="rounded border px-4 py-2 hover:bg-neutral-100">
-                                            Cancel
-                                        </button> */}
-                                        <CancelBtn handleCancel={handleCancel}>Cancel</CancelBtn> 
-                                    </>
+                                    //     <button type="button" onClick={handleCancel} className="rounded border px-4 py-2 hover:bg-neutral-100">
+                                    //         Cancel
+                                    //     </button>
+                                    // </>
+
+                                    <ActionFooter
+                                        className='w-full justify-between'
+                                        onSubmit={handleSubmit} // Function to handle form submission
+                                        onCancel={handleCancel} // Function to handle cancel action
+                                        processing={processing} // Indicates whether the form is processing
+                                        submitText="Update" // Text for the submit button
+                                        cancelText="Cancel" // Text for the cancel button
+                                    />
+
                                 ) : (
                                     // <button
                                     //     type="submit"
@@ -184,7 +192,7 @@ export default function UnitIndex({ units }: { units: PaginatedUnits }) {
                                     // >
                                     //     Add Unit
                                     // </button>
-                                    <AddBtn processing={processing} children="Add Unit"/>
+                                    <AddBtn processing={processing} children="Add Unit" />
                                 )}
                             </div>
                         </form>
