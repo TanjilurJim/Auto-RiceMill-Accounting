@@ -1,9 +1,11 @@
 import AppLayout from '@/layouts/app-layout';
 import { Head, useForm, usePage } from '@inertiajs/react';
 import { PageProps } from '@/types';
-import { AccountLedger } from '@/types'; 
+import { AccountLedger } from '@/types';
 
 import React from 'react';
+import PageHeader from '@/components/PageHeader';
+import ActionFooter from '@/components/ActionFooter';
 
 export default function Create() {
     const { data, setData, post, processing, errors } = useForm({
@@ -25,9 +27,11 @@ export default function Create() {
             <Head title="Create Received Mode" />
 
             <div className="space-y-6 p-6">
-                <div className="flex items-center justify-between border-b pb-4">
+                {/* <div className="flex items-center justify-between border-b pb-4">
                     <h1 className="text-2xl font-semibold text-gray-800">Create Received Mode</h1>
-                </div>
+                </div> */}
+
+                <PageHeader title='Create Received Mode' addLinkHref='/received-modes' addLinkText='Back' />
 
                 <form onSubmit={handleSubmit} className="space-y-6">
                     <div className="rounded-lg border bg-white p-6 shadow">
@@ -109,7 +113,7 @@ export default function Create() {
                     </div>
 
                     {/* Sticky Action Bar */}
-                    <div className="sticky bottom-0 left-0 z-10 flex justify-end border-t bg-white p-4 pt-4 shadow-sm">
+                    {/* <div className="sticky bottom-0 left-0 z-10 flex justify-end border-t bg-white p-4 pt-4 shadow-sm">
                         <button
                             type="submit"
                             disabled={processing}
@@ -117,7 +121,15 @@ export default function Create() {
                         >
                             {processing ? 'Saving...' : 'Save Received Mode'}
                         </button>
-                    </div>
+                    </div> */}
+                    <ActionFooter
+                        className='justify-end'
+                        onSubmit={handleSubmit} // Function to handle form submission
+                        cancelHref="/received-modes" // URL for the cancel action
+                        processing={processing} // Indicates whether the form is processing
+                        submitText={processing ? 'Saving...' : 'Save Received Mode'} // Text for the submit button
+                        cancelText="Cancel" // Text for the cancel button
+                    />
                 </form>
             </div>
         </AppLayout>

@@ -1,3 +1,5 @@
+import ActionFooter from '@/components/ActionFooter';
+import PageHeader from '@/components/PageHeader';
 import AppLayout from '@/layouts/app-layout';
 import { Head, Link, useForm } from '@inertiajs/react';
 
@@ -107,12 +109,14 @@ export default function SalesReturnCreate({
         <AppLayout>
             <Head title="Create Sales Return" />
             <div className="bg-gray-100 p-6">
-                <div className="mb-6 flex items-center justify-between">
+                {/* <div className="mb-6 flex items-center justify-between">
                     <h1 className="text-2xl font-semibold text-gray-800">Create Sales Return</h1>
                     <Link href="/sales-returns" className="rounded bg-gray-300 px-5 py-2 text-sm font-medium text-gray-700 hover:bg-gray-400">
                         Back
                     </Link>
-                </div>
+                </div> */}
+
+                <PageHeader title="Create Sales Return" addLinkHref="/sales-returns" addLinkText="Back" />
 
                 <form onSubmit={handleSubmit} className="space-y-6 rounded bg-white p-6 shadow-md">
                     {/* Top Info */}
@@ -279,13 +283,13 @@ export default function SalesReturnCreate({
                                         <button
                                             type="button"
                                             onClick={() => removeProductRow(index)}
-                                            className="rounded bg-red-500 px-3 py-1 text-white"
+                                            className="rounded bg-danger hover:bg-danger-hover px-3 py-1 text-white"
                                         >
                                             &minus;
                                         </button>
                                     )}
                                     {index === data.sales_return_items.length - 1 && (
-                                        <button type="button" onClick={addProductRow} className="rounded bg-blue-500 px-3 py-1 text-white">
+                                        <button type="button" onClick={addProductRow} className="rounded bg-primary hover:bg-primary-hover px-3 py-1 text-white">
                                             +
                                         </button>
                                     )}
@@ -334,7 +338,7 @@ export default function SalesReturnCreate({
                     </div>
 
                     {/* Submit */}
-                    <div className="flex justify-end pt-4">
+                    {/* <div className="flex justify-end pt-4">
                         <button
                             type="submit"
                             disabled={processing}
@@ -342,7 +346,17 @@ export default function SalesReturnCreate({
                         >
                             {processing ? 'Saving...' : 'Save Sales Return'}
                         </button>
-                    </div>
+                    </div> */}
+
+                    <ActionFooter
+                        className="w-full justify-end"
+                        onSubmit={handleSubmit} // Function to handle form submission
+                        cancelHref="/sales-returns" // URL for the cancel action
+                        processing={processing} // Indicates whether the form is processing
+                        submitText={processing ? 'Saving...' : 'Save Sales Return'} // Text for the submit button
+                        cancelText="Cancel" // Text for the cancel button
+                    />
+
                 </form>
             </div>
         </AppLayout>
