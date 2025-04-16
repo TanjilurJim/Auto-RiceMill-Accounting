@@ -1,3 +1,5 @@
+import ActionFooter from '@/components/ActionFooter';
+import PageHeader from '@/components/PageHeader';
 import AppLayout from '@/layouts/app-layout';
 import { Head, useForm } from '@inertiajs/react';
 import dayjs from 'dayjs';
@@ -64,7 +66,8 @@ export default function Create({ receivedModes, accountLedgers }: Props) {
             <Head title="Add Received Voucher" />
 
             <div className="space-y-6 p-6">
-                <h1 className="border-b pb-3 text-xl font-semibold text-gray-800">Add Received Voucher</h1>
+                {/* <h1 className="border-b pb-3 text-xl font-semibold text-gray-800">Add Received Voucher</h1> */}
+                <PageHeader title="Add Received Voucher" addLinkHref="/received-add" addLinkText="Back" />
 
                 <form onSubmit={handleSubmit} className="space-y-6">
                     {/* Header Block */}
@@ -196,7 +199,7 @@ export default function Create({ receivedModes, accountLedgers }: Props) {
                     </div>
 
                     {/* Buttons */}
-                    <div className="flex justify-end gap-3 border-t pt-6">
+                    {/* <div className="flex justify-end gap-3 border-t pt-6">
                         <button
                             type="submit"
                             disabled={processing}
@@ -204,9 +207,9 @@ export default function Create({ receivedModes, accountLedgers }: Props) {
                         >
                             {processing ? 'Saving...' : 'Save'}
                         </button>
-                        {/* <button type="button" className="rounded bg-blue-600 px-6 py-2 font-medium text-white hover:bg-blue-700">
+                        <button type="button" className="rounded bg-blue-600 px-6 py-2 font-medium text-white hover:bg-blue-700">
                             Save & Print
-                        </button> */}
+                        </button>
                         <button
                             type="button"
                             onClick={() => window.history.back()}
@@ -214,7 +217,15 @@ export default function Create({ receivedModes, accountLedgers }: Props) {
                         >
                             Cancel
                         </button>
-                    </div>
+                    </div> */}
+                    <ActionFooter
+                        className="justify-end"
+                        onSubmit={handleSubmit} // Function to handle form submission
+                        cancelHref="/received-add" // URL for the cancel action
+                        processing={processing} // Indicates whether the form is processing
+                        submitText={processing ? 'Saving...' : 'Save Received Voucher'} // Text for the submit button
+                        cancelText="Cancel" // Text for the cancel button
+                    />
                 </form>
             </div>
         </AppLayout>
