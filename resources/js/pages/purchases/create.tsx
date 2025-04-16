@@ -360,7 +360,7 @@ export default function PurchaseCreate({
                         onSubmit={handleSubmit} // Function to handle form  submission
                         cancelHref="/purchases" // URL for the cancel action
                         processing={processing} // Indicates whether the form is processing
-                        submitText={processing ? 'Saving...' : 'Save & Print'} // Text for the submit button
+                        submitText={processing ? 'Saving & Printing...' : 'Save & Print'} // Text for the submit button
                         cancelText="Cancel" // Text for the cancel button
                     />
                 </form>

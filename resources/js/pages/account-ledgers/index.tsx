@@ -18,7 +18,7 @@ interface AccountLedger {
 
 export default function AccountLedgerIndex({ accountLedgers }: { accountLedgers: AccountLedger[] }) {
     const handleDelete = (id: number) => {
-        
+
         // Using custom confirmDialog(alert) function
         confirmDialog({}, () => {
             router.delete(`/account-ledgers/${id}`);
@@ -71,7 +71,10 @@ export default function AccountLedgerIndex({ accountLedgers }: { accountLedgers:
                                         
                                         <button onClick={() => handleDelete(ledger.id)} className="rounded bg-red-600 px-3 py-1 text-sm text-white hover:bg-red-700" >Delete</button>
                                     </td> */}
-                                    <ActionButtons editHref={`/account-ledgers/${ledger.id}/edit`} onDelete={() => handleDelete(ledger.id)} />
+                                    <ActionButtons
+                                        editHref={`/account-ledgers/${ledger.id}/edit`}
+                                        onDelete={() => handleDelete(ledger.id)}
+                                    />
                                 </tr>
                             ))}
                         </tbody>

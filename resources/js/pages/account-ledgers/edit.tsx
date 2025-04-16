@@ -220,6 +220,7 @@ export default function EditAccountLedger({
                         </div> */}
                         {/*Custom Action Buttons */}
                         <ActionFooter
+                            className='w-full justify-end'
                             onSubmit={handleSubmit} // Function to handle form submission
                             cancelHref="/account-ledgers" // URL for the cancel action
                             processing={processing} // Indicates whether the form is processing

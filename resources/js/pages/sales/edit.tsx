@@ -1,6 +1,7 @@
+import ActionFooter from '@/components/ActionFooter';
+import PageHeader from '@/components/PageHeader';
 import AppLayout from '@/layouts/app-layout';
 import { Head, Link, useForm } from '@inertiajs/react';
-import { useEffect } from 'react';
 
 interface Sale {
     id: number;
@@ -102,10 +103,12 @@ export default function SaleEdit({ sale, godowns, salesmen, ledgers, items }: { 
         <AppLayout>
             <Head title="Edit Sale" />
             <div className="p-6 bg-gray-100">
-                <div className="mb-6 flex items-center justify-between">
+                {/* <div className="mb-6 flex items-center justify-between">
                     <h1 className="text-2xl font-semibold text-gray-800">Edit Sale</h1>
                     <Link href="/sales" className="rounded bg-gray-300 px-4 py-2 hover:bg-neutral-100">Back</Link>
-                </div>
+                </div> */}
+
+                <PageHeader title='Edit Sale' addLinkHref='/sales' addLinkText='Back' />
 
                 {/* Form */}
                 <form onSubmit={handleSubmit} className="space-y-6 rounded bg-white p-6 shadow-md">
@@ -299,14 +302,14 @@ export default function SaleEdit({ sale, godowns, salesmen, ledgers, items }: { 
                                     {data.sale_items.length > 1 && (
                                         <button
                                             type="button"
-                                            className="rounded bg-red-500 px-3 py-2 text-white"
+                                            className="rounded bg-danger hover:bg-danger-hover px-3 py-2 text-white"
                                             onClick={() => removeProductRow(index)}
                                         >
                                             &minus;
                                         </button>
                                     )}
                                     {index === data.sale_items.length - 1 && (
-                                        <button type="button" className="rounded bg-blue-500 px-3 py-2 text-white" onClick={addProductRow}>
+                                        <button type="button" className="rounded bg-primary hover:bg-primary-hover px-3 py-2 text-white" onClick={addProductRow}>
                                             +
                                         </button>
                                     )}
@@ -501,13 +504,21 @@ export default function SaleEdit({ sale, godowns, salesmen, ledgers, items }: { 
                         </div>
                     </div>
 
-                   
+
 
                     {/* Section 5: Submit */}
-                    <div className="mt-6 flex justify-end gap-3">
+                    {/* <div className="mt-6 flex justify-end gap-3">
                         <button type="submit" disabled={processing} className="rounded bg-purple-600 px-5 py-2 font-semibold text-white shadow hover:bg-purple-700">{processing ? 'Updating...' : 'Update'}</button>
                         <Link href="/sales" className="rounded border border-gray-400 px-5 py-2 font-semibold text-gray-700 hover:bg-gray-100">Cancel</Link>
-                    </div>
+                    </div> */}
+                    <ActionFooter
+                        className='w-full justify-end'
+                        onSubmit={handleSubmit} // Function to handle form submission
+                        cancelHref="/sales" // URL for the cancel action
+                        processing={processing} // Indicates whether the form is processing
+                        submitText={processing ? 'Updating...' : 'Update'} // Text for the submit button
+                        cancelText="Cancel" // Text for the cancel button
+                    />
                 </form>
             </div>
         </AppLayout>

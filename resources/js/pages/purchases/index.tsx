@@ -22,25 +22,24 @@ interface PaginatedPurchases {
 
 export default function PurchaseIndex({ purchases }: { purchases: PaginatedPurchases }) {
     const handleDelete = (id: number) => {
-        Swal.fire({
-            title: 'Are you sure?',
-            text: 'This purchase will be permanently deleted!',
-            icon: 'warning',
-            showCancelButton: true,
-            confirmButtonColor: '#d33',
-            cancelButtonColor: '#3085d6',
-            confirmButtonText: 'Yes, delete it!',
-        }).then((result) => {
-            if (result.isConfirmed) {
-                router.delete(`/purchases/${id}`);
-                Swal.fire('Deleted!', 'The purchase has been deleted.', 'success');
-            }
-        });
+        // Swal.fire({
+        //     title: 'Are you sure?',
+        //     text: 'This purchase will be permanently deleted!',
+        //     icon: 'warning',
+        //     showCancelButton: true,
+        //     confirmButtonColor: '#d33',
+        //     cancelButtonColor: '#3085d6',
+        //     confirmButtonText: 'Yes, delete it!',
+        // }).then((result) => {
+        //     if (result.isConfirmed) {
+        //         router.delete(`/purchases/${id}`);
+        //         Swal.fire('Deleted!', 'The purchase has been deleted.', 'success');
+        //     }
+        // });
 
         confirmDialog(
             {}, () => {
                 router.delete(`/purchases/${id}`);
-                Swal.fire('Deleted!', 'The purchase has been deleted.', 'success');
             }
         );
     };
@@ -80,7 +79,7 @@ export default function PurchaseIndex({ purchases }: { purchases: PaginatedPurch
                                 const totalAmount = purchase.purchase_items.reduce((sum, item) => sum + (parseFloat(item.subtotal as any) || 0), 0);
 
                                 return (
-                                    <tr key={purchase.id} className="hover:bg-gray-50">
+                                    <tr key={purchase.id} className="hover:bg-gray-50 border">
                                         <td className="border px-3 py-2 text-center">{index + 1}</td>
                                         <td className="border px-3 py-2">{purchase.date}</td>
                                         <td className="border px-3 py-2">{purchase.voucher_no}</td>
@@ -130,7 +129,13 @@ export default function PurchaseIndex({ purchases }: { purchases: PaginatedPurch
                                                 </Link>
                                             </div>
                                         </td> */}
-                                        <ActionButtons editHref={`/purchases/${purchase.id}/edit`} onDelete={() => handleDelete(purchase.id)} printHref={`/purchases/${purchase.id}/invoice`}/>
+                                        <ActionButtons
+                                            className='text-center'
+                                            editHref={`/purchases/${purchase.id}/edit`} 
+                                            onDelete={() => handleDelete(purchase.id)} 
+                                            printText='Print'
+                                            printHref={`/purchases/${purchase.id}/invoice`}
+                                        />
                                     </tr>
                                 );
                             })}

@@ -9,6 +9,8 @@ interface ActionButtonsProps {
     deleteText?: ReactNode; // Optional custom text for the Delete button
     printHref?: string; // Optional URL for the print action
     printText?: ReactNode; // Optional custom text for the Print button
+    onPrint?: (e: any) => void; // Optional function for the Print button
+    className?: string; // Optional className prop for additional styling
 }
 
 const ActionButtons: React.FC<ActionButtonsProps> = ({
@@ -19,9 +21,11 @@ const ActionButtons: React.FC<ActionButtonsProps> = ({
     deleteText = 'Delete',
     printHref,
     printText = 'Print',
+    onPrint,
+    className = "", // Default to an empty string if not provided
 }) => {
     return (
-        <td className="flex justify-center space-x-2 px-4 py-2">
+        <td className={`${className} || flex justify-center space-x-2 px-4 py-2`}>
             {/* Render Edit Link if editHref is provided */}
             {editHref && (
                 <Link
@@ -54,10 +58,20 @@ const ActionButtons: React.FC<ActionButtonsProps> = ({
             {printHref && (
                 <Link
                     href={printHref}
-                    className="rounded bg-info px-3 py-1 text-sm text-white hover:bg-info-hover"
+                    className="rounded bg-blue-600 px-3 py-1 text-sm text-white hover:bg-blue-700"
                 >
                     {printText}
                 </Link>
+            )}
+
+            {/* Print Button */}
+            {onPrint && (
+                <button
+                    onClick={onPrint}
+                    className="rounded bg-blue-600 px-3 py-1 text-sm text-white hover:bg-blue-700"
+                >
+                    {printText}
+                </button>
             )}
         </td>
     );

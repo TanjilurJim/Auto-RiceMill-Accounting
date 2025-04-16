@@ -127,21 +127,21 @@ export default function PurchaseEdit({ purchase, godowns, salesmen, ledgers, ite
     // 5) Remove product row
     const removeProductRow = (index: number) => {
         if (data.purchase_items.length === 1) return;
-        Swal.fire({
-            title: 'Are you sure?',
-            text: 'Do you want to remove this product row?',
-            icon: 'warning',
-            showCancelButton: true,
-            confirmButtonColor: '#d33',
-            cancelButtonColor: '#3085d6',
-            confirmButtonText: 'Yes, remove it!',
-        }).then((result) => {
-            if (result.isConfirmed) {
-                const updated = [...data.purchase_items];
-                updated.splice(index, 1);
-                setData('purchase_items', updated);
-            }
-        });
+        // Swal.fire({
+        //     title: 'Are you sure?',
+        //     text: 'Do you want to remove this product row?',
+        //     icon: 'warning',
+        //     showCancelButton: true,
+        //     confirmButtonColor: '#d33',
+        //     cancelButtonColor: '#3085d6',
+        //     confirmButtonText: 'Yes, remove it!',
+        // }).then((result) => {
+        //     if (result.isConfirmed) {
+        //         const updated = [...data.purchase_items];
+        //         updated.splice(index, 1);
+        //         setData('purchase_items', updated);
+        //     }
+        // });
 
         confirmDialog(
             { }, () => {

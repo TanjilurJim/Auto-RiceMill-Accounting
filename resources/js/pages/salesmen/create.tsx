@@ -88,6 +88,7 @@ export default function CreateSalesman() {
                             </Button>
                         </div> */}
                         <ActionFooter
+                            className="w-full justify-end"
                             onSubmit={handleSubmit} // Function to handle form submission
                             cancelHref="/salesmen" // URL for the cancel action
                             processing={processing} // Indicates whether the form is processing
