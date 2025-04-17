@@ -7,6 +7,13 @@ interface Godown {
     id: number;
     name: string;
 }
+
+interface ReceivedMode {
+    id: number;
+    mode_name: string;
+    ledger_id: number;
+}
+
 interface Salesman {
     id: number;
     name: string;
@@ -18,7 +25,7 @@ interface Ledger {
 interface Item {
     id: number;
     item_name: string;
-    previous_stock: number;
+    stock_qty: number;
     unit: string;
 }
 
@@ -27,11 +34,13 @@ export default function SaleCreate({
     salesmen,
     ledgers,
     items,
+    receivedModes,
 }: {
     godowns: Godown[];
     salesmen: Salesman[];
     ledgers: Ledger[];
     items: Item[];
+    receivedModes: ReceivedMode[];
 }) {
     const { data, setData, post, processing, errors } = useForm({
         date: '',
@@ -60,21 +69,45 @@ export default function SaleCreate({
         truck_driver_name: '',
         driver_address: '',
         driver_mobile: '',
-        receive_mode: '',
-        receive_amount: '',
+        received_mode_id: '',
+        amount_received: '',
         total_due: '',
         closing_balance: '',
     });
-    const [filteredItems, setFilteredItems] = useState<Item[]>(items);
     useEffect(() => {
         if (data.godown_id) {
-            axios.get(`/items/by-godown/${data.godown_id}`).then((res) => {
-                setFilteredItems(res.data);
+            axios.get(`/sales/items/by-godown/${data.godown_id}`).then((res) => {
+                // Update the state with the items and their stock quantities
+                setFilteredItems(res.data); // Ensure you get the correct stock quantities here
             });
         } else {
-            setFilteredItems([]);
+            setFilteredItems([]); // Clear the items if no godown is selected
         }
-    }, [data.godown_id]);
+    }, [data.godown_id]); // Trigger this effect whenever the godown_id changes
+    const [filteredItems, setFilteredItems] = useState<Item[]>([]);    
+
+    useEffect(() => {
+        if (data.received_mode_id) {
+            const mode = receivedModes.find((m) => m.id === parseInt(data.received_mode_id));
+            if (mode?.ledger_id) {
+                axios.get(`/account-ledgers/${mode.ledger_id}/balance`).then((res) => {
+                    setData('closing_balance', res.data.balance);
+                });
+            }
+        }
+    }, [data.received_mode_id]);
+    
+    // Add another effect to dynamically update the closing balance when other fields change
+    useEffect(() => {
+        // Calculate closing balance based on other data changes
+        const totalAmountReceived = parseFloat(data.amount_received) || 0;
+        const totalDue = parseFloat(data.total_due) || 0;
+        
+        // Example calculation (this depends on your business logic)
+        const updatedClosingBalance = totalDue - totalAmountReceived; 
+        
+        setData('closing_balance', updatedClosingBalance.toString());
+    }, [data.amount_received, data.total_due]); // Triggers on changes in amount_received or total_due
 
     // Auto-generate voucher no on mount
     useEffect(() => {
@@ -267,8 +300,8 @@ export default function SaleCreate({
                                         <option value="">Select</option>
                                         {filteredItems.map((p) => (
                                             <option key={p.id} value={p.id}>
-                                                {p.item_name} ({p.previous_stock} {p.unit})
-                                            </option>
+                                            {p.item_name} ({p.stock_qty} in stock)
+                                          </option>
                                         ))}
                                     </select>
                                     {errors[`sale_items.${index}.product_id`] && (
@@ -398,13 +431,18 @@ export default function SaleCreate({
                             {/* Receive Mode */}
                             <div>
                                 <label className="mb-1 block text-sm font-semibold text-gray-700">Receive Mode</label>
-                                <input
-                                    type="text"
-                                    placeholder="e.g. Cash, Bank"
+                                <select
                                     className="w-full border p-2"
-                                    value={data.receive_mode || ''}
-                                    onChange={(e) => setData('receive_mode', e.target.value)}
-                                />
+                                    value={data.received_mode_id || ''}
+                                    onChange={(e) => setData('received_mode_id', e.target.value)}
+                                >
+                                    <option value="">Select Mode</option>
+                                    {receivedModes.map((mode) => (
+                                        <option key={mode.id} value={mode.id}>
+                                            {mode.mode_name}
+                                        </option>
+                                    ))}
+                                </select>
                             </div>
 
                             {/* Receive Amount */}
@@ -414,8 +452,8 @@ export default function SaleCreate({
                                     type="number"
                                     placeholder="0.00"
                                     className="w-full border p-2"
-                                    value={data.receive_amount || ''}
-                                    onChange={(e) => setData('receive_amount', e.target.value)}
+                                    value={data.amount_received || ''}
+                                    onChange={(e) => setData('amount_received', e.target.value)}
                                 />
                             </div>
 
@@ -434,13 +472,7 @@ export default function SaleCreate({
                             {/* Closing Balance */}
                             <div>
                                 <label className="mb-1 block text-sm font-semibold text-gray-700">Closing Balance</label>
-                                <input
-                                    type="number"
-                                    placeholder="0.00"
-                                    className="w-full border p-2"
-                                    value={data.closing_balance || ''}
-                                    onChange={(e) => setData('closing_balance', e.target.value)}
-                                />
+                                <input type="number" className="w-full border bg-gray-100 p-2" value={data.closing_balance || ''} readOnly />
                             </div>
                         </div>
                     </div>

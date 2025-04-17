@@ -35,6 +35,9 @@ class Sale extends Model
         'total_due',
         'closing_balance',
         'created_by',
+        'received_mode_id',     // ✅ Add this
+        'amount_received',
+        'journal_id',  
     ];
 
     // ✅ Relationships
@@ -66,5 +69,13 @@ class Sale extends Model
     public function creator()
     {
         return $this->belongsTo(User::class, 'created_by');
+    }
+    public function receivedMode()
+    {
+        return $this->belongsTo(ReceivedMode::class);
+    }
+    public function journal()
+    {
+        return $this->belongsTo(Journal::class);
     }
 }

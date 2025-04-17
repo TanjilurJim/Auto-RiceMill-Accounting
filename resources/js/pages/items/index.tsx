@@ -78,7 +78,7 @@ export default function ItemIndex({ items }: { items: PaginatedItems }) {
                                     <td className="border px-4 py-2">{item.unit?.name || 'N/A'}</td>
                                     <td className="border px-4 py-2">{item.purchase_price}</td>
                                     <td className="border px-4 py-2">{item.sale_price}</td>
-                                    <td className="border px-4 py-2">{item.previous_stock}</td>
+                                    <td className="border px-4 py-2">{item.current_stock ?? 0}</td>
                                     <td className="border px-4 py-2">{item.creator?.name || 'N/A'}</td>
 
                                     <td className="flex justify-center gap-2 border px-4 py-2">

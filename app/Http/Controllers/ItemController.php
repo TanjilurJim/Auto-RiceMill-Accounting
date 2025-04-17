@@ -6,6 +6,7 @@ use App\Models\Item;
 use App\Models\Category;
 use App\Models\Unit;
 use App\Models\Godown;
+use Illuminate\Support\Facades\DB;
 use App\Models\Stock;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
@@ -17,15 +18,15 @@ class ItemController extends Controller
      */
     public function index()
     {
-        $query = Item::with(['category', 'unit', 'godown', 'creator'])
-            ->orderBy('id', 'desc');
+        $userId = auth()->id();
 
-        // Check if user is NOT admin, then limit by their ID
-        if (!auth()->user()->hasRole('admin')) {
-            $query->where('created_by', auth()->id());
-        }
-
-        $items = $query->paginate(10);
+        $items = Item::with(['category', 'unit', 'godown', 'creator'])
+            ->where('created_by', $userId)
+            ->withSum(['stocks as current_stock' => function ($q) use ($userId) {
+                $q->where('created_by', $userId);
+            }], 'qty')
+            ->orderBy('id', 'desc')
+            ->paginate(10);
 
         return Inertia::render('items/index', [
             'items' => $items,
@@ -164,6 +165,30 @@ class ItemController extends Controller
 
         return redirect()->route('items.index')->with('success', 'Item updated successfully!');
     }
+
+    // public function getItemsByGodown($godownId)
+    // {
+    //     $items = Item::where('created_by', auth()->id())
+    //         ->with('unit') // optional
+    //         ->get();
+
+    //     $stocks = \App\Models\Stock::where('godown_id', $godownId)
+    //         ->where('created_by', auth()->id())
+    //         ->get()
+    //         ->keyBy('item_id');
+
+    //     $itemsWithStock = $items->map(function ($item) use ($stocks) {
+    //         $stockQty = $stocks[$item->id]->qty ?? 0;
+    //         return [
+    //             'id' => $item->id,
+    //             'item_name' => $item->item_name,
+    //             'unit' => $item->unit->name ?? '',
+    //             'stock_qty' => $stockQty,
+    //         ];
+    //     });
+
+    //     return response()->json($itemsWithStock);
+    // }
 
     /**
      * Remove the specified resource from storage.

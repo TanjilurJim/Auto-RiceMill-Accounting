@@ -101,7 +101,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('/sales-returns/{salesReturn}/invoice', [SalesReturnController::class, 'invoice'])->name('sales-returns.invoice');
     Route::resource('sales-orders', SalesOrderController::class);
     Route::get('/sales-orders/{salesOrder}/invoice', [SalesOrderController::class, 'invoice'])->name('sales-orders.invoice');
-    Route::get('/items/by-godown/{godown}', [SaleController::class, 'getItemsByGodown']);
+    Route::get('/sales/items/by-godown/{id}', [SaleController::class, 'getItemsByGodown']);
 
     Route::resource('received-modes', ReceivedModeController::class);
     Route::resource('received-add', ReceivedAddController::class);

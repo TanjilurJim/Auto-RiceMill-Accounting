@@ -8,6 +8,12 @@ use App\Models\Godown;
 use App\Models\Salesman;
 use App\Models\AccountLedger;
 use App\Models\Item;
+use App\Models\Stock;
+use App\Models\Journal;
+use App\Models\JournalEntry;
+
+use Illuminate\Support\Facades\DB;
+use App\Models\ReceivedMode;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 
@@ -40,7 +46,23 @@ class SaleController extends Controller
             'salesmen' => Salesman::where('created_by', auth()->id())->get(),
             'ledgers' => AccountLedger::where('created_by', auth()->id())->get(),
             'items' => Item::where('created_by', auth()->id())->get(),
+            'receivedModes' => \App\Models\ReceivedMode::with('ledger')
+                ->where('created_by', auth()->id())
+                ->get(['id', 'mode_name', 'ledger_id']),
         ]);
+    }
+
+    private function updateLedgerBalance($ledgerId, $type, $amount)
+    {
+        $ledger = AccountLedger::find($ledgerId);
+        if (!$ledger) return;
+
+        $current = $ledger->closing_balance ?? $ledger->opening_balance ?? 0;
+        $ledger->closing_balance = $type === 'debit'
+            ? $current + $amount
+            : $current - $amount;
+
+        $ledger->save();
     }
 
     // Store Sale
@@ -50,48 +72,120 @@ class SaleController extends Controller
 
         $voucherNo = $request->voucher_no ?? 'SAL-' . now()->format('Ymd') . '-' . str_pad(Sale::max('id') + 1, 4, '0', STR_PAD_LEFT);
 
-        $sale = Sale::create([
-            'date' => $request->date,
-            'voucher_no' => $voucherNo,
-            'godown_id' => $request->godown_id,
-            'salesman_id' => $request->salesman_id,
-            'account_ledger_id' => $request->account_ledger_id,
-            'phone' => $request->phone,
-            'address' => $request->address,
-            'shipping_details' => $request->shipping_details,
-            'delivered_to' => $request->delivered_to,
-            'truck_rent' => $request->truck_rent,
-            'rent_advance' => $request->rent_advance,
-            'net_rent' => $request->net_rent,
-            'truck_driver_name' => $request->truck_driver_name,
-            'driver_address' => $request->driver_address,
-            'driver_mobile' => $request->driver_mobile,
-            'total_qty' => collect($request->sale_items)->sum('qty'),
-            'total_discount' => collect($request->sale_items)->sum('discount'),
-            'grand_total' => collect($request->sale_items)->sum('subtotal'),
-            'other_expense_ledger_id' => $request->other_expense_ledger_id,
-            'other_amount' => $request->other_amount ?? 0,
-            'receive_mode' => $request->receive_mode,
-            'receive_amount' => $request->receive_amount,
-            'total_due' => $request->total_due,
-            'closing_balance' => $request->closing_balance,
-            'created_by' => auth()->id(),
-        ]);
+        DB::beginTransaction();
 
-        foreach ($request->sale_items as $item) {
-            $sale->saleItems()->create([
-                'product_id' => $item['product_id'],
-                'qty' => $item['qty'],
-                'main_price' => $item['main_price'],
-                'discount' => $item['discount'] ?? 0,
-                'discount_type' => $item['discount_type'],
-                'subtotal' => $item['subtotal'],
-                'note' => $item['note'] ?? null,
+        try {
+            // 1️⃣ Create Sale
+            $sale = Sale::create([
+                'date' => $request->date,
+                'voucher_no' => $voucherNo,
+                'godown_id' => $request->godown_id,
+                'salesman_id' => $request->salesman_id,
+                'account_ledger_id' => $request->account_ledger_id,
+                'phone' => $request->phone,
+                'address' => $request->address,
+                'shipping_details' => $request->shipping_details,
+                'delivered_to' => $request->delivered_to,
+                'truck_rent' => $request->truck_rent,
+                'rent_advance' => $request->rent_advance,
+                'net_rent' => $request->net_rent,
+                'truck_driver_name' => $request->truck_driver_name,
+                'driver_address' => $request->driver_address,
+                'driver_mobile' => $request->driver_mobile,
+                'total_qty' => collect($request->sale_items)->sum('qty'),
+                'total_discount' => collect($request->sale_items)->sum('discount'),
+                'grand_total' => collect($request->sale_items)->sum('subtotal'),
+                'other_expense_ledger_id' => $request->other_expense_ledger_id,
+                'other_amount' => $request->other_amount ?? 0,
+                'received_mode_id' => $request->received_mode_id,
+                'amount_received' => $request->amount_received,
+                'total_due' => $request->total_due,
+                'closing_balance' => $request->closing_balance,
+                'created_by' => auth()->id(),
             ]);
-        }
 
-        return redirect()->route('sales.index')->with('success', 'Sale created successfully!');
+            // 2️⃣ Create Sale Items + reduce stock
+            foreach ($request->sale_items as $item) {
+                $sale->saleItems()->create([
+                    'product_id' => $item['product_id'],
+                    'qty' => $item['qty'],
+                    'main_price' => $item['main_price'],
+                    'discount' => $item['discount'] ?? 0,
+                    'discount_type' => $item['discount_type'],
+                    'subtotal' => $item['subtotal'],
+                    'note' => $item['note'] ?? null,
+                ]);
+
+                // Stock decrement
+                Stock::where([
+                    'item_id' => $item['product_id'],
+                    'godown_id' => $request->godown_id,
+                    'created_by' => auth()->id(),
+                ])->decrement('qty', $item['qty']);
+            }
+
+            // 3️⃣ Journal Header
+            $journal = Journal::create([
+                'date' => $request->date,
+                'voucher_no' => $voucherNo,
+                'narration' => 'Auto journal for Sale',
+                'created_by' => auth()->id(),
+            ]);
+            $sale->update(['journal_id' => $journal->id]);
+            if ($request->received_mode_id && $request->amount_received > 0) {
+                ReceivedMode::where('id', $request->received_mode_id)->update([
+                    'amount_received' => $request->amount_received,
+                    'transaction_date' => $request->date,
+                    'sale_id' => $sale->id,
+                ]);
+            }
+
+            // 4️⃣ Credit Inventory (COGS)
+            JournalEntry::create([
+                'journal_id' => $journal->id,
+                'account_ledger_id' => $request->account_ledger_id,
+                'type' => 'credit',
+                'amount' => $sale->grand_total,
+                'note' => 'Sale to customer',
+            ]);
+            $this->updateLedgerBalance($request->account_ledger_id, 'credit', $sale->grand_total);
+
+            // 5️⃣ Debit Payment Method if paid
+            if ($request->amount_received > 0 && $request->received_mode_id) {
+                $receivedMode = ReceivedMode::with('ledger')->find($request->received_mode_id);
+
+                if ($receivedMode && $receivedMode->ledger) {
+                    // Debit received account (Cash/Bank/etc.)
+                    JournalEntry::create([
+                        'journal_id' => $journal->id,
+                        'account_ledger_id' => $receivedMode->ledger_id,
+                        'type' => 'debit',
+                        'amount' => $request->amount_received,
+                        'note' => 'Payment received via ' . $receivedMode->mode_name,
+                    ]);
+                    $this->updateLedgerBalance($receivedMode->ledger_id, 'debit', $request->amount_received);
+
+                    // Credit customer to reduce receivable
+                    JournalEntry::create([
+                        'journal_id' => $journal->id,
+                        'account_ledger_id' => $request->account_ledger_id,
+                        'type' => 'debit',
+                        'amount' => $request->amount_received,
+                        'note' => 'Receivable reduced from customer',
+                    ]);
+                    $this->updateLedgerBalance($request->account_ledger_id, 'debit', $request->amount_received);
+                }
+            }
+
+            DB::commit();
+            return redirect()->route('sales.index')->with('success', 'Sale created and journal posted!');
+        } catch (\Throwable $e) {
+            DB::rollBack();
+            report($e);
+            return back()->with('error', 'Failed to save sale.');
+        }
     }
+
 
     // Edit Sale Form
     public function edit(Sale $sale)
@@ -106,6 +200,9 @@ class SaleController extends Controller
             'salesmen' => Salesman::where('created_by', auth()->id())->get(),
             'ledgers' => AccountLedger::where('created_by', auth()->id())->get(),
             'items' => Item::where('created_by', auth()->id())->get(),
+            'receivedModes' => \App\Models\ReceivedMode::with('ledger')
+                ->where('created_by', auth()->id())
+                ->get(['id', 'mode_name', 'ledger_id']),
         ]);
     }
 
@@ -118,47 +215,134 @@ class SaleController extends Controller
 
         $this->validateRequest($request);
 
-        $sale->update([
-            'date' => $request->date,
-            'godown_id' => $request->godown_id,
-            'salesman_id' => $request->salesman_id,
-            'account_ledger_id' => $request->account_ledger_id,
-            'phone' => $request->phone,
-            'address' => $request->address,
-            'shipping_details' => $request->shipping_details,
-            'delivered_to' => $request->delivered_to,
-            'truck_rent' => $request->truck_rent,
-            'rent_advance' => $request->rent_advance,
-            'net_rent' => $request->net_rent,
-            'truck_driver_name' => $request->truck_driver_name,
-            'driver_address' => $request->driver_address,
-            'driver_mobile' => $request->driver_mobile,
-            'total_qty' => collect($request->sale_items)->sum('qty'),
-            'total_discount' => collect($request->sale_items)->sum('discount'),
-            'grand_total' => collect($request->sale_items)->sum('subtotal'),
-            'other_expense_ledger_id' => $request->other_expense_ledger_id,
-            'other_amount' => $request->other_amount ?? 0,
-            'receive_mode' => $request->receive_mode,
-            'receive_amount' => $request->receive_amount,
-            'total_due' => $request->total_due,
-            'closing_balance' => $request->closing_balance,
-        ]);
+        DB::beginTransaction();
 
-        $sale->saleItems()->delete();
-        foreach ($request->sale_items as $item) {
-            $sale->saleItems()->create([
-                'product_id' => $item['product_id'],
-                'qty' => $item['qty'],
-                'main_price' => $item['main_price'],
-                'discount' => $item['discount'] ?? 0,
-                'discount_type' => $item['discount_type'],
-                'subtotal' => $item['subtotal'],
-                'note' => $item['note'] ?? null,
+        try {
+            // 1️⃣ REVERSE Old Journal Entries & Ledger Effects
+            if ($sale->journal_id) {
+                $oldEntries = \App\Models\JournalEntry::where('journal_id', $sale->journal_id)->get();
+
+                foreach ($oldEntries as $entry) {
+                    $this->updateLedgerBalance($entry->account_ledger_id, $entry->type === 'debit' ? 'credit' : 'debit', $entry->amount);
+                }
+
+                \App\Models\JournalEntry::where('journal_id', $sale->journal_id)->delete();
+                \App\Models\Journal::where('id', $sale->journal_id)->delete();
+            }
+
+            // 2️⃣ RESTORE Stock from old sale items
+            foreach ($sale->saleItems as $oldItem) {
+                \App\Models\Stock::where([
+                    'item_id' => $oldItem->product_id,
+                    'godown_id' => $sale->godown_id,
+                    'created_by' => auth()->id(),
+                ])->increment('qty', $oldItem->qty);
+            }
+
+            // 3️⃣ UPDATE Sale Header
+            $sale->update([
+                'date' => $request->date,
+                'godown_id' => $request->godown_id,
+                'salesman_id' => $request->salesman_id,
+                'account_ledger_id' => $request->account_ledger_id,
+                'phone' => $request->phone,
+                'address' => $request->address,
+                'shipping_details' => $request->shipping_details,
+                'delivered_to' => $request->delivered_to,
+                'truck_rent' => $request->truck_rent,
+                'rent_advance' => $request->rent_advance,
+                'net_rent' => $request->net_rent,
+                'truck_driver_name' => $request->truck_driver_name,
+                'driver_address' => $request->driver_address,
+                'driver_mobile' => $request->driver_mobile,
+                'total_qty' => collect($request->sale_items)->sum('qty'),
+                'total_discount' => collect($request->sale_items)->sum('discount'),
+                'grand_total' => collect($request->sale_items)->sum('subtotal'),
+                'other_expense_ledger_id' => $request->other_expense_ledger_id,
+                'other_amount' => $request->other_amount ?? 0,
+                'received_mode_id' => $request->received_mode_id,
+                'amount_received' => $request->amount_received,
+                'total_due' => $request->total_due,
+                'closing_balance' => $request->closing_balance,
             ]);
-        }
 
-        return redirect()->route('sales.index')->with('success', 'Sale updated successfully!');
+            $sale->saleItems()->delete();
+
+            // 4️⃣ Recreate Sale Items + Reduce Stock
+            foreach ($request->sale_items as $item) {
+                $sale->saleItems()->create([
+                    'product_id' => $item['product_id'],
+                    'qty' => $item['qty'],
+                    'main_price' => $item['main_price'],
+                    'discount' => $item['discount'] ?? 0,
+                    'discount_type' => $item['discount_type'],
+                    'subtotal' => $item['subtotal'],
+                    'note' => $item['note'] ?? null,
+                ]);
+
+                // Reduce Stock
+                \App\Models\Stock::where([
+                    'item_id' => $item['product_id'],
+                    'godown_id' => $request->godown_id,
+                    'created_by' => auth()->id(),
+                ])->decrement('qty', $item['qty']);
+            }
+
+            // 5️⃣ Create new Journal
+            $journal = \App\Models\Journal::create([
+                'date' => $request->date,
+                'voucher_no' => $sale->voucher_no,
+                'narration' => 'Updated journal for sale',
+                'created_by' => auth()->id(),
+            ]);
+            $sale->update(['journal_id' => $journal->id]);
+
+            // 6️⃣ Credit customer
+            \App\Models\JournalEntry::create([
+                'journal_id' => $journal->id,
+                'account_ledger_id' => $request->account_ledger_id,
+                'type' => 'credit',
+                'amount' => $sale->grand_total,
+                'note' => 'Updated sale to customer',
+            ]);
+            $this->updateLedgerBalance($request->account_ledger_id, 'credit', $sale->grand_total);
+
+            // 7️⃣ Handle Received Payment
+            if ($request->amount_received > 0 && $request->received_mode_id) {
+                $receivedMode = \App\Models\ReceivedMode::with('ledger')->find($request->received_mode_id);
+
+                if ($receivedMode && $receivedMode->ledger) {
+                    // Debit cash/bank/whatever
+                    \App\Models\JournalEntry::create([
+                        'journal_id' => $journal->id,
+                        'account_ledger_id' => $receivedMode->ledger_id,
+                        'type' => 'debit',
+                        'amount' => $request->amount_received,
+                        'note' => 'Updated payment received via ' . $receivedMode->mode_name,
+                    ]);
+                    $this->updateLedgerBalance($receivedMode->ledger_id, 'debit', $request->amount_received);
+
+                    // Debit the customer ledger as payment
+                    \App\Models\JournalEntry::create([
+                        'journal_id' => $journal->id,
+                        'account_ledger_id' => $request->account_ledger_id,
+                        'type' => 'debit',
+                        'amount' => $request->amount_received,
+                        'note' => 'Receivable adjustment from customer',
+                    ]);
+                    $this->updateLedgerBalance($request->account_ledger_id, 'debit', $request->amount_received);
+                }
+            }
+
+            DB::commit();
+            return redirect()->route('sales.index')->with('success', 'Sale updated and journal reposted!');
+        } catch (\Throwable $e) {
+            DB::rollBack();
+            report($e);
+            return back()->with('error', 'Failed to update sale.');
+        }
     }
+
 
     // Invoice (ERP style print)
     // Invoice (ERP style print)
@@ -228,15 +412,34 @@ class SaleController extends Controller
             'sale_items.*.discount' => 'nullable|numeric|min:0',
             'sale_items.*.discount_type' => 'required|in:bdt,percent',
             'sale_items.*.subtotal' => 'required|numeric|min:0',
+            'received_mode_id' => 'nullable|exists:received_modes,id',
+            'amount_received' => 'nullable|numeric|min:0',
         ]);
     }
 
     public function getItemsByGodown($godownId)
     {
-        $items = Item::where('godown_id', $godownId)
-            ->where('created_by', auth()->id())
+        $userId = auth()->id();
+
+        // Querying the stock data from the 'stocks' table and including the quantity
+        $stocks = Stock::with('item.unit') // Include unit information if needed
+            ->where('godown_id', $godownId)
+            ->where('created_by', $userId)
             ->get();
 
-        return response()->json($items);
-    }
+        // Map the stock data to return a list with the item's name, unit, and available stock quantity
+        $result = $stocks->map(function ($stock) {
+            return [
+                'id'        => $stock->item->id,
+                'item_name' => $stock->item->item_name,
+                'unit'      => $stock->item->unit->name ?? '', // Add unit name if needed
+                'stock_qty' => $stock->qty, // Get the stock quantity from the 'stocks' table
+            ];
+        });
+
+        \Log::info($result); // Check the returned result
+return response()->json($result);// Return the updated list to the frontend
+    
 }
+}
+

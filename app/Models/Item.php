@@ -12,7 +12,7 @@ class Item extends Model
 
     protected $fillable = [
         'item_name',
-        
+
         'item_code',
         'category_id',
         'unit_id',
@@ -41,5 +41,10 @@ class Item extends Model
     public function creator()
     {
         return $this->belongsTo(User::class, 'created_by');
+    }
+
+    public function stocks()
+    {
+        return $this->hasMany(\App\Models\Stock::class, 'item_id');
     }
 }
