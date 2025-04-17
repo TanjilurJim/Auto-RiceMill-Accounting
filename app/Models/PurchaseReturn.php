@@ -17,6 +17,8 @@ class PurchaseReturn extends Model
         'reason',
         'total_qty',
         'grand_total',
+        'inventory_ledger_id',
+        'journal_id',
         'created_by',
     ];
 
@@ -38,5 +40,10 @@ class PurchaseReturn extends Model
     public function creator()
     {
         return $this->belongsTo(User::class, 'created_by');
+    }
+
+    public function refundModes()
+    {
+        return $this->hasMany(ReceivedMode::class, 'purchase_return_id');
     }
 }

@@ -6,6 +6,7 @@ use App\Models\Item;
 use App\Models\Category;
 use App\Models\Unit;
 use App\Models\Godown;
+use App\Models\Stock;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 
@@ -85,12 +86,20 @@ class ItemController extends Controller
         $validated['item_code'] = $existingSameItem ? $existingSameItem->item_code : $itemCode;
         $validated['created_by'] = auth()->id();
         $validated['purchase_price'] = $request->purchase_price ?? 0;
-        $validated['sale_price'] = $request->sale_price ?? 0;
+        $validated['sale_price'] = $request->sale_price !== '' ? $request->sale_price : 0;
         $validated['previous_stock'] = $request->previous_stock ?? 0;
         $validated['total_previous_stock_value'] = $request->total_previous_stock_value ?? 0;
 
         // ✅ Save the item
-        Item::create($validated);
+        $item = Item::create($validated);
+
+        // ✅ Insert a stock record for this item
+        \App\Models\Stock::create([
+            'item_id'   => $item->id,
+            'godown_id' => $request->godown_id,
+            'qty'       => $request->previous_stock ?? 0,
+            'created_by' => auth()->id(),
+        ]);
 
         return redirect()->route('items.index')->with('success', 'Item created successfully!');
     }
@@ -100,11 +109,22 @@ class ItemController extends Controller
      */
     public function edit(Item $item)
     {
+        $userId = auth()->id();
+
+        // 🔁 Get stock quantity from `stocks` table
+        $stockQty = Stock::where([
+            'item_id' => $item->id,
+            'godown_id' => $item->godown_id,
+            'created_by' => $userId,
+        ])->value('qty') ?? 0;
+
+        $item->previous_stock = $stockQty;
+
         return Inertia::render('items/edit', [
             'item' => $item->load(['category', 'unit', 'godown']),
             'categories' => Category::all(),
             'units' => Unit::all(),
-            'godowns' => Godown::all(),
+            'godowns' => Godown::where('created_by', $userId)->get(),
         ]);
     }
 
@@ -113,27 +133,34 @@ class ItemController extends Controller
      */
     public function update(Request $request, Item $item)
     {
-        // 🔥 Fix: Removed 'item_part' and corrected 'sale_price'
         $validated = $request->validate([
             'item_name' => 'required|string|max:255',
             'unit_id' => 'required|exists:units,id',
             'category_id' => 'required|exists:categories,id',
             'godown_id' => 'required|exists:godowns,id',
             'purchase_price' => 'nullable|numeric',
-            'sale_price' => 'nullable|numeric', // ✅ Fixed from 'sales_price' to 'sale_price'
+            'sale_price' => 'nullable|numeric',
             'previous_stock' => 'nullable|numeric',
             'total_previous_stock_value' => 'nullable|numeric',
             'description' => 'nullable|string',
         ]);
 
-        // ✅ Ensure numeric values default to 0 if null
         $validated['purchase_price'] = $request->purchase_price ?? 0;
         $validated['sale_price'] = $request->sale_price ?? 0;
-        $validated['previous_stock'] = $request->previous_stock ?? 0;
         $validated['total_previous_stock_value'] = $request->total_previous_stock_value ?? 0;
 
-        // ✅ Update the item
+        // 🛠 update item info
         $item->update($validated);
+
+        // 🛠 update the stock table
+        $stock = \App\Models\Stock::firstOrNew([
+            'item_id' => $item->id,
+            'godown_id' => $request->godown_id,
+            'created_by' => auth()->id(),
+        ]);
+
+        $stock->qty = $request->previous_stock ?? 0;
+        $stock->save();
 
         return redirect()->route('items.index')->with('success', 'Item updated successfully!');
     }

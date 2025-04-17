@@ -7,6 +7,16 @@ interface Godown {
     id: number;
     name: string;
 }
+
+interface ReceivedMode {
+    id: number;
+    mode_name: string;
+    ledger_id: number;
+    ledger: {
+        id: number;
+        account_ledger_name: string;
+    };
+}
 interface Ledger {
     id: number;
     account_ledger_name: string;
@@ -16,14 +26,16 @@ interface Item {
     item_name: string;
 }
 
-export default function PurchaseReturnCreate({ godowns, ledgers, items }: { godowns: Godown[]; ledgers: Ledger[]; items: Item[] }) {
+export default function PurchaseReturnCreate({ godowns, ledgers, items,receivedModes, }: { godowns: Godown[]; ledgers: Ledger[]; items: Item[];receivedModes: ReceivedMode[]; }) {
     const { data, setData, post, processing, errors } = useForm({
         date: '',
         return_voucher_no: '',
         godown_id: '',
         account_ledger_id: '',
+        inventory_ledger_id: '', // 🆕 for journal credit
         reason: '',
         return_items: [{ product_id: '', qty: '', price: '', subtotal: '' }],
+        refund_modes: [{ mode_name: '', phone_number: '', ledger_id: '', amount_paid: '' }], // 🆕 for optional refund flow
     });
 
     // Auto voucher generator
@@ -134,6 +146,18 @@ export default function PurchaseReturnCreate({ godowns, ledgers, items }: { godo
                                     </option>
                                 ))}
                             </select>
+                            <select
+                                className="border p-2"
+                                value={data.inventory_ledger_id}
+                                onChange={(e) => setData('inventory_ledger_id', e.target.value)}
+                            >
+                                <option value="">Select Inventory Ledger</option>
+                                {ledgers.map((l) => (
+                                    <option key={l.id} value={l.id}>
+                                        {l.account_ledger_name}
+                                    </option>
+                                ))}
+                            </select>
                         </div>
                         <textarea
                             rows={3}
@@ -237,6 +261,89 @@ export default function PurchaseReturnCreate({ godowns, ledgers, items }: { godo
                                 </span>
                             </div>
                         </div>
+                    </div>
+
+                    <div className="mt-6 space-y-4">
+                        <h2 className="border-b pb-1 text-lg font-semibold">Refund Mode</h2>
+                        {data.refund_modes.map((mode, index) => (
+                            <div key={index} className="grid grid-cols-1 items-center gap-4 md:grid-cols-5">
+                                <select
+                                    className="border p-2"
+                                    value={mode.ledger_id}
+                                    onChange={(e) => {
+                                        const selected = receivedModes.find((r) => r.ledger_id == e.target.value);
+                                        const updated = [...data.refund_modes];
+                                        updated[index].ledger_id = e.target.value;
+                                        updated[index].mode_name = selected?.mode_name || ''; // auto-fill mode_name
+                                        setData('refund_modes', updated);
+                                    }}
+                                >
+                                    <option value="">Select Refund Mode</option>
+                                    {receivedModes.map((rm) => (
+                                        <option key={rm.ledger_id} value={rm.ledger_id}>
+                                            {rm.mode_name} — {rm.ledger?.account_ledger_name || 'Ledger'}
+                                        </option>
+                                    ))}
+                                </select>
+
+                                <input
+                                    type="text"
+                                    placeholder="Phone Number"
+                                    className="border p-2"
+                                    value={mode.phone_number}
+                                    onChange={(e) => {
+                                        const updated = [...data.refund_modes];
+                                        updated[index].phone_number = e.target.value;
+                                        setData('refund_modes', updated);
+                                    }}
+                                />
+
+                                <input
+                                    type="number"
+                                    placeholder="Amount Paid"
+                                    className="border p-2"
+                                    value={mode.amount_paid}
+                                    onChange={(e) => {
+                                        const updated = [...data.refund_modes];
+                                        updated[index].amount_paid = e.target.value;
+                                        setData('refund_modes', updated);
+                                    }}
+                                />
+                                <div className="flex gap-2">
+                                    {data.refund_modes.length > 1 && (
+                                        <button
+                                            type="button"
+                                            onClick={() => {
+                                                const updated = [...data.refund_modes];
+                                                updated.splice(index, 1);
+                                                setData('refund_modes', updated);
+                                            }}
+                                            className="rounded bg-red-500 px-3 py-1 text-white"
+                                        >
+                                            &minus;
+                                        </button>
+                                    )}
+                                    {index === data.refund_modes.length - 1 && (
+                                        <button
+                                            type="button"
+                                            onClick={() =>
+                                                setData('refund_modes', [
+                                                    ...data.refund_modes,
+                                                    { mode_name: '', phone_number: '', ledger_id: '', amount_paid: '' },
+                                                ])
+                                            }
+                                            className="rounded bg-blue-500 px-3 py-1 text-white"
+                                        >
+                                            +
+                                        </button>
+                                    )}
+                                </div>
+                            </div>
+                        ))}
+                    </div>
+
+                    <div className="mt-2 text-right text-sm text-gray-600">
+                        Total Refunded: {data.refund_modes.reduce((sum, r) => sum + (parseFloat(r.amount_paid) || 0), 0)} Tk
                     </div>
 
                     {/* Submit */}

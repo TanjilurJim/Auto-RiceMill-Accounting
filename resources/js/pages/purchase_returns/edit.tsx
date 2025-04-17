@@ -1,7 +1,6 @@
 import AppLayout from '@/layouts/app-layout';
 import { Head, Link, useForm } from '@inertiajs/react';
 import Swal from 'sweetalert2';
-import { useEffect } from 'react';
 
 interface Godown {
     id: number;
@@ -28,24 +27,39 @@ export default function PurchaseReturnEdit({
     godowns,
     ledgers,
     items,
+    receivedModes, // 🆕
+    inventoryLedgers,
 }: {
     purchase_return: any;
     godowns: Godown[];
     ledgers: Ledger[];
     items: Item[];
+    receivedModes: { id: number; mode_name: string; ledger_id: number; ledger?: any }[]; // 🆕
+    inventoryLedgers: Ledger[]; // 🆕
 }) {
     const { data, setData, put, processing, errors } = useForm({
         date: purchase_return.date || '',
         return_voucher_no: purchase_return.return_voucher_no || '',
         godown_id: purchase_return.godown_id || '',
         account_ledger_id: purchase_return.account_ledger_id || '',
+        inventory_ledger_id: purchase_return.inventory_ledger_id || '', // 🆕
         reason: purchase_return.reason || '',
-        return_items: purchase_return.return_items.map((item: PurchaseReturnItem) => ({
-            product_id: item.product_id,
-            qty: item.qty,
-            price: item.price,
-            subtotal: item.subtotal,
-        })) || [],
+        return_items: purchase_return.return_items.map((i: PurchaseReturnItem) => ({
+            id: i.id, // keep if you need row IDs
+            product_id: i.product_id,
+            qty: i.qty,
+            price: i.price,
+            subtotal: i.subtotal,
+        })),
+        refund_modes: purchase_return.refund_modes?.length
+            ? purchase_return.refund_modes.map((r: any) => ({
+                  id: r.id,
+                  mode_name: r.mode_name,
+                  phone_number: r.phone_number,
+                  ledger_id: r.ledger_id,
+                  amount_paid: r.amount_paid,
+              }))
+            : [{ id: null, mode_name: '', phone_number: '', ledger_id: '', amount_paid: '' }],
     });
 
     // Dynamic item row logic
@@ -59,8 +73,7 @@ export default function PurchaseReturnEdit({
         setData('return_items', updatedItems);
     };
 
-    const addProductRow = () =>
-        setData('return_items', [...data.return_items, { product_id: '', qty: '', price: '', subtotal: '' }]);
+    const addProductRow = () => setData('return_items', [...data.return_items, { product_id: '', qty: '', price: '', subtotal: '' }]);
 
     const removeProductRow = (index: number) => {
         if (data.return_items.length === 1) return;
@@ -103,22 +116,14 @@ export default function PurchaseReturnEdit({
                     <div className="space-y-4">
                         <h2 className="border-b pb-1 text-lg font-semibold">Return Information</h2>
                         <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-                            <input
-                                type="date"
-                                className="border p-2"
-                                value={data.date}
-                                onChange={(e) => setData('date', e.target.value)}
-                            />
-                            <input
-                                type="text"
-                                className="border p-2"
-                                value={data.return_voucher_no}
-                                readOnly
-                            />
+                            <input type="date" className="border p-2" value={data.date} onChange={(e) => setData('date', e.target.value)} />
+                            <input type="text" className="border p-2" value={data.return_voucher_no} readOnly />
                             <select className="border p-2" value={data.godown_id} onChange={(e) => setData('godown_id', e.target.value)}>
                                 <option value="">Select Godown</option>
                                 {godowns.map((g) => (
-                                    <option key={g.id} value={g.id}>{g.name}</option>
+                                    <option key={g.id} value={g.id}>
+                                        {g.name}
+                                    </option>
                                 ))}
                             </select>
                             <select
@@ -128,7 +133,21 @@ export default function PurchaseReturnEdit({
                             >
                                 <option value="">Select Party Ledger</option>
                                 {ledgers.map((l) => (
-                                    <option key={l.id} value={l.id}>{l.account_ledger_name}</option>
+                                    <option key={l.id} value={l.id}>
+                                        {l.account_ledger_name}
+                                    </option>
+                                ))}
+                            </select>
+                            <select
+                                className="border p-2"
+                                value={data.inventory_ledger_id}
+                                onChange={(e) => setData('inventory_ledger_id', e.target.value)}
+                            >
+                                <option value="">Select Inventory Ledger</option>
+                                {inventoryLedgers.map((l) => (
+                                    <option key={l.id} value={l.id}>
+                                        {l.account_ledger_name}
+                                    </option>
                                 ))}
                             </select>
                         </div>
@@ -166,7 +185,9 @@ export default function PurchaseReturnEdit({
                                                 >
                                                     <option value="">Select</option>
                                                     {items.map((p) => (
-                                                        <option key={p.id} value={p.id}>{p.item_name}</option>
+                                                        <option key={p.id} value={p.id}>
+                                                            {p.item_name}
+                                                        </option>
                                                     ))}
                                                 </select>
                                             </td>
@@ -220,12 +241,10 @@ export default function PurchaseReturnEdit({
 
                     {/* Totals */}
                     <div className="mt-6 flex justify-between gap-4">
-                        <div className="space-y-3 w-1/3">
+                        <div className="w-1/3 space-y-3">
                             <div className="flex justify-between rounded border bg-gray-50 p-3 shadow-sm">
                                 <span className="font-semibold text-gray-700">Total Qty:</span>
-                                <span className="font-semibold">
-                                    {data.return_items.reduce((sum, item) => sum + (parseFloat(item.qty) || 0), 0)}
-                                </span>
+                                <span className="font-semibold">{data.return_items.reduce((sum, item) => sum + (parseFloat(item.qty) || 0), 0)}</span>
                             </div>
                             <div className="flex justify-between rounded border bg-gray-50 p-3 shadow-sm">
                                 <span className="font-semibold text-gray-700">Total Return Value:</span>
@@ -236,6 +255,86 @@ export default function PurchaseReturnEdit({
                         </div>
                     </div>
 
+                    <div className="mt-6 space-y-4">
+                        <h2 className="border-b pb-1 text-lg font-semibold">Refund Mode</h2>
+                        {data.refund_modes.map((mode, index) => (
+                            <div key={index} className="grid grid-cols-1 items-center gap-4 md:grid-cols-5">
+                                <select
+                                    className="border p-2"
+                                    value={mode.ledger_id}
+                                    onChange={(e) => {
+                                        const u = [...data.refund_modes];
+                                        u[index].ledger_id = e.target.value;
+
+                                        // optional auto‑fill of mode_name
+                                        const sel = receivedModes.find((rm) => rm.ledger_id == e.target.value);
+                                        u[index].mode_name = sel?.mode_name ?? u[index].mode_name;
+
+                                        setData('refund_modes', u);
+                                    }}
+                                >
+                                    <option value="">Select Refund Mode</option>
+                                    {receivedModes.map((rm) => (
+                                        <option key={rm.id} value={rm.ledger_id}>
+                                            {rm.mode_name} — {rm.ledger?.account_ledger_name ?? ''}
+                                        </option>
+                                    ))}
+                                </select>
+                                <input
+                                    type="text"
+                                    className="border p-2"
+                                    placeholder="Phone"
+                                    value={mode.phone_number}
+                                    onChange={(e) => {
+                                        const u = [...data.refund_modes];
+                                        u[index].phone_number = e.target.value;
+                                        setData('refund_modes', u);
+                                    }}
+                                />
+                                
+                                <input
+                                    type="number"
+                                    className="border p-2"
+                                    placeholder="Amount"
+                                    value={mode.amount_paid}
+                                    onChange={(e) => {
+                                        const u = [...data.refund_modes];
+                                        u[index].amount_paid = e.target.value;
+                                        setData('refund_modes', u);
+                                    }}
+                                />
+                                <div className="flex gap-2">
+                                    {data.refund_modes.length > 1 && (
+                                        <button
+                                            type="button"
+                                            className="rounded bg-red-500 px-3 py-1 text-white"
+                                            onClick={() => {
+                                                const u = [...data.refund_modes];
+                                                u.splice(index, 1);
+                                                setData('refund_modes', u);
+                                            }}
+                                        >
+                                            &minus;
+                                        </button>
+                                    )}
+                                    {index === data.refund_modes.length - 1 && (
+                                        <button
+                                            type="button"
+                                            className="rounded bg-blue-500 px-3 py-1 text-white"
+                                            onClick={() => {
+                                                setData('refund_modes', [
+                                                    ...data.refund_modes,
+                                                    { mode_name: '', phone_number: '', ledger_id: '', amount_paid: '' },
+                                                ]);
+                                            }}
+                                        >
+                                            +
+                                        </button>
+                                    )}
+                                </div>
+                            </div>
+                        ))}
+                    </div>
                     {/* Submit */}
                     <div className="mt-6 flex justify-end gap-3">
                         <button
@@ -245,7 +344,10 @@ export default function PurchaseReturnEdit({
                         >
                             {processing ? 'Saving...' : 'Update Return'}
                         </button>
-                        <Link href="/purchase-returns" className="rounded border border-gray-400 px-5 py-2 font-semibold text-gray-700 hover:bg-gray-100">
+                        <Link
+                            href="/purchase-returns"
+                            className="rounded border border-gray-400 px-5 py-2 font-semibold text-gray-700 hover:bg-gray-100"
+                        >
                             Cancel
                         </Link>
                     </div>

@@ -81,6 +81,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::resource('categories', CategoryController::class);
     Route::resource('items', ItemController::class);
     Route::resource('purchases', PurchaseController::class);
+    
 
     // 👇 Used only by the modal via axios
    

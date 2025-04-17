@@ -6,12 +6,12 @@ import { Link } from '@inertiajs/react';
 interface Item {
     id: number;
     item_name: string;
-    item_part: string;
+    // item_part: string;
     unit_id: number;
     category_id: number;
     godown_id: number;
     purchase_price: number;
-    sales_price: number;
+    sale_price: number;
     previous_stock: number;
     total_previous_stock_value: number;
     description?: string;
@@ -45,12 +45,12 @@ export default function EditItem({
 }) {
     const { data, setData, put, processing, errors } = useForm({
         item_name: item.item_name,
-        item_part: item.item_part,
+        // item_part: item.item_part,
         category_id: item.category_id,
         unit_id: item.unit_id,
         godown_id: item.godown_id,
         purchase_price: item.purchase_price,
-        sales_price: item.sales_price,
+        sale_price: item.sale_price,
         previous_stock: item.previous_stock,
         total_previous_stock_value: item.total_previous_stock_value,
         description: item.description || '',
@@ -79,7 +79,7 @@ export default function EditItem({
                             {errors.item_name && <p className="text-sm text-red-500">{errors.item_name}</p>}
                         </div>
 
-                        <div>
+                        {/* <div>
                             <label>Item Part</label>
                             <input
                                 type="text"
@@ -88,7 +88,7 @@ export default function EditItem({
                                 className="w-full rounded border p-2"
                             />
                             {errors.item_part && <p className="text-sm text-red-500">{errors.item_part}</p>}
-                        </div>
+                        </div>  */}
 
                         <div>
                             <label>Category</label>
@@ -155,8 +155,8 @@ export default function EditItem({
                                 <label>Sales Price</label>
                                 <input
                                     type="number"
-                                    value={data.sales_price}
-                                    onChange={(e) => setData('sales_price', parseFloat(e.target.value))}
+                                    value={data.sale_price}
+                                    onChange={(e) => setData('sale_price', parseFloat(e.target.value))}
                                     className="w-full rounded border p-2"
                                 />
                             </div>
