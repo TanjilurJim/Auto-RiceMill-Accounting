@@ -1,3 +1,5 @@
+import ActionFooter from '@/components/ActionFooter';
+import PageHeader from '@/components/PageHeader';
 import AppLayout from '@/layouts/app-layout';
 import { PlusCircleIcon, TrashIcon } from '@heroicons/react/24/outline';
 import { Head, router } from '@inertiajs/react';
@@ -98,6 +100,9 @@ export default function Create({ workingOrders, products, godowns, autoVoucherNo
             <Head title="Add Finished Product" />
 
             <div className="mx-auto max-w-6xl space-y-6 rounded-xl bg-gray-100 px-6 py-8 shadow-xl">
+
+                <PageHeader title="Add Finished Product" addLinkHref='/finished-products' addLinkText='Back' />
+
                 {/* Working Order Selection */}
                 <div className="rounded border bg-white p-6 shadow-md">
                     <h2 className="mb-4 text-lg font-bold">Select Working Order</h2>
@@ -248,7 +253,7 @@ export default function Create({ workingOrders, products, godowns, autoVoucherNo
                                         type="button"
                                         onClick={() => removeRow(idx)}
                                         disabled={rows.length === 1}
-                                        className="text-red-500 hover:text-red-700"
+                                        className="text-danger hover:text-danger-hover"
                                     >
                                         <TrashIcon className="h-5 w-5" />
                                     </button>
@@ -276,11 +281,19 @@ export default function Create({ workingOrders, products, godowns, autoVoucherNo
                     </div>
 
                     {/* Submit */}
-                    <div className="flex justify-end">
+                    {/* <div className="flex justify-end">
                         <button type="submit" className="rounded-lg bg-indigo-600 px-6 py-3 font-semibold text-white shadow hover:bg-indigo-700">
                             Save Finished Product
                         </button>
-                    </div>
+                    </div> */}
+                    <ActionFooter
+                        className='justify-end'
+                        onSubmit={handleSubmit}
+                        cancelHref="/finished-products"
+                        processing={false}
+                        submitText="Save Finished Product"
+                        cancelText="Cancel"
+                    />
                 </form>
             </div>
         </AppLayout>

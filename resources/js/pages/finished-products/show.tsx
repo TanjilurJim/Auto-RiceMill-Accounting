@@ -1,3 +1,4 @@
+import PageHeader from '@/components/PageHeader';
 import AppLayout from '@/layouts/app-layout';
 import { Head, Link } from '@inertiajs/react';
 
@@ -46,23 +47,29 @@ export default function Show({ finishedProduct }: { finishedProduct: FinishedPro
 
             <div className="min-h-screen bg-gray-100 p-6">
                 {/* Page Header */}
-                <div className="mb-4 flex items-center justify-between">
+                {/* <div className="mb-4 flex items-center justify-between">
                     <h1 className="text-2xl font-semibold text-gray-800">Finished Product: {finishedProduct.production_voucher_no}</h1>
                     <div className="space-x-2">
-                        {/* Print button */}
                         <Link
                             href={route('finished-products.print', finishedProduct.id)}
                             className="rounded bg-blue-600 px-4 py-2 text-white hover:bg-blue-700"
                         >
                             Print
                         </Link>
-
-                        {/* Back button */}
+                        
                         <Link href={route('finished-products.index')} className="rounded bg-gray-300 px-4 py-2 text-gray-800 hover:bg-gray-400">
                             Back
                         </Link>
                     </div>
-                </div>
+                </div> */}
+
+                <PageHeader
+                    title={`Finished Product: ${finishedProduct.production_voucher_no}`}
+                    addLinkHref={route('finished-products.index')}
+                    addLinkText="Back"
+                    printLinkHref={route('finished-products.print', finishedProduct.id)}
+                    printLinkText="Print"
+                />
 
                 {/* Basic Info */}
                 <div className="grid grid-cols-1 gap-4 rounded bg-white p-4 shadow md:grid-cols-2">

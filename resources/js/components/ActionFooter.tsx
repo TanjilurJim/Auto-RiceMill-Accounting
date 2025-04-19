@@ -1,11 +1,11 @@
 import { Link } from "@inertiajs/react";
-import React from "react";
+import { ReactNode } from "react";
 
 interface ActionFooterProps {
     onSubmit?: (e?: any) => void; // Function to handle the submit action
     onSaveAndPrint?: (e?: any) => void; // Optional function to handle the Save & Print action
     processing?: boolean; // Whether the form is processing
-    submitText?: string; // Custom text for the submit button
+    submitText?: ReactNode; // Custom text for the submit button
     cancelHref?: string; // Optional URL for the cancel link
     onCancel?: () => void; // Optional function for the cancel button
     cancelText?: string; // Custom text for the cancel button

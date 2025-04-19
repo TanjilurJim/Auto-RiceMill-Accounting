@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { useForm, Head } from '@inertiajs/react';
 import AppLayout from '@/layouts/app-layout';
+import PageHeader from '@/components/PageHeader';
+import ActionFooter from '@/components/ActionFooter';
 
 export default function Edit({ stockTransfer, godowns, items, errors }: any) {
   const { data, setData, put, processing } = useForm({
@@ -79,7 +81,9 @@ export default function Edit({ stockTransfer, godowns, items, errors }: any) {
     <AppLayout>
       <Head title="Edit Stock Transfer" />
       <div className="max-w-6xl mx-auto p-6 bg-white rounded-xl shadow-lg">
-        <h1 className="text-2xl font-bold text-gray-800 mb-8 border-b pb-4">Edit Stock Transfer</h1>
+        {/* <h1 className="text-2xl font-bold text-gray-800 mb-8 border-b pb-4">Edit Stock Transfer</h1> */}
+
+        <PageHeader title='Edit Stock Transfer' addLinkHref='/stock-transfers' addLinkText='Back' />
 
         <form onSubmit={handleSubmit} className="space-y-6">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -193,11 +197,20 @@ export default function Edit({ stockTransfer, godowns, items, errors }: any) {
             </div>
           </div>
 
-          <div className="pt-4">
+          {/* <div className="pt-4">
             <button type="submit" disabled={processing} className="bg-blue-600 text-white px-6 py-2 rounded hover:bg-blue-700">
               {processing ? 'Updating...' : 'Update Transfer'}
             </button>
-          </div>
+          </div> */}
+
+          <ActionFooter
+            className='justify-end'
+            onSubmit={handleSubmit} // Function to handle form submission
+            cancelHref="/stock-transfers" // URL for the cancel action
+            processing={processing} // Indicates whether the form is processing
+            submitText={processing ? 'Updating...' : 'Update Transfer'} // Text for the submit button
+            cancelText="Cancel" // Text for the cancel button
+          />
         </form>
       </div>
     </AppLayout>

@@ -1,3 +1,6 @@
+import ActionButtons from '@/components/ActionButtons';
+import { confirmDialog } from '@/components/confirmDialog';
+import PageHeader from '@/components/PageHeader';
 import AppLayout from '@/layouts/app-layout';
 import { Head, Link, router } from '@inertiajs/react';
 import { FiEdit, FiEye, FiTrash } from 'react-icons/fi';
@@ -45,21 +48,29 @@ export default function Index({ finishedProducts }: Props) {
     const products = finishedProducts.data;
 
     const handleDelete = (id: number) => {
-        Swal.fire({
-            title: 'Are you sure?',
-            text: 'This finished product entry will be deleted!',
-            icon: 'warning',
-            showCancelButton: true,
-            confirmButtonColor: '#d33',
-            cancelButtonColor: '#3085d6',
-            confirmButtonText: 'Yes, delete it!',
-        }).then((res) => {
-            if (res.isConfirmed) {
-                router.delete(`/finished-products/${id}`, {
-                    onSuccess: () => Swal.fire('Deleted!', 'Entry deleted.', 'success'),
-                });
+        // Swal.fire({
+        //     title: 'Are you sure?',
+        //     text: 'This finished product entry will be deleted!',
+        //     icon: 'warning',
+        //     showCancelButton: true,
+        //     confirmButtonColor: '#d33',
+        //     cancelButtonColor: '#3085d6',
+        //     confirmButtonText: 'Yes, delete it!',
+        // }).then((res) => {
+        //     if (res.isConfirmed) {
+        //         router.delete(`/finished-products/${id}`, {
+        //             onSuccess: () => Swal.fire('Deleted!', 'Entry deleted.', 'success'),
+        //         });
+        //     }
+        // });
+
+        confirmDialog(
+            {},() => {
+                router.delete(`/finished-products/${id}`);
             }
-        });
+        )
+
+
     };
 
     return (
@@ -68,7 +79,7 @@ export default function Index({ finishedProducts }: Props) {
 
             <div className="mx-auto max-w-6xl px-6 py-8 bg-gray-100 shadow-xl rounded-xl space-y-6">
                 {/* Header */}
-                <div className="flex justify-between items-center mb-4">
+                {/* <div className="flex justify-between items-center mb-4">
                     <h1 className="text-2xl font-semibold text-gray-800">Finished Products</h1>
                     <Link
                         href="/finished-products/create"
@@ -76,7 +87,9 @@ export default function Index({ finishedProducts }: Props) {
                     >
                         + Add Finished Product
                     </Link>
-                </div>
+                </div> */}
+
+                <PageHeader title='Finished Products' addLinkHref='/finished-products/create' addLinkText='+ Add Finished Product' />
 
                 {/* Table */}
                 <div className="overflow-x-auto rounded-xl border border-gray-300 bg-white shadow">
@@ -114,7 +127,7 @@ export default function Index({ finishedProducts }: Props) {
                                             <td className="px-4 py-3 text-right">{totalQty.toFixed(2)}</td>
                                             <td className="px-4 py-3 text-right">{totalAmount.toFixed(2)}</td>
                                             <td className="px-4 py-3 text-sm text-gray-700">{fp.remarks || '—'}</td>
-                                            <td className="px-4 py-3 text-center">
+                                            {/* <td className="px-4 py-3 text-center">
                                                 <div className="flex justify-center gap-2">
                                                     <Link
                                                         href={`/finished-products/${fp.id}`}
@@ -135,7 +148,15 @@ export default function Index({ finishedProducts }: Props) {
                                                         <FiTrash />
                                                     </button>
                                                 </div>
-                                            </td>
+                                            </td> */}
+                                            <ActionButtons
+                                                editHref={`/finished-products/${fp.id}/edit`}
+                                                onDelete={() => handleDelete(fp.id)}
+                                                printHref={`/finished-products/${fp.id}`}
+                                                editText={<FiEdit />}
+                                                deleteText={<FiTrash />}
+                                                printText={<FiEye />}
+                                            />
                                         </tr>
                                     );
                                 })

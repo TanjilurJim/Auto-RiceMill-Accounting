@@ -3,6 +3,8 @@ import { Head, Link, router } from '@inertiajs/react';
 
 import { PlusCircleIcon, TrashIcon } from '@heroicons/react/24/outline';
 import { useState } from 'react';
+import PageHeader from '@/components/PageHeader';
+import ActionFooter from '@/components/ActionFooter';
 
 /* ─────────── Types ─────────── */
 interface Godown {
@@ -93,7 +95,7 @@ const WorkingOrderCreate: React.FC<Props> = ({ autoVoucherNo, products, godowns 
                 <div className="border border-gray-200 bg-white/80 shadow-lg">
                     <div className="rounded-xl bg-white p-6 shadow-sm sm:p-8">
                         {/* Header bar */}
-                        <div className="flex items-center justify-between border-b border-gray-100 px-6 py-4">
+                        {/* <div className="flex items-center justify-between border-b border-gray-100 px-6 py-4">
                             <div>
                                 <h1 className="text-xl font-semibold text-gray-800">Create Working Order</h1>
                                 <p className="text-xs text-gray-500">Add materials and extra expenses</p>
@@ -111,7 +113,29 @@ const WorkingOrderCreate: React.FC<Props> = ({ autoVoucherNo, products, godowns 
                                 </svg>
                                 Back to Orders
                             </Link>
-                        </div>
+                        </div> */}
+
+                        <PageHeader
+                            title={
+                                <>
+                                    <h1 className="text-xl font-semibold text-gray-800">Create Working Order</h1>
+                                    <p className="text-xs text-gray-500">Add materials and extra expenses</p>
+                                </>
+                            }
+                            addLinkHref={route('working-orders.index')}
+                            addLinkText={
+                                <span className="inline-flex items-center gap-1">
+                                    <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                                        <path
+                                            fillRule="evenodd"
+                                            d="M9.707 14.707a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414l4-4a1 1 0 011.414 1.414L7.414 9H15a1 1 0 110 2H7.414l2.293 2.293a1 1 0 010 1.414z"
+                                            clipRule="evenodd"
+                                        />
+                                    </svg>
+                                    Back to Orders
+                                </span>
+                            }
+                        />
 
                         {/* FORM */}
                         <form onSubmit={handleSubmit} className="space-y-8 px-6 py-5">
@@ -250,7 +274,7 @@ const WorkingOrderCreate: React.FC<Props> = ({ autoVoucherNo, products, godowns 
                                             <button
                                                 type="button"
                                                 onClick={() => removeRow(idx)}
-                                                className="text-red-500 hover:text-red-700"
+                                                className="text-danger hover:text-danger-hover"
                                                 disabled={rows.length === 1}
                                             >
                                                 <TrashIcon className="h-6 w-6" />
@@ -348,14 +372,22 @@ const WorkingOrderCreate: React.FC<Props> = ({ autoVoucherNo, products, godowns 
                             </div>
 
                             {/* submit */}
-                            <div className="flex justify-end">
+                            {/* <div className="flex justify-end">
                                 <button
                                     type="submit"
                                     className="inline-flex items-center justify-center rounded-lg bg-indigo-600 px-6 py-3.5 font-medium text-white shadow-sm transition-all hover:bg-indigo-700 focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 focus:outline-none"
                                 >
                                     Save Working Order
                                 </button>
-                            </div>
+                            </div> */}
+                            <ActionFooter
+                                className='justify-end'
+                                onSubmit={handleSubmit}
+                                cancelHref={route('working-orders.index')}
+                                processing={false}
+                                submitText="Save Working Order"
+                                cancelText="Cancel"
+                            />
                         </form>
                     </div>
                 </div>

@@ -1,3 +1,4 @@
+import PageHeader from '@/components/PageHeader';
 import AppLayout from '@/layouts/app-layout';
 import { Head, Link } from '@inertiajs/react';
 
@@ -47,7 +48,7 @@ export default function Show({ workingOrder }: Props) {
             <div className="mx-auto max-w-5xl bg-gray-300 px-3 py-6 shadow-xl">
                 <div className="rounded-xl border border-gray-200 bg-white p-6 shadow-lg">
                     {/* header */}
-                    <div className="mb-4 flex items-center justify-between border-b border-gray-100 pb-3">
+                    {/* <div className="mb-4 flex items-center justify-between border-b border-gray-100 pb-3">
                         <div>
                             <h1 className="text-xl font-semibold text-gray-800">Working Order&nbsp;{workingOrder.voucher_no}</h1>
                             <p className="text-xs text-gray-500">Date: {workingOrder.date}</p>
@@ -55,7 +56,29 @@ export default function Show({ workingOrder }: Props) {
                         <Link href={route('working-orders.index')} className="text-sm font-medium text-indigo-600 hover:text-indigo-700">
                             ← Back
                         </Link>
-                    </div>
+                    </div> */}
+
+                    <PageHeader
+                        title={
+                            <>
+                                <h1 className="text-xl font-semibold text-gray-800">Working Order&nbsp;{workingOrder.voucher_no}</h1>
+                                <p className="text-xs text-gray-500">Date: {workingOrder.date}</p>
+                            </>
+                        }
+                        addLinkHref={route('working-orders.index')}
+                        addLinkText={
+                            <span className="inline-flex items-center gap-1">
+                                <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                                    <path
+                                        fillRule="evenodd"
+                                        d="M9.707 14.707a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414l4-4a1 1 0 011.414 1.414L7.414 9H15a1 1 0 110 2H7.414l2.293 2.293a1 1 0 010 1.414z"
+                                        clipRule="evenodd"
+                                    />
+                                </svg>
+                                Back
+                            </span>
+                        }
+                    />
 
                     {/* items */}
                     <h2 className="mb-2 text-sm font-semibold text-gray-800">Materials / Stock</h2>

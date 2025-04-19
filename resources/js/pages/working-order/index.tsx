@@ -1,3 +1,6 @@
+import ActionButtons from '@/components/ActionButtons';
+import { confirmDialog } from '@/components/confirmDialog';
+import PageHeader from '@/components/PageHeader';
 import AppLayout from '@/layouts/app-layout';
 import { Head, Link, router } from '@inertiajs/react';
 import { FiEdit, FiEye, FiTrash } from 'react-icons/fi';
@@ -53,21 +56,29 @@ export default function Index({ workingOrders }: Props) {
     const orders = workingOrders.data ?? [];
 
     const handleDelete = (id: number) => {
-        Swal.fire({
-            title: 'Are you sure?',
-            text: 'This Working Order will be permanently deleted!',
-            icon: 'warning',
-            showCancelButton: true,
-            confirmButtonColor: '#d33',
-            cancelButtonColor: '#3085d6',
-            confirmButtonText: 'Yes, delete it!',
-        }).then((res) => {
-            if (res.isConfirmed) {
-                router.delete(`/working-orders/${id}`, {
-                    onSuccess: () => Swal.fire('Deleted!', 'The Working Order has been deleted.', 'success'),
-                });
+        // Swal.fire({
+        //     title: 'Are you sure?',
+        //     text: 'This Working Order will be permanently deleted!',
+        //     icon: 'warning',
+        //     showCancelButton: true,
+        //     confirmButtonColor: '#d33',
+        //     cancelButtonColor: '#3085d6',
+        //     confirmButtonText: 'Yes, delete it!',
+        // }).then((res) => {
+        //     if (res.isConfirmed) {
+        //         router.delete(`/working-orders/${id}`, {
+        //             onSuccess: () => Swal.fire('Deleted!', 'The Working Order has been deleted.', 'success'),
+        //         });
+        //     }
+        // });
+
+        confirmDialog(
+            {}, () => {
+                router.delete(`/working-orders/${id}`);
             }
-        });
+        )
+
+
     };
 
     return (
@@ -76,7 +87,7 @@ export default function Index({ workingOrders }: Props) {
 
             <div className="mx-auto w-full max-w-7xl rounded-2xl bg-gray-100 px-6 py-8 shadow-xl">
                 {/* header bar */}
-                <div className="mb-6 flex items-center justify-between">
+                {/* <div className="mb-6 flex items-center justify-between">
                     <h1 className="text-3xl font-semibold text-gray-800">Working Orders</h1>
                     <Link
                         href="/working-orders/create"
@@ -84,7 +95,9 @@ export default function Index({ workingOrders }: Props) {
                     >
                         + New Working Order
                     </Link>
-                </div>
+                </div> */}
+
+                <PageHeader title='Working Orders' addLinkHref='/working-orders/create' addLinkText='+ New Working Order' />
 
                 {/* table */}
                 <div className="rounded-xl border-r border-gray-200 shadow-sm">
@@ -141,7 +154,7 @@ export default function Index({ workingOrders }: Props) {
                                                 </td>
                                                 <td className="px-4 py-3 text-right border-r border-gray-300">{Number(order.total_amount ?? 0).toFixed(2)}</td>
                                                 <td className="px-4 py-3 border-r border-gray-300">{order.date}</td>
-                                                <td className="w-36 px-4 py-3 text-center">
+                                                {/* <td className="w-36 px-4 py-3 text-center">
                                                     <div className="flex justify-center space-x-2">
                                                         <Link
                                                             href={`/working-orders/${order.id}/edit`}
@@ -162,7 +175,15 @@ export default function Index({ workingOrders }: Props) {
                                                             <FiEye />
                                                         </Link>
                                                     </div>
-                                                </td>
+                                                </td> */}
+                                                <ActionButtons
+                                                    editHref={`/working-orders/${order.id}/edit`} // URL for the edit action
+                                                    onDelete={() => handleDelete(order.id)} // Function to handle the delete action
+                                                    printHref={`/working-orders/${order.id}`} // URL for the view action
+                                                    editText={<FiEdit />} // Icon for the edit button
+                                                    deleteText={<FiTrash />} // Icon for the delete button
+                                                    printText={<FiEye />} // Icon for the view button
+                                                />
                                             </tr>
                                         );
                                     })
@@ -195,13 +216,12 @@ export default function Index({ workingOrders }: Props) {
                             preserveScroll
                             preserveState
                             disabled={!link.url}
-                            className={`rounded-lg px-4 py-2 text-sm font-medium transition ${
-                                link.active
+                            className={`rounded-lg px-4 py-2 text-sm font-medium transition ${link.active
                                     ? 'bg-blue-600 text-white'
                                     : !link.url
-                                      ? 'cursor-not-allowed text-gray-400'
-                                      : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-                            }`}
+                                        ? 'cursor-not-allowed text-gray-400'
+                                        : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                                }`}
                         >
                             <span dangerouslySetInnerHTML={{ __html: link.label }} />
                         </Link>

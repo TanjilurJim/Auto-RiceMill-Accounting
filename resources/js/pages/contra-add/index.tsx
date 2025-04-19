@@ -1,23 +1,34 @@
+import ActionButtons from '@/components/ActionButtons';
+import { confirmDialog } from '@/components/confirmDialog';
+import PageHeader from '@/components/PageHeader';
 import AppLayout from '@/layouts/app-layout';
 import { Head, Link, router } from '@inertiajs/react';
 import Swal from 'sweetalert2';
 
 export default function Index({ contras }: any) {
     const handleDelete = (id: number) => {
-        Swal.fire({
-            title: 'Are you sure?',
-            text: 'This will permanently delete this entry!',
-            icon: 'warning',
-            showCancelButton: true,
-            confirmButtonText: 'Yes, delete it!',
-            cancelButtonText: 'Cancel',
-            confirmButtonColor: '#d33',
-            cancelButtonColor: '#3085d6',
-        }).then((result) => {
-            if (result.isConfirmed) {
+        // Swal.fire({
+        //     title: 'Are you sure?',
+        //     text: 'This will permanently delete this entry!',
+        //     icon: 'warning',
+        //     showCancelButton: true,
+        //     confirmButtonText: 'Yes, delete it!',
+        //     cancelButtonText: 'Cancel',
+        //     confirmButtonColor: '#d33',
+        //     cancelButtonColor: '#3085d6',
+        // }).then((result) => {
+        //     if (result.isConfirmed) {
+        //         router.delete(`/contra-add/${id}`);
+        //     }
+        // });
+
+        confirmDialog(
+            {}, () => {
                 router.delete(`/contra-add/${id}`);
             }
-        });
+        )
+
+
     };
 
     return (
@@ -25,12 +36,14 @@ export default function Index({ contras }: any) {
             <Head title="Contra Vouchers" />
 
             <div className="p-6">
-                <div className="mb-4 flex items-center justify-between">
+                {/* <div className="mb-4 flex items-center justify-between">
                     <h1 className="text-xl font-bold">Contra Entries</h1>
                     <Link href="/contra-add/create" className="rounded bg-blue-600 px-4 py-2 text-white hover:bg-blue-700">
                         + Add New
                     </Link>
-                </div>
+                </div> */}
+
+                <PageHeader title='Contra Entries' addLinkHref='/contra-add/create' addLinkText='+ Add New' />
 
                 <div className="overflow-auto rounded-lg bg-white shadow">
                     <table className="min-w-full border text-sm">
@@ -54,7 +67,7 @@ export default function Index({ contras }: any) {
                                     <td className="border p-2">{item.mode_to?.mode_name || 'N/A'}</td>
                                     <td className="border p-2 text-right">{Number(item.amount).toFixed(2)}</td>
                                     <td className="border p-2">{item.description || '—'}</td>
-                                    <td className="border p-2 text-center">
+                                    {/* <td className="border p-2 text-center">
                                         <div className="flex justify-center gap-2">
                                             <Link
                                                 href={`/contra-add/${item.id}/edit`}
@@ -62,7 +75,7 @@ export default function Index({ contras }: any) {
                                             >
                                                 Edit
                                             </Link>
-                                            
+
                                             <button
                                                 onClick={() => handleDelete(item.id)}
                                                 className="rounded bg-red-600 px-3 py-1 text-xs text-white hover:bg-red-700"
@@ -77,7 +90,13 @@ export default function Index({ contras }: any) {
                                                 Print
                                             </Link>
                                         </div>
-                                    </td>
+                                    </td> */}
+                                    <ActionButtons
+                                        editHref={`/contra-add/${item.id}/edit`} // URL for the edit action
+                                        onDelete={() => handleDelete(item.id)} // Function to handle the delete action
+                                        printHref={`/contra-add/${item.voucher_no}/print`} // URL for the print action
+                                        printText="Print" // Custom text for the print button
+                                    />
                                 </tr>
                             ))}
                             {contras.data.length === 0 && (
@@ -96,9 +115,8 @@ export default function Index({ contras }: any) {
                                 key={index}
                                 disabled={!link.url}
                                 onClick={() => link.url && router.visit(link.url)}
-                                className={`mx-1 rounded px-3 py-1 text-sm ${
-                                    link.active ? 'bg-blue-600 text-white' : link.url ? 'bg-gray-200 hover:bg-gray-300' : 'bg-gray-100 text-gray-400'
-                                }`}
+                                className={`mx-1 rounded px-3 py-1 text-sm ${link.active ? 'bg-blue-600 text-white' : link.url ? 'bg-gray-200 hover:bg-gray-300' : 'bg-gray-100 text-gray-400'
+                                    }`}
                                 dangerouslySetInnerHTML={{ __html: link.label }}
                             />
                         ))}
