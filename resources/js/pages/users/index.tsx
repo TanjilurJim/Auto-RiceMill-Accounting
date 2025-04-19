@@ -1,3 +1,6 @@
+import ActionButtons from '@/components/ActionButtons';
+import { confirmDialog } from '@/components/confirmDialog';
+import PageHeader from '@/components/PageHeader';
 import AppLayout from '@/layouts/app-layout';
 import { type BreadcrumbItem } from '@/types';
 import { Head, Link, router, usePage } from '@inertiajs/react';
@@ -38,41 +41,49 @@ export default function UserIndex({ users, filter, search }: { users: Pagination
 
     // 🔥 SweetAlert Delete Confirmation
     const confirmDelete = (userId: number) => {
-        Swal.fire({
-            title: 'Are you sure?',
-            text: "You won't be able to revert this!",
-            icon: 'warning',
-            showCancelButton: true,
-            confirmButtonColor: '#d33',
-            cancelButtonColor: '#3085d6',
-            confirmButtonText: 'Yes, delete it!'
-        }).then((result) => {
-            if (result.isConfirmed) {
+        // Swal.fire({
+        //     title: 'Are you sure?',
+        //     text: "You won't be able to revert this!",
+        //     icon: 'warning',
+        //     showCancelButton: true,
+        //     confirmButtonColor: '#d33',
+        //     cancelButtonColor: '#3085d6',
+        //     confirmButtonText: 'Yes, delete it!'
+        // }).then((result) => {
+        //     if (result.isConfirmed) {
+        //         router.delete(`/users/${userId}`);
+        //         Swal.fire('Deleted!', 'User has been deleted.', 'success');
+        //     }
+        // });
+
+        confirmDialog(
+            {}, () => {
                 router.delete(`/users/${userId}`);
-                Swal.fire('Deleted!', 'User has been deleted.', 'success');
             }
-        });
+        )
+
     };
 
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
             <Head title="Users" />
             <div className="p-6">
-                <div className="mb-6 flex items-center justify-between">
+                {/* <div className="mb-6 flex items-center justify-between">
                     <h1 className="text-2xl font-bold">Users</h1>
                     <Link href="/users/create" className="rounded bg-green-600 px-4 py-2 text-white hover:bg-green-700">
                         + Create User
                     </Link>
-                </div>
+                </div> */}
+
+                <PageHeader title="Users" addLinkHref='users/create' addLinkText="+ Create User" />
 
                 <div className="mb-6 flex space-x-2">
                     {['all', 'active', 'inactive', 'trashed'].map((type) => (
                         <Link
                             key={type}
                             href={`?filter=${type}`}
-                            className={`rounded px-3 py-1 text-sm ${
-                                filter === type ? 'bg-blue-600 text-white' : 'border hover:bg-neutral-100 dark:hover:bg-neutral-800'
-                            }`}
+                            className={`rounded px-3 py-1 text-sm ${filter === type ? 'bg-blue-600 text-white' : 'border hover:bg-neutral-100 dark:hover:bg-neutral-800'
+                                }`}
                         >
                             {type === 'all' ? 'All' : type === 'active' ? 'Active' : type === 'inactive' ? 'Inactive' : 'Trashed'}
                         </Link>
@@ -116,9 +127,8 @@ export default function UserIndex({ users, filter, search }: { users: Pagination
                                     <td className="py-2 align-middle">{userRow.email}</td>
                                     <td className="py-2 align-middle">
                                         <span
-                                            className={`inline-block rounded px-2 py-0.5 text-xs font-medium ${
-                                                userRow.status === 'active' ? 'bg-green-500 text-white' : 'bg-red-500 text-white'
-                                            }`}
+                                            className={`inline-block rounded px-2 py-0.5 text-xs font-medium ${userRow.status === 'active' ? 'bg-green-500 text-white' : 'bg-red-500 text-white'
+                                                }`}
                                         >
                                             {userRow.status}
                                         </span>
@@ -139,7 +149,7 @@ export default function UserIndex({ users, filter, search }: { users: Pagination
                                             <span className="text-xs text-gray-500">No Roles</span>
                                         )}
                                     </td>
-                                    <td className="flex flex-wrap justify-end space-x-1 py-2 text-right align-middle">
+                                    {/* <td className="flex flex-wrap justify-end space-x-1 py-2 text-right align-middle">
                                         {!userRow.deleted_at ? (
                                             <>
                                                 <Link
@@ -177,6 +187,26 @@ export default function UserIndex({ users, filter, search }: { users: Pagination
                                                 </button>
                                             </>
                                         )}
+                                    </td> */}
+                                    <td className="flex flex-wrap justify-end space-x-1 py-2 text-right align-middle">
+                                        {!userRow.deleted_at ? (
+                                            <ActionButtons
+                                                printHref={`/users/${userRow.id}`}
+                                                editHref={`/users/${userRow.id}/edit`}
+                                                onDelete={() => confirmDelete(userRow.id)}
+                                                printText="View"
+                                                editText="Edit"
+                                                deleteText="Delete"
+                                            />
+                                        ) : (
+                                            <ActionButtons
+                                                editHref={`/users/${userRow.id}/restore`}
+                                                onDelete={() => confirmDelete(userRow.id)}
+                                                editText="Restore"
+                                                deleteText="Force Delete"
+                                                deleteClassName="bg-red-800 hover:bg-red-900"
+                                            />
+                                        )}
                                     </td>
                                 </tr>
                             ))}
@@ -190,9 +220,8 @@ export default function UserIndex({ users, filter, search }: { users: Pagination
                                 key={index}
                                 href={link.url || ''}
                                 dangerouslySetInnerHTML={{ __html: link.label }}
-                                className={`rounded px-3 py-1 text-sm ${
-                                    link.active ? 'bg-blue-600 text-white' : 'hover:bg-neutral-200 dark:hover:bg-neutral-800'
-                                } ${!link.url && 'pointer-events-none opacity-50'}`}
+                                className={`rounded px-3 py-1 text-sm ${link.active ? 'bg-blue-600 text-white' : 'hover:bg-neutral-200 dark:hover:bg-neutral-800'
+                                    } ${!link.url && 'pointer-events-none opacity-50'}`}
                             />
                         ))}
                     </div>

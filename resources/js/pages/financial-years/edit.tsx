@@ -1,6 +1,7 @@
 import React from 'react';
 import { Head, useForm } from '@inertiajs/react';
 import AppLayout from '@/layouts/app-layout';
+import ActionFooter from '@/components/ActionFooter';
 
 interface FinancialYear {
   id: number;
@@ -90,7 +91,7 @@ export default function Edit({ financialYear }: { financialYear: FinancialYear }
           </div>
 
           {/* Buttons */}
-          <div className="pt-4 border-t flex justify-end gap-3">
+          {/* <div className="pt-4 border-t flex justify-end gap-3">
             <button
               type="submit"
               className="px-6 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
@@ -105,7 +106,15 @@ export default function Edit({ financialYear }: { financialYear: FinancialYear }
             >
               Cancel
             </button>
-          </div>
+          </div> */}
+          <ActionFooter 
+            processing={processing}
+            onCancel={() => window.history.back()}
+            onSubmit={handleSubmit}
+            submitText={processing ? 'Saving...' : 'Update'}
+            cancelText="Cancel"
+            className='justify-end'
+          />
         </form>
       </div>
     </AppLayout>

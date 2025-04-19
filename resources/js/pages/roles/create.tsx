@@ -1,3 +1,5 @@
+import ActionFooter from '@/components/ActionFooter';
+import PageHeader from '@/components/PageHeader';
 import AppLayout from '@/layouts/app-layout';
 import { type BreadcrumbItem } from '@/types';
 import { Head, Link, useForm } from '@inertiajs/react';
@@ -33,7 +35,8 @@ export default function CreateRole({ permissions }: { permissions: Permission[] 
             <Head title="Create Role" />
             <div className="flex min-h-screen justify-center bg-gray-100 dark:bg-neutral-950">
                 <div className="w-full max-w-xl p-6">
-                    <h1 className="mb-6 text-2xl font-bold">Create Role</h1>
+                    {/* <h1 className="mb-6 text-2xl font-bold">Create Role</h1> */}
+                    <PageHeader title="Create Role" addLinkHref='/roles' addLinkText="Back" />
 
                     <form onSubmit={submit} className="space-y-4 rounded bg-white p-4 shadow dark:bg-neutral-900">
                         {/* Role Name */}
@@ -72,7 +75,7 @@ export default function CreateRole({ permissions }: { permissions: Permission[] 
                         </div>
 
                         {/* Buttons */}
-                        <div className="flex justify-end space-x-2">
+                        {/* <div className="flex justify-end space-x-2">
                             <Link href="/roles" className="rounded border px-4 py-2 hover:bg-neutral-100 dark:hover:bg-neutral-800">
                                 Cancel
                             </Link>
@@ -83,7 +86,14 @@ export default function CreateRole({ permissions }: { permissions: Permission[] 
                             >
                                 {processing ? 'Creating...' : 'Create'}
                             </button>
-                        </div>
+                        </div> */}
+                        <ActionFooter
+                            processing={processing}
+                            onSubmit={submit}
+                            submitText={processing ? 'Creating...' : 'Create'}
+                            cancelHref="/roles"
+                            className="justify-end"
+                        />
                     </form>
                 </div>
             </div>

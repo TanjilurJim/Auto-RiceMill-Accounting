@@ -1,6 +1,7 @@
 import React from 'react';
 import { useForm, Head } from '@inertiajs/react';
 import AppLayout from '@/layouts/app-layout';
+import ActionFooter from '@/components/ActionFooter';
 
 export default function Edit({ setting, financialYears }) {
   const { data, setData, put, processing, errors } = useForm({
@@ -80,7 +81,7 @@ export default function Edit({ setting, financialYears }) {
           </div>
 
           {/* Save Button */}
-          <div className="pt-4 border-t flex justify-end">
+          {/* <div className="pt-4 border-t flex justify-end">
             <button
               type="submit"
               className="px-6 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
@@ -88,7 +89,13 @@ export default function Edit({ setting, financialYears }) {
             >
               {processing ? 'Saving...' : 'Save Settings'}
             </button>
-          </div>
+          </div> */}
+          <ActionFooter 
+            processing={processing}
+            onSubmit={handleSubmit}
+            submitText={processing ? 'Saving...' : 'Save Settings'}
+            className='justify-end'
+          />
         </form>
       </div>
     </AppLayout>

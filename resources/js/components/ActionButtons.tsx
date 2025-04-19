@@ -11,6 +11,9 @@ interface ActionButtonsProps {
     printText?: ReactNode; // Optional custom text for the Print button
     onPrint?: (e: any) => void; // Optional function for the Print button
     className?: string; // Optional className prop for additional styling
+    deleteClassName?: string; // Optional className for the delete button
+    editClassName?: string; // Optional className for the edit button
+    printClassName?: string; // Optional className for the print button
 }
 
 const ActionButtons: React.FC<ActionButtonsProps> = ({
@@ -23,6 +26,7 @@ const ActionButtons: React.FC<ActionButtonsProps> = ({
     printText = 'Print',
     onPrint,
     className = "", // Default to an empty string if not provided
+    deleteClassName,
 }) => {
     return (
         <td className={`${className} || flex justify-center space-x-2 px-4 py-2`}>
@@ -49,7 +53,7 @@ const ActionButtons: React.FC<ActionButtonsProps> = ({
             {/* Delete Button */}
             <button
                 onClick={onDelete}
-                className="rounded bg-danger px-3 py-1 text-sm text-white hover:bg-danger-hover"
+                className={deleteClassName ? deleteClassName : "rounded bg-danger px-3 py-1 text-sm text-white hover:bg-danger-hover"}
             >
                 {deleteText}
             </button>

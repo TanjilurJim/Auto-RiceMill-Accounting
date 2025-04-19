@@ -1,3 +1,4 @@
+import ActionButtons from '@/components/ActionButtons';
 import { confirmDialog } from '@/components/confirmDialog';
 import PageHeader from '@/components/PageHeader';
 import AppLayout from '@/layouts/app-layout';
@@ -82,13 +83,13 @@ export default function SalaryReceiveIndex({ salaryReceives }: { salaryReceives:
                         </thead>
                         <tbody>
                             {salaryReceives.data.map((salaryReceive, index) => (
-                                <tr key={salaryReceive.id} className="hover:bg-gray-50">
+                                <tr key={salaryReceive.id} className="hover:bg-gray-50 border">
                                     <td className="border px-3 py-2 text-center">{index + 1}</td>
                                     <td className="border px-3 py-2">{salaryReceive.vch_no}</td>
                                     <td className="border px-3 py-2">{salaryReceive.date}</td>
                                     <td className="border px-3 py-2">{salaryReceive.employee.name}</td>
                                     <td className="border px-3 py-2">{salaryReceive.amount}</td>
-                                    <td className="border px-3 py-2 text-center">
+                                    {/* <td className="border px-3 py-2 text-center">
                                         <div className="flex justify-center space-x-2">
                                             <Link
                                                 href={route('salary-receives.show', salaryReceive.id)} // Use the correct route name
@@ -110,7 +111,15 @@ export default function SalaryReceiveIndex({ salaryReceives }: { salaryReceives:
                                                 Delete
                                             </button>
                                         </div>
-                                    </td>
+                                    </td> */}
+                                    <ActionButtons
+                                        printHref={route('salary-receives.show', salaryReceive.id)}
+                                        editHref={`/salary-receives/${salaryReceive.id}/edit`}
+                                        onDelete={() => handleDelete(salaryReceive.id)}
+                                        printText="View"
+                                        editText="Edit"
+                                        deleteText="Delete"
+                                    />
                                 </tr>
                             ))}
                         </tbody>

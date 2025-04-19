@@ -1,3 +1,4 @@
+import ActionFooter from '@/components/ActionFooter';
 import AppLayout from '@/layouts/app-layout';
 import { type BreadcrumbItem } from '@/types';
 import { Head, Link, usePage } from '@inertiajs/react';
@@ -73,14 +74,20 @@ export default function UserShow({ user }: { user: User }) {
                         )}
                     </div>
 
-                    <div className="flex justify-end space-x-2 pt-4">
+                    {/* <div className="flex justify-end space-x-2 pt-4">
                         <Link href={`/users/${user.id}/edit`} className="rounded bg-yellow-500 px-4 py-2 text-white hover:bg-yellow-600">
                             Edit
                         </Link>
                         <Link href="/users" className="rounded border px-4 py-2 hover:bg-neutral-100 dark:hover:bg-neutral-800">
                             Back
                         </Link>
-                    </div>
+                    </div> */}
+                    <ActionFooter
+                        cancelHref='/users'
+                        printHref={`/users/${user.id}/edit`}
+                        printText='Edit'
+                        className='justify-end'
+                    />
                 </div>
             </div>
         </AppLayout>

@@ -1,6 +1,7 @@
 import { Head, Link, useForm, usePage } from '@inertiajs/react';
 import AppLayout from '@/layouts/app-layout';
 import { type BreadcrumbItem } from '@/types';
+import ActionFooter from '@/components/ActionFooter';
 
 interface Role {
     id: number;
@@ -141,7 +142,7 @@ export default function EditUser({
                         {errors.roles && <p className="text-sm text-red-500 mt-1">{errors.roles}</p>}
                     </div>
 
-                    <div className="flex justify-end space-x-2">
+                    {/* <div className="flex justify-end space-x-2">
                         <Link
                             href="/users"
                             className="px-4 py-2 border rounded hover:bg-neutral-100 dark:hover:bg-neutral-800"
@@ -155,7 +156,14 @@ export default function EditUser({
                         >
                             {processing ? 'Saving...' : 'Save'}
                         </button>
-                    </div>
+                    </div> */}
+                    <ActionFooter 
+                        processing={processing}
+                        submitText={processing ? 'Saving...' : 'Save'}
+                        onSubmit={submit}
+                        cancelHref='/users'
+                        className='justify-end'
+                    />
                 </form>
             </div>
         </AppLayout>
