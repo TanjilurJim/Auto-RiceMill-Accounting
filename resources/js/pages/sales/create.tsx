@@ -21,6 +21,7 @@ interface Salesman {
 interface Ledger {
     id: number;
     account_ledger_name: string;
+    mark_for_user?: boolean; // Added property
 }
 interface Item {
     id: number;
@@ -84,30 +85,44 @@ export default function SaleCreate({
             setFilteredItems([]); // Clear the items if no godown is selected
         }
     }, [data.godown_id]); // Trigger this effect whenever the godown_id changes
-    const [filteredItems, setFilteredItems] = useState<Item[]>([]);    
+    const [filteredItems, setFilteredItems] = useState<Item[]>([]);
 
+    // useEffect(() => {
+    //     if (data.received_mode_id) {
+    //         const mode = receivedModes.find((m) => m.id === parseInt(data.received_mode_id));
+    //         if (mode?.ledger_id) {
+    //             axios.get(`/account-ledgers/${mode.ledger_id}/balance`).then((res) => {
+    //                 setData('closing_balance', res.data.balance);
+    //             });
+    //         }
+    //     }
+    // }, [data.received_mode_id]);
+
+    const customerLedgers = ledgers.filter(l => l.mark_for_user);
+
+    const [currentLedgerBalance, setCurrentLedgerBalance] = useState(0);
+
+    // When received_mode_id changes ➜ fetch balance and recompute
     useEffect(() => {
-        if (data.received_mode_id) {
-            const mode = receivedModes.find((m) => m.id === parseInt(data.received_mode_id));
-            if (mode?.ledger_id) {
-                axios.get(`/account-ledgers/${mode.ledger_id}/balance`).then((res) => {
-                    setData('closing_balance', res.data.balance);
-                });
-            }
+        const mode = receivedModes.find((m) => m.id === parseInt(data.received_mode_id));
+        if (mode?.ledger_id) {
+            axios.get(`/account-ledgers/${mode.ledger_id}/balance`).then((res) => {
+                const fetchedBalance = parseFloat(res.data.balance) || 0;
+                setCurrentLedgerBalance(fetchedBalance);
+                const received = parseFloat(data.amount_received) || 0;
+                setData('closing_balance', (fetchedBalance + received).toFixed(2)); // ✅ updated here
+            });
+        } else {
+            setCurrentLedgerBalance(0);
+            setData('closing_balance', '0.00');
         }
     }, [data.received_mode_id]);
-    
-    // Add another effect to dynamically update the closing balance when other fields change
+
+    // When amount_received changes ➜ recompute
     useEffect(() => {
-        // Calculate closing balance based on other data changes
-        const totalAmountReceived = parseFloat(data.amount_received) || 0;
-        const totalDue = parseFloat(data.total_due) || 0;
-        
-        // Example calculation (this depends on your business logic)
-        const updatedClosingBalance = totalDue - totalAmountReceived; 
-        
-        setData('closing_balance', updatedClosingBalance.toString());
-    }, [data.amount_received, data.total_due]); // Triggers on changes in amount_received or total_due
+        const received = parseFloat(data.amount_received) || 0;
+        setData('closing_balance', (currentLedgerBalance + received).toFixed(2)); // ✅ updates UI live
+    }, [data.amount_received]);
 
     // Auto-generate voucher no on mount
     useEffect(() => {
@@ -243,19 +258,28 @@ export default function SaleCreate({
 
                             {/* Party Ledger */}
                             <div>
-                                <label className="mb-1 block text-sm font-medium text-gray-700">Party Ledger</label>
+                                <label className="mb-1 block text-sm font-medium text-gray-700">Customer Ledger</label>
                                 <select
                                     className="w-full rounded border p-2"
                                     value={data.account_ledger_id}
                                     onChange={(e) => setData('account_ledger_id', e.target.value)}
                                 >
-                                    <option value="">Select Party Ledger</option>
-                                    {ledgers.map((l) => (
+                                    <option value="">Choose the buyer's Ledger</option>
+                                    {customerLedgers.map((l) => (
                                         <option key={l.id} value={l.id}>
                                             {l.account_ledger_name}
                                         </option>
                                     ))}
                                 </select>
+
+                                {/* Helper Text and Link */}
+                                <div className="mt-1 text-sm text-gray-500">
+                                    Create Customer Ledger if not created yet.{' '}
+                                    <a href="/account-ledgers/create" target="_blank" className="text-blue-600 underline hover:text-blue-800">
+                                        Create New
+                                    </a>
+                                </div>
+
                                 {errors.account_ledger_id && <div className="mt-1 text-sm text-red-500">{errors.account_ledger_id}</div>}
                             </div>
 
@@ -300,8 +324,8 @@ export default function SaleCreate({
                                         <option value="">Select</option>
                                         {filteredItems.map((p) => (
                                             <option key={p.id} value={p.id}>
-                                            {p.item_name} ({p.stock_qty} in stock)
-                                          </option>
+                                                {p.item_name} ({p.stock_qty} in stock)
+                                            </option>
                                         ))}
                                     </select>
                                     {errors[`sale_items.${index}.product_id`] && (
@@ -443,6 +467,7 @@ export default function SaleCreate({
                                         </option>
                                     ))}
                                 </select>
+                                <div className="mt-1 text-sm text-gray-500">Current Balance: {currentLedgerBalance.toFixed(2)}</div>
                             </div>
 
                             {/* Receive Amount */}

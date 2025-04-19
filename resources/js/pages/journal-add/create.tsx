@@ -1,6 +1,7 @@
 import AppLayout from '@/layouts/app-layout';
 import { Head, router } from '@inertiajs/react';
 import { useEffect, useState } from 'react';
+import BackButton from '@/components/BackButton';
 
 export default function Create({ accountLedgers = [] }: any) {
     const [voucherNo, setVoucherNo] = useState('');
@@ -62,6 +63,9 @@ export default function Create({ accountLedgers = [] }: any) {
             <Head title="Add Journal Entry" />
             <div className="mx-auto max-w-5xl p-6">
                 <h1 className="mb-6 text-2xl font-bold">Add Journal Entry</h1>
+                <div className="mb-4 flex justify-end">
+                <BackButton label="Go Back" />
+                </div>
 
                 <form onSubmit={handleSubmit} className="space-y-6">
                     <div className="grid grid-cols-1 gap-6 md:grid-cols-2">

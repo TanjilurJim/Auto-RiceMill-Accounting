@@ -1,6 +1,6 @@
-import React from 'react';
 import AppLayout from '@/layouts/app-layout';
 import { Head, Link, useForm } from '@inertiajs/react';
+import React from 'react';
 
 export default function CreateAccountLedger({
     groupUnders,
@@ -12,7 +12,6 @@ export default function CreateAccountLedger({
     accountGroups: { id: number; name: string; nature: { name: string } | null }[];
     isAdmin: boolean; // Admin status passed from backend
     reference_number: string;
-
 }) {
     const { data, setData, post, processing, errors } = useForm({
         account_ledger_name: '',
@@ -78,8 +77,8 @@ export default function CreateAccountLedger({
                             {errors.account_group_id && <p className="text-sm text-red-500">{errors.account_group_id}</p>}
                         </div>
 
-                         {/* Reference Number field for Admin */}
-                         {isAdmin && (
+                        {/* Reference Number field for Admin */}
+                        {isAdmin && (
                             <div>
                                 <label className="mb-1 block font-medium">Reference Number</label>
                                 <input
@@ -163,17 +162,22 @@ export default function CreateAccountLedger({
                         </div>
 
                         <div className="col-span-2 space-y-2">
-                            <label className="flex items-center gap-2">
+                            {/* <label className="flex items-center gap-2">
                                 <input
                                     type="checkbox"
                                     checked={data.for_transition_mode}
                                     onChange={(e) => setData('for_transition_mode', e.target.checked)}
                                 />
                                 For Transition Mode
-                            </label>
-                            <label className="flex items-center gap-2">
-                                <input type="checkbox" checked={data.mark_for_user} onChange={(e) => setData('mark_for_user', e.target.checked)} />
-                                Mark for User
+                            </label> */}
+                            <label className="flex items-center gap-2 font-semibold text-red-600">
+                                <input
+                                    type="checkbox"
+                                    checked={data.mark_for_user}
+                                    onChange={(e) => setData('mark_for_user', e.target.checked)}
+                                    className="accent-red-600"
+                                />
+                                Mark for Customer
                             </label>
                         </div>
 

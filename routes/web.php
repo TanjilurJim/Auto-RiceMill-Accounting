@@ -71,9 +71,11 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::resource('permissions', PermissionController::class);
     });
 
+    // Account Ledgers
     Route::resource('account-groups', AccountGroupController::class);
     Route::post('/account-ledgers/modal', [\App\Http\Controllers\AccountLedgerController::class, 'storeFromModal']);
     Route::resource('account-ledgers', AccountLedgerController::class);
+    Route::get('/account-ledgers/{id}/balance', [AccountLedgerController::class, 'balance']);
 
     Route::resource('salesmen', SalesManController::class);
     Route::resource('godowns', GodownController::class);

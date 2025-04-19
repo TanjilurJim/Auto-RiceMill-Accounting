@@ -186,7 +186,16 @@ class AccountLedgerController extends Controller
             'created_by' => auth()->id(),
         ]);
 
-        
+
         return response()->json($ledger);
+    }
+
+    public function balance($id)
+    {
+        $ledger = AccountLedger::findOrFail($id);
+
+        return response()->json([
+            'balance' => $ledger->closing_balance ?? $ledger->opening_balance ?? 0,
+        ]);
     }
 }

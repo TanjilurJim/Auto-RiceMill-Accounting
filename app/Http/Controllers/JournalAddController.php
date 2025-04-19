@@ -13,7 +13,7 @@ class JournalAddController extends Controller
     public function index(Request $request)
     {
         $query = Journal::with('entries.ledger') // ✅ load entries and their ledgers
-            ->orderByDesc('date');
+            ->orderByDesc('created_at');
 
         if (!auth()->user()->hasRole('admin')) {
             $query->where('created_by', auth()->id());

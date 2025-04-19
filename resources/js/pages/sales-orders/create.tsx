@@ -1,6 +1,7 @@
 import AppLayout from '@/layouts/app-layout';
 import { Head, useForm } from '@inertiajs/react';
 import React, { useEffect } from 'react';
+import BackButton from '@/components/BackButton';
 
 interface Props {
     ledgers: { id: number; name: string }[];
@@ -91,8 +92,13 @@ export default function SalesOrderCreate({ ledgers, salesmen, products, units, g
         <AppLayout>
             <div className="min-h-screen bg-gray-100 p-6">
                 <Head title="Create Sales Order" />
+                
                 <div className="rounded border border-gray-200 bg-white p-6 shadow-md">
+                <div className="mb-4 flex justify-end">
+                                    <BackButton label="Go Back" />
+                                    </div>
                     <h2 className="mb-6 border-b pb-2 text-2xl font-bold text-gray-800">Create Sales Order</h2>
+                    
 
                     <form onSubmit={handleSubmit} className="space-y-6">
                         {/* Basic Info */}

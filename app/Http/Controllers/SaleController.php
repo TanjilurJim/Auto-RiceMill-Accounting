@@ -140,42 +140,60 @@ class SaleController extends Controller
                 ]);
             }
 
-            // 4️⃣ Credit Inventory (COGS)
+            $grandTotal = $sale->grand_total;
+            $amountReceived = $request->amount_received ?? 0;
+            $customerLedgerId = $request->account_ledger_id;
+
+            // Always CREDIT customer for full sale amount
             JournalEntry::create([
                 'journal_id' => $journal->id,
-                'account_ledger_id' => $request->account_ledger_id,
+                'account_ledger_id' => $customerLedgerId,
                 'type' => 'credit',
-                'amount' => $sale->grand_total,
+                'amount' => $grandTotal,
                 'note' => 'Sale to customer',
             ]);
-            $this->updateLedgerBalance($request->account_ledger_id, 'credit', $sale->grand_total);
+            $this->updateLedgerBalance($customerLedgerId, 'credit', $grandTotal);
 
-            // 5️⃣ Debit Payment Method if paid
-            if ($request->amount_received > 0 && $request->received_mode_id) {
+            // If payment received
+            if ($amountReceived > 0 && $request->received_mode_id) {
                 $receivedMode = ReceivedMode::with('ledger')->find($request->received_mode_id);
 
                 if ($receivedMode && $receivedMode->ledger) {
-                    // Debit received account (Cash/Bank/etc.)
+                    // 1️⃣ Debit received account (Nagad, Cash etc.)
                     JournalEntry::create([
                         'journal_id' => $journal->id,
                         'account_ledger_id' => $receivedMode->ledger_id,
                         'type' => 'debit',
-                        'amount' => $request->amount_received,
+                        'amount' => $amountReceived,
                         'note' => 'Payment received via ' . $receivedMode->mode_name,
                     ]);
-                    $this->updateLedgerBalance($receivedMode->ledger_id, 'debit', $request->amount_received);
+                    $this->updateLedgerBalance($receivedMode->ledger_id, 'debit', $amountReceived);
 
-                    // Credit customer to reduce receivable
-                    JournalEntry::create([
-                        'journal_id' => $journal->id,
-                        'account_ledger_id' => $request->account_ledger_id,
-                        'type' => 'debit',
-                        'amount' => $request->amount_received,
-                        'note' => 'Receivable reduced from customer',
+                    // 2️⃣ Only debit customer if partial payment
+                    if ($amountReceived < $grandTotal) {
+                        JournalEntry::create([
+                            'journal_id' => $journal->id,
+                            'account_ledger_id' => $customerLedgerId,
+                            'type' => 'debit',
+                            'amount' => $amountReceived,
+                            'note' => 'Receivable partially settled by customer',
+                        ]);
+                        $this->updateLedgerBalance($customerLedgerId, 'debit', $amountReceived);
+                    }
+
+                    // Update ReceivedMode table
+                    $receivedMode->update([
+                        'amount_received' => $amountReceived,
+                        'transaction_date' => $request->date,
+                        'sale_id' => $sale->id,
                     ]);
-                    $this->updateLedgerBalance($request->account_ledger_id, 'debit', $request->amount_received);
                 }
             }
+
+
+            // 4️⃣ Credit Inventory (COGS)
+
+
 
             DB::commit();
             return redirect()->route('sales.index')->with('success', 'Sale created and journal posted!');
@@ -195,14 +213,12 @@ class SaleController extends Controller
         }
 
         return Inertia::render('sales/edit', [
-            'sale' => $sale->load(['saleItems', 'godown', 'salesman', 'accountLedger']),
+            'sale' => $sale->load(['saleItems', 'godown', 'salesman', 'accountLedger', 'receivedMode.ledger',]),
             'godowns' => Godown::where('created_by', auth()->id())->get(),
             'salesmen' => Salesman::where('created_by', auth()->id())->get(),
             'ledgers' => AccountLedger::where('created_by', auth()->id())->get(),
             'items' => Item::where('created_by', auth()->id())->get(),
-            'receivedModes' => \App\Models\ReceivedMode::with('ledger')
-                ->where('created_by', auth()->id())
-                ->get(['id', 'mode_name', 'ledger_id']),
+            'receivedModes' => ReceivedMode::with('ledger')->where('created_by', auth()->id())->get(['id', 'mode_name', 'ledger_id']),
         ]);
     }
 
@@ -218,28 +234,26 @@ class SaleController extends Controller
         DB::beginTransaction();
 
         try {
-            // 1️⃣ REVERSE Old Journal Entries & Ledger Effects
+            // 1️⃣ Reverse old journal entries
             if ($sale->journal_id) {
-                $oldEntries = \App\Models\JournalEntry::where('journal_id', $sale->journal_id)->get();
-
+                $oldEntries = JournalEntry::where('journal_id', $sale->journal_id)->get();
                 foreach ($oldEntries as $entry) {
                     $this->updateLedgerBalance($entry->account_ledger_id, $entry->type === 'debit' ? 'credit' : 'debit', $entry->amount);
                 }
-
-                \App\Models\JournalEntry::where('journal_id', $sale->journal_id)->delete();
-                \App\Models\Journal::where('id', $sale->journal_id)->delete();
+                JournalEntry::where('journal_id', $sale->journal_id)->delete();
+                Journal::where('id', $sale->journal_id)->delete();
             }
 
-            // 2️⃣ RESTORE Stock from old sale items
+            // 2️⃣ Restore stock
             foreach ($sale->saleItems as $oldItem) {
-                \App\Models\Stock::where([
+                Stock::where([
                     'item_id' => $oldItem->product_id,
                     'godown_id' => $sale->godown_id,
                     'created_by' => auth()->id(),
                 ])->increment('qty', $oldItem->qty);
             }
 
-            // 3️⃣ UPDATE Sale Header
+            // 3️⃣ Update sale
             $sale->update([
                 'date' => $request->date,
                 'godown_id' => $request->godown_id,
@@ -268,7 +282,6 @@ class SaleController extends Controller
 
             $sale->saleItems()->delete();
 
-            // 4️⃣ Recreate Sale Items + Reduce Stock
             foreach ($request->sale_items as $item) {
                 $sale->saleItems()->create([
                     'product_id' => $item['product_id'],
@@ -280,16 +293,15 @@ class SaleController extends Controller
                     'note' => $item['note'] ?? null,
                 ]);
 
-                // Reduce Stock
-                \App\Models\Stock::where([
+                Stock::where([
                     'item_id' => $item['product_id'],
                     'godown_id' => $request->godown_id,
                     'created_by' => auth()->id(),
                 ])->decrement('qty', $item['qty']);
             }
 
-            // 5️⃣ Create new Journal
-            $journal = \App\Models\Journal::create([
+            // 4️⃣ New journal
+            $journal = Journal::create([
                 'date' => $request->date,
                 'voucher_no' => $sale->voucher_no,
                 'narration' => 'Updated journal for sale',
@@ -297,40 +309,54 @@ class SaleController extends Controller
             ]);
             $sale->update(['journal_id' => $journal->id]);
 
-            // 6️⃣ Credit customer
-            \App\Models\JournalEntry::create([
+            // 5️⃣ Entries
+            $grandTotal = $sale->grand_total;
+            $amountReceived = $request->amount_received ?? 0;
+            $customerLedgerId = $request->account_ledger_id;
+
+            // Credit full sale amount to customer
+            JournalEntry::create([
                 'journal_id' => $journal->id,
-                'account_ledger_id' => $request->account_ledger_id,
+                'account_ledger_id' => $customerLedgerId,
                 'type' => 'credit',
-                'amount' => $sale->grand_total,
+                'amount' => $grandTotal,
                 'note' => 'Updated sale to customer',
             ]);
-            $this->updateLedgerBalance($request->account_ledger_id, 'credit', $sale->grand_total);
+            $this->updateLedgerBalance($customerLedgerId, 'credit', $grandTotal);
 
-            // 7️⃣ Handle Received Payment
-            if ($request->amount_received > 0 && $request->received_mode_id) {
-                $receivedMode = \App\Models\ReceivedMode::with('ledger')->find($request->received_mode_id);
+            // If paid
+            if ($amountReceived > 0 && $request->received_mode_id) {
+                $receivedMode = ReceivedMode::with('ledger')->find($request->received_mode_id);
 
                 if ($receivedMode && $receivedMode->ledger) {
-                    // Debit cash/bank/whatever
-                    \App\Models\JournalEntry::create([
+                    // Debit cash/bank/etc
+                    JournalEntry::create([
                         'journal_id' => $journal->id,
                         'account_ledger_id' => $receivedMode->ledger_id,
                         'type' => 'debit',
-                        'amount' => $request->amount_received,
+                        'amount' => $amountReceived,
                         'note' => 'Updated payment received via ' . $receivedMode->mode_name,
                     ]);
-                    $this->updateLedgerBalance($receivedMode->ledger_id, 'debit', $request->amount_received);
+                    $this->updateLedgerBalance($receivedMode->ledger_id, 'debit', $amountReceived);
 
-                    // Debit the customer ledger as payment
-                    \App\Models\JournalEntry::create([
-                        'journal_id' => $journal->id,
-                        'account_ledger_id' => $request->account_ledger_id,
-                        'type' => 'debit',
-                        'amount' => $request->amount_received,
-                        'note' => 'Receivable adjustment from customer',
+                    // Only debit customer if partial payment
+                    if ($amountReceived < $grandTotal) {
+                        JournalEntry::create([
+                            'journal_id' => $journal->id,
+                            'account_ledger_id' => $customerLedgerId,
+                            'type' => 'debit',
+                            'amount' => $amountReceived,
+                            'note' => 'Receivable partially settled by customer',
+                        ]);
+                        $this->updateLedgerBalance($customerLedgerId, 'debit', $amountReceived);
+                    }
+
+                    // Update ReceivedMode table
+                    $receivedMode->update([
+                        'amount_received' => $amountReceived,
+                        'transaction_date' => $request->date,
+                        'sale_id' => $sale->id,
                     ]);
-                    $this->updateLedgerBalance($request->account_ledger_id, 'debit', $request->amount_received);
                 }
             }
 
@@ -438,8 +464,7 @@ class SaleController extends Controller
         });
 
         \Log::info($result); // Check the returned result
-return response()->json($result);// Return the updated list to the frontend
-    
-}
-}
+        return response()->json($result); // Return the updated list to the frontend
 
+    }
+}

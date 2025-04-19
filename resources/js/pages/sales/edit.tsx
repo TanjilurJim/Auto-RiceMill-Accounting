@@ -1,6 +1,5 @@
 import AppLayout from '@/layouts/app-layout';
 import { Head, Link, useForm } from '@inertiajs/react';
-import { useEffect } from 'react';
 
 interface Sale {
     id: number;
@@ -15,8 +14,8 @@ interface Sale {
     delivered_to: string;
     other_expense_ledger_id: string | null;
     other_amount: string | null;
-    receive_mode: string | null;
-    receive_amount: string | null;
+    received_mode_id: string | null;
+    amount_received: string | null;
     total_due: string | null;
     closing_balance: string | null;
     truck_rent: string | null;
@@ -26,6 +25,12 @@ interface Sale {
     driver_address: string | null;
     driver_mobile: string | null;
     sale_items: SaleItem[];
+}
+
+interface ReceivedMode {
+    id: number;
+    mode_name: string;
+    ledger_id: number;
 }
 
 interface SaleItem {
@@ -39,12 +44,40 @@ interface SaleItem {
     note?: string;
 }
 
-interface Godown { id: number; name: string; }
-interface Salesman { id: number; name: string; }
-interface Ledger { id: number; account_ledger_name: string; }
-interface Item { id: number; item_name: string; previous_stock: number; unit: string; }
+interface Godown {
+    id: number;
+    name: string;
+}
+interface Salesman {
+    id: number;
+    name: string;
+}
+interface Ledger {
+    id: number;
+    account_ledger_name: string;
+}
+interface Item {
+    id: number;
+    item_name: string;
+    previous_stock: number;
+    unit: string;
+}
 
-export default function SaleEdit({ sale, godowns, salesmen, ledgers, items }: { sale: Sale; godowns: Godown[]; salesmen: Salesman[]; ledgers: Ledger[]; items: Item[] }) {
+export default function SaleEdit({
+    sale,
+    godowns,
+    salesmen,
+    ledgers,
+    items,
+    receivedModes,
+}: {
+    sale: Sale;
+    godowns: Godown[];
+    salesmen: Salesman[];
+    ledgers: Ledger[];
+    items: Item[];
+    receivedModes: ReceivedMode[];
+}) {
     const { data, setData, put, processing, errors } = useForm({
         date: sale.date,
         voucher_no: sale.voucher_no,
@@ -57,8 +90,8 @@ export default function SaleEdit({ sale, godowns, salesmen, ledgers, items }: { 
         delivered_to: sale.delivered_to,
         other_expense_ledger_id: sale.other_expense_ledger_id,
         other_amount: sale.other_amount,
-        receive_mode: sale.receive_mode,
-        receive_amount: sale.receive_amount,
+        received_mode_id: sale.received_mode_id ?? '', // ✅ updated
+        amount_received: sale.amount_received ?? '',
         total_due: sale.total_due,
         closing_balance: sale.closing_balance,
         truck_rent: sale.truck_rent,
@@ -83,7 +116,11 @@ export default function SaleEdit({ sale, godowns, salesmen, ledgers, items }: { 
         setData('sale_items', updatedItems);
     };
 
-    const addProductRow = () => setData('sale_items', [...data.sale_items, { product_id: '', qty: '', main_price: '', discount: '', discount_type: 'bdt', subtotal: '', note: '' }]);
+    const addProductRow = () =>
+        setData('sale_items', [
+            ...data.sale_items,
+            { product_id: '', qty: '', main_price: '', discount: '', discount_type: 'bdt', subtotal: '', note: '' },
+        ]);
 
     const removeProductRow = (index: number) => {
         if (data.sale_items.length > 1) {
@@ -101,15 +138,16 @@ export default function SaleEdit({ sale, godowns, salesmen, ledgers, items }: { 
     return (
         <AppLayout>
             <Head title="Edit Sale" />
-            <div className="p-6 bg-gray-100">
+            <div className="bg-gray-100 p-6">
                 <div className="mb-6 flex items-center justify-between">
                     <h1 className="text-2xl font-semibold text-gray-800">Edit Sale</h1>
-                    <Link href="/sales" className="rounded bg-gray-300 px-4 py-2 hover:bg-neutral-100">Back</Link>
+                    <Link href="/sales" className="rounded bg-gray-300 px-4 py-2 hover:bg-neutral-100">
+                        Back
+                    </Link>
                 </div>
 
                 {/* Form */}
                 <form onSubmit={handleSubmit} className="space-y-6 rounded bg-white p-6 shadow-md">
-
                     {/* Section 1: Basic Sale Info */}
                     <div>
                         <h2 className="mb-3 border-b pb-1 text-lg font-semibold text-gray-700">Sale Information</h2>
@@ -358,24 +396,29 @@ export default function SaleEdit({ sale, godowns, salesmen, ledgers, items }: { 
                             {/* Receive Mode */}
                             <div>
                                 <label className="mb-1 block text-sm font-semibold text-gray-700">Receive Mode</label>
-                                <input
-                                    type="text"
-                                    placeholder="e.g. Cash, Bank"
+                                <select
                                     className="w-full border p-2"
-                                    value={data.receive_mode || ''}
-                                    onChange={(e) => setData('receive_mode', e.target.value)}
-                                />
+                                    value={data.received_mode_id}
+                                    onChange={(e) => setData('received_mode_id', e.target.value)}
+                                >
+                                    <option value="">Select Payment Method</option>
+                                    {receivedModes.map((mode) => (
+                                        <option key={mode.id} value={mode.id}>
+                                            {mode.mode_name}
+                                        </option>
+                                    ))}
+                                </select>
                             </div>
 
                             {/* Receive Amount */}
                             <div>
-                                <label className="mb-1 block text-sm font-semibold text-gray-700">Receive Amount</label>
+                                <label className="mb-1 block text-sm font-semibold text-gray-700">Amount Received</label>
                                 <input
                                     type="number"
                                     placeholder="0.00"
                                     className="w-full border p-2"
-                                    value={data.receive_amount || ''}
-                                    onChange={(e) => setData('receive_amount', e.target.value)}
+                                    value={data.amount_received || ''}
+                                    onChange={(e) => setData('amount_received', e.target.value)}
                                 />
                             </div>
 
@@ -501,12 +544,18 @@ export default function SaleEdit({ sale, godowns, salesmen, ledgers, items }: { 
                         </div>
                     </div>
 
-                   
-
                     {/* Section 5: Submit */}
                     <div className="mt-6 flex justify-end gap-3">
-                        <button type="submit" disabled={processing} className="rounded bg-purple-600 px-5 py-2 font-semibold text-white shadow hover:bg-purple-700">{processing ? 'Updating...' : 'Update'}</button>
-                        <Link href="/sales" className="rounded border border-gray-400 px-5 py-2 font-semibold text-gray-700 hover:bg-gray-100">Cancel</Link>
+                        <button
+                            type="submit"
+                            disabled={processing}
+                            className="rounded bg-purple-600 px-5 py-2 font-semibold text-white shadow hover:bg-purple-700"
+                        >
+                            {processing ? 'Updating...' : 'Update'}
+                        </button>
+                        <Link href="/sales" className="rounded border border-gray-400 px-5 py-2 font-semibold text-gray-700 hover:bg-gray-100">
+                            Cancel
+                        </Link>
                     </div>
                 </form>
             </div>
