@@ -1,3 +1,4 @@
+import ActionFooter from '@/components/ActionFooter';
 import AppLayout from '@/layouts/app-layout';
 import { Head, Link, useForm } from '@inertiajs/react';
 
@@ -48,7 +49,7 @@ export default function EditDepartment({
                             {errors.description && <p className="text-sm text-red-500">{errors.description}</p>}
                         </div>
 
-                        <div className="flex justify-end space-x-2">
+                        {/* <div className="flex justify-end space-x-2">
                             <Link href="/departments" className="rounded border px-4 py-2 hover:bg-neutral-100 dark:hover:bg-neutral-800">
                                 Cancel
                             </Link>
@@ -59,7 +60,15 @@ export default function EditDepartment({
                             >
                                 {processing ? 'Saving...' : 'Update'}
                             </button>
-                        </div>
+                        </div> */}
+                        <ActionFooter
+                            className='justify-end'
+                            onSubmit={handleSubmit}
+                            cancelHref="/departments"
+                            processing={processing}
+                            submitText="Update"
+                            cancelText="Cancel"
+                        />
                     </form>
                 </div>
             </div>

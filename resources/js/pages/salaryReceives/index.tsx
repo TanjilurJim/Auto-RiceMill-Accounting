@@ -1,3 +1,5 @@
+import { confirmDialog } from '@/components/confirmDialog';
+import PageHeader from '@/components/PageHeader';
 import AppLayout from '@/layouts/app-layout';
 import { Head, Link, router } from '@inertiajs/react';
 import Swal from 'sweetalert2';
@@ -30,32 +32,41 @@ interface PaginatedSalaryReceives {
 export default function SalaryReceiveIndex({ salaryReceives }: { salaryReceives: PaginatedSalaryReceives }) {
     // Handle delete action
     const handleDelete = (id: number) => {
-        Swal.fire({
-            title: 'Are you sure?',
-            text: 'This salary receive record will be permanently deleted!',
-            icon: 'warning',
-            showCancelButton: true,
-            confirmButtonColor: '#d33',
-            cancelButtonColor: '#3085d6',
-            confirmButtonText: 'Yes, delete it!',
-        }).then((result) => {
-            if (result.isConfirmed) {
+        // Swal.fire({
+        //     title: 'Are you sure?',
+        //     text: 'This salary receive record will be permanently deleted!',
+        //     icon: 'warning',
+        //     showCancelButton: true,
+        //     confirmButtonColor: '#d33',
+        //     cancelButtonColor: '#3085d6',
+        //     confirmButtonText: 'Yes, delete it!',
+        // }).then((result) => {
+        //     if (result.isConfirmed) {
+        //         router.delete(`/salary-receives/${id}`);
+        //         Swal.fire('Deleted!', 'The salary receive has been deleted.', 'success');
+        //     }
+        // });
+
+        confirmDialog(
+            {}, () => {
                 router.delete(`/salary-receives/${id}`);
-                Swal.fire('Deleted!', 'The salary receive has been deleted.', 'success');
             }
-        });
+        )
+
     };
 
     return (
         <AppLayout>
             <Head title="Salary Receives" />
             <div className="bg-gray-100 p-4">
-                <div className="mb-4 flex items-center justify-between">
+                {/* <div className="mb-4 flex items-center justify-between">
                     <h1 className="text-xl font-semibold">Salary Receives</h1>
                     <Link href="/salary-receives/create" className="rounded bg-green-600 px-4 py-2 text-sm font-medium text-white hover:bg-green-700">
                         + Add New
                     </Link>
-                </div>
+                </div> */}
+
+                <PageHeader title="Salary Receives" addLinkHref='/salary-receives/create' />
 
                 <div className="overflow-x-auto rounded-lg border border-gray-300 bg-white shadow-sm">
                     <table className="min-w-full border-collapse text-[13px]">

@@ -1,3 +1,5 @@
+import ActionFooter from '@/components/ActionFooter';
+import PageHeader from '@/components/PageHeader';
 import AppLayout from '@/layouts/app-layout';
 import { Head, Link } from '@inertiajs/react';
 
@@ -7,7 +9,13 @@ export default function Show({ salarySlip }: any) {
             <Head title={`Salary Slip #${salarySlip.voucher_number}`} />
 
             <div className="mx-auto max-w-4xl rounded bg-white p-6 shadow">
-                <h1 className="mb-4 text-2xl font-bold">Salary Slip Details</h1>
+                {/* <h1 className="mb-4 text-2xl font-bold">Salary Slip Details</h1> */}
+
+                <PageHeader
+                    title={`Salary Slip #${salarySlip.voucher_number}`}
+                    addLinkHref={route('salary-slips.index')}
+                    addLinkText="Back"
+                />
 
                 <div className="mb-6 grid grid-cols-2 gap-4 text-sm">
                     <div>
@@ -72,11 +80,16 @@ export default function Show({ salarySlip }: any) {
                     </table>
                 </div>
 
-                <div className="mt-6">
+                {/* <div className="mt-6">
                     <Link href={route('salary-slips.index')} className="text-sm text-gray-700 underline">
                         ← Back to Salary Slips
                     </Link>
-                </div>
+                </div> */}
+                <ActionFooter 
+                    className='justify-end'
+                    cancelHref={route('salary-slips.index')}
+                    cancelText="Back to Salary Slips"
+                />
             </div>
         </AppLayout>
     );

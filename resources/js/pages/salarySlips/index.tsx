@@ -1,3 +1,6 @@
+import ActionButtons from '@/components/ActionButtons';
+import { confirmDialog } from '@/components/confirmDialog';
+import PageHeader from '@/components/PageHeader';
 import AppLayout from '@/layouts/app-layout';
 import { Head, Link, router } from '@inertiajs/react';
 import { useState } from 'react';
@@ -50,20 +53,27 @@ export default function SalarySlipIndex({ salarySlips, employees }: Props) {
     const [expandedRowId, setExpandedRowId] = useState<number | null>(null);
 
     const handleDelete = (id: number) => {
-        Swal.fire({
-            title: 'Are you sure?',
-            text: 'This salary slip will be permanently deleted!',
-            icon: 'warning',
-            showCancelButton: true,
-            confirmButtonColor: '#d33',
-            cancelButtonColor: '#3085d6',
-            confirmButtonText: 'Yes, delete it!',
-        }).then((result) => {
-            if (result.isConfirmed) {
+        // Swal.fire({
+        //     title: 'Are you sure?',
+        //     text: 'This salary slip will be permanently deleted!',
+        //     icon: 'warning',
+        //     showCancelButton: true,
+        //     confirmButtonColor: '#d33',
+        //     cancelButtonColor: '#3085d6',
+        //     confirmButtonText: 'Yes, delete it!',
+        // }).then((result) => {
+        //     if (result.isConfirmed) {
+        //         router.delete(`/salary-slips/${id}`);
+        //         Swal.fire('Deleted!', 'The salary slip has been deleted.', 'success');
+        //     }
+        // });
+
+        confirmDialog(
+            {}, () => {
                 router.delete(`/salary-slips/${id}`);
-                Swal.fire('Deleted!', 'The salary slip has been deleted.', 'success');
             }
-        });
+        )
+
     };
 
     const totalSlips = salarySlips.data.length;
@@ -88,12 +98,14 @@ export default function SalarySlipIndex({ salarySlips, employees }: Props) {
             <Head title="Salary Slips" />
             <div className="bg-gray-100 p-4">
                 {/* Header */}
-                <div className="mb-4 flex items-center justify-between">
+                {/* <div className="mb-4 flex items-center justify-between">
                     <h1 className="text-xl font-semibold">All Salary Slips</h1>
                     <Link href="/salary-slips/create" className="rounded bg-green-600 px-4 py-2 text-sm font-medium text-white hover:bg-green-700">
                         + Add New
                     </Link>
-                </div>
+                </div> */}
+
+                <PageHeader title="Salary Slips" addLinkHref='/salary-slips/create' />
 
                 {/* Summary */}
                 <div className="mb-4 flex flex-wrap gap-4 rounded bg-white p-4 shadow">
@@ -180,7 +192,7 @@ export default function SalarySlipIndex({ salarySlips, employees }: Props) {
                                         <>
                                             <tr
                                                 key={salarySlip.id}
-                                                className="cursor-pointer hover:bg-gray-50"
+                                                className="cursor-pointer hover:bg-gray-50 border"
                                                 onClick={() => setExpandedRowId(expandedRowId === salarySlip.id ? null : salarySlip.id)}
                                             >
                                                 <td className="border px-3 py-2 text-center">{index + 1}</td>
@@ -195,7 +207,7 @@ export default function SalarySlipIndex({ salarySlips, employees }: Props) {
                                                         {status}
                                                     </span>
                                                 </td>
-                                                <td className="border px-3 py-2 text-center">
+                                                {/* <td className="border px-3 py-2 text-center">
                                                     <div className="flex justify-center gap-2">
                                                         <Link
                                                             href={route('salary-slips.show', salarySlip.id)}
@@ -216,7 +228,13 @@ export default function SalarySlipIndex({ salarySlips, employees }: Props) {
                                                             Delete
                                                         </button>
                                                     </div>
-                                                </td>
+                                                </td> */}
+                                                <ActionButtons
+                                                    onDelete={() => handleDelete(salarySlip.id)}
+                                                    editHref={`/salary-slips/${salarySlip.id}/edit`}
+                                                    printHref={route('salary-slips.show', salarySlip.id)}
+                                                    printText="View"
+                                                />
                                             </tr>
                                             {expandedRowId === salarySlip.id && (
                                                 <tr>
@@ -253,13 +271,12 @@ export default function SalarySlipIndex({ salarySlips, employees }: Props) {
                                                                         </td>
                                                                         <td className="border px-2 py-1">
                                                                             <span
-                                                                                className={`rounded-full px-2 py-1 text-xs font-medium ${
-                                                                                    emp.status === 'Paid'
+                                                                                className={`rounded-full px-2 py-1 text-xs font-medium ${emp.status === 'Paid'
                                                                                         ? 'bg-green-100 text-green-800'
                                                                                         : emp.status === 'Partially Paid'
-                                                                                          ? 'bg-yellow-100 text-yellow-800'
-                                                                                          : 'bg-red-100 text-red-800'
-                                                                                }`}
+                                                                                            ? 'bg-yellow-100 text-yellow-800'
+                                                                                            : 'bg-red-100 text-red-800'
+                                                                                    }`}
                                                                             >
                                                                                 {emp.status || 'Unpaid'}
                                                                             </span>

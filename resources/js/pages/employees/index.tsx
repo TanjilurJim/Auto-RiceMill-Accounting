@@ -1,3 +1,6 @@
+import ActionButtons from '@/components/ActionButtons';
+import { confirmDialog } from '@/components/confirmDialog';
+import PageHeader from '@/components/PageHeader';
 import AppLayout from '@/layouts/app-layout';
 import { Head, Link, router } from '@inertiajs/react';
 import Swal from 'sweetalert2';
@@ -17,20 +20,27 @@ interface Employee {
 
 export default function EmployeeIndex({ employees }: { employees: Employee[] }) {
     const handleDelete = (id: number) => {
-        Swal.fire({
-            title: 'Are you sure?',
-            text: 'This action cannot be undone!',
-            icon: 'warning',
-            showCancelButton: true,
-            confirmButtonColor: '#d33',
-            cancelButtonColor: '#3085d6',
-            confirmButtonText: 'Yes, delete it!',
-        }).then((result) => {
-            if (result.isConfirmed) {
+        // Swal.fire({
+        //     title: 'Are you sure?',
+        //     text: 'This action cannot be undone!',
+        //     icon: 'warning',
+        //     showCancelButton: true,
+        //     confirmButtonColor: '#d33',
+        //     cancelButtonColor: '#3085d6',
+        //     confirmButtonText: 'Yes, delete it!',
+        // }).then((result) => {
+        //     if (result.isConfirmed) {
+        //         router.delete(`/employees/${id}`);
+        //         Swal.fire('Deleted!', 'Employee has been deleted.', 'success');
+        //     }
+        // });
+
+        confirmDialog(
+            {}, () => {
                 router.delete(`/employees/${id}`);
-                Swal.fire('Deleted!', 'Employee has been deleted.', 'success');
             }
-        });
+        );
+
     };
 
     return (
@@ -38,7 +48,7 @@ export default function EmployeeIndex({ employees }: { employees: Employee[] }) 
             <Head title="Employees" />
             <div className="p-6">
                 {/* Header */}
-                <div className="mb-6 flex items-center justify-between">
+                {/* <div className="mb-6 flex items-center justify-between">
                     <h1 className="text-2xl font-semibold text-gray-800">Employees</h1>
                     <Link
                         href="/employees/create"
@@ -46,7 +56,9 @@ export default function EmployeeIndex({ employees }: { employees: Employee[] }) 
                     >
                         + Add Employee
                     </Link>
-                </div>
+                </div> */}
+
+                <PageHeader title="Employees" addLinkHref='/employees/create' addLinkText="+ Add Employee" />
 
                 {/* Table */}
                 <div className="overflow-x-auto rounded-lg border bg-white shadow-sm dark:border-neutral-800 dark:bg-neutral-900">
@@ -80,7 +92,7 @@ export default function EmployeeIndex({ employees }: { employees: Employee[] }) 
                                     <td className="px-4 py-2 text-gray-800 dark:text-white">{employee.designation.name}</td>
                                     <td className="px-4 py-2 text-gray-800 dark:text-white">{employee.shift.name}</td>
                                     <td className="px-4 py-2 text-gray-800 dark:text-white">{employee.status}</td>
-                                    <td className="px-4 py-2 text-center">
+                                    {/* <td className="px-4 py-2 text-center">
                                         <div className="inline-flex gap-2">
                                             <Link
                                                 href={`/employees/${employee.id}/edit`}
@@ -95,7 +107,13 @@ export default function EmployeeIndex({ employees }: { employees: Employee[] }) 
                                                 Delete
                                             </button>
                                         </div>
-                                    </td>
+                                    </td> */}
+                                    <ActionButtons
+                                        editHref={`/employees/${employee.id}/edit`}
+                                        onDelete={() => handleDelete(employee.id)}
+                                        editText="Edit"
+                                        deleteText="Delete"
+                                    />
                                 </tr>
                             ))}
                         </tbody>

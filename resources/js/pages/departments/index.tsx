@@ -1,3 +1,7 @@
+import ActionButtons from '@/components/ActionButtons';
+import ActionFooter from '@/components/ActionFooter';
+import { confirmDialog } from '@/components/confirmDialog';
+import PageHeader from '@/components/PageHeader';
 import AppLayout from '@/layouts/app-layout';
 import { Head, Link, router } from '@inertiajs/react';
 import Swal from 'sweetalert2';
@@ -12,34 +16,41 @@ interface Department {
 export default function DepartmentIndex({ departments }: { departments: Department[] }) {
 
     const handleDelete = (id: number) => {
-        Swal.fire({
-            title: "Are you sure?",
-            text: "This action cannot be undone!",
-            icon: "warning",
-            showCancelButton: true,
-            confirmButtonColor: "#d33",
-            cancelButtonColor: "#3085d6",
-            confirmButtonText: "Yes, delete it!"
-        }).then((result) => {
-            if (result.isConfirmed) {
+        // Swal.fire({
+        //     title: "Are you sure?",
+        //     text: "This action cannot be undone!",
+        //     icon: "warning",
+        //     showCancelButton: true,
+        //     confirmButtonColor: "#d33",
+        //     cancelButtonColor: "#3085d6",
+        //     confirmButtonText: "Yes, delete it!"
+        // }).then((result) => {
+        //     if (result.isConfirmed) {
+        //         router.delete(`/departments/${id}`);
+        //         Swal.fire("Deleted!", "Department has been deleted.", "success");
+        //     }
+        // });
+        confirmDialog(
+            {}, () => {
                 router.delete(`/departments/${id}`);
-                Swal.fire("Deleted!", "Department has been deleted.", "success");
             }
-        });
+        );
     };
 
     return (
         <AppLayout>
             <Head title="Departments" />
             <div className="p-6">
-                
+
                 {/* Page Header */}
-                <div className="flex flex-wrap items-center justify-between mb-6">
+                {/* <div className="flex flex-wrap items-center justify-between mb-6">
                     <h1 className="text-2xl font-bold">Departments</h1>
                     <Link href="/departments/create" className="px-4 py-2 rounded bg-green-600 text-white hover:bg-green-700">
                         + Add New
                     </Link>
-                </div>
+                </div> */}
+
+                <PageHeader title="Departments" addLinkHref='/departments/create' addLinkText="+ Add New" />
 
                 {/* Responsive Table */}
                 <div className="overflow-x-auto bg-white shadow-md rounded-lg dark:bg-neutral-900">
@@ -60,20 +71,26 @@ export default function DepartmentIndex({ departments }: { departments: Departme
                                     <td className="py-2 px-4">{department.name}</td>
                                     <td className="py-2 px-4">{department.description}</td>
                                     <td className="py-2 px-4">{department.creator?.name || 'N/A'}</td>
-                                    <td className="py-2 px-4 flex justify-center space-x-2">
-                                        <Link 
-                                            href={`/departments/${department.id}/edit`} 
+                                    {/* <td className="py-2 px-4 flex justify-center space-x-2">
+                                        <Link
+                                            href={`/departments/${department.id}/edit`}
                                             className="px-3 py-1 text-sm rounded bg-yellow-500 text-white hover:bg-yellow-600"
                                         >
                                             Edit
                                         </Link>
-                                        <button 
-                                            onClick={() => handleDelete(department.id)} 
+                                        <button
+                                            onClick={() => handleDelete(department.id)}
                                             className="px-3 py-1 text-sm rounded bg-red-600 text-white hover:bg-red-700"
                                         >
                                             Delete
                                         </button>
-                                    </td>
+                                    </td> */}
+                                    <ActionButtons
+                                        editHref={`/departments/${department.id}/edit`}
+                                        onDelete={() => handleDelete(department.id)}
+                                        editText="Edit"
+                                        deleteText="Delete"
+                                    />
                                 </tr>
                             ))}
                         </tbody>
