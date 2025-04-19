@@ -62,7 +62,7 @@ const ActionButtons: React.FC<ActionButtonsProps> = ({
             {printHref && (
                 <Link
                     href={printHref}
-                    className="rounded bg-blue-600 px-3 py-1 text-sm text-white hover:bg-blue-700"
+                    className="rounded bg-info px-3 py-1 text-sm text-white hover:bg-info-hover"
                 >
                     {printText}
                 </Link>
@@ -72,7 +72,7 @@ const ActionButtons: React.FC<ActionButtonsProps> = ({
             {onPrint && (
                 <button
                     onClick={onPrint}
-                    className="rounded bg-blue-600 px-3 py-1 text-sm text-white hover:bg-blue-700"
+                    className="rounded bg-info px-3 py-1 text-sm text-white hover:bg-info-hover"
                 >
                     {printText}
                 </button>

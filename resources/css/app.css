@@ -131,13 +131,13 @@
 
     /* custom properties */
     --primary: #8FB1E9;
-    --primary-hover: #6D9CE0;
+    --primary-hover: #639cec;
     --info: #A9D7F6;
-    --info-hover: #87CFF0;
+    --info-hover: #59bdeb;
     --warning: #F96D6D;
-    --warning-hover: #E25555;
+    --warning-hover: #e25555;
     --danger: #B84D69;
-    --danger-hover: #A03C55;
+    --danger-hover: #9c344e;
 
 
 

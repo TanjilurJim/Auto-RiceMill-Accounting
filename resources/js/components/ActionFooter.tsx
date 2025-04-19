@@ -48,7 +48,7 @@ const ActionFooter: React.FC<ActionFooterProps> = ({
                     type="button"
                     disabled={processing}
                     onClick={onSaveAndPrint}
-                    className="rounded bg-blue-600 px-5 py-2 font-semibold text-white shadow hover:bg-blue-700"
+                    className="rounded bg-info px-5 py-2 font-semibold text-white shadow hover:bg-info-hover"
                 >
                     {saveAndPrintText}
                 </button>
