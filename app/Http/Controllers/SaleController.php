@@ -45,7 +45,9 @@ class SaleController extends Controller
             'godowns' => Godown::where('created_by', auth()->id())->get(),
             'salesmen' => Salesman::where('created_by', auth()->id())->get(),
             'ledgers' => AccountLedger::where('created_by', auth()->id())->get(),
+            'inventoryLedgers' => AccountLedger::where('created_by', auth()->id())->get(['id', 'account_ledger_name']),
             'items' => Item::where('created_by', auth()->id())->get(),
+            'accountGroups' => \App\Models\AccountGroup::get(['id', 'name']),
             'receivedModes' => \App\Models\ReceivedMode::with('ledger')
                 ->where('created_by', auth()->id())
                 ->get(['id', 'mode_name', 'ledger_id']),
@@ -89,6 +91,8 @@ class SaleController extends Controller
                 'truck_rent' => $request->truck_rent,
                 'rent_advance' => $request->rent_advance,
                 'net_rent' => $request->net_rent,
+                'inventory_ledger_id' => $request->inventory_ledger_id,
+                'cogs_ledger_id' => $request->cogs_ledger_id,
                 'truck_driver_name' => $request->truck_driver_name,
                 'driver_address' => $request->driver_address,
                 'driver_mobile' => $request->driver_mobile,
@@ -116,7 +120,6 @@ class SaleController extends Controller
                     'note' => $item['note'] ?? null,
                 ]);
 
-                // Stock decrement
                 Stock::where([
                     'item_id' => $item['product_id'],
                     'godown_id' => $request->godown_id,
@@ -132,6 +135,7 @@ class SaleController extends Controller
                 'created_by' => auth()->id(),
             ]);
             $sale->update(['journal_id' => $journal->id]);
+
             if ($request->received_mode_id && $request->amount_received > 0) {
                 ReceivedMode::where('id', $request->received_mode_id)->update([
                     'amount_received' => $request->amount_received,
@@ -144,7 +148,7 @@ class SaleController extends Controller
             $amountReceived = $request->amount_received ?? 0;
             $customerLedgerId = $request->account_ledger_id;
 
-            // Always CREDIT customer for full sale amount
+            // 4️⃣ Credit customer (Accounts Receivable)
             JournalEntry::create([
                 'journal_id' => $journal->id,
                 'account_ledger_id' => $customerLedgerId,
@@ -154,12 +158,10 @@ class SaleController extends Controller
             ]);
             $this->updateLedgerBalance($customerLedgerId, 'credit', $grandTotal);
 
-            // If payment received
+            // 5️⃣ Debit received account if paid
             if ($amountReceived > 0 && $request->received_mode_id) {
                 $receivedMode = ReceivedMode::with('ledger')->find($request->received_mode_id);
-
                 if ($receivedMode && $receivedMode->ledger) {
-                    // 1️⃣ Debit received account (Nagad, Cash etc.)
                     JournalEntry::create([
                         'journal_id' => $journal->id,
                         'account_ledger_id' => $receivedMode->ledger_id,
@@ -169,7 +171,6 @@ class SaleController extends Controller
                     ]);
                     $this->updateLedgerBalance($receivedMode->ledger_id, 'debit', $amountReceived);
 
-                    // 2️⃣ Only debit customer if partial payment
                     if ($amountReceived < $grandTotal) {
                         JournalEntry::create([
                             'journal_id' => $journal->id,
@@ -181,7 +182,6 @@ class SaleController extends Controller
                         $this->updateLedgerBalance($customerLedgerId, 'debit', $amountReceived);
                     }
 
-                    // Update ReceivedMode table
                     $receivedMode->update([
                         'amount_received' => $amountReceived,
                         'transaction_date' => $request->date,
@@ -190,10 +190,25 @@ class SaleController extends Controller
                 }
             }
 
+            // 6️⃣ Credit Inventory Ledger
+            JournalEntry::create([
+                'journal_id' => $journal->id,
+                'account_ledger_id' => $request->inventory_ledger_id,
+                'type' => 'credit',
+                'amount' => $grandTotal,
+                'note' => 'Inventory sold (COGS)',
+            ]);
+            $this->updateLedgerBalance($request->inventory_ledger_id, 'credit', $grandTotal);
 
-            // 4️⃣ Credit Inventory (COGS)
-
-
+            // 7️⃣ Debit COGS Ledger
+            JournalEntry::create([
+                'journal_id' => $journal->id,
+                'account_ledger_id' => $request->cogs_ledger_id,
+                'type' => 'debit',
+                'amount' => $grandTotal,
+                'note' => 'Cost of Goods Sold',
+            ]);
+            $this->updateLedgerBalance($request->cogs_ledger_id, 'debit', $grandTotal);
 
             DB::commit();
             return redirect()->route('sales.index')->with('success', 'Sale created and journal posted!');
@@ -205,22 +220,36 @@ class SaleController extends Controller
     }
 
 
+
     // Edit Sale Form
     public function edit(Sale $sale)
-    {
-        if ($sale->created_by !== auth()->id()) {
-            abort(403);
-        }
-
-        return Inertia::render('sales/edit', [
-            'sale' => $sale->load(['saleItems', 'godown', 'salesman', 'accountLedger', 'receivedMode.ledger',]),
-            'godowns' => Godown::where('created_by', auth()->id())->get(),
-            'salesmen' => Salesman::where('created_by', auth()->id())->get(),
-            'ledgers' => AccountLedger::where('created_by', auth()->id())->get(),
-            'items' => Item::where('created_by', auth()->id())->get(),
-            'receivedModes' => ReceivedMode::with('ledger')->where('created_by', auth()->id())->get(['id', 'mode_name', 'ledger_id']),
-        ]);
+{
+    if ($sale->created_by !== auth()->id()) {
+        abort(403);
     }
+
+    return Inertia::render('sales/edit', [
+        'sale' => $sale->load([
+            'saleItems',
+            'godown',
+            'salesman',
+            'accountLedger',
+            'receivedMode.ledger',
+        ]),
+        'cogs_ledger_id' => $sale->cogs_ledger_id,
+        'godowns' => Godown::where('created_by', auth()->id())->get(),
+        'salesmen' => Salesman::where('created_by', auth()->id())->get(),
+        'ledgers' => AccountLedger::where('created_by', auth()->id())->get(), // includes COGS ledgers
+        'inventoryLedgers' => AccountLedger::whereIn('account_group_id', [1, 2, 14, 15])
+            ->where('created_by', auth()->id())
+            ->get(['id', 'account_ledger_name']),
+        'items' => Item::where('created_by', auth()->id())->get(),
+        'receivedModes' => ReceivedMode::with('ledger')
+            ->where('created_by', auth()->id())
+            ->get(['id', 'mode_name', 'ledger_id']),
+        'accountGroups' => \App\Models\AccountGroup::where('created_by', auth()->id())->get(['id', 'name']), // optional for modal
+    ]);
+}
 
     // Update Sale
     public function update(Request $request, Sale $sale)
@@ -269,6 +298,8 @@ class SaleController extends Controller
                 'truck_driver_name' => $request->truck_driver_name,
                 'driver_address' => $request->driver_address,
                 'driver_mobile' => $request->driver_mobile,
+                'inventory_ledger_id' => $request->inventory_ledger_id,
+                'cogs_ledger_id' => $request->cogs_ledger_id,
                 'total_qty' => collect($request->sale_items)->sum('qty'),
                 'total_discount' => collect($request->sale_items)->sum('discount'),
                 'grand_total' => collect($request->sale_items)->sum('subtotal'),
@@ -324,12 +355,9 @@ class SaleController extends Controller
             ]);
             $this->updateLedgerBalance($customerLedgerId, 'credit', $grandTotal);
 
-            // If paid
             if ($amountReceived > 0 && $request->received_mode_id) {
                 $receivedMode = ReceivedMode::with('ledger')->find($request->received_mode_id);
-
                 if ($receivedMode && $receivedMode->ledger) {
-                    // Debit cash/bank/etc
                     JournalEntry::create([
                         'journal_id' => $journal->id,
                         'account_ledger_id' => $receivedMode->ledger_id,
@@ -339,7 +367,6 @@ class SaleController extends Controller
                     ]);
                     $this->updateLedgerBalance($receivedMode->ledger_id, 'debit', $amountReceived);
 
-                    // Only debit customer if partial payment
                     if ($amountReceived < $grandTotal) {
                         JournalEntry::create([
                             'journal_id' => $journal->id,
@@ -351,7 +378,6 @@ class SaleController extends Controller
                         $this->updateLedgerBalance($customerLedgerId, 'debit', $amountReceived);
                     }
 
-                    // Update ReceivedMode table
                     $receivedMode->update([
                         'amount_received' => $amountReceived,
                         'transaction_date' => $request->date,
@@ -359,6 +385,26 @@ class SaleController extends Controller
                     ]);
                 }
             }
+
+            // 6️⃣ Credit Inventory
+            JournalEntry::create([
+                'journal_id' => $journal->id,
+                'account_ledger_id' => $request->inventory_ledger_id,
+                'type' => 'credit',
+                'amount' => $grandTotal,
+                'note' => 'Inventory sold (COGS)',
+            ]);
+            $this->updateLedgerBalance($request->inventory_ledger_id, 'credit', $grandTotal);
+
+            // 7️⃣ Debit COGS
+            JournalEntry::create([
+                'journal_id' => $journal->id,
+                'account_ledger_id' => $request->cogs_ledger_id,
+                'type' => 'debit',
+                'amount' => $grandTotal,
+                'note' => 'Cost of Goods Sold',
+            ]);
+            $this->updateLedgerBalance($request->cogs_ledger_id, 'debit', $grandTotal);
 
             DB::commit();
             return redirect()->route('sales.index')->with('success', 'Sale updated and journal reposted!');
@@ -368,6 +414,7 @@ class SaleController extends Controller
             return back()->with('error', 'Failed to update sale.');
         }
     }
+
 
 
     // Invoice (ERP style print)

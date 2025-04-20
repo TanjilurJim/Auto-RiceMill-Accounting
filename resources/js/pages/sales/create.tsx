@@ -36,12 +36,16 @@ export default function SaleCreate({
     ledgers,
     items,
     receivedModes,
+    inventoryLedgers,
+    accountGroups,
 }: {
     godowns: Godown[];
     salesmen: Salesman[];
     ledgers: Ledger[];
     items: Item[];
     receivedModes: ReceivedMode[];
+    inventoryLedgers: Ledger[];
+    accountGroups: { id: number; name: string }[];
 }) {
     const { data, setData, post, processing, errors } = useForm({
         date: '',
@@ -72,6 +76,7 @@ export default function SaleCreate({
         driver_mobile: '',
         received_mode_id: '',
         amount_received: '',
+        inventory_ledger_id: '',
         total_due: '',
         closing_balance: '',
     });
@@ -86,6 +91,13 @@ export default function SaleCreate({
         }
     }, [data.godown_id]); // Trigger this effect whenever the godown_id changes
     const [filteredItems, setFilteredItems] = useState<Item[]>([]);
+    const [modalTargetField, setModalTargetField] = useState<'inventory' | 'cogs'>('inventory');
+
+    const [showInventoryLedgerModal, setShowInventoryLedgerModal] = useState(false);
+    const [showCogsLedgerModal, setShowCogsLedgerModal] = useState(false);
+    const [showLedgerModal, setShowLedgerModal] = useState(false);
+    const [newLedgerName, setNewLedgerName] = useState('');
+    const [newGroupId, setNewGroupId] = useState('');
 
     // useEffect(() => {
     //     if (data.received_mode_id) {
@@ -98,7 +110,7 @@ export default function SaleCreate({
     //     }
     // }, [data.received_mode_id]);
 
-    const customerLedgers = ledgers.filter(l => l.mark_for_user);
+    const customerLedgers = ledgers.filter((l) => l.mark_for_user);
 
     const [currentLedgerBalance, setCurrentLedgerBalance] = useState(0);
 
@@ -423,33 +435,74 @@ export default function SaleCreate({
 
                         {/* 🚩 Section 3: Financial Placeholders */}
                         <div className="mt-6 grid grid-cols-1 gap-4 md:grid-cols-3">
-                            {/* Other Expense Ledger */}
-                            <div>
-                                <label className="mb-1 block text-sm font-semibold text-gray-700">Other Expense Ledger</label>
+                            {/* Inventory Ledger */}
+                            <div className="col-span-1">
+                                <label className="mb-1 block flex items-center gap-1 text-sm font-semibold text-gray-700">
+                                    Inventory Ledger <span className="text-red-500">*</span>
+                                    {/* Tooltip icon */}
+                                    <div className="group relative cursor-pointer">
+                                        <span className="inline-block h-4 w-4 rounded-full bg-gray-300 text-center text-xs font-bold">?</span>
+
+                                        {/* Tooltip text */}
+                                        <div className="absolute top-6 left-1/2 z-10 hidden w-64 -translate-x-1/2 rounded-md bg-gray-700 p-2 text-xs text-white shadow-md group-hover:block">
+                                            This is the account where purchased or stocked items are tracked. It represents your inventory value in
+                                            accounting.
+                                        </div>
+                                    </div>
+                                </label>
                                 <select
-                                    className="w-full border p-2"
-                                    value={data.other_expense_ledger_id || ''}
-                                    onChange={(e) => setData('other_expense_ledger_id', e.target.value)}
+                                    className="w-full rounded border p-2"
+                                    value={data.inventory_ledger_id}
+                                    onChange={(e) => setData('inventory_ledger_id', e.target.value)}
                                 >
-                                    <option value="">Select Ledger</option>
+                                    <option value="">Your Inventory Ledger</option>
+                                    {inventoryLedgers.map((l) => (
+                                        <option key={l.id} value={l.id}>
+                                            {l.account_ledger_name}
+                                        </option>
+                                    ))}
+                                </select>
+                                <div className="mt-1 text-sm text-gray-500">
+                                    Don’t see your ledger?{' '}
+                                    <button onClick={() => setShowInventoryLedgerModal(true)} className="text-blue-600 underline">
+                                        Create here
+                                    </button>
+                                </div>
+                                {errors.inventory_ledger_id && <div className="text-sm text-red-500">{errors.inventory_ledger_id}</div>}
+                            </div>
+
+                            {/* Other Amount */}
+                            {/* COGS Ledger */}
+                            <div className="col-span-1">
+                                <label className="mb-1 block flex items-center gap-1 text-sm font-semibold text-gray-700">
+                                    COGS Ledger <span className="text-red-500">*</span>
+                                    <div className="group relative cursor-pointer">
+                                        <span className="inline-block h-4 w-4 rounded-full bg-gray-300 text-center text-xs font-bold">?</span>
+                                        <div className="absolute top-6 left-1/2 z-10 hidden w-64 -translate-x-1/2 rounded-md bg-gray-700 p-2 text-xs text-white shadow-md group-hover:block">
+                                            COGS (Cost of Goods Sold) tracks the cost associated with items sold. It reduces your inventory and
+                                            reflects business expense.
+                                        </div>
+                                    </div>
+                                </label>
+                                <select
+                                    className="w-full rounded border p-2"
+                                    value={data.cogs_ledger_id}
+                                    onChange={(e) => setData('cogs_ledger_id', e.target.value)}
+                                >
+                                    <option value="">Select cost tracking ledger</option>
                                     {ledgers.map((l) => (
                                         <option key={l.id} value={l.id}>
                                             {l.account_ledger_name}
                                         </option>
                                     ))}
                                 </select>
-                            </div>
-
-                            {/* Other Amount */}
-                            <div>
-                                <label className="mb-1 block text-sm font-semibold text-gray-700">Other Amount</label>
-                                <input
-                                    type="number"
-                                    placeholder="0.00"
-                                    className="w-full border p-2"
-                                    value={data.other_amount || ''}
-                                    onChange={(e) => setData('other_amount', e.target.value)}
-                                />
+                                <div className="mt-1 text-sm text-gray-500">
+                                    Used to track cost of goods sold. Don’t see one?{' '}
+                                    <button onClick={() => setShowCogsLedgerModal(true)} className="text-blue-600 underline">
+                                        Create one
+                                    </button>
+                                </div>
+                                {errors.cogs_ledger_id && <div className="text-sm text-red-500">{errors.cogs_ledger_id}</div>}
                             </div>
 
                             {/* Receive Mode */}
@@ -694,6 +747,134 @@ export default function SaleCreate({
                     </div>
                 </form>
             </div>
+
+            {/* Inventory Ledger Modal */}
+            {showInventoryLedgerModal && (
+                <div className="bg-opacity-50 fixed inset-0 z-50 flex items-center justify-center bg-black">
+                    <div className="w-full max-w-md rounded bg-white p-6 shadow-lg">
+                        <h2 className="mb-4 text-lg font-semibold text-gray-700">Create Inventory Ledger</h2>
+
+                        <input
+                            type="text"
+                            placeholder="Ledger Name"
+                            className="mb-3 w-full rounded border p-2"
+                            value={newLedgerName}
+                            onChange={(e) => setNewLedgerName(e.target.value)}
+                        />
+
+                        <select className="mb-4 w-full rounded border p-2" value={newGroupId} onChange={(e) => setNewGroupId(e.target.value)}>
+                            <option value="">Select Group</option>
+                            {accountGroups.map((g) => (
+                                <option key={g.id} value={g.id}>
+                                    {g.name}
+                                </option>
+                            ))}
+                        </select>
+
+                        <div className="flex justify-end gap-3">
+                            <button className="rounded bg-gray-400 px-4 py-2 text-white" onClick={() => setShowInventoryLedgerModal(false)}>
+                                Cancel
+                            </button>
+
+                            <button
+                                className="rounded bg-green-600 px-4 py-2 text-white"
+                                onClick={async () => {
+                                    try {
+                                        const response = await axios.post('/account-ledgers/modal', {
+                                            account_ledger_name: newLedgerName,
+                                            account_group_id: newGroupId,
+                                            for_transition_mode: 0,
+                                            mark_for_user: 0,
+                                            phone_number: '0',
+                                            opening_balance: 0,
+                                            debit_credit: 'debit',
+                                            status: 'active',
+                                        });
+
+                                        const newLedger = response.data;
+
+                                        setData('inventory_ledger_id', newLedger.id);
+                                        setInventoryLedgers((prev) => [...prev, newLedger]);
+
+                                        setNewLedgerName('');
+                                        setNewGroupId('');
+                                        setShowInventoryLedgerModal(false);
+                                    } catch (err) {
+                                        console.error(err);
+                                        alert('Failed to create ledger');
+                                    }
+                                }}
+                            >
+                                Create Ledger
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {/* COGS Ledger Modal */}
+            {showCogsLedgerModal && (
+                <div className="bg-opacity-50 fixed inset-0 z-50 flex items-center justify-center bg-black">
+                    <div className="w-full max-w-md rounded bg-white p-6 shadow-lg">
+                        <h2 className="mb-4 text-lg font-semibold text-gray-700">Create COGS Ledger</h2>
+
+                        <input
+                            type="text"
+                            placeholder="Ledger Name"
+                            className="mb-3 w-full rounded border p-2"
+                            value={newLedgerName}
+                            onChange={(e) => setNewLedgerName(e.target.value)}
+                        />
+
+                        <select className="mb-4 w-full rounded border p-2" value={newGroupId} onChange={(e) => setNewGroupId(e.target.value)}>
+                            <option value="">Select Group</option>
+                            {accountGroups.map((g) => (
+                                <option key={g.id} value={g.id}>
+                                    {g.name}
+                                </option>
+                            ))}
+                        </select>
+
+                        <div className="flex justify-end gap-3">
+                            <button className="rounded bg-gray-400 px-4 py-2 text-white" onClick={() => setShowCogsLedgerModal(false)}>
+                                Cancel
+                            </button>
+
+                            <button
+                                className="rounded bg-green-600 px-4 py-2 text-white"
+                                onClick={async () => {
+                                    try {
+                                        const response = await axios.post('/account-ledgers/modal', {
+                                            account_ledger_name: newLedgerName,
+                                            account_group_id: newGroupId,
+                                            for_transition_mode: 0,
+                                            mark_for_user: 0,
+                                            phone_number: '0',
+                                            opening_balance: 0,
+                                            debit_credit: 'debit',
+                                            status: 'active',
+                                        });
+
+                                        const newLedger = response.data;
+
+                                        setData('cogs_ledger_id', newLedger.id);
+                                        // optional: update dropdown if COGS ledgers are filtered separately
+
+                                        setNewLedgerName('');
+                                        setNewGroupId('');
+                                        setShowCogsLedgerModal(false);
+                                    } catch (err) {
+                                        console.error(err);
+                                        alert('Failed to create ledger');
+                                    }
+                                }}
+                            >
+                                Create Ledger
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
         </AppLayout>
     );
 }

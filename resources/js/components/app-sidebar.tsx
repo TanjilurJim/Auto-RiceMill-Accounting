@@ -224,6 +224,25 @@ const mainNavItems: NavItem[] = [
     },
 
     {
+        title: 'Reports',
+        icon: Settings2,
+
+        children: [
+            {
+                title: 'Stock Report',
+                href: '/reports/stock-summary',
+                icon: Users,
+            },
+            {
+                title: 'Company Settings',
+                href: '/company-settings',
+                icon: Building2, // 👈 This icon works well for users
+            },
+            // Later you can add more inventory-related items here (e.g., Products, Stock Transfers, etc.)
+        ],
+    },
+
+    {
         title: 'Settings',
         icon: Settings2,
 
@@ -260,16 +279,16 @@ const mainNavItems: NavItem[] = [
 ];
 
 const footerNavItems: NavItem[] = [
-    {
-        title: 'Repository',
-        href: 'https://github.com/laravel/react-starter-kit',
-        icon: Folder,
-    },
-    {
-        title: 'Documentation',
-        href: 'https://laravel.com/docs/starter-kits',
-        icon: BookOpen,
-    },
+    // {
+    //     title: 'Repository',
+    //     href: 'https://github.com/laravel/react-starter-kit',
+    //     icon: Folder,
+    // },
+    // {
+    //     title: 'Documentation',
+    //     href: 'https://laravel.com/docs/starter-kits',
+    //     icon: BookOpen,
+    // },
 ];
 
 // Recursively filter nav items based on roles

@@ -83,10 +83,10 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::resource('categories', CategoryController::class);
     Route::resource('items', ItemController::class);
     Route::resource('purchases', PurchaseController::class);
-    
+
 
     // 👇 Used only by the modal via axios
-   
+
 
 
     Route::get('/purchases/{purchase}/invoice', [PurchaseController::class, 'invoice'])
@@ -99,7 +99,9 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('/sales/{sale}/load-slip', [SaleController::class, 'loadSlip'])->name('sales.load-slip');
     Route::get('/sales/{sale}/gate-pass', [SaleController::class, 'gatePass'])->name('sales.gate-pass');
 
+    //Sales Return
     Route::resource('sales-returns', SalesReturnController::class);
+    Route::get('/sales/{sale}/load', [SalesReturnController::class, 'loadSale']);
     Route::get('/sales-returns/{salesReturn}/invoice', [SalesReturnController::class, 'invoice'])->name('sales-returns.invoice');
     Route::resource('sales-orders', SalesOrderController::class);
     Route::get('/sales-orders/{salesOrder}/invoice', [SalesOrderController::class, 'invoice'])->name('sales-orders.invoice');
@@ -142,7 +144,18 @@ Route::middleware(['auth', 'verified'])->group(function () {
     ]);
     // Employee Report
     Route::get('employee-ledger', [ReportController::class, 'employeeLedger'])->name('employee.ledger');
+
+    //Stock Report
+    Route::get('/reports/stock-summary', [ReportController::class, 'stockSummary'])->name('reports.stock-summary');
+   
 });
+
+Route::get('/reports/stock-summary/pdf', [ReportController::class, 'stockSummaryPDF'])
+->name('reports.stock-summary.pdf');
+
+
+Route::get('/reports/stock-summary/excel', [ReportController::class, 'stockSummaryExcel'])
+->name('reports.stock-summary.excel');
 
 require __DIR__ . '/settings.php';
 require __DIR__ . '/auth.php';

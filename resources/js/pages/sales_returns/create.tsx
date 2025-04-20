@@ -1,5 +1,7 @@
 import AppLayout from '@/layouts/app-layout';
 import { Head, Link, useForm } from '@inertiajs/react';
+import axios from 'axios';
+import { useEffect, useState } from 'react';
 
 interface Sale {
     id: number;
@@ -14,6 +16,10 @@ interface AccountLedger {
 interface Product {
     id: number;
     item_name: string;
+}
+interface ReceivedMode {
+    id: number;
+    mode_name: string;
 }
 
 interface Godown {
@@ -33,6 +39,7 @@ export default function SalesReturnCreate({
     godowns,
     salesmen,
     voucher,
+    receivedModes,
 }: {
     sales: Sale[];
     ledgers: AccountLedger[];
@@ -40,6 +47,7 @@ export default function SalesReturnCreate({
     godowns: Godown[];
     salesmen: Salesman[];
     voucher: string;
+    receivedModes: ReceivedMode[];
 }) {
     const { data, setData, post, processing, errors } = useForm({
         sale_id: '',
@@ -52,9 +60,40 @@ export default function SalesReturnCreate({
         phone: '',
         address: '',
         shipping_details: '',
+        inventory_ledger_id: '',
+        received_mode_id: '',
+        amount_received: '',
         delivered_to: '',
         sales_return_items: [{ product_id: '', qty: '', main_price: '', discount: '', return_amount: '' }],
     });
+
+    useEffect(() => {
+        if (data.sale_id) {
+            axios.get(`/sales/${data.sale_id}/load`).then((res) => {
+                const sale = res.data;
+                setData((prev) => ({
+                    ...prev,
+                    account_ledger_id: sale.account_ledger_id,
+                    godown_id: sale.godown_id,
+                    salesman_id: sale.salesman_id,
+                    phone: sale.phone || '',
+                    address: sale.address || '',
+                    inventory_ledger_id: sale.inventory_ledger_id ?? '',
+                    cogs_ledger_id: sale.cogs_ledger_id ?? '',
+                    received_mode_id: sale.received_mode_id ?? '',
+                    amount_received: sale.amount_received ?? '', // or 0
+                    sales_return_items: sale.sale_items.map((item: any) => ({
+                        product_id: item.product_id,
+                        qty: item.qty,
+                        max_qty: item.max_qty, // 💡 include this
+                        main_price: item.main_price,
+                        discount: item.discount ?? '0',
+                        return_amount: (parseFloat(item.qty) * parseFloat(item.main_price) - parseFloat(item.discount ?? 0)).toFixed(2),
+                    })),
+                }));
+            });
+        }
+    }, [data.sale_id]);
 
     const calculateTotals = () => {
         let totalQty = 0;
@@ -72,6 +111,13 @@ export default function SalesReturnCreate({
 
         return { totalQty, totalReturnAmount };
     };
+
+    useEffect(() => {
+        const refundAmount = calculateTotals().totalReturnAmount;
+        setData('amount_received', refundAmount.toFixed(2));
+    }, [data.sales_return_items]);
+    
+
 
     const handleItemChange = (index: number, field: string, value: any) => {
         const updatedItems = [...data.sales_return_items];
@@ -100,6 +146,11 @@ export default function SalesReturnCreate({
         e.preventDefault();
         post('/sales-returns');
     };
+    const [showCogsLedgerModal, setShowCogsLedgerModal] = useState(false);
+    const [newLedgerName, setNewLedgerName] = useState('');
+    const [newGroupId, setNewGroupId] = useState('');
+    const [showInventoryLedgerModal, setShowInventoryLedgerModal] = useState(false);
+    const [modalTargetField, setModalTargetField] = useState<'inventory' | 'cogs'>('inventory');
 
     const { totalQty, totalReturnAmount } = calculateTotals();
 
@@ -148,6 +199,84 @@ export default function SalesReturnCreate({
                                     </option>
                                 ))}
                             </select>
+                        </div>
+                        {/* Inventory Ledger Selection */}
+                        <label className="mb-1 block text-sm font-medium">Inventory Ledger</label>
+                        <select
+                            className="w-full border p-2"
+                            value={data.inventory_ledger_id}
+                            onChange={(e) => setData('inventory_ledger_id', e.target.value)}
+                        >
+                            <option value="">Select Inventory Ledger</option>
+                            {ledgers.map((ledger) => (
+                                <option key={ledger.id} value={ledger.id}>
+                                    {ledger.account_ledger_name}
+                                </option>
+                            ))}
+                        </select>
+                        <div className="text-sm text-gray-500">
+                            Don’t see one?{' '}
+                            <button
+                                type="button"
+                                className="text-blue-600 underline"
+                                onClick={() => {
+                                    setModalTargetField('inventory');
+                                    setShowInventoryLedgerModal(true);
+                                }}
+                            >
+                                Create
+                            </button>
+                        </div>
+                        <label className="mb-1 block text-sm font-medium">COGS Ledger</label>
+                        <select
+                            className="w-full border p-2"
+                            value={data.cogs_ledger_id || ''}
+                            onChange={(e) => setData('cogs_ledger_id', e.target.value)}
+                        >
+                            <option value="">Select COGS Ledger</option>
+                            {ledgers.map((ledger) => (
+                                <option key={ledger.id} value={ledger.id}>
+                                    {ledger.account_ledger_name}
+                                </option>
+                            ))}
+                        </select>
+                        <div className="text-sm text-gray-500">
+                            Don’t see one?{' '}
+                            <button
+                                type="button"
+                                className="text-blue-600 underline"
+                                onClick={() => {
+                                    setModalTargetField('cogs');
+                                    setShowInventoryLedgerModal(true); // same modal
+                                }}
+                            >
+                                Create
+                            </button>
+                        </div>
+                        <div>
+                            <label className="mb-1 block text-sm font-medium">Refund Mode</label>
+                            <select
+                                className="w-full border p-2"
+                                value={data.received_mode_id}
+                                onChange={(e) => setData('received_mode_id', e.target.value)}
+                            >
+                                <option value="">Select Mode</option>
+                                {receivedModes.map((mode) => (
+                                    <option key={mode.id} value={mode.id}>
+                                        {mode.mode_name}
+                                    </option>
+                                ))}
+                            </select>
+                        </div>
+
+                        <div>
+                            <label className="mb-1 block text-sm font-medium">Refund Amount</label>
+                            <input
+                                type="number"
+                                className="w-full border p-2"
+                                value={data.amount_received}
+                                onChange={(e) => setData('amount_received', e.target.value)}
+                            />
                         </div>
 
                         <div>
@@ -219,7 +348,9 @@ export default function SalesReturnCreate({
 
                         {data.sales_return_items.map((item, index) => (
                             <div key={index} className="mb-3 grid grid-cols-12 items-end gap-2">
+                                {/* Product Selector */}
                                 <div className="col-span-3">
+                                    <label className="mb-1 block text-sm font-medium">Product</label>
                                     <select
                                         className="w-full rounded border p-2"
                                         value={item.product_id}
@@ -234,17 +365,21 @@ export default function SalesReturnCreate({
                                     </select>
                                 </div>
 
+                                {/* Quantity */}
                                 <div className="col-span-1">
+                                    <label className="mb-1 block text-sm font-medium">Qty</label>
                                     <input
                                         type="number"
-                                        placeholder="Qty"
+                                        max={item.max_qty}
                                         className="w-full rounded border p-2"
                                         value={item.qty}
                                         onChange={(e) => handleItemChange(index, 'qty', e.target.value)}
                                     />
                                 </div>
 
+                                {/* Price */}
                                 <div className="col-span-2">
+                                    <label className="mb-1 block text-sm font-medium">Price</label>
                                     <input
                                         type="number"
                                         placeholder="Price"
@@ -254,7 +389,9 @@ export default function SalesReturnCreate({
                                     />
                                 </div>
 
+                                {/* Discount */}
                                 <div className="col-span-2">
+                                    <label className="mb-1 block text-sm font-medium">Discount</label>
                                     <input
                                         type="number"
                                         placeholder="Discount"
@@ -264,7 +401,9 @@ export default function SalesReturnCreate({
                                     />
                                 </div>
 
+                                {/* Subtotal */}
                                 <div className="col-span-2">
+                                    <label className="mb-1 block text-sm font-medium">Subtotal</label>
                                     <input
                                         type="number"
                                         placeholder="Subtotal"
@@ -274,6 +413,7 @@ export default function SalesReturnCreate({
                                     />
                                 </div>
 
+                                {/* Buttons for Adding and Removing Rows */}
                                 <div className="col-span-1 flex gap-1">
                                     {data.sales_return_items.length > 1 && (
                                         <button
@@ -292,16 +432,6 @@ export default function SalesReturnCreate({
                                 </div>
                             </div>
                         ))}
-
-                        {/* Totals */}
-                        <div className="mt-4 grid grid-cols-2 gap-4">
-                            <div>
-                                Total Qty: <strong>{totalQty.toFixed(2)}</strong>
-                            </div>
-                            <div>
-                                Total Return Amount: <strong>{totalReturnAmount.toFixed(2)}</strong>
-                            </div>
-                        </div>
                     </div>
 
                     {/* Delivery Info */}
@@ -345,6 +475,70 @@ export default function SalesReturnCreate({
                     </div>
                 </form>
             </div>
+            {showInventoryLedgerModal && (
+                <div className="bg-opacity-50 fixed inset-0 z-50 flex items-center justify-center bg-black">
+                    <div className="w-full max-w-md rounded bg-white p-6 shadow-lg">
+                        <h2 className="mb-4 text-lg font-semibold text-gray-700">Create New Ledger</h2>
+
+                        <input
+                            type="text"
+                            placeholder="Ledger Name"
+                            className="mb-3 w-full rounded border p-2"
+                            value={newLedgerName}
+                            onChange={(e) => setNewLedgerName(e.target.value)}
+                        />
+
+                        <select className="mb-4 w-full rounded border p-2" value={newGroupId} onChange={(e) => setNewGroupId(e.target.value)}>
+                            <option value="">Select Group</option>
+                            {/* Assuming you pass `accountGroups` from backend */}
+                            {accountGroups.map((g) => (
+                                <option key={g.id} value={g.id}>
+                                    {g.name}
+                                </option>
+                            ))}
+                        </select>
+
+                        <div className="flex justify-end gap-3">
+                            <button className="rounded bg-gray-400 px-4 py-2 text-white" onClick={() => setShowInventoryLedgerModal(false)}>
+                                Cancel
+                            </button>
+                            <button
+                                className="rounded bg-green-600 px-4 py-2 text-white"
+                                onClick={async () => {
+                                    try {
+                                        const response = await axios.post('/account-ledgers/modal', {
+                                            account_ledger_name: newLedgerName,
+                                            account_group_id: newGroupId,
+                                            for_transition_mode: 0,
+                                            mark_for_user: 0,
+                                            phone_number: '0',
+                                            opening_balance: 0,
+                                            debit_credit: 'debit',
+                                            status: 'active',
+                                        });
+
+                                        const newLedger = response.data;
+
+                                        if (modalTargetField === 'inventory') {
+                                            setData('inventory_ledger_id', newLedger.id);
+                                        } else {
+                                            setData('cogs_ledger_id', newLedger.id);
+                                        }
+
+                                        setNewLedgerName('');
+                                        setNewGroupId('');
+                                        setShowInventoryLedgerModal(false);
+                                    } catch (err) {
+                                        alert('Failed to create ledger');
+                                    }
+                                }}
+                            >
+                                Create Ledger
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
         </AppLayout>
     );
 }

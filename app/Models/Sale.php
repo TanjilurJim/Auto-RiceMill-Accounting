@@ -35,8 +35,10 @@ class Sale extends Model
         'total_due',
         'closing_balance',
         'created_by',
+        'inventory_ledger_id',
         'received_mode_id',     // ✅ Add this
         'amount_received',
+        'cogs_ledger_id', // ✅ Add this
         'journal_id',  
     ];
 

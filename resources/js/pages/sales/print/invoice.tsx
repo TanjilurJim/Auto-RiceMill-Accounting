@@ -1,4 +1,4 @@
-import { Head } from '@inertiajs/react';
+import { Head, Link } from '@inertiajs/react';
 
 export default function SaleInvoice({ sale, company }: { sale: any; company: any }) {
     const handlePrint = () => {
@@ -8,6 +8,10 @@ export default function SaleInvoice({ sale, company }: { sale: any; company: any
     return (
         <div className="container mx-auto p-8 bg-white shadow-md">
             {/* Header */}
+            <Link href="/sales" className="rounded bg-gray-300 px-4 py-2 hover:bg-neutral-100">
+                        Back
+                    </Link>
+            
             <div className="text-center mb-4">
                 <h1 className="text-3xl font-bold uppercase">{company.name}</h1>
                 <p className="text-lg">{company.address}</p>

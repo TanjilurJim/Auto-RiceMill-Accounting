@@ -70,6 +70,8 @@ export default function SaleEdit({
     ledgers,
     items,
     receivedModes,
+    inventoryLedgers, // ✅ add this
+    accountGroups,
 }: {
     sale: Sale;
     godowns: Godown[];
@@ -77,6 +79,8 @@ export default function SaleEdit({
     ledgers: Ledger[];
     items: Item[];
     receivedModes: ReceivedMode[];
+    inventoryLedgers: Ledger[]; // ✅ define type
+    accountGroups: { id: number; name: string }[]; // ✅ define type
 }) {
     const { data, setData, put, processing, errors } = useForm({
         date: sale.date,
@@ -92,6 +96,8 @@ export default function SaleEdit({
         other_amount: sale.other_amount,
         received_mode_id: sale.received_mode_id ?? '', // ✅ updated
         amount_received: sale.amount_received ?? '',
+        cogs_ledger_id: sale.cogs_ledger_id || '',
+        inventory_ledger_id: sale.inventory_ledger_id || '',
         total_due: sale.total_due,
         closing_balance: sale.closing_balance,
         truck_rent: sale.truck_rent,
@@ -364,21 +370,56 @@ export default function SaleEdit({
 
                         {/* 🚩 Section 3: Financial Placeholders */}
                         <div className="mt-6 grid grid-cols-1 gap-4 md:grid-cols-3">
-                            {/* Other Expense Ledger */}
-                            <div>
-                                <label className="mb-1 block text-sm font-semibold text-gray-700">Other Expense Ledger</label>
+                            {/* Inventory Ledger */}
+                            <div className="col-span-1">
+                                <label className="mb-1 block flex items-center gap-1 text-sm font-semibold text-gray-700">
+                                    Inventory Ledger <span className="text-red-500">*</span>
+                                    <div className="group relative cursor-pointer">
+                                        <span className="inline-block h-4 w-4 rounded-full bg-gray-300 text-center text-xs font-bold">?</span>
+                                        <div className="absolute top-6 left-1/2 z-10 hidden w-64 -translate-x-1/2 rounded-md bg-gray-700 p-2 text-xs text-white shadow-md group-hover:block">
+                                            This is the account where sold inventory is tracked in accounting.
+                                        </div>
+                                    </div>
+                                </label>
                                 <select
-                                    className="w-full border p-2"
-                                    value={data.other_expense_ledger_id || ''}
-                                    onChange={(e) => setData('other_expense_ledger_id', e.target.value)}
+                                    className="w-full rounded border p-2"
+                                    value={data.inventory_ledger_id}
+                                    onChange={(e) => setData('inventory_ledger_id', e.target.value)}
                                 >
-                                    <option value="">Select Ledger</option>
+                                    <option value="">Select Inventory Ledger</option>
+                                    {inventoryLedgers.map((l) => (
+                                        <option key={l.id} value={l.id}>
+                                            {l.account_ledger_name}
+                                        </option>
+                                    ))}
+                                </select>
+                                {errors.inventory_ledger_id && <div className="text-sm text-red-500">{errors.inventory_ledger_id}</div>}
+                            </div>
+
+                            {/* COGS Ledger */}
+                            <div className="col-span-1">
+                                <label className="mb-1 block flex items-center gap-1 text-sm font-semibold text-gray-700">
+                                    COGS Ledger <span className="text-red-500">*</span>
+                                    <div className="group relative cursor-pointer">
+                                        <span className="inline-block h-4 w-4 rounded-full bg-gray-300 text-center text-xs font-bold">?</span>
+                                        <div className="absolute top-6 left-1/2 z-10 hidden w-64 -translate-x-1/2 rounded-md bg-gray-700 p-2 text-xs text-white shadow-md group-hover:block">
+                                            COGS (Cost of Goods Sold) tracks the cost related to items sold. It's an expense.
+                                        </div>
+                                    </div>
+                                </label>
+                                <select
+                                    className="w-full rounded border p-2"
+                                    value={data.cogs_ledger_id}
+                                    onChange={(e) => setData('cogs_ledger_id', e.target.value)}
+                                >
+                                    <option value="">Select COGS Ledger</option>
                                     {ledgers.map((l) => (
                                         <option key={l.id} value={l.id}>
                                             {l.account_ledger_name}
                                         </option>
                                     ))}
                                 </select>
+                                {errors.cogs_ledger_id && <div className="text-sm text-red-500">{errors.cogs_ledger_id}</div>}
                             </div>
 
                             {/* Other Amount */}
