@@ -1,6 +1,7 @@
 import ActionButtons from '@/components/ActionButtons';
 import { confirmDialog } from '@/components/confirmDialog';
 import PageHeader from '@/components/PageHeader';
+import Pagination from '@/components/Pagination';
 import AppLayout from '@/layouts/app-layout';
 import { type BreadcrumbItem } from '@/types';
 import { Head, Link, router, usePage } from '@inertiajs/react';
@@ -214,7 +215,7 @@ export default function UserIndex({ users, filter, search }: { users: Pagination
                     </table>
 
                     {/* Pagination */}
-                    <div className="mt-4 flex flex-wrap justify-end gap-1">
+                    {/* <div className="mt-4 flex flex-wrap justify-end gap-1">
                         {users.links.map((link, index) => (
                             <Link
                                 key={index}
@@ -224,7 +225,8 @@ export default function UserIndex({ users, filter, search }: { users: Pagination
                                     } ${!link.url && 'pointer-events-none opacity-50'}`}
                             />
                         ))}
-                    </div>
+                    </div> */}
+                    <Pagination links={users.links} />
                 </div>
             </div>
         </AppLayout>

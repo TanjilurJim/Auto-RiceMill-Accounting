@@ -1,6 +1,7 @@
 import ActionButtons from '@/components/ActionButtons';
 import { confirmDialog } from '@/components/confirmDialog';
 import PageHeader from '@/components/PageHeader';
+import Pagination from '@/components/Pagination';
 import AppLayout from '@/layouts/app-layout';
 import { Head, Link, router } from '@inertiajs/react';
 import { FiEdit, FiEye, FiTrash } from 'react-icons/fi';
@@ -200,6 +201,7 @@ export default function Index({ workingOrders }: Props) {
                 </div>
 
                 {/* pagination info */}
+                
                 <div className="mt-6 flex items-center justify-between text-sm text-gray-500">
                     <span>
                         Page {workingOrders.current_page} of {workingOrders.last_page}
@@ -208,7 +210,8 @@ export default function Index({ workingOrders }: Props) {
                 </div>
 
                 {/* pagination links */}
-                <div className="mt-4 flex gap-3">
+                {/* Pagination */}
+                {/* <div className="mt-4 flex gap-3">
                     {workingOrders.links?.map((link, idx) => (
                         <Link
                             key={idx}
@@ -226,7 +229,8 @@ export default function Index({ workingOrders }: Props) {
                             <span dangerouslySetInnerHTML={{ __html: link.label }} />
                         </Link>
                     ))}
-                </div>
+                </div> */}
+                <Pagination links={workingOrders.links} />
             </div>
         </AppLayout>
     );

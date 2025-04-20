@@ -1,6 +1,7 @@
 import ActionButtons from '@/components/ActionButtons';
 import { confirmDialog } from '@/components/confirmDialog';
 import PageHeader from '@/components/PageHeader';
+import Pagination from '@/components/Pagination';
 import AppLayout from '@/layouts/app-layout';
 import { Head, Link, router } from '@inertiajs/react';
 import Swal from 'sweetalert2';
@@ -108,8 +109,8 @@ export default function Index({ contras }: any) {
                             )}
                         </tbody>
                     </table>
-
-                    <div className="mt-4 flex justify-end">
+                    {/* Pagination */}
+                    {/* <div className="mt-4 flex justify-end">
                         {contras.links.map((link: any, index: number) => (
                             <button
                                 key={index}
@@ -120,7 +121,8 @@ export default function Index({ contras }: any) {
                                 dangerouslySetInnerHTML={{ __html: link.label }}
                             />
                         ))}
-                    </div>
+                    </div> */}
+                    <Pagination links={contras.links} />
                 </div>
             </div>
         </AppLayout>

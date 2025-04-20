@@ -3,6 +3,7 @@ import ActionButtons from '@/components/ActionButtons';
 import ActionFooter from '@/components/ActionFooter';
 import AddBtn from '@/components/Btn&Link/AddBtn';
 import { confirmDialog } from '@/components/confirmDialog';
+import Pagination from '@/components/Pagination';
 import AppLayout from '@/layouts/app-layout';
 import { Head, useForm, router } from '@inertiajs/react';
 import { useState } from 'react';
@@ -120,7 +121,7 @@ export default function CategoryIndex({ categories }: { categories: PaginatedCat
                         </table>
 
                         {/* Pagination */}
-                        <div className="mt-4 flex flex-wrap justify-end gap-1">
+                        {/* <div className="mt-4 flex flex-wrap justify-end gap-1">
                             {categories.links.map((link, index) => (
                                 <a
                                     key={index}
@@ -130,7 +131,8 @@ export default function CategoryIndex({ categories }: { categories: PaginatedCat
                                         } ${!link.url && 'pointer-events-none opacity-50'}`}
                                 />
                             ))}
-                        </div>
+                        </div> */}
+                        <Pagination links={categories.links} />
                     </div>
 
                     {/* Right: Form */}

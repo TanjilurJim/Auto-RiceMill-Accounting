@@ -1,6 +1,7 @@
 import ActionButtons from '@/components/ActionButtons';
 import { confirmDialog } from '@/components/confirmDialog';
 import PageHeader from '@/components/PageHeader';
+import Pagination from '@/components/Pagination';
 import AppLayout from '@/layouts/app-layout';
 import { Head, Link, router } from '@inertiajs/react';
 import Swal from 'sweetalert2';
@@ -127,7 +128,7 @@ export default function SalaryReceiveIndex({ salaryReceives }: { salaryReceives:
                 </div>
 
                 {/* Pagination */}
-                <div className="mt-4 flex justify-end gap-1">
+                {/* <div className="mt-4 flex justify-end gap-1">
                     {salaryReceives.links.map((link, index) => (
                         <Link
                             key={index}
@@ -136,7 +137,8 @@ export default function SalaryReceiveIndex({ salaryReceives }: { salaryReceives:
                             className={`rounded px-3 py-1 text-sm ${link.active ? 'bg-blue-600 text-white' : 'hover:bg-neutral-200 dark:hover:bg-neutral-800'} ${!link.url && 'pointer-events-none opacity-50'}`}
                         />
                     ))}
-                </div>
+                </div> */}
+                <Pagination links={salaryReceives.links} />
             </div>
         </AppLayout>
     );

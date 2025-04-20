@@ -1,6 +1,7 @@
 import ActionButtons from '@/components/ActionButtons';
 import { confirmDialog } from '@/components/confirmDialog';
 import PageHeader from '@/components/PageHeader';
+import Pagination from '@/components/Pagination';
 import AppLayout from '@/layouts/app-layout';
 import { Head, Link, router } from '@inertiajs/react';
 import Swal from 'sweetalert2';
@@ -128,7 +129,7 @@ export default function Index({ journals }: any) {
                     </table>
 
                     {/* Pagination */}
-                    <div className="mt-4 flex justify-end">
+                    {/* <div className="mt-4 flex justify-end">
                         {journals.links.map((link: any, index: number) => (
                             <button
                                 key={index}
@@ -143,7 +144,8 @@ export default function Index({ journals }: any) {
                                 dangerouslySetInnerHTML={{ __html: link.label }}
                             />
                         ))}
-                    </div>
+                    </div> */}
+                    <Pagination links={journals.links} />
                 </div>
             </div>
         </AppLayout>

@@ -5,6 +5,7 @@ import Swal from 'sweetalert2';
 import PageHeader from '@/components/PageHeader';
 import ActionButtons from '@/components/ActionButtons';
 import { confirmDialog } from '@/components/confirmDialog';
+import Pagination from '@/components/Pagination';
 
 interface SaleItem {
   item: { item_name: string } | null;
@@ -193,7 +194,7 @@ export default function SaleIndex({ sales }: { sales: PaginatedSales }) {
         </div>
 
         {/* Pagination */}
-        <div className="mt-4 flex justify-end gap-1">
+        {/* <div className="mt-4 flex justify-end gap-1">
           {sales.links.map((link, index) => (
             <Link
               key={index}
@@ -203,7 +204,8 @@ export default function SaleIndex({ sales }: { sales: PaginatedSales }) {
                 } ${!link.url && 'pointer-events-none opacity-50'}`}
             />
           ))}
-        </div>
+        </div> */}
+        <Pagination links={sales.links} />
 
         {/* 🔥 The "Print" Dropdown outside the table so it won't be clipped */}
         {openDropdown !== null && (

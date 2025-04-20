@@ -1,6 +1,7 @@
 import ActionButtons from '@/components/ActionButtons';
 import { confirmDialog } from '@/components/confirmDialog';
 import PageHeader from '@/components/PageHeader';
+import Pagination from '@/components/Pagination';
 import AppLayout from '@/layouts/app-layout';
 import { Head, Link, router } from '@inertiajs/react';
 import Swal from 'sweetalert2';
@@ -128,7 +129,7 @@ export default function SalesReturnIndex({ salesReturns }: { salesReturns: Pagin
         </div>
 
         {/* Pagination */}
-        <div className="mt-6 flex justify-end gap-3">
+        {/* <div className="mt-6 flex justify-end gap-3">
           {salesReturns.links.map((link, index) => (
             <Link
               key={index}
@@ -138,7 +139,8 @@ export default function SalesReturnIndex({ salesReturns }: { salesReturns: Pagin
                 } ${!link.url && 'pointer-events-none opacity-50'}`}
             />
           ))}
-        </div>
+        </div> */}
+        <Pagination links={salesReturns.links} />
       </div>
     </AppLayout>
   );

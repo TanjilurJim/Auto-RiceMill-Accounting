@@ -3,6 +3,7 @@ import ActionButtons from '@/components/ActionButtons';
 import ActionFooter from '@/components/ActionFooter';
 import AddBtn from '@/components/Btn&Link/AddBtn';
 import { confirmDialog } from '@/components/confirmDialog';
+import Pagination from '@/components/Pagination';
 import AppLayout from '@/layouts/app-layout';
 import { Head, Link, useForm } from '@inertiajs/react';
 import { useState } from 'react';
@@ -133,7 +134,7 @@ export default function UnitIndex({ units }: { units: PaginatedUnits }) {
                         </table>
 
                         {/* Pagination */}
-                        <div className="mt-4 flex flex-wrap justify-end gap-1">
+                        {/* <div className="mt-4 flex flex-wrap justify-end gap-1">
                             {units.links.map((link, index) => (
                                 <Link
                                     key={index}
@@ -143,9 +144,8 @@ export default function UnitIndex({ units }: { units: PaginatedUnits }) {
                                         } ${!link.url && 'pointer-events-none opacity-50'}`}
                                 />
                             ))}
-                        </div>
-                        {/* Pagination */}
-                        {/* <Pagination links={units.links} /> */}
+                        </div> */}
+                        <Pagination links={units.links} />
                     </div>
 
                     {/* Right: Form */}

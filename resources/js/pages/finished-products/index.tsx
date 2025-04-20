@@ -1,6 +1,7 @@
 import ActionButtons from '@/components/ActionButtons';
 import { confirmDialog } from '@/components/confirmDialog';
 import PageHeader from '@/components/PageHeader';
+import Pagination from '@/components/Pagination';
 import AppLayout from '@/layouts/app-layout';
 import { Head, Link, router } from '@inertiajs/react';
 import { FiEdit, FiEye, FiTrash } from 'react-icons/fi';
@@ -178,6 +179,7 @@ export default function Index({ finishedProducts }: Props) {
                     </span>
                     <span>Total: {finishedProducts.total}</span>
                 </div>
+                <Pagination links={finishedProducts.links} />
             </div>
         </AppLayout>
     );

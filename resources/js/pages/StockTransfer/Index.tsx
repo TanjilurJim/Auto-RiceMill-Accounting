@@ -5,6 +5,7 @@ import { FiEdit, FiTrash, FiEye } from 'react-icons/fi'; // Icon library
 import PageHeader from '@/components/PageHeader';
 import ActionButtons from '@/components/ActionButtons';
 import { confirmDialog } from '@/components/confirmDialog';
+import Pagination from '@/components/Pagination';
 
 interface Godown {
     name: string;
@@ -163,7 +164,8 @@ export default function Index({ stockTransfers }: Props) {
                     <span>Total: {stockTransfers.total}</span>
                 </div>
 
-                <div className="mt-4 flex gap-3">
+                {/* Pagination */}
+                {/* <div className="mt-4 flex gap-3">
                     {stockTransfers.links?.map((link, index) => (
                         <Link
                             key={index}
@@ -181,7 +183,8 @@ export default function Index({ stockTransfers }: Props) {
                             <span dangerouslySetInnerHTML={{ __html: link.label }} />
                         </Link>
                     ))}
-                </div>
+                </div> */}
+                <Pagination links={stockTransfers.links} />
             </div>
         </AppLayout>
     );

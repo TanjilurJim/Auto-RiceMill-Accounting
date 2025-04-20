@@ -103,7 +103,6 @@ export default function GodownIndex({ godowns }: { godowns: PaginatedGodowns }) 
                             />
                         ))}
                     </div> */}
-                    {/* Pagination */}
                     <Pagination links={godowns.links} />
 
                 </div>

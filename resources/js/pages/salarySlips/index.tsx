@@ -1,6 +1,7 @@
 import ActionButtons from '@/components/ActionButtons';
 import { confirmDialog } from '@/components/confirmDialog';
 import PageHeader from '@/components/PageHeader';
+import Pagination from '@/components/Pagination';
 import AppLayout from '@/layouts/app-layout';
 import { Head, Link, router } from '@inertiajs/react';
 import { useState } from 'react';
@@ -297,7 +298,7 @@ export default function SalarySlipIndex({ salarySlips, employees }: Props) {
                 </div>
 
                 {/* Pagination */}
-                <div className="mt-4 flex justify-end gap-1">
+                {/* <div className="mt-4 flex justify-end gap-1">
                     {salarySlips.links.map((link, index) => (
                         <Link
                             key={index}
@@ -306,7 +307,8 @@ export default function SalarySlipIndex({ salarySlips, employees }: Props) {
                             className={`rounded px-3 py-1 text-sm ${link.active ? 'bg-blue-600 text-white' : 'hover:bg-neutral-200'} ${!link.url && 'pointer-events-none opacity-50'}`}
                         />
                     ))}
-                </div>
+                </div> */}
+                <Pagination links={salarySlips.links} />
             </div>
         </AppLayout>
     );

@@ -1,6 +1,7 @@
 import ActionButtons from '@/components/ActionButtons';
 import { confirmDialog } from '@/components/confirmDialog';
 import PageHeader from '@/components/PageHeader';
+import Pagination from '@/components/Pagination';
 import AppLayout from '@/layouts/app-layout';
 import { Head, Link, router } from '@inertiajs/react';
 import { useEffect, useState } from 'react';
@@ -177,8 +178,9 @@ export default function Index({ paymentAdds, filters, paymentModes }: Props) {
                         </tbody>
                     </table>
 
-                    {/* ✅ Pagination */}
-                    <div className="mt-4 flex justify-end">
+
+                    {/* Pagination */}
+                    {/* <div className="mt-4 flex justify-end">
                         {paymentAdds.links.map((link: any, index: number) => (
                             <button
                                 key={index}
@@ -193,7 +195,8 @@ export default function Index({ paymentAdds, filters, paymentModes }: Props) {
                                 dangerouslySetInnerHTML={{ __html: link.label }}
                             />
                         ))}
-                    </div>
+                    </div> */}
+                    <Pagination links={paymentAdds.links} />
                 </div>
             </div>
         </AppLayout>
