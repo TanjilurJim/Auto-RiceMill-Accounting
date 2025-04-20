@@ -4,6 +4,7 @@ import { SearchBar } from '@/components/ui/search-bar';
 import { confirmDialog } from '@/components/confirmDialog';
 import PageHeader from '@/components/PageHeader';
 import ActionButtons from '@/components/ActionButtons';
+import Pagination from '@/components/Pagination';
 
 interface Godown {
     id: number;
@@ -89,7 +90,7 @@ export default function GodownIndex({ godowns }: { godowns: PaginatedGodowns }) 
                     </table>
 
                     {/* Pagination */}
-                    <div className="mt-4 flex justify-end gap-1">
+                    {/* <div className="mt-4 flex justify-end gap-1">
                         {godowns.links.map((link, index) => (
                             <Link
                                 key={index}
@@ -101,7 +102,10 @@ export default function GodownIndex({ godowns }: { godowns: PaginatedGodowns }) 
                                     } ${!link.url && 'pointer-events-none opacity-50'}`}
                             />
                         ))}
-                    </div>
+                    </div> */}
+                    {/* Pagination */}
+                    <Pagination links={godowns.links} />
+
                 </div>
             </div>
         </AppLayout>

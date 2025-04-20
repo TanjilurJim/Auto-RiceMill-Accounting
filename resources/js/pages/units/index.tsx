@@ -144,6 +144,8 @@ export default function UnitIndex({ units }: { units: PaginatedUnits }) {
                                 />
                             ))}
                         </div>
+                        {/* Pagination */}
+                        {/* <Pagination links={units.links} /> */}
                     </div>
 
                     {/* Right: Form */}
