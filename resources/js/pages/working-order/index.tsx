@@ -74,7 +74,7 @@ export default function Index({ workingOrders }: Props) {
         <AppLayout>
             <Head title="Working Orders" />
 
-            <div className="mx-auto w-full max-w-7xl rounded-2xl bg-gray-100 px-6 py-8 shadow-xl">
+            <div className="mx-auto w-full max-w-7xl rounded-2xl bg-gray-200 px-6 py-8 shadow-xl">
                 {/* header bar */}
                 <div className="mb-6 flex items-center justify-between">
                     <h1 className="text-3xl font-semibold text-gray-800">Working Orders</h1>
@@ -90,7 +90,7 @@ export default function Index({ workingOrders }: Props) {
                 <div className="rounded-xl border-r border-gray-200 shadow-sm">
                     <div className="w-full overflow-x-auto">
                         <table className="min-w-full table-fixed rounded-2xl bg-white text-sm shadow-2xl">
-                            <thead className="bg-gray-200 text-gray-700">
+                            <thead className="bg-gray-300 text-gray-700">
                                 <tr>
                                     <th className="px-4 py-3 text-left border-r ">Voucher No</th>
                                     <th className="px py-3 text-left border-r">Reference</th> {/* Shrinked Reference column */}

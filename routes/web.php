@@ -147,6 +147,9 @@ Route::middleware(['auth', 'verified'])->group(function () {
 
     //Stock Report
     Route::get('/reports/stock-summary', [ReportController::class, 'stockSummary'])->name('reports.stock-summary');
+    Route::get('/reports/stock-summary/category-wise', [ReportController::class, 'categoryWiseStockSummary'])
+    ->name('reports.stock-summary.category-wise');
+    
    
 });
 

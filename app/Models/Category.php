@@ -11,4 +11,9 @@ class Category extends Model
         'name',
         'created_by',
     ];
+
+    public function items()
+    {
+        return $this->hasMany(Item::class);
+    }
 }

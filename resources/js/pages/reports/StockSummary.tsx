@@ -11,6 +11,7 @@ interface Stock {
     unit: string;
     total_purchase: number;
     total_sale: number;
+    total_sale_qty: number;
     last_purchase_at: string | null;
     last_sale_at: string | null;
 }
@@ -78,55 +79,81 @@ export default function StockSummary({ stocks, filters, company }: Props) {
                         </div>
 
                         <div className="overflow-x-auto">
-                            <table className="min-w-full divide-y divide-gray-200">
-                                <thead className="bg-gray-100">
+                            <table className="min-w-full border border-gray-300 text-sm print:text-xs">
+                                <thead className="bg-gray-100 print:bg-white">
                                     <tr>
-                                        <th className="px-4 py-2 text-left text-sm">#</th>
-                                        <th className="px-4 py-2 text-left text-sm">Item Name</th>
-                                        <th className="px-4 py-2 text-left text-sm">Godown</th>
-                                        <th className="px-4 py-2 text-left text-sm">Qty (Unit) </th>
-
-                                        <th className="px-4 py-2 text-left text-sm">Total Purchase</th>
-                                        <th className="px-4 py-2 text-left text-sm">Total Sale</th>
-                                        <th className="px-4 py-2 text-left text-sm">Last Purchase</th>
-                                        <th className="px-4 py-2 text-left text-sm">Last Sale</th>
+                                        <th className="border px-2 py-1 text-left">#</th>
+                                        <th className="border px-2 py-1 text-left">Item Name</th>
+                                        <th className="border px-2 py-1 text-left">Godown</th>
+                                        <th className="border px-2 py-1 text-left">Qty (Unit)</th>
+                                        <th className="border px-2 py-1 text-left">Total Purchase</th>
+                                        <th className="border px-2 py-1 text-left">Total Sale</th>
+                                        <th className="border px-2 py-1 text-left">Sale Qty (Unit)</th>
+                                        <th className="border px-2 py-1 text-left">Last Purchase</th>
+                                        <th className="border px-2 py-1 text-left">Last Sale</th>
                                     </tr>
                                 </thead>
-                                <tbody className="divide-y">
+                                <tbody>
                                     {stocks.length > 0 ? (
                                         <>
                                             {stocks.map((stock, i) => (
-                                                <tr key={i}>
-                                                    <td className="px-4 py-2 text-sm">{i + 1}</td>
-                                                    <td className="px-4 py-2 text-sm">{stock.item_name}</td>
-                                                    <td className="px-4 py-2 text-sm">{stock.godown_name}</td>
-                                                    <td className="px-4 py-2 text-sm">
+                                                <tr key={i} className="print:bg-white">
+                                                    <td className="border px-2 py-1">{i + 1}</td>
+                                                    <td className="border px-2 py-1">{stock.item_name}</td>
+                                                    <td className="border px-2 py-1">{stock.godown_name}</td>
+                                                    <td className="border px-2 py-1">
                                                         {Number(stock.qty).toFixed(2)} <span className="text-xs text-gray-500">({stock.unit})</span>
                                                     </td>
-                                                    <td className="px-4 py-2 text-sm">{Number(stock.total_purchase).toFixed(2)}</td>
-                                                    <td className="px-4 py-2 text-sm">{Number(stock.total_sale).toFixed(2)}</td>
-                                                    <td className="px-4 py-2 text-sm">
+                                                    <td className="border px-2 py-1">{Number(stock.total_purchase).toFixed(2)}</td>
+                                                    <td className="border px-2 py-1">{Number(stock.total_sale).toFixed(2)}</td>
+                                                    <td className="border px-2 py-1">
+                                                        {Number(stock.total_sale_qty || 0).toFixed(2)}{' '}
+                                                        <span className="text-xs text-gray-500">({stock.unit})</span>
+                                                    </td>
+                                                    <td className="border px-2 py-1">
                                                         {stock.last_purchase_at ? new Date(stock.last_purchase_at).toLocaleDateString() : '-'}
                                                     </td>
-                                                    <td className="px-4 py-2 text-sm">
+                                                    <td className="border px-2 py-1">
                                                         {stock.last_sale_at ? new Date(stock.last_sale_at).toLocaleDateString() : '-'}
                                                     </td>
                                                 </tr>
                                             ))}
-                                            <tr className="bg-gray-100 font-semibold">
-                                                <td className="px-4 py-2 text-right" colSpan={3}>
+                                            <tr className="bg-gray-100 font-semibold print:bg-white">
+                                                <td className="border px-2 py-1 text-right" colSpan={3}>
                                                     Total
                                                 </td>
-                                                <td className="px-4 py-2">{totalQty.toFixed(2)}</td>
-                                                <td className="px-4 py-2">{totalPurchase.toFixed(2)}</td>
-                                                <td className="px-4 py-2">{totalSale.toFixed(2)}</td>
-                                                <td className="px-4 py-2">—</td>
-                                                <td className="px-4 py-2">—</td>
+                                                <td className="border px-2 py-1">{totalQty.toFixed(2)}</td>
+                                                <td className="border px-2 py-1">{totalPurchase.toFixed(2)}</td>
+                                                <td className="border px-2 py-1">{totalSale.toFixed(2)}</td>
+                                                <td className="border px-2 py-1">
+                                                    {Number(stocks.reduce((sum, s) => sum + (Number(s.total_sale_qty) || 0), 0)).toFixed(2)}
+                                                </td>
+                                                <td className="border px-2 py-1">—</td>
+                                                <td className="border px-2 py-1">—</td>
+                                            </tr>
+                                            <tr className="bg-gray-50 print:bg-white">
+                                                <td className="border px-2 py-2 text-sm font-medium" colSpan={9}>
+                                                    <strong>Total Sale Qty:</strong>
+                                                    <ul className="mt-1 list-disc space-y-0.5 pl-5 text-sm text-gray-700">
+                                                        {Object.entries(
+                                                            stocks.reduce((acc: Record<string, number>, stock) => {
+                                                                const unit = stock.unit || 'unit';
+                                                                const qty = Number(stock.total_sale_qty) || 0;
+                                                                acc[unit] = (acc[unit] || 0) + qty;
+                                                                return acc;
+                                                            }, {}),
+                                                        ).map(([unit, qty]) => (
+                                                            <li key={unit}>
+                                                                {qty.toFixed(2)} {unit}
+                                                            </li>
+                                                        ))}
+                                                    </ul>
+                                                </td>
                                             </tr>
                                         </>
                                     ) : (
                                         <tr>
-                                            <td colSpan={8} className="px-4 py-4 text-center text-gray-500">
+                                            <td colSpan={9} className="px-4 py-4 text-center text-gray-500">
                                                 No stock data found.
                                             </td>
                                         </tr>
