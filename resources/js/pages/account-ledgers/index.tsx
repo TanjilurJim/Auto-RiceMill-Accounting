@@ -58,7 +58,7 @@ export default function AccountLedgerIndex({ accountLedgers }: { accountLedgers:
             <Head title="Account Ledgers" />
             <div className="p-6 w-screen lg:w-full bg-gray-100">
                 {/* Use the PageHeader component */}
-                <PageHeader title='All List of Account Ledgers' addLinkHref='/account-ledgers/create' />
+                <PageHeader title='All List of Account Ledgers' addLinkHref='/account-ledgers/create' addLinkText="+ Add New"/>
 
                 {/* Make table more responsive */}
                 <TableComponent

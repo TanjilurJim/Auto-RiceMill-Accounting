@@ -47,7 +47,7 @@ export default function SalesmanIndex({ salesmen }: { salesmen: Salesman[] }) {
             <div className="p-6 w-screen lg:w-full bg-gray-100">
 
                 {/* Use the PageHeader component */}
-                <PageHeader title='All Salesmen' addLinkHref='/salesmen/create' />
+                <PageHeader title='All Salesmen' addLinkHref='/salesmen/create' addLinkText="+ Add New"/>
 
                 {/* Responsive Table */}
                 <TableComponent

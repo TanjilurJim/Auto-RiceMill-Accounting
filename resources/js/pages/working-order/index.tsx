@@ -130,16 +130,13 @@ export default function Index({ workingOrders }: Props) {
                     noDataMessage="No working orders found."
                 />
 
-                {/* Pagination Info */}
-                <div className="mt-6 flex items-center justify-between text-sm text-gray-500">
-                    <span>
-                        Page {workingOrders.current_page} of {workingOrders.last_page}
-                    </span>
-                    <span>Total: {workingOrders.total}</span>
-                </div>
-
                 {/* Pagination Links */}
-                <Pagination links={workingOrders.links} />
+                <Pagination
+                    links={workingOrders.links}
+                    currentPage={workingOrders.current_page}
+                    lastPage={workingOrders.last_page}
+                    total={workingOrders.total}
+                />
             </div>
         </AppLayout>
     );
