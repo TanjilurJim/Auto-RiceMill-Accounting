@@ -202,18 +202,18 @@ export default function SalarySlipIndex({ salarySlips, employees }: Props) {
                                                 <td className="border px-3 py-2">{salarySlip.date}</td>
                                                 <td className="border px-3 py-2">{salaryFor}</td>
                                                 <td className="border px-3 py-2">৳ {total.toFixed(2)}</td>
-                                                {/* <td className="border px-3 py-2">
+                                                <td className="border px-3 py-2">
                                                     <span
                                                         className={`rounded-full px-2 py-0.5 text-xs font-semibold ${status === 'Posted' ? 'bg-green-100 text-green-700' : 'bg-yellow-100 text-yellow-700'}`}
                                                     >
                                                         {status}
                                                     </span>
-                                                </td> */}
+                                                </td>
                                                 <td className="border px-3 py-2 text-center">
                                                     <div className="flex justify-center gap-2">
                                                         <Link
                                                             href={route('salary-slips.show', salarySlip.id)}
-                                                            href={route('salary-slips.show', salarySlip.id)}
+                                                            // href={route('salary-slips.show', salarySlip.id)}
                                                             className="rounded bg-blue-600 px-2 py-1 text-xs text-white hover:bg-blue-700"
                                                         >
                                                             View
@@ -231,7 +231,7 @@ export default function SalarySlipIndex({ salarySlips, employees }: Props) {
                                                             Delete
                                                         </button>
                                                     </div>
-                                                </td> */}
+                                                </td> 
                                                 <ActionButtons
                                                     onDelete={() => handleDelete(salarySlip.id)}
                                                     editHref={`/salary-slips/${salarySlip.id}/edit`}

@@ -3,9 +3,8 @@ import { confirmDialog } from '@/components/confirmDialog';
 import PageHeader from '@/components/PageHeader';
 /*  resources/js/Pages/purchases/edit.tsx  */
 import AppLayout from '@/layouts/app-layout';
-import { Head, Link, useForm } from '@inertiajs/react';
+import { Head, useForm } from '@inertiajs/react';
 import { useEffect } from 'react';
-import Swal from 'sweetalert2';
 
 /* ---------- helper ---------- */
 const scrollToFirstError = (errors: Record<string, any>) => {
@@ -145,13 +144,11 @@ export default function PurchaseEdit({ purchase, godowns, salesmen, ledgers, sto
         //     }
         // });
 
-        confirmDialog(
-            { }, () => {
-                const updated = [...data.purchase_items];
-                updated.splice(index, 1);
-                setData('purchase_items', updated);
-            }
-        );
+        confirmDialog({}, () => {
+            const updated = [...data.purchase_items];
+            updated.splice(index, 1);
+            setData('purchase_items', updated);
+        });
     };
 
     const handleSubmit = (e: React.FormEvent) => {
@@ -164,6 +161,14 @@ export default function PurchaseEdit({ purchase, godowns, salesmen, ledgers, sto
     const totalDisc = data.purchase_items.reduce((s, i) => s + (+i.discount || 0), 0);
     const grandTotal = data.purchase_items.reduce((s, i) => s + (+i.subtotal || 0), 0);
 
+    function handleSaveAndPrint(e?: any): void {
+        if (e) e.preventDefault();
+        put(route('purchases.update', purchase.id), {
+            onSuccess: () => {
+                window.open(route('purchases.print', purchase.id), '_blank');
+            },
+        });
+    }
     /* ----------- render --------------- */
     return (
         <AppLayout>
@@ -177,7 +182,7 @@ export default function PurchaseEdit({ purchase, godowns, salesmen, ledgers, sto
                     </Link>
                 </div> */}
 
-                <PageHeader title="Update Purchase" addLinkHref="/purchases" addLinkText='Back'/>
+                <PageHeader title="Update Purchase" addLinkHref="/purchases" addLinkText="Back" />
 
                 <form onSubmit={handleSubmit} className="space-y-6 rounded bg-white p-6 shadow">
                     {/* ---------- Info section ---------- */}
@@ -331,16 +336,16 @@ export default function PurchaseEdit({ purchase, godowns, salesmen, ledgers, sto
                                                         <button
                                                             type="button"
                                                             onClick={() => removeRow(idx)}
-                                                            className="rounded bg-danger px-2 py-1 text-white hover:bg-danger-hover"
+                                                            className="bg-danger hover:bg-danger-hover rounded px-2 py-1 text-white"
                                                         >
                                                             &minus;
                                                         </button>
                                                     )}
-                                                    {index === data.purchase_items.length - 1 && (
+                                                    {idx === data.purchase_items.length - 1 && (
                                                         <button
                                                             type="button"
-                                                            onClick={addProductRow}
-                                                            className="rounded bg-primary px-2 py-1 text-white hover:bg-primary-hover"
+                                                            onClick={addRow}
+                                                            className="bg-primary hover:bg-primary-hover rounded px-2 py-1 text-white"
                                                         >
                                                             +
                                                         </button>
@@ -414,10 +419,10 @@ export default function PurchaseEdit({ purchase, godowns, salesmen, ledgers, sto
                             Cancel
                         </Link>
                     </div> */}
-                    
+
                     {/*Custom Action Buttons */}
-                    <ActionFooter 
-                        className='w-full justify-end'
+                    <ActionFooter
+                        className="w-full justify-end"
                         onSubmit={handleSubmit}
                         onSaveAndPrint={handleSaveAndPrint}
                         processing={processing}
