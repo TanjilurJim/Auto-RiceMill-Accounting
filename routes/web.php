@@ -160,5 +160,8 @@ Route::get('/reports/stock-summary/pdf', [ReportController::class, 'stockSummary
 Route::get('/reports/stock-summary/excel', [ReportController::class, 'stockSummaryExcel'])
 ->name('reports.stock-summary.excel');
 
+Route::get('reports/stock-summary/category-wise/pdf', [ReportController::class, 'categoryWiseStockSummaryPDF'])->name('reports.stock-summary.category-wise.pdf');
+Route::get('reports/stock-summary/category-wise/excel', [ReportController::class, 'categoryWiseStockSummaryExcel'])->name('reports.stock-summary.category-wise.excel');
+
 require __DIR__ . '/settings.php';
 require __DIR__ . '/auth.php';
