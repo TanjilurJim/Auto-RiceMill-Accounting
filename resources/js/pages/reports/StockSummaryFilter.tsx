@@ -7,15 +7,16 @@ import React, { useState } from 'react';
 interface Props {
     godowns: { id: number; name: string }[];
     categories: { id: number; name: string }[];
+    items: { id: number; item_name: string }[]; // 👈 include this in props
 }
 
 const tabs = [
     { name: 'Stock Detail', route: 'reports.stock-summary' },
     { name: 'Category Wise Stock Summary', route: 'reports.stock-summary.category-wise' },
+    { name: 'Item Wise Stock Summary', route: 'reports.stock-summary.item-wise' }, // 👈 added
 ];
 
-export default function StockSummaryFilter({ godowns, categories }: Props) {
-    const { component: currentComponent } = usePage();
+export default function StockSummaryFilter({ godowns, categories, items }: Props) {
     const [activeTab, setActiveTab] = useState<string>(tabs[0].route);
 
     const { data, setData, get, processing, errors } = useForm({
@@ -23,11 +24,15 @@ export default function StockSummaryFilter({ godowns, categories }: Props) {
         to: '',
         godown_id: '',
         category_id: '',
+        item_id: '',
     });
 
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
-        get(route(activeTab), { preserveScroll: true });
+        get(route(activeTab), {
+            preserveScroll: true,
+            preserveState: true,
+        });
     };
 
     return (
@@ -60,6 +65,7 @@ export default function StockSummaryFilter({ godowns, categories }: Props) {
                     <CardContent className="p-6">
                         <form onSubmit={handleSubmit} className="space-y-6">
                             <div className="grid grid-cols-1 gap-6 md:grid-cols-3">
+                                {/* From Date */}
                                 <div>
                                     <label className="block text-sm font-medium text-gray-700">
                                         From Date <span className="text-red-500">*</span>
@@ -74,6 +80,7 @@ export default function StockSummaryFilter({ godowns, categories }: Props) {
                                     {errors.from && <p className="text-sm text-red-500">{errors.from}</p>}
                                 </div>
 
+                                {/* To Date */}
                                 <div>
                                     <label className="block text-sm font-medium text-gray-700">
                                         To Date <span className="text-red-500">*</span>
@@ -88,6 +95,7 @@ export default function StockSummaryFilter({ godowns, categories }: Props) {
                                     {errors.to && <p className="text-sm text-red-500">{errors.to}</p>}
                                 </div>
 
+                                {/* Godown Dropdown */}
                                 <div>
                                     <label className="block text-sm font-medium text-gray-700">
                                         Select Godown <span className="text-gray-400">(Optional)</span>
@@ -106,6 +114,7 @@ export default function StockSummaryFilter({ godowns, categories }: Props) {
                                     </select>
                                 </div>
 
+                                {/* Conditionally show Category dropdown */}
                                 {activeTab === 'reports.stock-summary.category-wise' && (
                                     <div>
                                         <label className="block text-sm font-medium text-gray-700">
@@ -120,6 +129,27 @@ export default function StockSummaryFilter({ godowns, categories }: Props) {
                                             {categories.map((cat) => (
                                                 <option key={cat.id} value={cat.id}>
                                                     {cat.name}
+                                                </option>
+                                            ))}
+                                        </select>
+                                    </div>
+                                )}
+
+                                {/* Conditionally show Item dropdown */}
+                                {activeTab === 'reports.stock-summary.item-wise' && (
+                                    <div>
+                                        <label className="block text-sm font-medium text-gray-700">
+                                            Select Item <span className="text-gray-400">(Optional)</span>
+                                        </label>
+                                        <select
+                                            className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+                                            value={data.item_id}
+                                            onChange={(e) => setData('item_id', e.target.value)}
+                                        >
+                                            <option value="">— All Items —</option>
+                                            {items.map((item) => (
+                                                <option key={item.id} value={item.id}>
+                                                    {item.item_name}
                                                 </option>
                                             ))}
                                         </select>

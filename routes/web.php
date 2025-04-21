@@ -149,6 +149,8 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('/reports/stock-summary', [ReportController::class, 'stockSummary'])->name('reports.stock-summary');
     Route::get('/reports/stock-summary/category-wise', [ReportController::class, 'categoryWiseStockSummary'])
     ->name('reports.stock-summary.category-wise');
+    Route::get('/reports/stock-summary/item-wise', [ReportController::class, 'itemWiseStockSummary'])
+    ->name('reports.stock-summary.item-wise');
     
    
 });
@@ -162,6 +164,8 @@ Route::get('/reports/stock-summary/excel', [ReportController::class, 'stockSumma
 
 Route::get('reports/stock-summary/category-wise/pdf', [ReportController::class, 'categoryWiseStockSummaryPDF'])->name('reports.stock-summary.category-wise.pdf');
 Route::get('reports/stock-summary/category-wise/excel', [ReportController::class, 'categoryWiseStockSummaryExcel'])->name('reports.stock-summary.category-wise.excel');
+Route::get('reports/stock-summary/item-wise/pdf', [ReportController::class, 'itemWiseStockSummaryPDF'])->name('reports.stock-summary.item-wise.pdf');
+Route::get('reports/stock-summary/item-wise/excel', [ReportController::class, 'itemWiseStockSummaryExcel'])->name('reports.stock-summary.item-wise.excel');
 
 require __DIR__ . '/settings.php';
 require __DIR__ . '/auth.php';

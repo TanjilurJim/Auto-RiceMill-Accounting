@@ -6,12 +6,15 @@ use App\Models\CompanySetting;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use App\Models\Employee;
+use App\Exports\CategoryWiseStockSummaryExport;
+use Illuminate\Contracts\View\View;
+use Maatwebsite\Excel\Concerns\FromArray;
 use App\Exports\StockSummaryExport;
 use Maatwebsite\Excel\Facades\Excel;
 use Barryvdh\DomPDF\Facade\Pdf;
 use App\Models\Stock;
 use App\Models\Item;
-
+use App\Exports\ArrayExport;
 use App\Models\Godown;
 use App\Models\Category;
 use App\Models\PurchaseItem;
@@ -101,9 +104,9 @@ class ReportController extends Controller
             return Inertia::render('reports/StockSummaryFilter', [
                 'godowns' => $godowns,
                 'categories' => $categories,
+                'items' => Item::where('created_by', auth()->id())->get(['id', 'item_name']), // ✅ Add this line
             ]);
         }
-
         $stocks = Stock::with(['item.unit', 'godown'])
             ->when($request->godown_id, fn($q) => $q->where('godown_id', $request->godown_id))
             ->get()
@@ -137,6 +140,7 @@ class ReportController extends Controller
         $company = CompanySetting::where('created_by', auth()->id())->first();
 
         return Inertia::render('reports/StockSummary', [
+            'items' => Item::where('created_by', auth()->id())->get(['id', 'item_name']), // ✅ Add this
             'stocks' => $stocks,
             'company' => $company,
             'godowns' => $godowns,
@@ -263,5 +267,176 @@ class ReportController extends Controller
             ],
             'company' => CompanySetting::where('created_by', auth()->id())->first(),
         ]);
+    }
+
+    // category wise stock summary pdf and excel
+
+
+    public function categoryWiseStockSummaryPDF(Request $request)
+    {
+        $categories = $this->getCategoryWiseStockData($request);
+        $company = CompanySetting::where('created_by', auth()->id())->first();
+
+        $pdf = Pdf::loadView('pdf.category-wise-stock-summary', [
+            'categories' => $categories,
+            'filters' => $request->only('from', 'to'),
+            'company' => $company
+        ]);
+
+        return $pdf->download('category-wise-stock-summary.pdf');
+    }
+
+    public function categoryWiseStockSummaryExcel(Request $request)
+    {
+        $categories = $this->getCategoryWiseStockData($request); // or reuse same logic from existing controller
+        $company = CompanySetting::where('created_by', auth()->id())->first();
+
+        return Excel::download(
+            new CategoryWiseStockSummaryExport($categories, $request->only('from', 'to', 'category_id'), $company),
+            'category-wise-stock-summary.xlsx'
+        );
+    }
+
+    public function itemWiseStockSummary(Request $request)
+    {
+        $from = $request->input('from');
+        $to = $request->input('to');
+        $godownId = $request->input('godown_id');
+        $itemId = $request->input('item_id');
+
+        $query = Item::with(['unit', 'stocks'])->where('created_by', auth()->id());
+
+        if ($itemId) {
+            $query->where('id', $itemId);
+        }
+
+        $items = $query->get()->map(function ($item) use ($from, $to, $godownId) {
+            $stocks = $item->stocks;
+            if ($godownId) {
+                $stocks = $stocks->where('godown_id', $godownId);
+            }
+
+            $totalQty = $stocks->sum('qty');
+
+            $totalPurchase = PurchaseItem::where('product_id', $item->id)
+                ->when($from && $to, fn($q) => $q->whereBetween('created_at', [$from, $to]))
+                ->sum('subtotal');
+
+            $totalSale = SaleItem::where('product_id', $item->id)
+                ->when($from && $to, fn($q) => $q->whereBetween('created_at', [$from, $to]))
+                ->sum('subtotal');
+
+            $totalSaleQty = SaleItem::where('product_id', $item->id)
+                ->when($from && $to, fn($q) => $q->whereBetween('created_at', [$from, $to]))
+                ->sum('qty');
+
+            $lastPurchase = PurchaseItem::where('product_id', $item->id)
+                ->when($from && $to, fn($q) => $q->whereBetween('created_at', [$from, $to]))
+                ->latest('created_at')->first();
+
+            $lastSale = SaleItem::where('product_id', $item->id)
+                ->when($from && $to, fn($q) => $q->whereBetween('created_at', [$from, $to]))
+                ->latest('created_at')->first();
+
+            return [
+                'item_name'           => $item->item_name,
+                'unit'                => optional($item->unit)->name ?? '',
+                'total_qty'           => $totalQty,
+                'total_purchase'      => $totalPurchase,
+                'total_sale'          => $totalSale,
+                'total_sale_qty'      => $totalSaleQty,
+                'last_purchase_at'    => optional($lastPurchase)->created_at,
+                'last_purchase_qty'   => optional($lastPurchase)->qty ?? 0,
+                'last_sale_at'        => optional($lastSale)->created_at,
+                'last_sale_qty'       => optional($lastSale)->qty ?? 0,
+            ];
+        });
+
+        return Inertia::render('reports/ItemWiseStockSummary', [
+            'items' => $items,
+            'godowns' => Godown::where('created_by', auth()->id())->get(['id', 'name']),
+            'categories' => Category::where('created_by', auth()->id())->get(['id', 'name']),
+            'company' => CompanySetting::where('created_by', auth()->id())->first(),
+            'filters' => [
+                'from' => $from,
+                'to' => $to,
+                'godown_id' => $godownId,
+            ],
+        ]);
+    }
+    public function itemWiseStockSummaryPDF(Request $request)
+    {
+        $items = $this->getItemWiseStockData($request);
+        $company = CompanySetting::where('created_by', auth()->id())->first();
+
+        $pdf = Pdf::loadView('pdf.item-wise-stock-summary', [
+            'items' => $items,
+            'filters' => $request->only('from', 'to', 'godown_id'),
+            'company' => $company
+        ]);
+
+        return $pdf->download('item-wise-stock-summary.pdf');
+    }
+
+    public function itemWiseStockSummaryExcel(Request $request)
+    {
+        $items = $this->getItemWiseStockData($request);
+        $company = CompanySetting::where('created_by', auth()->id())->first();
+
+        return Excel::download(
+            new ArrayExport($items->toArray()), // ✅ Now it's a plain array
+            'item-wise-stock-summary.xlsx'
+        );
+    }
+
+    private function getItemWiseStockData(Request $request)
+    {
+        $from = $request->input('from');
+        $to = $request->input('to');
+        $godownId = $request->input('godown_id');
+
+        return Item::with(['unit', 'stocks'])
+            ->where('created_by', auth()->id())
+            ->get()
+            ->map(function ($item) use ($from, $to, $godownId) {
+                $stocks = $item->stocks;
+                if ($godownId) {
+                    $stocks = $stocks->where('godown_id', $godownId);
+                }
+
+                $totalQty = $stocks->sum('qty');
+                $totalPurchase = PurchaseItem::where('product_id', $item->id)
+                    ->when($from && $to, fn($q) => $q->whereBetween('created_at', [$from, $to]))
+                    ->sum('subtotal');
+
+                $totalSale = SaleItem::where('product_id', $item->id)
+                    ->when($from && $to, fn($q) => $q->whereBetween('created_at', [$from, $to]))
+                    ->sum('subtotal');
+
+                $totalSaleQty = SaleItem::where('product_id', $item->id)
+                    ->when($from && $to, fn($q) => $q->whereBetween('created_at', [$from, $to]))
+                    ->sum('qty');
+
+                $lastPurchase = PurchaseItem::where('product_id', $item->id)
+                    ->when($from && $to, fn($q) => $q->whereBetween('created_at', [$from, $to]))
+                    ->latest('created_at')->first();
+
+                $lastSale = SaleItem::where('product_id', $item->id)
+                    ->when($from && $to, fn($q) => $q->whereBetween('created_at', [$from, $to]))
+                    ->latest('created_at')->first();
+
+                return [
+                    'item_name'           => $item->item_name,
+                    'unit'                => optional($item->unit)->name ?? '',
+                    'total_qty'           => $totalQty,
+                    'total_purchase'      => $totalPurchase,
+                    'total_sale'          => $totalSale,
+                    'total_sale_qty'      => $totalSaleQty,
+                    'last_purchase_at'    => optional($lastPurchase)->created_at,
+                    'last_purchase_qty'   => optional($lastPurchase)->qty ?? 0,
+                    'last_sale_at'        => optional($lastSale)->created_at,
+                    'last_sale_qty'       => optional($lastSale)->qty ?? 0,
+                ];
+            });
     }
 }
