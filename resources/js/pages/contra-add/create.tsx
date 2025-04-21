@@ -1,3 +1,5 @@
+import ActionFooter from '@/components/ActionFooter';
+import PageHeader from '@/components/PageHeader';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import AppLayout from '@/layouts/app-layout';
@@ -42,7 +44,9 @@ export default function Create({ paymentModes }: any) {
         <AppLayout>
             <Head title="Add Contra Entry" />
             <div className="mx-auto max-w-4xl space-y-6 p-6">
-                <h1 className="mb-2 text-2xl font-bold">Add Contra Entry</h1>
+                {/* <h1 className="mb-2 text-2xl font-bold">Add Contra Entry</h1> */}
+
+                <PageHeader title='Add Contra Entry' addLinkHref='/contra-add' addLinkText='Back' />
 
                 <Card>
                     <CardContent className="space-y-4 p-6">
@@ -126,14 +130,23 @@ export default function Create({ paymentModes }: any) {
                             <label className="text-sm">Send SMS</label>
                         </div>
 
-                        <div className="flex gap-4 pt-2">
+                        {/* <div className="flex gap-4 pt-2">
                             <Button type="submit" onClick={handleSubmit}>
                                  Save
                             </Button>
                             <Button type="button" variant="secondary" onClick={() => window.history.back()}>
                                 Cancel
                             </Button>
-                        </div>
+                        </div> */}
+                        <ActionFooter
+                            className='justify-end'
+                            onSubmit={handleSubmit} // Function to handle form submission
+                            cancelHref="/contra-add" // URL for the cancel action
+                            processing={false} // Indicates whether the form is processing
+                            submitText="Save Contra Entry" // Text for the submit button
+                            cancelText="Cancel" // Text for the cancel button
+                        />
+
                     </CardContent>
                 </Card>
             </div>

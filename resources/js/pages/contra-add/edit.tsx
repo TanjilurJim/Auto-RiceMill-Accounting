@@ -1,3 +1,5 @@
+import ActionFooter from '@/components/ActionFooter';
+import PageHeader from '@/components/PageHeader';
 import AppLayout from '@/layouts/app-layout';
 import { Head, router } from '@inertiajs/react';
 import { useEffect, useState } from 'react';
@@ -28,7 +30,10 @@ export default function Edit({ contra, modes }: any) {
         <AppLayout>
             <Head title="Edit Contra Entry" />
             <div className="mx-auto max-w-3xl p-6">
-                <h1 className="mb-4 text-xl font-bold">Edit Contra Entry</h1>
+                {/* <h1 className="mb-4 text-xl font-bold">Edit Contra Entry</h1> */}
+
+                <PageHeader title='Edit Contra Entry' addLinkHref='/contra-add' addLinkText='Back' />
+
                 <form onSubmit={handleSubmit} className="space-y-4">
                     <div className="grid grid-cols-2 gap-4">
                         <div>
@@ -81,14 +86,24 @@ export default function Edit({ contra, modes }: any) {
                         <label className="text-sm">Send SMS</label>
                     </div>
 
-                    <div className="flex gap-4">
+                    {/* <div className="flex gap-4">
                         <button type="submit" className="rounded bg-green-600 px-4 py-2 text-white hover:bg-green-700">
                             Update
                         </button>
                         <button type="button" onClick={() => window.history.back()} className="rounded bg-gray-300 px-4 py-2">
                             Cancel
                         </button>
-                    </div>
+                    </div> */}
+
+                    <ActionFooter
+                        className='justify-end'
+                        onSubmit={handleSubmit} // Function to handle form submission
+                        cancelHref="/contra-add" // URL for the cancel action
+                        processing={false} // Indicates whether the form is processing
+                        submitText="Update Contra Entry" // Text for the submit button
+                        cancelText="Cancel" // Text for the cancel button
+                    />
+
                 </form>
             </div>
         </AppLayout>

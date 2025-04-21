@@ -1,4 +1,5 @@
 // resources/js/pages/godowns/create.tsx
+import ActionFooter from '@/components/ActionFooter';
 import AppLayout from '@/layouts/app-layout';
 import { Head, Link, useForm } from '@inertiajs/react';
 
@@ -50,10 +51,11 @@ export default function CreateGodown() {
                             {errors.address && <p className="mt-1 text-sm text-red-500">{errors.address}</p>}
                         </div>
 
-                        <div className="flex justify-end space-x-2">
+                        {/* <div className="flex justify-end space-x-2">
                             <Link href="/godowns" className="rounded border px-4 py-2 hover:bg-neutral-100 dark:hover:bg-neutral-800">
                                 Cancel
                             </Link>
+
                             <button
                                 type="submit"
                                 disabled={processing}
@@ -61,7 +63,16 @@ export default function CreateGodown() {
                             >
                                 {processing ? 'Creating...' : 'Create'}
                             </button>
-                        </div>
+                        </div> */}
+
+                        <ActionFooter
+                            onSubmit={submit} // Function to handle form submission
+                            cancelHref="/godowns" // URL for the cancel action
+                            processing={processing} // Indicates whether the form is processing
+                            submitText={processing ? 'Creating...' : 'Create'} // Text for the submit button
+                            cancelText="Cancel" // Text for the cancel button
+                        />
+
                     </form>
                 </div>
             </div>

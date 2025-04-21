@@ -1,3 +1,6 @@
+import ActionFooter from '@/components/ActionFooter';
+import { confirmDialog } from '@/components/confirmDialog';
+import PageHeader from '@/components/PageHeader';
 import AppLayout from '@/layouts/app-layout';
 import { Head, Link, useForm } from '@inertiajs/react';
 import { useEffect } from 'react';
@@ -68,56 +71,67 @@ export default function SalarySlipCreate({ employees }: { employees: Employee[] 
 
     const removeEmployeeRow = (index: number) => {
         if (data.salary_slip_employees.length === 1) return;
-        Swal.fire({
-            title: 'Are you sure?',
-            text: 'Do you want to remove this employee row?',
-            icon: 'warning',
-            showCancelButton: true,
-            confirmButtonColor: '#d33',
-            cancelButtonColor: '#3085d6',
-            confirmButtonText: 'Yes, remove it!',
-        }).then((result) => {
-            if (result.isConfirmed) {
+        // Swal.fire({
+        //     title: 'Are you sure?',
+        //     text: 'Do you want to remove this employee row?',
+        //     icon: 'warning',
+        //     showCancelButton: true,
+        //     confirmButtonColor: '#d33',
+        //     cancelButtonColor: '#3085d6',
+        //     confirmButtonText: 'Yes, remove it!',
+        // }).then((result) => {
+        //     if (result.isConfirmed) {
+        //         const updated = [...data.salary_slip_employees];
+        //         updated.splice(index, 1);
+        //         setData('salary_slip_employees', updated);
+        //     }
+        // });
+
+        confirmDialog(
+            {}, () => {
                 const updated = [...data.salary_slip_employees];
                 updated.splice(index, 1);
                 setData('salary_slip_employees', updated);
             }
-        });
+        )
+
     };
 
-     // ✅  new version
-     const handleSubmit = (e: React.FormEvent) => {
+    // ✅  new version
+    const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
-      
+
         // 1️⃣  build a clean array
         const sanitizedRows = data.salary_slip_employees.map(r => ({
-          ...r,
-          employee_id: Number(r.employee_id || 0),
-          basic_salary:  Number(r.basic_salary  || 0),
-          additional_amount: Number(r.additional_amount || 0),
-          total_amount: Number(r.total_amount || 0),
+            ...r,
+            employee_id: Number(r.employee_id || 0),
+            basic_salary: Number(r.basic_salary || 0),
+            additional_amount: Number(r.additional_amount || 0),
+            total_amount: Number(r.total_amount || 0),
         }));
-      
+
         // 2️⃣  POST – give inertia the payload explicitly
         post('/salary-slips', {
-          data: {
-            ...data,                       // voucher_number, date, month, year, …
-            salary_slip_employees: sanitizedRows,
-          },
-          onSuccess: () =>
-            Swal.fire('Saved!', 'Salary slip created successfully', 'success'),
+            data: {
+                ...data,                       // voucher_number, date, month, year, …
+                salary_slip_employees: sanitizedRows,
+            },
+            onSuccess: () =>
+                Swal.fire('Saved!', 'Salary slip created successfully', 'success'),
         });
-      };
+    };
     return (
         <AppLayout>
             <Head title="Create Salary Slip" />
             <div className="bg-gray-100 p-6">
-                <div className="mb-6 flex items-center justify-between">
+                {/* <div className="mb-6 flex items-center justify-between">
                     <h1 className="text-2xl font-semibold text-gray-800">Create New Salary Slip</h1>
                     <Link href="/salary-slips" className="rounded bg-gray-300 px-4 py-2 hover:bg-neutral-100">
                         Back
                     </Link>
-                </div>
+                </div> */}
+
+                <PageHeader title="Create New Salary Slip" addLinkHref='/salary-slips' addLinkText="Back" />
 
                 <form onSubmit={handleSubmit} className="space-y-6 rounded bg-white p-6 shadow-md">
                     {/* Salary Slip Info */}
@@ -217,11 +231,10 @@ export default function SalarySlipCreate({ employees }: { employees: Employee[] 
                                                     value={
                                                         employee.employee_id
                                                             ? {
-                                                                  value: employee.employee_id,
-                                                                  label: `${employees.find((e) => e.id === employee.employee_id)?.name} (${
-                                                                      employees.find((e) => e.id === employee.employee_id)?.designation?.name ?? 'N/A'
-                                                                  })`,
-                                                              }
+                                                                value: employee.employee_id,
+                                                                label: `${employees.find((e) => e.id === employee.employee_id)?.name} (${employees.find((e) => e.id === employee.employee_id)?.designation?.name ?? 'N/A'
+                                                                    })`,
+                                                            }
                                                             : null
                                                     }
                                                     onChange={(option) => handleEmployeeChange(index, 'employee_id', option?.value)}
@@ -249,7 +262,7 @@ export default function SalarySlipCreate({ employees }: { employees: Employee[] 
                                                 <button
                                                     type="button"
                                                     onClick={() => removeEmployeeRow(index)}
-                                                    className="rounded bg-red-500 px-2 py-1 text-white hover:bg-red-600"
+                                                    className="rounded bg-danger px-2 py-1 text-white hover:bg-danger-hover"
                                                 >
                                                     &minus;
                                                 </button>
@@ -257,7 +270,7 @@ export default function SalarySlipCreate({ employees }: { employees: Employee[] 
                                                     <button
                                                         type="button"
                                                         onClick={addEmployeeRow}
-                                                        className="rounded bg-blue-500 px-2 py-1 text-white hover:bg-blue-600"
+                                                        className="rounded bg-primary px-2 py-1 text-white hover:bg-primary-hover"
                                                     >
                                                         +
                                                     </button>
@@ -271,7 +284,7 @@ export default function SalarySlipCreate({ employees }: { employees: Employee[] 
                     </div>
 
                     {/* Buttons */}
-                    <div className="mt-6 flex justify-end gap-3">
+                    {/* <div className="mt-6 flex justify-end gap-3">
                         <button
                             type="submit"
                             disabled={processing}
@@ -282,7 +295,18 @@ export default function SalarySlipCreate({ employees }: { employees: Employee[] 
                         <Link href="/salary-slips" className="rounded border border-gray-400 px-5 py-2 font-semibold text-gray-700 hover:bg-gray-100">
                             Cancel
                         </Link>
-                    </div>
+                    </div> */}
+
+                    <ActionFooter
+                        onSubmit={handleSubmit}
+                        cancelHref="/salary-slips"
+                        processing={processing}
+                        submitText={processing ? 'Saving...' : 'Save'}
+                        cancelText="Cancel" 
+                        className="justify-end"
+                    />
+
+
                 </form>
             </div>
         </AppLayout>

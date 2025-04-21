@@ -1,6 +1,7 @@
 import React from 'react';
 import { Head } from '@inertiajs/react';
 import AppLayout from '@/layouts/app-layout';
+import PageHeader from '@/components/PageHeader';
 
 export default function Show({ stockTransfer }: any) {
   return (
@@ -9,9 +10,11 @@ export default function Show({ stockTransfer }: any) {
 
       <div className="flex min-h-screen   bg-white">
       <div className="w-full max-w-4xl p-6">
-        <h1 className="text-2xl font-bold mb-2 text-gray-800 border-b pb-4">
+        {/* <h1 className="text-2xl font-bold mb-2 text-gray-800 border-b pb-4">
           Stock Transfer Details
-        </h1>
+        </h1> */}
+
+        <PageHeader title='Stock Transfer Details' addLinkHref='/stock-transfers' addLinkText='Back' />
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
           <div>

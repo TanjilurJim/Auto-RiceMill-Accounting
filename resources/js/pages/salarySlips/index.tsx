@@ -1,3 +1,7 @@
+import ActionButtons from '@/components/ActionButtons';
+import { confirmDialog } from '@/components/confirmDialog';
+import PageHeader from '@/components/PageHeader';
+import Pagination from '@/components/Pagination';
 import AppLayout from '@/layouts/app-layout';
 import { Head, Link, router } from '@inertiajs/react';
 import { useState } from 'react';
@@ -5,6 +9,7 @@ import Select from 'react-select';
 import CreatableSelect from 'react-select/creatable';
 import Swal from 'sweetalert2';
 import { route } from 'ziggy-js';
+
 
 interface Employee {
     id: number;
@@ -50,20 +55,27 @@ export default function SalarySlipIndex({ salarySlips, employees }: Props) {
     const [expandedRowId, setExpandedRowId] = useState<number | null>(null);
 
     const handleDelete = (id: number) => {
-        Swal.fire({
-            title: 'Are you sure?',
-            text: 'This salary slip will be permanently deleted!',
-            icon: 'warning',
-            showCancelButton: true,
-            confirmButtonColor: '#d33',
-            cancelButtonColor: '#3085d6',
-            confirmButtonText: 'Yes, delete it!',
-        }).then((result) => {
-            if (result.isConfirmed) {
+        // Swal.fire({
+        //     title: 'Are you sure?',
+        //     text: 'This salary slip will be permanently deleted!',
+        //     icon: 'warning',
+        //     showCancelButton: true,
+        //     confirmButtonColor: '#d33',
+        //     cancelButtonColor: '#3085d6',
+        //     confirmButtonText: 'Yes, delete it!',
+        // }).then((result) => {
+        //     if (result.isConfirmed) {
+        //         router.delete(`/salary-slips/${id}`);
+        //         Swal.fire('Deleted!', 'The salary slip has been deleted.', 'success');
+        //     }
+        // });
+
+        confirmDialog(
+            {}, () => {
                 router.delete(`/salary-slips/${id}`);
-                Swal.fire('Deleted!', 'The salary slip has been deleted.', 'success');
             }
-        });
+        )
+
     };
 
     const totalSlips = salarySlips.data.length;
@@ -88,12 +100,14 @@ export default function SalarySlipIndex({ salarySlips, employees }: Props) {
             <Head title="Salary Slips" />
             <div className="bg-gray-100 p-4">
                 {/* Header */}
-                <div className="mb-4 flex items-center justify-between">
+                {/* <div className="mb-4 flex items-center justify-between">
                     <h1 className="text-xl font-semibold">All Salary Slips</h1>
                     <Link href="/salary-slips/create" className="rounded bg-green-600 px-4 py-2 text-sm font-medium text-white hover:bg-green-700">
                         + Add New
                     </Link>
-                </div>
+                </div> */}
+
+                <PageHeader title="Salary Slips" addLinkHref='/salary-slips/create' />
 
                 {/* Summary */}
                 <div className="mb-4 flex flex-wrap gap-4 rounded bg-white p-4 shadow">
@@ -180,7 +194,7 @@ export default function SalarySlipIndex({ salarySlips, employees }: Props) {
                                         <>
                                             <tr
                                                 key={salarySlip.id}
-                                                className="cursor-pointer hover:bg-gray-50"
+                                                className="cursor-pointer hover:bg-gray-50 border"
                                                 onClick={() => setExpandedRowId(expandedRowId === salarySlip.id ? null : salarySlip.id)}
                                             >
                                                 <td className="border px-3 py-2 text-center">{index + 1}</td>
@@ -199,6 +213,7 @@ export default function SalarySlipIndex({ salarySlips, employees }: Props) {
                                                     <div className="flex justify-center gap-2">
                                                         <Link
                                                             href={route('salary-slips.show', salarySlip.id)}
+                                                            href={route('salary-slips.show', salarySlip.id)}
                                                             className="rounded bg-blue-600 px-2 py-1 text-xs text-white hover:bg-blue-700"
                                                         >
                                                             View
@@ -216,7 +231,13 @@ export default function SalarySlipIndex({ salarySlips, employees }: Props) {
                                                             Delete
                                                         </button>
                                                     </div>
-                                                </td>
+                                                </td> */}
+                                                <ActionButtons
+                                                    onDelete={() => handleDelete(salarySlip.id)}
+                                                    editHref={`/salary-slips/${salarySlip.id}/edit`}
+                                                    printHref={route('salary-slips.show', salarySlip.id)}
+                                                    printText="View"
+                                                />
                                             </tr>
                                             {expandedRowId === salarySlip.id && (
                                                 <tr>
@@ -229,6 +250,8 @@ export default function SalarySlipIndex({ salarySlips, employees }: Props) {
                                                                     <th className="border px-2 py-1">Basic</th>
                                                                     <th className="border px-2 py-1">Additional</th>
                                                                     <th className="border px-2 py-1">Total</th>
+                                                                    <th className="border px-2 py-1">Paid</th>
+                                                                    <th className="border px-2 py-1">Status</th>
                                                                     <th className="border px-2 py-1">Paid</th>
                                                                     <th className="border px-2 py-1">Status</th>
                                                                 </tr>
@@ -280,7 +303,7 @@ export default function SalarySlipIndex({ salarySlips, employees }: Props) {
                 </div>
 
                 {/* Pagination */}
-                <div className="mt-4 flex justify-end gap-1">
+                {/* <div className="mt-4 flex justify-end gap-1">
                     {salarySlips.links.map((link, index) => (
                         <Link
                             key={index}
@@ -289,7 +312,8 @@ export default function SalarySlipIndex({ salarySlips, employees }: Props) {
                             className={`rounded px-3 py-1 text-sm ${link.active ? 'bg-blue-600 text-white' : 'hover:bg-neutral-200'} ${!link.url && 'pointer-events-none opacity-50'}`}
                         />
                     ))}
-                </div>
+                </div> */}
+                <Pagination links={salarySlips.links} />
             </div>
         </AppLayout>
     );

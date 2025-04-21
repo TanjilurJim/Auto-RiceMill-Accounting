@@ -1,3 +1,7 @@
+import ActionButtons from '@/components/ActionButtons';
+import { confirmDialog } from '@/components/confirmDialog';
+import PageHeader from '@/components/PageHeader';
+import Pagination from '@/components/Pagination';
 import AppLayout from '@/layouts/app-layout';
 import { Head, Link, router } from '@inertiajs/react';
 import { useEffect, useState } from 'react';
@@ -38,20 +42,26 @@ export default function Index({ paymentAdds, filters, paymentModes }: Props) {
     }, [search, paymentModeId, fromDate, toDate]);
 
     const handleDelete = (id: number) => {
-        Swal.fire({
-            title: 'Are you sure?',
-            text: 'This will permanently delete this entry!',
-            icon: 'warning',
-            showCancelButton: true,
-            confirmButtonText: 'Yes, delete it!',
-            cancelButtonText: 'Cancel',
-            confirmButtonColor: '#d33',
-            cancelButtonColor: '#3085d6',
-        }).then((result) => {
-            if (result.isConfirmed) {
+        // Swal.fire({
+        //     title: 'Are you sure?',
+        //     text: 'This will permanently delete this entry!',
+        //     icon: 'warning',
+        //     showCancelButton: true,
+        //     confirmButtonText: 'Yes, delete it!',
+        //     cancelButtonText: 'Cancel',
+        //     confirmButtonColor: '#d33',
+        //     cancelButtonColor: '#3085d6',
+        // }).then((result) => {
+        //     if (result.isConfirmed) {
+        //         router.delete(`/payment-add/${id}`);
+        //     }
+        // });
+
+        confirmDialog(
+            {}, () => {
                 router.delete(`/payment-add/${id}`);
             }
-        });
+        )
     };
 
     return (
@@ -59,12 +69,14 @@ export default function Index({ paymentAdds, filters, paymentModes }: Props) {
             <Head title="Payment List" />
 
             <div className="p-6">
-                <div className="mb-4 flex items-center justify-between">
+                {/* <div className="mb-4 flex items-center justify-between">
                     <h1 className="text-xl font-bold">All List of Payments</h1>
                     <Link href="/payment-add/create" className="rounded bg-blue-600 px-4 py-2 text-white hover:bg-blue-700">
                         + Add New
                     </Link>
-                </div>
+                </div> */}
+
+                <PageHeader title='All List of Payments' addLinkHref='/payment-add/create' />
 
                 {/* ✅ Filters */}
                 <div className="mb-4 grid grid-cols-1 md:grid-cols-4 gap-3">
@@ -126,7 +138,7 @@ export default function Index({ paymentAdds, filters, paymentModes }: Props) {
                                     </td>
                                     <td className="border p-2 text-right">{Number(item.amount).toFixed(2)}</td>
                                     <td className="border p-2">{item.description}</td>
-                                    <td className="border p-2 text-center">
+                                    {/* <td className="border p-2 text-center">
                                         <div className="flex justify-center gap-2">
                                             <Link
                                                 href={`/payment-add/${item.id}/edit`}
@@ -147,7 +159,13 @@ export default function Index({ paymentAdds, filters, paymentModes }: Props) {
                                                 Print
                                             </Link>
                                         </div>
-                                    </td>
+                                    </td> */}
+                                    <ActionButtons
+                                        editHref={`/payment-add/${item.id}/edit`}
+                                        onDelete={() => handleDelete(item.id)}
+                                        printHref={`/payment-add/${item.voucher_no}/print`}
+                                        printText="Print"
+                                    />
                                 </tr>
                             ))}
                             {paymentAdds.data.length === 0 && (
@@ -160,24 +178,25 @@ export default function Index({ paymentAdds, filters, paymentModes }: Props) {
                         </tbody>
                     </table>
 
-                    {/* ✅ Pagination */}
-                    <div className="mt-4 flex justify-end">
+
+                    {/* Pagination */}
+                    {/* <div className="mt-4 flex justify-end">
                         {paymentAdds.links.map((link: any, index: number) => (
                             <button
                                 key={index}
                                 disabled={!link.url}
                                 onClick={() => link.url && router.visit(link.url)}
-                                className={`mx-1 rounded px-3 py-1 text-sm ${
-                                    link.active
+                                className={`mx-1 rounded px-3 py-1 text-sm ${link.active
                                         ? 'bg-blue-600 text-white'
                                         : link.url
-                                        ? 'bg-gray-200 hover:bg-gray-300'
-                                        : 'bg-gray-100 text-gray-400'
-                                }`}
+                                            ? 'bg-gray-200 hover:bg-gray-300'
+                                            : 'bg-gray-100 text-gray-400'
+                                    }`}
                                 dangerouslySetInnerHTML={{ __html: link.label }}
                             />
                         ))}
-                    </div>
+                    </div> */}
+                    <Pagination links={paymentAdds.links} />
                 </div>
             </div>
         </AppLayout>

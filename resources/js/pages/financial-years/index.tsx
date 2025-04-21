@@ -2,6 +2,9 @@ import React from 'react';
 import { Head, Link, router } from '@inertiajs/react';
 import AppLayout from '@/layouts/app-layout';
 import Swal from 'sweetalert2';
+import PageHeader from '@/components/PageHeader';
+import ActionButtons from '@/components/ActionButtons';
+import { confirmDialog } from '@/components/confirmDialog';
 
 interface FinancialYear {
   id: number;
@@ -13,19 +16,26 @@ interface FinancialYear {
 
 export default function Index({ financialYears }: { financialYears: FinancialYear[] }) {
   const handleDelete = (id: number) => {
-    Swal.fire({
-      title: 'Are you sure?',
-      text: 'This will permanently delete the financial year!',
-      icon: 'warning',
-      showCancelButton: true,
-      confirmButtonColor: '#d33',
-      cancelButtonColor: '#3085d6',
-      confirmButtonText: 'Yes, delete it!',
-    }).then((result) => {
-      if (result.isConfirmed) {
+    // Swal.fire({
+    //   title: 'Are you sure?',
+    //   text: 'This will permanently delete the financial year!',
+    //   icon: 'warning',
+    //   showCancelButton: true,
+    //   confirmButtonColor: '#d33',
+    //   cancelButtonColor: '#3085d6',
+    //   confirmButtonText: 'Yes, delete it!',
+    // }).then((result) => {
+    //   if (result.isConfirmed) {
+    //     router.delete(`/financial-years/${id}`);
+    //   }
+    // });
+
+    confirmDialog(
+      {}, () => {
         router.delete(`/financial-years/${id}`);
       }
-    });
+    );
+
   };
 
   return (
@@ -33,7 +43,7 @@ export default function Index({ financialYears }: { financialYears: FinancialYea
       <Head title="Financial Years" />
 
       <div className="p-6 space-y-6">
-        <div className="flex items-center justify-between border-b pb-4">
+        {/* <div className="flex items-center justify-between border-b pb-4">
           <h1 className="text-2xl font-semibold text-gray-800">Financial Years</h1>
           <Link
             href="/financial-years/create"
@@ -41,7 +51,9 @@ export default function Index({ financialYears }: { financialYears: FinancialYea
           >
             + Add Year
           </Link>
-        </div>
+        </div> */}
+
+        <PageHeader title="Financial Years" addLinkHref='/financial-years/create' addLinkText='+ Add Year' />
 
         <div className="overflow-auto rounded-lg border bg-white shadow-sm">
           <table className="min-w-full divide-y divide-gray-200 text-sm">
@@ -71,7 +83,7 @@ export default function Index({ financialYears }: { financialYears: FinancialYea
                       </span>
                     )}
                   </td>
-                  <td className="px-4 py-3 text-center">
+                  {/* <td className="px-4 py-3 text-center">
                     <div className="flex justify-center gap-2">
                       <Link
                         href={`/financial-years/${year.id}/edit`}
@@ -86,7 +98,11 @@ export default function Index({ financialYears }: { financialYears: FinancialYea
                         Delete
                       </button>
                     </div>
-                  </td>
+                  </td> */}
+                  <ActionButtons
+                    editHref={`/financial-years/${year.id}/edit`}
+                    onDelete={() => handleDelete(year.id)}
+                  />
                 </tr>
               ))}
 

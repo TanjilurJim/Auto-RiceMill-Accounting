@@ -1,3 +1,4 @@
+import ActionFooter from '@/components/ActionFooter';
 import AppLayout from '@/layouts/app-layout';
 import { Head, Link, useForm } from '@inertiajs/react';
 
@@ -250,7 +251,7 @@ export default function EditEmployee({ employee, departments, designations, shif
                     </div>
 
                     {/* Submit Button */}
-                    <div className="flex justify-end mt-4 space-x-2">
+                    {/* <div className="flex justify-end mt-4 space-x-2">
                         <Link href="/employees" className="rounded border px-4 py-2 hover:bg-gray-200">Cancel</Link>
                         <button
                             type="submit"
@@ -259,7 +260,17 @@ export default function EditEmployee({ employee, departments, designations, shif
                         >
                             {processing ? 'Saving...' : 'Update Employee'}
                         </button>
-                    </div>
+                    </div> */}
+
+                    <ActionFooter
+                        onSubmit={handleSubmit}
+                        cancelHref="/employees"
+                        processing={processing}
+                        submitText="Update Employee"
+                        cancelText="Cancel"
+                        className="justify-end mt-4"
+                    />
+
                 </form>
             </div>
         </AppLayout>

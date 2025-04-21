@@ -1,3 +1,5 @@
+import ActionButtons from '@/components/ActionButtons';
+import ActionFooter from '@/components/ActionFooter';
 import AppLayout from '@/layouts/app-layout';
 import { Head, useForm, Link } from '@inertiajs/react';
 import React from 'react';
@@ -131,7 +133,7 @@ export default function Edit({ salaryReceive, employees, receivedModes, salarySl
                     </div>
 
                     {/* Action Buttons */}
-                    <div className="flex justify-between items-center">
+                    {/* <div className="flex justify-between items-center">
                         <Link href={route('salary-receives.index')} className="text-gray-600 underline">
                             Cancel
                         </Link>
@@ -142,7 +144,14 @@ export default function Edit({ salaryReceive, employees, receivedModes, salarySl
                         >
                             Update
                         </button>
-                    </div>
+                    </div> */}
+                    <ActionFooter 
+                        processing={processing}
+                        cancelHref='/salary-receives'
+                        submitText='Update'
+                        onSubmit={handleSubmit}
+                        className='justify-end'
+                    />
                 </form>
             </div>
         </AppLayout>

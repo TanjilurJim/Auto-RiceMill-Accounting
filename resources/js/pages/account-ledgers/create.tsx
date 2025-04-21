@@ -1,5 +1,8 @@
 import AppLayout from '@/layouts/app-layout';
 import { Head, Link, useForm } from '@inertiajs/react';
+import InputCheckbox from '@/components/Btn&Link/InputCheckbox';
+import ActionFooter from '@/components/ActionFooter';
+import PageHeader from '@/components/PageHeader';
 import React from 'react';
 
 export default function CreateAccountLedger({
@@ -35,12 +38,16 @@ export default function CreateAccountLedger({
     return (
         <AppLayout>
             <Head title="Add Account Ledger" />
-            <div className="flex min-h-screen items-center justify-center bg-gray-100">
+            <div className="flex items-center justify-center bg-gray-100">
                 <div className="w-full max-w-4xl p-6">
-                    <h1 className="mb-4 text-2xl font-bold">Add Account Ledger</h1>
+                    <PageHeader title='Add Account Ledger' addLinkHref='/account-ledgers' addLinkText='Back' />
 
-                    <form onSubmit={handleSubmit} className="grid grid-cols-1 gap-4 rounded bg-white p-4 shadow md:grid-cols-2 dark:bg-neutral-900">
-                        <div>
+                    <form
+                        onSubmit={handleSubmit}
+                        className="grid grid-cols-1 gap-4 rounded bg-white p-4 shadow md:grid-cols-2 lg:grid-cols-3 dark:bg-neutral-900"
+                    >
+                        {/* Account Ledger Name */}
+                        <div className="col-span-1 md:col-span-2 lg:col-span-1">
                             <label className="mb-1 block font-medium">Account Ledger Name*</label>
                             <input
                                 type="text"
@@ -51,7 +58,8 @@ export default function CreateAccountLedger({
                             {errors.account_ledger_name && <p className="text-sm text-red-500">{errors.account_ledger_name}</p>}
                         </div>
 
-                        <div>
+                        {/* Account Group */}
+                        <div className="col-span-1">
                             <label className="mb-1 block font-medium">Account Group*</label>
                             <select
                                 value={data.account_group_input}
@@ -77,22 +85,23 @@ export default function CreateAccountLedger({
                             {errors.account_group_id && <p className="text-sm text-red-500">{errors.account_group_id}</p>}
                         </div>
 
-                        {/* Reference Number field for Admin */}
+                        {/* Reference Number (Admin Only) */}
                         {isAdmin && (
-                            <div>
+                            <div className="col-span-1">
                                 <label className="mb-1 block font-medium">Reference Number</label>
                                 <input
                                     type="text"
                                     value={data.reference_number}
                                     onChange={(e) => setData('reference_number', e.target.value)}
-                                    disabled={!isAdmin} // Admin can edit, others cannot
+                                    disabled={!isAdmin}
                                     className="w-full rounded border p-2 dark:border-neutral-700 dark:bg-neutral-800"
                                 />
                                 {errors.reference_number && <p className="text-sm text-red-500">{errors.reference_number}</p>}
                             </div>
                         )}
 
-                        <div>
+                        {/* Phone Number */}
+                        <div className="col-span-1">
                             <label className="mb-1 block font-medium">Phone Number*</label>
                             <input
                                 type="text"
@@ -103,7 +112,8 @@ export default function CreateAccountLedger({
                             {errors.phone_number && <p className="text-sm text-red-500">{errors.phone_number}</p>}
                         </div>
 
-                        <div>
+                        {/* Email */}
+                        <div className="col-span-1">
                             <label className="mb-1 block font-medium">E-mail</label>
                             <input
                                 type="email"
@@ -114,7 +124,8 @@ export default function CreateAccountLedger({
                             {errors.email && <p className="text-sm text-red-500">{errors.email}</p>}
                         </div>
 
-                        <div>
+                        {/* Opening Balance */}
+                        <div className="col-span-1">
                             <label className="mb-1 block font-medium">Opening Balance*</label>
                             <input
                                 type="number"
@@ -125,7 +136,8 @@ export default function CreateAccountLedger({
                             {errors.opening_balance && <p className="text-sm text-red-500">{errors.opening_balance}</p>}
                         </div>
 
-                        <div>
+                        {/* Debit/Credit */}
+                        <div className="col-span-1">
                             <label className="mb-1 block font-medium">Debit/Credit*</label>
                             <select
                                 value={data.debit_credit}
@@ -138,7 +150,8 @@ export default function CreateAccountLedger({
                             {errors.debit_credit && <p className="text-sm text-red-500">{errors.debit_credit}</p>}
                         </div>
 
-                        <div>
+                        {/* Status */}
+                        <div className="col-span-1">
                             <label className="mb-1 block font-medium">Status*</label>
                             <select
                                 value={data.status}
@@ -151,7 +164,8 @@ export default function CreateAccountLedger({
                             {errors.status && <p className="text-sm text-red-500">{errors.status}</p>}
                         </div>
 
-                        <div>
+                        {/* Address */}
+                        <div className="col-span-1 md:col-span-2 lg:col-span-3">
                             <label className="mb-1 block font-medium">Address</label>
                             <textarea
                                 value={data.address}
@@ -181,17 +195,16 @@ export default function CreateAccountLedger({
                             </label>
                         </div>
 
-                        <div className="col-span-2 mt-4 flex justify-between">
-                            <Link href="/account-ledgers" className="rounded border px-4 py-2 hover:bg-neutral-100 dark:hover:bg-neutral-800">
-                                Cancel
-                            </Link>
-                            <button
-                                type="submit"
-                                disabled={processing}
-                                className="rounded bg-green-600 px-4 py-2 text-white hover:bg-green-700 disabled:opacity-50"
-                            >
-                                {processing ? 'Creating...' : 'Create'}
-                            </button>
+                        {/* Action Footer */}
+                        <div className="col-span-1 md:col-span-2 lg:col-span-3">
+                            <ActionFooter
+                                className="w-full justify-end"
+                                onSubmit={handleSubmit}
+                                cancelHref="/account-ledgers"
+                                processing={processing}
+                                submitText={processing ? 'Creating...' : 'Create'}
+                                cancelText="Cancel"
+                            />
                         </div>
                     </form>
                 </div>

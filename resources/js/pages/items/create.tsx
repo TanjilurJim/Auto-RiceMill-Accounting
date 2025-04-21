@@ -1,4 +1,6 @@
 // resources/js/pages/items/create.tsx
+import ActionFooter from '@/components/ActionFooter';
+import CancelLink from '@/components/Btn&Link/CancelLink';
 import AppLayout from '@/layouts/app-layout';
 import { Head, Link, useForm } from '@inertiajs/react';
 
@@ -41,9 +43,10 @@ export default function ItemCreate({ categories, units, godowns }: { categories:
             <div className="bg-gray-100 p-6">
                 <div className="mb-6 flex items-center justify-between">
                     <h1 className="text-2xl font-bold">Add New Item</h1>
-                    <Link href="/items" className="rounded border bg-gray-300 px-4 py-2 hover:bg-neutral-100 dark:hover:bg-neutral-800">
+                    {/* <Link href="/items" className="rounded border bg-gray-300 px-4 py-2 hover:bg-neutral-100 dark:hover:bg-neutral-800">
                         Back
-                    </Link>
+                    </Link> */}
+                    <CancelLink href="/items" children="Back" />
                 </div>
                 <form onSubmit={handleSubmit} className="mx-auto max-w-3xl space-y-4 rounded bg-white p-6 shadow-md">
                     {/* Basic Info Section */}
@@ -179,10 +182,11 @@ export default function ItemCreate({ categories, units, godowns }: { categories:
                         {errors.description && <p className="text-sm text-red-500">{errors.description}</p>}
                     </div>
 
-                    <div className="flex justify-end space-x-2">
+                    {/* <div className="flex justify-end space-x-2">
                         <Link href="/items" className="rounded border px-4 py-2 hover:bg-neutral-100">
                             Cancel
                         </Link>
+                        
                         <button
                             type="submit"
                             disabled={processing}
@@ -190,7 +194,17 @@ export default function ItemCreate({ categories, units, godowns }: { categories:
                         >
                             {processing ? 'Creating...' : 'Create Item'}
                         </button>
-                    </div>
+                    </div> */}
+
+                    <ActionFooter
+                        className='justify-end'
+                        onSubmit={handleSubmit} // Function to handle form submission
+                        cancelHref="/items" // URL for the cancel action
+                        processing={processing} // Indicates whether the form is processing
+                        submitText={processing ? 'Creating...' : 'Create Item'} // Text for the submit button
+                        cancelText="Cancel" // Text for the cancel button
+                    />
+
                 </form>
             </div>
         </AppLayout>

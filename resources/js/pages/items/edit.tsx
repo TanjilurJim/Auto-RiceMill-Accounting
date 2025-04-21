@@ -1,4 +1,5 @@
 // resources/js/pages/items/edit.tsx
+import ActionFooter from '@/components/ActionFooter';
 import AppLayout from '@/layouts/app-layout';
 import { Head, useForm } from '@inertiajs/react';
 import { Link } from '@inertiajs/react';
@@ -192,10 +193,11 @@ export default function EditItem({
                             />
                         </div>
 
-                        <div className="flex justify-between">
+                        {/* <div className="flex justify-between">
                             <Link href="/items" className="rounded border px-4 py-2 hover:bg-neutral-100 dark:hover:bg-neutral-800">
                                 Cancel
                             </Link>
+
                             <button
                                 type="submit"
                                 disabled={processing}
@@ -203,7 +205,19 @@ export default function EditItem({
                             >
                                 Update
                             </button>
+                        </div> */}
+
+                        <div>
+                            <ActionFooter
+                                className='justify-end'
+                                onSubmit={handleSubmit} // Function to handle form submission
+                                cancelHref="/items" // URL for the cancel action
+                                processing={processing} // Indicates whether the form is processing
+                                submitText={processing ? 'Creating...' : 'Create Item'} // Text for the submit button
+                                cancelText="Cancel" // Text for the cancel button
+                            />
                         </div>
+
                     </div>
                 </form>
             </div>

@@ -2,6 +2,10 @@ import React, { useState, MouseEvent } from 'react';
 import AppLayout from '@/layouts/app-layout';
 import { Head, Link, router } from '@inertiajs/react';
 import Swal from 'sweetalert2';
+import PageHeader from '@/components/PageHeader';
+import ActionButtons from '@/components/ActionButtons';
+import { confirmDialog } from '@/components/confirmDialog';
+import Pagination from '@/components/Pagination';
 
 interface SaleItem {
   item: { item_name: string } | null;
@@ -27,7 +31,7 @@ interface PaginatedSales {
 
 export default function SaleIndex({ sales }: { sales: PaginatedSales }) {
 
-    
+
 
   // Track which row index is open, or null if closed
   const [openDropdown, setOpenDropdown] = useState<number | null>(null);
@@ -75,20 +79,28 @@ export default function SaleIndex({ sales }: { sales: PaginatedSales }) {
 
   // Delete function
   const handleDelete = (id: number) => {
-    Swal.fire({
-      title: 'Are you sure?',
-      text: 'This sale will be permanently deleted!',
-      icon: 'warning',
-      showCancelButton: true,
-      confirmButtonColor: '#d33',
-      cancelButtonColor: '#3085d6',
-      confirmButtonText: 'Yes, delete it!',
-    }).then((result) => {
-      if (result.isConfirmed) {
+    // Swal.fire({
+    //   title: 'Are you sure?',
+    //   text: 'This sale will be permanently deleted!',
+    //   icon: 'warning',
+    //   showCancelButton: true,
+    //   confirmButtonColor: '#d33',
+    //   cancelButtonColor: '#3085d6',
+    //   confirmButtonText: 'Yes, delete it!',
+    // }).then((result) => {
+    //   if (result.isConfirmed) {
+    //     router.delete(`/sales/${id}`);
+    //     Swal.fire('Deleted!', 'The sale has been deleted.', 'success');
+    //   }
+    // });
+
+    confirmDialog(
+      {}, () => {
         router.delete(`/sales/${id}`);
-        Swal.fire('Deleted!', 'The sale has been deleted.', 'success');
       }
-    });
+    )
+
+
   };
 
   return (
@@ -97,7 +109,7 @@ export default function SaleIndex({ sales }: { sales: PaginatedSales }) {
       <div className="p-4 bg-gray-100">
 
         {/* Header */}
-        <div className="mb-4 flex items-center justify-between">
+        {/* <div className="mb-4 flex items-center justify-between">
           <h1 className="text-xl font-semibold">Sales List</h1>
           <Link
             href="/sales/create"
@@ -105,7 +117,9 @@ export default function SaleIndex({ sales }: { sales: PaginatedSales }) {
           >
             + Add Sale
           </Link>
-        </div>
+        </div> */}
+
+        <PageHeader title='Sales List' addLinkHref='/sales/create' addLinkText='+ Add Sale' />
 
         {/* Table with "overflow-visible" so the fixed dropdown won't be clipped */}
         <div className="overflow-x-auto overflow-visible rounded-lg border border-gray-300 bg-white shadow-sm">
@@ -142,23 +156,23 @@ export default function SaleIndex({ sales }: { sales: PaginatedSales }) {
                   <td className="border px-3 py-2 text-right font-semibold">
                     {(parseFloat(sale.grand_total as any) || 0).toFixed(2)} Tk
                   </td>
-                  <td className="border px-3 py-2 text-center">
+                  {/* <td className="border px-3 py-2 text-center">
                     <div className="flex justify-center space-x-2">
-                      {/* Edit */}
+                      
                       <Link
                         href={`/sales/${sale.id}/edit`}
                         className="rounded bg-yellow-500 px-2 py-1 text-xs text-white hover:bg-yellow-600"
                       >
                         Edit
                       </Link>
-                      {/* Delete */}
+                      
                       <button
                         onClick={() => handleDelete(sale.id)}
                         className="rounded bg-red-600 px-2 py-1 text-xs text-white hover:bg-red-700"
                       >
                         Delete
                       </button>
-                      {/* Print Button */}
+                      
                       <button
                         onClick={(e) => toggleDropdown(index, e)}
                         className="rounded bg-blue-600 px-2 py-1 text-xs text-white hover:bg-blue-700"
@@ -166,7 +180,13 @@ export default function SaleIndex({ sales }: { sales: PaginatedSales }) {
                         Print ▼
                       </button>
                     </div>
-                  </td>
+                  </td> */}
+                  <ActionButtons
+                    editHref={`/sales/${sale.id}/edit`} // URL for the edit action
+                    onDelete={() => handleDelete(sale.id)} // Function to handle the delete action
+                    onPrint={(e) => toggleDropdown(index, e)} // Function to handle the print dropdown
+                    printText="Print ▼" // Custom text for the print button
+                  />
                 </tr>
               ))}
             </tbody>
@@ -174,18 +194,18 @@ export default function SaleIndex({ sales }: { sales: PaginatedSales }) {
         </div>
 
         {/* Pagination */}
-        <div className="mt-4 flex justify-end gap-1">
+        {/* <div className="mt-4 flex justify-end gap-1">
           {sales.links.map((link, index) => (
             <Link
               key={index}
               href={link.url || ''}
               dangerouslySetInnerHTML={{ __html: link.label }}
-              className={`rounded px-3 py-1 text-sm ${
-                link.active ? 'bg-blue-600 text-white' : 'hover:bg-neutral-200'
-              } ${!link.url && 'pointer-events-none opacity-50'}`}
+              className={`rounded px-3 py-1 text-sm ${link.active ? 'bg-blue-600 text-white' : 'hover:bg-neutral-200'
+                } ${!link.url && 'pointer-events-none opacity-50'}`}
             />
           ))}
-        </div>
+        </div> */}
+        <Pagination links={sales.links} />
 
         {/* 🔥 The "Print" Dropdown outside the table so it won't be clipped */}
         {openDropdown !== null && (

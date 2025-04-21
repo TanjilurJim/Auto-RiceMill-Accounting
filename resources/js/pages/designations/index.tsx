@@ -1,3 +1,6 @@
+import ActionButtons from '@/components/ActionButtons';
+import { confirmDialog } from '@/components/confirmDialog';
+import PageHeader from '@/components/PageHeader';
 import AppLayout from '@/layouts/app-layout';
 import { Head, Link, router } from '@inertiajs/react';
 import Swal from 'sweetalert2';
@@ -12,32 +15,41 @@ interface Designation {
 export default function DesignationIndex({ designations }: { designations: Designation[] }) {
 
     const handleDelete = (id: number) => {
-        Swal.fire({
-            title: "Are you sure?",
-            text: "This action cannot be undone!",
-            icon: "warning",
-            showCancelButton: true,
-            confirmButtonColor: "#d33",
-            cancelButtonColor: "#3085d6",
-            confirmButtonText: "Yes, delete it!"
-        }).then((result) => {
-            if (result.isConfirmed) {
+        // Swal.fire({
+        //     title: "Are you sure?",
+        //     text: "This action cannot be undone!",
+        //     icon: "warning",
+        //     showCancelButton: true,
+        //     confirmButtonColor: "#d33",
+        //     cancelButtonColor: "#3085d6",
+        //     confirmButtonText: "Yes, delete it!"
+        // }).then((result) => {
+        //     if (result.isConfirmed) {
+        //         router.delete(`/designations/${id}`);
+        //         Swal.fire("Deleted!", "Designation has been deleted.", "success");
+        //     }
+        // });
+
+        confirmDialog(
+            {}, () => {
                 router.delete(`/designations/${id}`);
-                Swal.fire("Deleted!", "Designation has been deleted.", "success");
             }
-        });
+        )
+
     };
 
     return (
         <AppLayout>
             <Head title="Designations" />
             <div className="p-6">
-                <div className="flex flex-wrap items-center justify-between mb-6">
+                {/* <div className="flex flex-wrap items-center justify-between mb-6">
                     <h1 className="text-2xl font-bold">Designations</h1>
                     <Link href="/designations/create" className="px-4 py-2 rounded bg-green-600 text-white hover:bg-green-700">
                         + Add New
                     </Link>
-                </div>
+                </div> */}
+
+                <PageHeader title='Designations' addLinkHref='/designations/create' />
 
                 <div className="overflow-x-auto bg-white shadow-md rounded-lg dark:bg-neutral-900">
                     <table className="min-w-full border-collapse border border-gray-200 dark:border-neutral-700">
@@ -57,20 +69,26 @@ export default function DesignationIndex({ designations }: { designations: Desig
                                     <td className="py-2 px-4">{designation.name}</td>
                                     <td className="py-2 px-4">{designation.description}</td>
                                     <td className="py-2 px-4">{designation.creator?.name || 'N/A'}</td>
-                                    <td className="py-2 px-4 flex justify-center space-x-2">
-                                        <Link 
-                                            href={`/designations/${designation.id}/edit`} 
+                                    {/* <td className="py-2 px-4 flex justify-center space-x-2">
+                                        <Link
+                                            href={`/designations/${designation.id}/edit`}
                                             className="px-3 py-1 text-sm rounded bg-yellow-500 text-white hover:bg-yellow-600"
                                         >
                                             Edit
                                         </Link>
-                                        <button 
-                                            onClick={() => handleDelete(designation.id)} 
+                                        <button
+                                            onClick={() => handleDelete(designation.id)}
                                             className="px-3 py-1 text-sm rounded bg-red-600 text-white hover:bg-red-700"
                                         >
                                             Delete
                                         </button>
-                                    </td>
+                                    </td> */}
+                                    <ActionButtons
+                                        editHref={`/designations/${designation.id}/edit`}
+                                        onDelete={() => handleDelete(designation.id)}
+                                        editText="Edit"
+                                        deleteText="Delete"
+                                    />
                                 </tr>
                             ))}
                         </tbody>

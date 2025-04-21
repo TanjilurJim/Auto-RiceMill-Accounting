@@ -1,3 +1,6 @@
+import ActionButtons from '@/components/ActionButtons';
+import { confirmDialog } from '@/components/confirmDialog';
+import PageHeader from '@/components/PageHeader';
 import AppLayout from '@/layouts/app-layout';
 import { type BreadcrumbItem } from '@/types';
 import { Head, Link, router } from '@inertiajs/react';
@@ -19,27 +22,34 @@ export default function RoleIndex({ roles }: { roles: Role[] }) {
 
     // 🛑 Handle Delete Confirmation
     const handleDelete = (roleId: number) => {
-        Swal.fire({
-            title: 'Are you sure?',
-            text: "This action cannot be undone!",
-            icon: 'warning',
-            showCancelButton: true,
-            confirmButtonColor: '#d33',
-            cancelButtonColor: '#3085d6',
-            confirmButtonText: 'Yes, delete it!',
-        }).then((result) => {
-            if (result.isConfirmed) {
+        // Swal.fire({
+        //     title: 'Are you sure?',
+        //     text: "This action cannot be undone!",
+        //     icon: 'warning',
+        //     showCancelButton: true,
+        //     confirmButtonColor: '#d33',
+        //     cancelButtonColor: '#3085d6',
+        //     confirmButtonText: 'Yes, delete it!',
+        // }).then((result) => {
+        //     if (result.isConfirmed) {
+        //         router.delete(`/roles/${roleId}`);
+        //         Swal.fire('Deleted!', 'The role has been deleted.', 'success');
+        //     }
+        // });
+
+        confirmDialog(
+            {}, () => {
                 router.delete(`/roles/${roleId}`);
-                Swal.fire('Deleted!', 'The role has been deleted.', 'success');
             }
-        });
+        )
+
     };
 
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
             <Head title="Roles" />
             <div className="p-6">
-                <div className="mb-6 flex items-center justify-between">
+                {/* <div className="mb-6 flex items-center justify-between">
                     <h1 className="text-2xl font-bold">Roles</h1>
                     <Link
                         href="/roles/create"
@@ -47,7 +57,9 @@ export default function RoleIndex({ roles }: { roles: Role[] }) {
                     >
                         + Create Role
                     </Link>
-                </div>
+                </div> */}
+
+                <PageHeader title="Roles" addLinkHref='/roles/create' addLinkText="+ Create Role" />
 
                 <div className="rounded bg-white p-4 shadow dark:bg-neutral-900">
                     <table className="w-full text-left">
@@ -67,7 +79,7 @@ export default function RoleIndex({ roles }: { roles: Role[] }) {
                                     <td className="py-2 align-middle text-right">
                                         {new Date(role.created_at).toLocaleDateString()}
                                     </td>
-                                    <td className="py-2 align-middle ">
+                                    {/* <td className="py-2 align-middle ">
                                         <div className="flex justify-end gap-2">
                                             <Link
                                                 href={`/roles/${role.id}/edit`}
@@ -82,7 +94,14 @@ export default function RoleIndex({ roles }: { roles: Role[] }) {
                                                 <Trash2 size={14} /> Delete
                                             </button>
                                         </div>
-                                    </td>
+                                    </td> */}
+                                    <ActionButtons
+                                        editHref={`/roles/${role.id}/edit`}
+                                        onDelete={() => handleDelete(role.id)}
+                                        deleteText="Delete"
+                                        editText="Edit"
+                                        className='justify-end'
+                                    />
                                 </tr>
                             ))}
                         </tbody>

@@ -1,3 +1,7 @@
+import ActionButtons from '@/components/ActionButtons';
+import { confirmDialog } from '@/components/confirmDialog';
+import PageHeader from '@/components/PageHeader';
+import Pagination from '@/components/Pagination';
 import AppLayout from '@/layouts/app-layout';
 import { Head, Link, router, usePage } from '@inertiajs/react';
 import React, { MouseEvent, useState } from 'react';
@@ -62,32 +66,41 @@ export default function SalesOrderIndex() {
     }, [openDropdown]);
 
     const handleDelete = (id: number) => {
-        Swal.fire({
-            title: 'Are you sure?',
-            text: 'This Sales Order will be permanently deleted!',
-            icon: 'warning',
-            showCancelButton: true,
-            confirmButtonColor: '#d33',
-            cancelButtonColor: '#3085d6',
-            confirmButtonText: 'Yes, delete it!',
-        }).then((result) => {
-            if (result.isConfirmed) {
+        // Swal.fire({
+        //     title: 'Are you sure?',
+        //     text: 'This Sales Order will be permanently deleted!',
+        //     icon: 'warning',
+        //     showCancelButton: true,
+        //     confirmButtonColor: '#d33',
+        //     cancelButtonColor: '#3085d6',
+        //     confirmButtonText: 'Yes, delete it!',
+        // }).then((result) => {
+        //     if (result.isConfirmed) {
+        //         router.delete(`/sales-orders/${id}`);
+        //         Swal.fire('Deleted!', 'The Sales Order has been deleted.', 'success');
+        //     }
+        // });
+
+        confirmDialog(
+            {}, () => {
                 router.delete(`/sales-orders/${id}`);
-                Swal.fire('Deleted!', 'The Sales Order has been deleted.', 'success');
             }
-        });
+        )
+
     };
 
     return (
         <AppLayout>
             <Head title="Sales Order List" />
             <div className="bg-gray-100 p-4">
-                <div className="mb-4 flex items-center justify-between">
+                {/* <div className="mb-4 flex items-center justify-between">
                     <h1 className="text-xl font-semibold">Sales Order List</h1>
                     <Link href="/sales-orders/create" className="rounded bg-green-600 px-4 py-2 text-sm font-medium text-white hover:bg-green-700">
                         + Add Sales Order
                     </Link>
-                </div>
+                </div> */}
+
+                <PageHeader title='Sales Order List' addLinkHref='/sales-orders/create' addLinkText='+ Add Sales Order' />
 
                 <div className="overflow-visible overflow-x-auto rounded-lg border border-gray-300 bg-white shadow-sm">
                     <table className="min-w-full border-collapse text-[13px]">
@@ -121,7 +134,7 @@ export default function SalesOrderIndex() {
                                     </td>
                                     <td className="border px-3 py-2 text-center">{order.total_qty}</td>
                                     <td className="border px-3 py-2 text-right font-semibold">{Number(order.total_amount || 0).toFixed(2)} Tk</td>
-                                    <td className="border px-3 py-2 text-center">
+                                    {/* <td className="border px-3 py-2 text-center">
                                         <div className="flex justify-center space-x-2">
                                             <Link
                                                 href={`/sales-orders/${order.id}/edit`}
@@ -141,7 +154,13 @@ export default function SalesOrderIndex() {
                                                 Print
                                             </Link>
                                         </div>
-                                    </td>
+                                    </td> */}
+                                    <ActionButtons
+                                        editHref={`/sales-orders/${order.id}/edit`} // URL for the edit action
+                                        onDelete={() => handleDelete(order.id)} // Function to handle the delete action
+                                        printHref={`/sales-orders/${order.id}/invoice`} // URL for the print action
+                                        printText="Print" // Custom text for the print button
+                                    />
                                 </tr>
                             ))}
                         </tbody>
@@ -149,18 +168,18 @@ export default function SalesOrderIndex() {
                 </div>
 
                 {/* Pagination */}
-                <div className="mt-4 flex justify-end gap-1">
+                {/* <div className="mt-4 flex justify-end gap-1">
                     {salesOrders.links.map((link, index) => (
                         <Link
                             key={index}
                             href={link.url || ''}
                             dangerouslySetInnerHTML={{ __html: link.label }}
-                            className={`rounded px-3 py-1 text-sm ${
-                                link.active ? 'bg-blue-600 text-white' : 'hover:bg-neutral-200'
-                            } ${!link.url && 'pointer-events-none opacity-50'}`}
+                            className={`rounded px-3 py-1 text-sm ${link.active ? 'bg-blue-600 text-white' : 'hover:bg-neutral-200'
+                                } ${!link.url && 'pointer-events-none opacity-50'}`}
                         />
                     ))}
-                </div>
+                </div> */}
+                <Pagination links={salesOrders.links} />
             </div>
         </AppLayout>
     );

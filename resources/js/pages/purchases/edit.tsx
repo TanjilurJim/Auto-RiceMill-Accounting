@@ -1,3 +1,6 @@
+import ActionFooter from '@/components/ActionFooter';
+import { confirmDialog } from '@/components/confirmDialog';
+import PageHeader from '@/components/PageHeader';
 /*  resources/js/Pages/purchases/edit.tsx  */
 import AppLayout from '@/layouts/app-layout';
 import { Head, Link, useForm } from '@inertiajs/react';
@@ -126,12 +129,29 @@ export default function PurchaseEdit({ purchase, godowns, salesmen, ledgers, sto
 
     const removeRow = (idx: number) => {
         if (data.purchase_items.length === 1) return;
-        Swal.fire({ title: 'Remove?', icon: 'warning', showCancelButton: true }).then((r) => {
-            if (!r.isConfirmed) return;
-            const items = [...data.purchase_items];
-            items.splice(idx, 1);
-            setData('purchase_items', items);
-        });
+        // Swal.fire({
+        //     title: 'Are you sure?',
+        //     text: 'Do you want to remove this product row?',
+        //     icon: 'warning',
+        //     showCancelButton: true,
+        //     confirmButtonColor: '#d33',
+        //     cancelButtonColor: '#3085d6',
+        //     confirmButtonText: 'Yes, remove it!',
+        // }).then((result) => {
+        //     if (result.isConfirmed) {
+        //         const updated = [...data.purchase_items];
+        //         updated.splice(index, 1);
+        //         setData('purchase_items', updated);
+        //     }
+        // });
+
+        confirmDialog(
+            { }, () => {
+                const updated = [...data.purchase_items];
+                updated.splice(index, 1);
+                setData('purchase_items', updated);
+            }
+        );
     };
 
     const handleSubmit = (e: React.FormEvent) => {
@@ -149,12 +169,15 @@ export default function PurchaseEdit({ purchase, godowns, salesmen, ledgers, sto
         <AppLayout>
             <Head title="Update Purchase" />
             <div className="bg-gray-100 p-6">
-                <div className="mb-6 flex items-center justify-between">
-                    <h1 className="text-2xl font-semibold">Update Purchase</h1>
+                {/* Header */}
+                {/* <div className="mb-6 flex items-center justify-between">
+                    <h1 className="text-2xl font-semibold text-gray-800">Update Purchase</h1>
                     <Link href="/purchases" className="rounded bg-gray-300 px-4 py-2 hover:bg-neutral-100">
                         Back
                     </Link>
-                </div>
+                </div> */}
+
+                <PageHeader title="Update Purchase" addLinkHref="/purchases" addLinkText='Back'/>
 
                 <form onSubmit={handleSubmit} className="space-y-6 rounded bg-white p-6 shadow">
                     {/* ---------- Info section ---------- */}
@@ -308,13 +331,17 @@ export default function PurchaseEdit({ purchase, godowns, salesmen, ledgers, sto
                                                         <button
                                                             type="button"
                                                             onClick={() => removeRow(idx)}
-                                                            className="rounded bg-red-500 px-2 py-1 text-white"
+                                                            className="rounded bg-danger px-2 py-1 text-white hover:bg-danger-hover"
                                                         >
                                                             &minus;
                                                         </button>
                                                     )}
-                                                    {idx === data.purchase_items.length - 1 && (
-                                                        <button type="button" onClick={addRow} className="rounded bg-blue-500 px-2 py-1 text-white">
+                                                    {index === data.purchase_items.length - 1 && (
+                                                        <button
+                                                            type="button"
+                                                            onClick={addProductRow}
+                                                            className="rounded bg-primary px-2 py-1 text-white hover:bg-primary-hover"
+                                                        >
                                                             +
                                                         </button>
                                                     )}
@@ -374,15 +401,31 @@ export default function PurchaseEdit({ purchase, godowns, salesmen, ledgers, sto
                         {/* shipping / delivered textareas kept as‑is */}
                     </div>
 
-                    {/* ---------- buttons ------------- */}
-                    <div className="mt-6 flex justify-end gap-3">
-                        <button type="submit" disabled={processing} className="rounded bg-green-600 px-5 py-2 text-white">
-                            {processing ? 'Updating…' : 'Update'}
+                    {/* Action Buttons */}
+                    {/* <div className="mt-6 flex justify-end gap-3">
+                        <button
+                            type="submit"
+                            disabled={processing}
+                            className="rounded bg-green-600 px-5 py-2 font-semibold text-white shadow hover:bg-green-700"
+                        >
+                            {processing ? 'Updating...' : 'Update'}
                         </button>
                         <Link href="/purchases" className="rounded border px-5 py-2">
                             Cancel
                         </Link>
-                    </div>
+                    </div> */}
+                    
+                    {/*Custom Action Buttons */}
+                    <ActionFooter 
+                        className='w-full justify-end'
+                        onSubmit={handleSubmit}
+                        onSaveAndPrint={handleSaveAndPrint}
+                        processing={processing}
+                        cancelText="Cancel"
+                        cancelHref="/purchases"
+                        submitText={processing ? 'Updating...' : 'Update'}
+                        saveAndPrintText="Save & Print"
+                    />
                 </form>
             </div>
         </AppLayout>

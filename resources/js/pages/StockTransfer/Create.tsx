@@ -1,5 +1,7 @@
 import AppLayout from '@/layouts/app-layout';
 import { Head, useForm } from '@inertiajs/react';
+import PageHeader from '@/components/PageHeader';
+import ActionFooter from '@/components/ActionFooter';
 import React, { useEffect, useState } from 'react';
 
 export default function Create({ godowns, items, liveStock, errors }: any) {
@@ -89,11 +91,13 @@ export default function Create({ godowns, items, liveStock, errors }: any) {
         post('/stock-transfers');
     };
 
-    return (
-        <AppLayout>
-            <Head title="Add Stock Transfer" />
-            <div className="mx-auto max-w-6xl rounded-xl bg-white p-6 shadow-lg">
-                <h1 className="mb-8 border-b pb-4 text-2xl font-bold text-gray-800">Create Stock Transfer</h1>
+  return (
+    <AppLayout>
+      <Head title="Add Stock Transfer" />
+      <div className="max-w-6xl mx-auto p-6 bg-white rounded-xl shadow-lg">
+        {/* <h1 className="text-2xl font-bold text-gray-800 mb-8 border-b pb-4">Create Stock Transfer</h1> */}
+
+        <PageHeader title='Create Stock Transfer' addLinkHref='/stock-transfers' addLinkText='Back' />
 
                 <form onSubmit={handleSubmit} className="space-y-8">
                     <div className="grid grid-cols-1 gap-6 md:grid-cols-3">
@@ -291,25 +295,42 @@ export default function Create({ godowns, items, liveStock, errors }: any) {
                         </div>
                     </div>
 
-                    <div className="flex justify-end space-x-4 border-t pt-6">
-                        <button
-                            type="submit"
-                            disabled={processing}
-                            className="inline-flex items-center rounded-lg bg-blue-600 px-6 py-3 text-white hover:bg-blue-700 focus:ring-4 focus:ring-blue-100 disabled:opacity-75"
-                        >
-                            {processing ? 'Processing...' : 'Create Transfer'}
-                            <svg className="ml-2 h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path
-                                    strokeLinecap="round"
-                                    strokeLinejoin="round"
-                                    strokeWidth={2}
-                                    d="M8 7H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-3m-1 4l-3 3m0 0l-3-3m3 3V4"
-                                />
-                            </svg>
-                        </button>
-                    </div>
-                </form>
-            </div>
-        </AppLayout>
-    );
+          {/* <div className="flex justify-end space-x-4 border-t pt-6">
+            <button
+              type="submit"
+              disabled={processing}
+              className="inline-flex items-center px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 focus:ring-4 focus:ring-blue-100 disabled:opacity-75"
+            >
+              {processing ? 'Processing...' : 'Create Transfer'}
+              <svg className="w-4 h-4 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-3m-1 4l-3 3m0 0l-3-3m3 3V4" />
+              </svg>
+            </button>
+          </div> */}
+
+          <ActionFooter
+            onSubmit={handleSubmit} // Function to handle form submission
+            cancelHref="/stock-transfers" // URL for the cancel action
+            processing={processing} // Indicates whether the form is processing
+            submitText={
+              <span className="inline-flex items-center">
+                {processing ? 'Processing...' : 'Create Transfer'}
+                <svg className="w-4 h-4 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M8 7H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-3m-1 4l-3 3m0 0l-3-3m3 3V4"
+                  />
+                </svg>
+              </span>
+            } // Custom button content
+            cancelText="Cancel" // Text for the cancel button
+            className="justify-end" // Align buttons to the right
+          />
+
+        </form>
+      </div>
+    </AppLayout>
+  );
 }

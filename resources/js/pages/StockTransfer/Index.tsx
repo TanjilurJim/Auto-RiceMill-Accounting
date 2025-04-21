@@ -2,6 +2,10 @@ import AppLayout from '@/layouts/app-layout';
 import { Head, Link, router } from '@inertiajs/react';
 import Swal from 'sweetalert2';
 import { FiEdit, FiTrash, FiEye } from 'react-icons/fi'; // Icon library
+import PageHeader from '@/components/PageHeader';
+import ActionButtons from '@/components/ActionButtons';
+import { confirmDialog } from '@/components/confirmDialog';
+import Pagination from '@/components/Pagination';
 
 interface Godown {
     name: string;
@@ -40,30 +44,36 @@ export default function Index({ stockTransfers }: Props) {
     const transfers = stockTransfers.data ?? [];
 
     const handleDelete = (id: number) => {
-        Swal.fire({
-            title: 'Are you sure?',
-            text: 'This Stock Transfer will be permanently deleted!',
-            icon: 'warning',
-            showCancelButton: true,
-            confirmButtonColor: '#d33',
-            cancelButtonColor: '#3085d6',
-            confirmButtonText: 'Yes, delete it!',
-        }).then((result) => {
-            if (result.isConfirmed) {
-                router.delete(`/stock-transfers/${id}`, {
-                    onSuccess: () => {
-                        Swal.fire('Deleted!', 'The Stock Transfer has been deleted.', 'success');
-                    }
-                });
-            }
-        });
+        // Swal.fire({
+        //     title: 'Are you sure?',
+        //     text: 'This Stock Transfer will be permanently deleted!',
+        //     icon: 'warning',
+        //     showCancelButton: true,
+        //     confirmButtonColor: '#d33',
+        //     cancelButtonColor: '#3085d6',
+        //     confirmButtonText: 'Yes, delete it!',
+        // }).then((result) => {
+        //     if (result.isConfirmed) {
+        //         router.delete(`/stock-transfers/${id}`, {
+        //             onSuccess: () => {
+        //                 Swal.fire('Deleted!', 'The Stock Transfer has been deleted.', 'success');
+        //             }
+        //         });
+        //     }
+        // });
+
+        confirmDialog(
+            {}, () => {
+                router.delete(`/stock-transfers/${id}`);
+            }    
+        );
     };
 
     return (
         <AppLayout>
             <Head title="Stock Transfers" />
             <div className="mx-auto max-w-7xl rounded-2xl bg-white p-8 shadow-xl">
-                <div className="mb-6 flex items-center justify-between">
+                {/* <div className="mb-6 flex items-center justify-between">
                     <h1 className="text-3xl font-semibold text-gray-800">Stock Transfers</h1>
                     <Link
                         href="/stock-transfers/create"
@@ -71,7 +81,9 @@ export default function Index({ stockTransfers }: Props) {
                     >
                         + New Transfer
                     </Link>
-                </div>
+                </div> */}
+
+                <PageHeader title='Stock Transfers' addLinkHref='/stock-transfers/create' addLinkText='+ New Transfer' />
 
                 <div className="overflow-x-auto rounded-xl border border-gray-200 shadow-sm">
                     <table className="min-w-full bg-white text-sm shadow-2xl rounded-2xl">
@@ -100,7 +112,7 @@ export default function Index({ stockTransfers }: Props) {
                                         <td className="px-4 py-3 text-right">{Number(transfer.total_quantity).toFixed(2)}</td>
                                         <td className="px-4 py-3 text-right">{Number(transfer.total_amount).toFixed(2)}</td>
                                         <td className="px-4 py-3">{transfer.date}</td>
-                                        <td className="px-4 py-3 text-center">
+                                        {/* <td className="px-4 py-3 text-center">
                                             <div className="flex justify-center space-x-4">
                                                 <Link
                                                     href={`/stock-transfers/${transfer.id}/edit`}
@@ -120,10 +132,18 @@ export default function Index({ stockTransfers }: Props) {
                                                     href={`/stock-transfers/${transfer.id}`}
                                                     className="rounded-full bg-blue-600 p-2 text-xs text-white hover:bg-blue-700 transition duration-200"
                                                 >
-                                                    <FiEye/>
+                                                    <FiEye />
                                                 </Link>
                                             </div>
-                                        </td>
+                                        </td> */}
+                                        <ActionButtons
+                                            editText={<FiEdit />}
+                                            deleteText={<FiTrash />}
+                                            editHref={`/stock-transfers/${transfer.id}/edit`} // URL for the edit action
+                                            onDelete={() => handleDelete(transfer.id)} // Function to handle the delete action
+                                            printHref={`/stock-transfers/${transfer.id}`}
+                                            printText={<FiEye />} // Optional: Custom text for the print button
+                                        />
                                     </tr>
                                 ))
                             ) : (
@@ -144,26 +164,27 @@ export default function Index({ stockTransfers }: Props) {
                     <span>Total: {stockTransfers.total}</span>
                 </div>
 
-                <div className="mt-4 flex gap-3">
+                {/* Pagination */}
+                {/* <div className="mt-4 flex gap-3">
                     {stockTransfers.links?.map((link, index) => (
                         <Link
                             key={index}
                             href={link.url || ''}
                             preserveScroll
                             preserveState
-                            className={`rounded-lg px-4 py-2 text-sm font-medium transition duration-200 ${
-                                link.active
+                            className={`rounded-lg px-4 py-2 text-sm font-medium transition duration-200 ${link.active
                                     ? 'bg-blue-600 text-white'
                                     : !link.url
-                                      ? 'cursor-not-allowed text-gray-400'
-                                      : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-                            }`}
+                                        ? 'cursor-not-allowed text-gray-400'
+                                        : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                                }`}
                             disabled={!link.url}
                         >
                             <span dangerouslySetInnerHTML={{ __html: link.label }} />
                         </Link>
                     ))}
-                </div>
+                </div> */}
+                <Pagination links={stockTransfers.links} />
             </div>
         </AppLayout>
     );

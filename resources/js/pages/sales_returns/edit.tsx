@@ -1,3 +1,5 @@
+import ActionFooter from '@/components/ActionFooter';
+import PageHeader from '@/components/PageHeader';
 import AppLayout from '@/layouts/app-layout';
 import { Head, Link, useForm } from '@inertiajs/react';
 import { useEffect } from 'react';
@@ -92,7 +94,7 @@ export default function SalesReturnEdit({
     <AppLayout>
       <Head title="Edit Sales Return" />
       <div className="p-6 bg-gray-100">
-        <div className="mb-6 flex items-center justify-between">
+        {/* <div className="mb-6 flex items-center justify-between">
           <h1 className="text-2xl font-semibold text-gray-800">Edit Sales Return</h1>
           <Link
             href="/sales-returns"
@@ -100,7 +102,9 @@ export default function SalesReturnEdit({
           >
             Back
           </Link>
-        </div>
+        </div> */}
+
+        <PageHeader title='Edit Sales Return' addLinkHref='/sales-returns' addLinkText='Back' />
 
         <form onSubmit={handleSubmit} className="space-y-6 rounded bg-white p-6 shadow-md">
           <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
@@ -207,12 +211,12 @@ export default function SalesReturnEdit({
 
                 <div className="col-span-1 flex gap-1">
                   {data.sales_return_items.length > 1 && (
-                    <button type="button" onClick={() => removeProductRow(index)} className="rounded bg-red-500 px-3 py-1 text-white">
+                    <button type="button" onClick={() => removeProductRow(index)} className="rounded bg-danger hover:bg-danger-hover px-3 py-1 text-white">
                       &minus;
                     </button>
                   )}
                   {index === data.sales_return_items.length - 1 && (
-                    <button type="button" onClick={addProductRow} className="rounded bg-blue-500 px-3 py-1 text-white">
+                    <button type="button" onClick={addProductRow} className="rounded bg-primary hover:bg-primary-hover px-3 py-1 text-white">
                       +
                     </button>
                   )}
@@ -246,11 +250,19 @@ export default function SalesReturnEdit({
           </div>
 
           {/* Submit */}
-          <div className="flex justify-end pt-4">
+          {/* <div className="flex justify-end pt-4">
             <button type="submit" disabled={processing} className="rounded bg-green-600 px-6 py-2 font-semibold text-white hover:bg-green-700">
               {processing ? 'Saving...' : 'Update Sales Return'}
             </button>
-          </div>
+          </div> */}
+          <ActionFooter
+            className="justify-end"
+            onSubmit={handleSubmit} // Function to handle form submission
+            cancelHref="/sales-returns" // URL for the cancel action
+            processing={processing} // Indicates whether the form is processing
+            submitText={processing ? 'Saving...' : 'Update Sales Return'} // Text for the submit button
+            cancelText="Cancel" // Text for the cancel button
+          />
         </form>
       </div>
     </AppLayout>

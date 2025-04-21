@@ -1,3 +1,6 @@
+import ActionFooter from '@/components/ActionFooter';
+import { confirmDialog } from '@/components/confirmDialog';
+import PageHeader from '@/components/PageHeader';
 import AppLayout from '@/layouts/app-layout';
 import { Head, Link, useForm } from '@inertiajs/react';
 import Swal from 'sweetalert2';
@@ -77,21 +80,30 @@ export default function PurchaseReturnEdit({
 
     const removeProductRow = (index: number) => {
         if (data.return_items.length === 1) return;
-        Swal.fire({
-            title: 'Are you sure?',
-            text: 'Remove this item row?',
-            icon: 'warning',
-            showCancelButton: true,
-            confirmButtonColor: '#d33',
-            cancelButtonColor: '#3085d6',
-            confirmButtonText: 'Yes, remove it!',
-        }).then((result) => {
-            if (result.isConfirmed) {
+        // Swal.fire({
+        //     title: 'Are you sure?',
+        //     text: 'Remove this item row?',
+        //     icon: 'warning',
+        //     showCancelButton: true,
+        //     confirmButtonColor: '#d33',
+        //     cancelButtonColor: '#3085d6',
+        //     confirmButtonText: 'Yes, remove it!',
+        // }).then((result) => {
+        //     if (result.isConfirmed) {
+        //         const updated = [...data.return_items];
+        //         updated.splice(index, 1);
+        //         setData('return_items', updated);
+        //     }
+        // });
+
+        confirmDialog(
+            {}, () => {
                 const updated = [...data.return_items];
                 updated.splice(index, 1);
                 setData('return_items', updated);
             }
-        });
+        )
+
     };
 
     const handleSubmit = (e: React.FormEvent) => {
@@ -103,12 +115,14 @@ export default function PurchaseReturnEdit({
         <AppLayout>
             <Head title="Edit Purchase Return" />
             <div className="bg-gray-100 p-6">
-                <div className="mb-6 flex items-center justify-between">
+                {/* <div className="mb-6 flex items-center justify-between">
                     <h1 className="text-2xl font-semibold text-gray-800">Edit Purchase Return</h1>
                     <Link href="/purchase-returns" className="rounded bg-gray-300 px-4 py-2 hover:bg-neutral-100">
                         Back
                     </Link>
-                </div>
+                </div> */}
+
+                <PageHeader title='Edit Purchase Return' addLinkHref='/purchase-returns' addLinkText='Back' />
 
                 {/* Form */}
                 <form onSubmit={handleSubmit} className="space-y-6 rounded bg-white p-6 shadow-md">
@@ -216,7 +230,7 @@ export default function PurchaseReturnEdit({
                                                         <button
                                                             type="button"
                                                             onClick={() => removeProductRow(index)}
-                                                            className="rounded bg-red-500 px-2 py-1 text-white"
+                                                            className="rounded bg-danger hover:bg-danger-hover px-2 py-1 text-white"
                                                         >
                                                             &minus;
                                                         </button>
@@ -225,7 +239,7 @@ export default function PurchaseReturnEdit({
                                                         <button
                                                             type="button"
                                                             onClick={addProductRow}
-                                                            className="rounded bg-blue-500 px-2 py-1 text-white"
+                                                            className="rounded bg-primary hover:bg-primary-hover px-2 py-1 text-white"
                                                         >
                                                             +
                                                         </button>
@@ -336,7 +350,7 @@ export default function PurchaseReturnEdit({
                         ))}
                     </div>
                     {/* Submit */}
-                    <div className="mt-6 flex justify-end gap-3">
+                    {/* <div className="mt-6 flex justify-end gap-3">
                         <button
                             type="submit"
                             disabled={processing}
@@ -350,7 +364,17 @@ export default function PurchaseReturnEdit({
                         >
                             Cancel
                         </Link>
-                    </div>
+                    </div> */}
+
+                    <ActionFooter
+                        className= "w-full justify-end"
+                        onSubmit={handleSubmit} // Function to handle form submission
+                        cancelHref="/purchase-returns" // URL for the cancel action
+                        processing={processing} // Indicates whether the form is processing
+                        submitText={processing ? 'Saving...' : 'Update Return'} // Text for the submit button
+                        cancelText="Cancel" // Text for the cancel button
+                    />
+
                 </form>
             </div>
         </AppLayout>

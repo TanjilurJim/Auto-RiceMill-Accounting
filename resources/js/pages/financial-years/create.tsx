@@ -2,6 +2,8 @@ import React from 'react';
 
 import { Head, useForm } from '@inertiajs/react';
 import AppLayout from '@/layouts/app-layout';
+import ActionFooter from '@/components/ActionFooter';
+import PageHeader from '@/components/PageHeader';
 
 export default function Create() {
   const { data, setData, post, processing, errors } = useForm({
@@ -21,9 +23,11 @@ export default function Create() {
       <Head title="Create Financial Year" />
 
       <div className="p-6">
-        <h1 className="text-2xl font-semibold text-gray-800 border-b pb-4 mb-6 bg-gray-100 shadow rounded-2xl">
+        {/* <h1 className="text-2xl font-semibold text-gray-800 border-b pb-4 mb-6 bg-gray-100 shadow rounded-2xl">
           Add New Financial Year
-        </h1>
+        </h1> */}
+
+        <PageHeader title="Add New Financial Year" addLinkHref='/financial-years' addLinkText="Back" />
 
         <form onSubmit={handleSubmit} className="space-y-6 bg-white rounded-lg shadow p-6 border">
           {/* Title */}
@@ -83,7 +87,7 @@ export default function Create() {
           </div>
 
           {/* Buttons */}
-          <div className="pt-4 border-t flex justify-end gap-3">
+          {/* <div className="pt-4 border-t flex justify-end gap-3">
             <button
               type="submit"
               className="px-6 py-2 bg-green-600 text-white rounded hover:bg-green-700"
@@ -98,7 +102,14 @@ export default function Create() {
             >
               Cancel
             </button>
-          </div>
+          </div> */}
+          <ActionFooter
+            processing={processing}
+            submitText={processing ? 'Saving...' : 'Save'}
+            onSubmit={handleSubmit}
+            onCancel={() => window.history.back()}
+            className='justify-end'
+          />
         </form>
       </div>
     </AppLayout>

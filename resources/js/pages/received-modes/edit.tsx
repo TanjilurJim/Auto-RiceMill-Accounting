@@ -1,3 +1,4 @@
+import PageHeader from '@/components/PageHeader';
 import AppLayout from '@/layouts/app-layout';
 import { Head, useForm, usePage } from '@inertiajs/react';
 import React from 'react';
@@ -38,9 +39,11 @@ export default function Edit({ receivedMode }: ReceivedModeProps) {
             <Head title="Edit Received Mode" />
 
             <div className="space-y-6 p-6">
-                <div className="flex items-center justify-between border-b pb-4">
+                {/* <div className="flex items-center justify-between border-b pb-4">
                     <h1 className="text-2xl font-semibold text-gray-800">Edit Received Mode</h1>
-                </div>
+                </div> */}
+
+                <PageHeader title='Edit Received Mode' addLinkText='Back' addLinkHref='/received-modes' />
 
                 <form onSubmit={handleSubmit} className="space-y-6">
                     <div className="rounded-lg border bg-white p-6 shadow">

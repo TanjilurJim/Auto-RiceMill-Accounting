@@ -1,3 +1,4 @@
+import ActionFooter from '@/components/ActionFooter';
 import AppLayout from '@/layouts/app-layout';
 import { Head, Link, useForm } from '@inertiajs/react';
 
@@ -81,10 +82,12 @@ export default function EditSalesman({ salesman }: { salesman: any }) {
                             {errors.address && <p className="text-sm text-red-500">{errors.address}</p>}
                         </div>
 
-                        <div className="flex justify-between mt-4">
+                        {/* <div className="flex justify-between mt-4">
                             <Link href="/salesmen" className="rounded border px-4 py-2 hover:bg-neutral-100 dark:hover:bg-neutral-800">
                                 Cancel
                             </Link>
+                            <CancelLink href="/salesmen" />
+
                             <button
                                 type="submit"
                                 disabled={processing}
@@ -92,7 +95,18 @@ export default function EditSalesman({ salesman }: { salesman: any }) {
                             >
                                 {processing ? 'Updating...' : 'Update'}
                             </button>
-                        </div>
+                            <Button processing={processing}>
+                                {processing ? 'Updating...' : 'Update'}
+                            </Button>
+                        </div> */}
+                        <ActionFooter
+                            className="w-full justify-end"
+                            onSubmit={handleSubmit} // Function to handle form submission
+                            cancelHref="/salesmen" // URL for the cancel action
+                            processing={processing} // Indicates whether the form is processing
+                            submitText={processing ? 'Updating...' : 'Update'} // Text for the submit button
+                            cancelText="Cancel" // Text for the cancel button
+                        />
                     </form>
                 </div>
             </div>

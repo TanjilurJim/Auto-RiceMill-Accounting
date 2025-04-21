@@ -1,3 +1,4 @@
+import ActionFooter from '@/components/ActionFooter';
 import AppLayout from '@/layouts/app-layout';
 import { Head, Link, useForm } from '@inertiajs/react';
 
@@ -71,7 +72,7 @@ export default function EditShift({
                             ></textarea>
                         </div>
 
-                        <div className="flex justify-end space-x-2">
+                        {/* <div className="flex justify-end space-x-2">
                             <Link href="/shifts" className="rounded border px-4 py-2 hover:bg-neutral-100 dark:hover:bg-neutral-800">
                                 Cancel
                             </Link>
@@ -82,7 +83,15 @@ export default function EditShift({
                             >
                                 {processing ? 'Saving...' : 'Update'}
                             </button>
-                        </div>
+                        </div> */}
+                        <ActionFooter
+                            onSubmit={handleSubmit}
+                            cancelHref="/shifts" 
+                            processing={processing}
+                            submitText="Update"
+                            cancelText="Cancel"
+                            className="justify-end"
+                        />
                     </form>
                 </div>
             </div>

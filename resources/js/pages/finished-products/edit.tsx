@@ -1,3 +1,5 @@
+import ActionFooter from '@/components/ActionFooter';
+import PageHeader from '@/components/PageHeader';
 import AppLayout from '@/layouts/app-layout';
 import { PlusCircleIcon, TrashIcon } from '@heroicons/react/24/outline';
 import { Head, router } from '@inertiajs/react';
@@ -97,8 +99,9 @@ export default function Edit({ finishedProduct, workingOrders, products, godowns
         <AppLayout>
             <Head title="Edit Finished Product" />
             <div className="mx-auto max-w-6xl space-y-6 rounded-xl bg-gray-100 px-6 py-8 shadow-xl">
+                {/* <h2 className="text-xl font-semibold text-gray-700">Edit Finished Product</h2> */}
+                <PageHeader title='Edit Finished Product' addLinkHref='/finished-products' addLinkText="Back" />
                 <form onSubmit={handleSubmit} className="space-y-6 rounded border bg-white p-6 shadow-md">
-                    <h2 className="text-xl font-semibold text-gray-700">Edit Finished Product</h2>
 
                     <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
                         <div>
@@ -223,7 +226,7 @@ export default function Edit({ finishedProduct, workingOrders, products, godowns
                                     <button
                                         type="button"
                                         onClick={() => removeRow(idx)}
-                                        className="text-red-500 hover:text-red-700"
+                                        className="text-danger hover:text-danger"
                                     >
                                         <TrashIcon className="h-5 w-5" />
                                     </button>
@@ -242,14 +245,22 @@ export default function Edit({ finishedProduct, workingOrders, products, godowns
                         ></textarea>
                     </div>
 
-                    <div className="flex justify-end">
+                    {/* <div className="flex justify-end">
                         <button
                             type="submit"
                             className="rounded bg-indigo-600 px-6 py-3 font-medium text-white hover:bg-indigo-700"
                         >
                             Update Finished Product
                         </button>
-                    </div>
+                    </div> */}
+                    <ActionFooter
+                        className="justify-end"
+                        onSubmit={handleSubmit}
+                        cancelHref="/finished-products"
+                        processing={false}
+                        submitText="Update Finished Product"
+                        cancelText="Cancel"
+                    />
                 </form>
             </div>
         </AppLayout>

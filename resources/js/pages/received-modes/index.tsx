@@ -1,3 +1,7 @@
+import ActionButtons from '@/components/ActionButtons';
+import { confirmDialog } from '@/components/confirmDialog';
+import PageHeader from '@/components/PageHeader';
+import Pagination from '@/components/Pagination';
 import AppLayout from '@/layouts/app-layout';
 import { Head, Link, router } from '@inertiajs/react';
 import Swal from 'sweetalert2';
@@ -28,20 +32,27 @@ export default function Index({
     const safeReceivedModes = receivedModes || { data: [], links: [] };
 
     const handleDelete = (id: number) => {
-        Swal.fire({
-            title: 'Are you sure?',
-            text: 'This received mode will be permanently deleted!',
-            icon: 'warning',
-            showCancelButton: true,
-            confirmButtonColor: '#d33',
-            cancelButtonColor: '#3085d6',
-            confirmButtonText: 'Yes, delete it!',
-        }).then((result) => {
-            if (result.isConfirmed) {
+        // Swal.fire({
+        //     title: 'Are you sure?',
+        //     text: 'This received mode will be permanently deleted!',
+        //     icon: 'warning',
+        //     showCancelButton: true,
+        //     confirmButtonColor: '#d33',
+        //     cancelButtonColor: '#3085d6',
+        //     confirmButtonText: 'Yes, delete it!',
+        // }).then((result) => {
+        //     if (result.isConfirmed) {
+        //         router.delete(`/received-modes/${id}`);
+        //         Swal.fire('Deleted!', 'The received mode has been deleted.', 'success');
+        //     }
+        // });
+
+        confirmDialog(
+            {}, () => {
                 router.delete(`/received-modes/${id}`);
-                Swal.fire('Deleted!', 'The received mode has been deleted.', 'success');
             }
-        });
+        )
+
     };
 
     // Safe access to the data array before trying to map over it
@@ -51,12 +62,14 @@ export default function Index({
         <AppLayout>
             <Head title="Received Modes" />
             <div className="bg-gray-100 p-4">
-                <div className="mb-4 flex items-center justify-between">
+                {/* <div className="mb-4 flex items-center justify-between">
                     <h1 className="text-xl font-semibold">Received Modes</h1>
                     <Link href="/received-modes/create" className="rounded bg-green-600 px-4 py-2 text-sm font-medium text-white hover:bg-green-700">
                         + Add New Mode
                     </Link>
-                </div>
+                </div> */}
+
+                <PageHeader title="Received Modes" addLinkHref="/received-modes/create" />
 
                 <div className="overflow-x-auto rounded-lg border border-gray-300 bg-white shadow-sm">
                     <table className="min-w-full border-collapse text-sm">
@@ -80,7 +93,7 @@ export default function Index({
                                         <td className="border px-3 py-2">{mode.opening_balance}</td>
                                         <td className="border px-3 py-2">{mode.closing_balance}</td>
                                         <td className="border px-3 py-2">{mode.phone_number}</td>
-                                        <td className="border px-3 py-2 text-center">
+                                        {/* <td className="border px-3 py-2 text-center">
                                             <div className="flex justify-center space-x-2">
                                                 <Link
                                                     href={`/received-modes/${mode.id}/edit`}
@@ -95,7 +108,11 @@ export default function Index({
                                                     Delete
                                                 </button>
                                             </div>
-                                        </td>
+                                        </td> */}
+                                        <ActionButtons
+                                            editHref={`/received-modes/${mode.id}/edit`} // URL for the edit action
+                                            onDelete={() => handleDelete(mode.id)} // Function to handle the delete action
+                                        />
                                     </tr>
                                 ))
                             ) : (
@@ -110,18 +127,18 @@ export default function Index({
                 </div>
 
                 {/* Pagination */}
-                <div className="mt-4 flex justify-end gap-1">
+                {/* <div className="mt-4 flex justify-end gap-1">
                     {safeReceivedModes.links.map((link, index) => (
                         <Link
                             key={index}
                             href={link.url || ''}
                             dangerouslySetInnerHTML={{ __html: link.label }}
-                            className={`rounded px-3 py-1 text-sm ${
-                                link.active ? 'bg-blue-600 text-white' : 'hover:bg-neutral-200 dark:hover:bg-neutral-800'
-                            } ${!link.url && 'pointer-events-none opacity-50'}`}
+                            className={`rounded px-3 py-1 text-sm ${link.active ? 'bg-blue-600 text-white' : 'hover:bg-neutral-200 dark:hover:bg-neutral-800'
+                                } ${!link.url && 'pointer-events-none opacity-50'}`}
                         />
                     ))}
-                </div>
+                </div> */}
+                <Pagination links={safeReceivedModes.links} />
             </div>
         </AppLayout>
     );

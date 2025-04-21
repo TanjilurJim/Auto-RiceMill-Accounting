@@ -1,3 +1,4 @@
+import ActionFooter from '@/components/ActionFooter';
 import { Head, Link } from '@inertiajs/react';
 
 export default function SaleInvoice({ sale, company }: { sale: any; company: any }) {
@@ -94,11 +95,18 @@ export default function SaleInvoice({ sale, company }: { sale: any; company: any
             </div>
 
             {/* Print Button */}
-            <div className="text-center mt-8">
+            {/* <div className="text-center mt-8">
                 <button onClick={handlePrint} className="rounded bg-green-600 px-6 py-2 text-white font-semibold hover:bg-green-700">
                     Print Invoice
                 </button>
-            </div>
+            </div> */}
+            <ActionFooter
+                className='justify-center'
+                cancelHref="/sales" // URL for the cancel/back action
+                cancelText="Back" // Text for the cancel button
+                onSubmit={handlePrint} // Function to handle the print action
+                submitText="Print Invoice" // Text for the print button
+            />
         </div>
     );
 }

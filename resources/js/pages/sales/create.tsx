@@ -1,3 +1,5 @@
+import ActionFooter from '@/components/ActionFooter';
+import PageHeader from '@/components/PageHeader';
 import AppLayout from '@/layouts/app-layout';
 import { Head, Link, useForm } from '@inertiajs/react';
 import axios from 'axios';
@@ -201,12 +203,14 @@ export default function SaleCreate({
             <Head title="Add Sale" />
             <div className="bg-gray-100 p-6">
                 {/* Header */}
-                <div className="mb-6 flex items-center justify-between">
+                {/* <div className="mb-6 flex items-center justify-between">
                     <h1 className="text-2xl font-semibold text-gray-800">Create Sale</h1>
                     <Link href="/sales" className="rounded bg-gray-300 px-4 py-2 hover:bg-neutral-100">
                         Back
                     </Link>
-                </div>
+                </div> */}
+
+                <PageHeader title='Create Sale' addLinkHref='/sales' addLinkText='Back' />
 
                 {/* Form */}
                 <form onSubmit={handleSubmit} className="space-y-8 rounded bg-white p-6 shadow-md">
@@ -408,14 +412,14 @@ export default function SaleCreate({
                                     {data.sale_items.length > 1 && (
                                         <button
                                             type="button"
-                                            className="rounded bg-red-500 px-3 py-2 text-white"
+                                            className="rounded bg-danger hover:bg-danger-hover px-3 py-2 text-white"
                                             onClick={() => removeProductRow(index)}
                                         >
                                             &minus;
                                         </button>
                                     )}
                                     {index === data.sale_items.length - 1 && (
-                                        <button type="button" className="rounded bg-blue-500 px-3 py-2 text-white" onClick={addProductRow}>
+                                        <button type="button" className="rounded bg-primary hover:bg-primary-hover px-3 py-2 text-white" onClick={addProductRow}>
                                             +
                                         </button>
                                     )}
@@ -733,7 +737,7 @@ export default function SaleCreate({
                 </div>  */}
 
                     {/* Section 4: Submit */}
-                    <div className="flex justify-end gap-3 pt-4">
+                    {/* <div className="flex justify-end gap-3 pt-4">
                         <button
                             type="submit"
                             disabled={processing}
@@ -744,7 +748,15 @@ export default function SaleCreate({
                         <Link href="/sales" className="rounded border border-gray-400 px-5 py-2 font-semibold text-gray-700 hover:bg-gray-100">
                             Cancel
                         </Link>
-                    </div>
+                    </div> */}
+                    <ActionFooter
+                        className='w-full justify-end'
+                        onSubmit={handleSubmit} // Function to handle form submission
+                        cancelHref="/sales" // URL for the cancel action
+                        processing={processing} // Indicates whether the form is processing
+                        submitText={processing ? 'Saving...' : 'Save'} // Text for the submit button
+                        cancelText="Cancel" // Text for the cancel button
+                    />
                 </form>
             </div>
 

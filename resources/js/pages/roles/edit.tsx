@@ -1,6 +1,8 @@
 import { Head, Link, useForm } from '@inertiajs/react';
 import AppLayout from '@/layouts/app-layout';
 import { type BreadcrumbItem } from '@/types';
+import PageHeader from '@/components/PageHeader';
+import ActionFooter from '@/components/ActionFooter';
 
 interface Permission {
     id: number;
@@ -48,7 +50,8 @@ export default function EditRole({
         <AppLayout breadcrumbs={breadcrumbs}>
             <Head title={`Edit ${role.name}`} />
             <div className="p-6 max-w-xl mx-auto">
-                <h1 className="text-2xl font-bold mb-6">Edit Role</h1>
+                {/* <h1 className="text-2xl font-bold mb-6">Edit Role</h1> */}
+                <PageHeader title="Edit Role" addLinkHref='/roles' addLinkText="Back" />
 
                 <form onSubmit={submit} className="space-y-4 bg-white dark:bg-neutral-900 shadow rounded p-4">
                     <div>
@@ -87,7 +90,7 @@ export default function EditRole({
                         )}
                     </div>
 
-                    <div className="flex justify-end space-x-2">
+                    {/* <div className="flex justify-end space-x-2">
                         <Link
                             href="/roles"
                             className="px-4 py-2 border rounded hover:bg-neutral-100 dark:hover:bg-neutral-800"
@@ -101,7 +104,14 @@ export default function EditRole({
                         >
                             {processing ? 'Saving...' : 'Save Changes'}
                         </button>
-                    </div>
+                    </div> */}
+                    <ActionFooter 
+                        processing={processing}
+                        onSubmit={submit}
+                        submitText={processing ? 'Saving...' : 'Save Changes'}
+                        className='justify-end'
+                        cancelHref="/roles"
+                    />
                 </form>
             </div>
         </AppLayout>

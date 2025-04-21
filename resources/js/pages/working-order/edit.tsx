@@ -2,6 +2,8 @@ import AppLayout from '@/layouts/app-layout';
 import { Head, Link, router } from '@inertiajs/react';
 import { PlusCircleIcon, TrashIcon } from '@heroicons/react/24/outline';
 import { useState } from 'react';
+import PageHeader from '@/components/PageHeader';
+import ActionFooter from '@/components/ActionFooter';
 
 interface Godown {
   id: number;
@@ -58,11 +60,11 @@ const WorkingOrderEdit: React.FC<Props> = ({ workingOrder, products, godowns }) 
   const [extras, setExtras] = useState<WorkingOrderExtra[]>(
     workingOrder.extras?.length
       ? workingOrder.extras.map((e) => ({
-          ...e,
-          quantity: e.quantity ?? '',
-          price: e.price ?? '',
-          total: e.total ?? 0,
-        }))
+        ...e,
+        quantity: e.quantity ?? '',
+        price: e.price ?? '',
+        total: e.total ?? 0,
+      }))
       : [{ title: '', quantity: '', price: '', total: 0 }]
   );
 
@@ -121,6 +123,7 @@ const WorkingOrderEdit: React.FC<Props> = ({ workingOrder, products, godowns }) 
       <div className="mx-auto max-w-5xl bg-gray-300 px-3 py-6 shadow-xl sm:px-6 lg:px-8">
         <div className="border border-gray-200 bg-white/80 shadow-lg">
           <div className="rounded-xl bg-white p-6 shadow-sm sm:p-8">
+            <PageHeader title="Edit Working Order" addLinkText="Back to Orders" addLinkHref="/working-orders" />
             <form onSubmit={handleSubmit} className="space-y-8 px-6 py-5">
               <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
                 <div>
@@ -229,7 +232,7 @@ const WorkingOrderEdit: React.FC<Props> = ({ workingOrder, products, godowns }) 
                     </div>
                     <div className="col-span-1 text-right">
                       <button type="button" onClick={() => removeRow(idx)} disabled={rows.length === 1}>
-                        <TrashIcon className="h-5 w-5 text-red-500" />
+                        <TrashIcon className="h-5 w-5 text-danger hover:text-danger-hover" />
                       </button>
                     </div>
                   </div>
@@ -284,7 +287,7 @@ const WorkingOrderEdit: React.FC<Props> = ({ workingOrder, products, godowns }) 
                     </div>
                     <div className="col-span-1 text-right">
                       <button type="button" onClick={() => removeExtra(idx)} disabled={extras.length === 1}>
-                        <TrashIcon className="h-5 w-5 text-red-500" />
+                        <TrashIcon className="h-5 w-5 text-danger hover:text-danger-hover" />
                       </button>
                     </div>
                   </div>
@@ -299,14 +302,22 @@ const WorkingOrderEdit: React.FC<Props> = ({ workingOrder, products, godowns }) 
                 </div>
               </div>
 
-              <div className="flex justify-end">
+              {/* <div className="flex justify-end">
                 <button
                   type="submit"
                   className="rounded-lg bg-indigo-600 px-6 py-3.5 font-medium text-white hover:bg-indigo-700"
                 >
                   Update Working Order
                 </button>
-              </div>
+              </div> */}
+              <ActionFooter
+                className="justify-end"
+                onSubmit={handleSubmit}
+                cancelHref="/working-orders"
+                processing={false}
+                submitText="Update Working Order"
+                cancelText="Cancel"
+              />
             </form>
           </div>
         </div>

@@ -1,3 +1,6 @@
+import ActionFooter from '@/components/ActionFooter';
+import { confirmDialog } from '@/components/confirmDialog';
+import PageHeader from '@/components/PageHeader';
 import AppLayout from '@/layouts/app-layout';
 import { Head, Link, useForm } from '@inertiajs/react';
 import { useEffect } from 'react';
@@ -71,21 +74,30 @@ export default function SalarySlipEdit({
 
   const removeEmployeeRow = (index: number) => {
     if (data.salary_slip_employees.length === 1) return;
-    Swal.fire({
-      title: 'Are you sure?',
-      text: 'Do you want to remove this employee row?',
-      icon: 'warning',
-      showCancelButton: true,
-      confirmButtonColor: '#d33',
-      cancelButtonColor: '#3085d6',
-      confirmButtonText: 'Yes, remove it!',
-    }).then((result) => {
-      if (result.isConfirmed) {
+    // Swal.fire({
+    //   title: 'Are you sure?',
+    //   text: 'Do you want to remove this employee row?',
+    //   icon: 'warning',
+    //   showCancelButton: true,
+    //   confirmButtonColor: '#d33',
+    //   cancelButtonColor: '#3085d6',
+    //   confirmButtonText: 'Yes, remove it!',
+    // }).then((result) => {
+    //   if (result.isConfirmed) {
+    //     const updated = [...data.salary_slip_employees];
+    //     updated.splice(index, 1);
+    //     setData('salary_slip_employees', updated);
+    //   }
+    // });
+
+    confirmDialog(
+      {}, () => {
         const updated = [...data.salary_slip_employees];
         updated.splice(index, 1);
         setData('salary_slip_employees', updated);
       }
-    });
+    )
+
   };
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -98,12 +110,14 @@ export default function SalarySlipEdit({
       <Head title="Edit Salary Slip" />
       <div className="bg-gray-100 p-6">
         {/* Header */}
-        <div className="mb-6 flex items-center justify-between">
+        {/* <div className="mb-6 flex items-center justify-between">
           <h1 className="text-2xl font-semibold text-gray-800">Edit Salary Slip</h1>
           <Link href="/salary-slips" className="rounded bg-gray-300 px-4 py-2 hover:bg-neutral-100">
             Back
           </Link>
-        </div>
+        </div> */}
+
+        <PageHeader title='Edit Salary Slip' addLinkHref='/salary-slips' addLinkText='Back'/>
 
         {/* Form Card */}
         <form onSubmit={handleSubmit} className="space-y-6 rounded bg-white p-6 shadow-md">
@@ -183,7 +197,7 @@ export default function SalarySlipEdit({
                         <button
                           type="button"
                           onClick={() => removeEmployeeRow(index)}
-                          className="rounded bg-red-500 px-2 py-1 text-white"
+                          className="rounded bg-danger hover:bg-danger-hover px-2 py-1 text-white"
                         >
                           &minus;
                         </button>
@@ -191,7 +205,7 @@ export default function SalarySlipEdit({
                           <button
                             type="button"
                             onClick={addEmployeeRow}
-                            className="rounded bg-blue-500 px-2 py-1 text-white"
+                            className="rounded bg-primary hover:bg-primary-hover px-2 py-1 text-white"
                           >
                             +
                           </button>
@@ -204,7 +218,7 @@ export default function SalarySlipEdit({
             </div>
           </div>
 
-          <div className="mt-6 flex justify-end gap-3">
+          {/* <div className="mt-6 flex justify-end gap-3">
             <button
               type="submit"
               disabled={processing}
@@ -218,7 +232,17 @@ export default function SalarySlipEdit({
             >
               Cancel
             </Link>
-          </div>
+          </div> */}
+
+          <ActionFooter 
+            processing={processing}
+            submitText={processing ? 'Saving...' : 'Save'}
+            onSubmit={handleSubmit}
+            cancelHref='/salary-slips'
+            cancelText='Cancel'
+            className='justify-end'
+          />
+
         </form>
       </div>
     </AppLayout>

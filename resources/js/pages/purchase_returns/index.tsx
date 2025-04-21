@@ -1,3 +1,7 @@
+import ActionButtons from '@/components/ActionButtons';
+import { confirmDialog } from '@/components/confirmDialog';
+import PageHeader from '@/components/PageHeader';
+import Pagination from '@/components/Pagination';
 import AppLayout from '@/layouts/app-layout';
 import { Head, Link, router } from '@inertiajs/react';
 import Swal from 'sweetalert2';
@@ -20,27 +24,35 @@ interface PaginatedReturns {
 
 export default function PurchaseReturnIndex({ returns }: { returns: PaginatedReturns }) {
     const handleDelete = (id: number) => {
-        Swal.fire({
-            title: 'Are you sure?',
-            text: 'This return will be permanently deleted!',
-            icon: 'warning',
-            showCancelButton: true,
-            confirmButtonColor: '#d33',
-            cancelButtonColor: '#3085d6',
-            confirmButtonText: 'Yes, delete it!',
-        }).then((result) => {
-            if (result.isConfirmed) {
+        // Swal.fire({
+        //     title: 'Are you sure?',
+        //     text: 'This return will be permanently deleted!',
+        //     icon: 'warning',
+        //     showCancelButton: true,
+        //     confirmButtonColor: '#d33',
+        //     cancelButtonColor: '#3085d6',
+        //     confirmButtonText: 'Yes, delete it!',
+        // }).then((result) => {
+        //     if (result.isConfirmed) {
+        //         router.delete(`/purchase-returns/${id}`);
+        //         Swal.fire('Deleted!', 'The return has been deleted.', 'success');
+        //     }
+        // });
+
+        confirmDialog(
+            {}, () => {
                 router.delete(`/purchase-returns/${id}`);
-                Swal.fire('Deleted!', 'The return has been deleted.', 'success');
             }
-        });
+        );
+            
+
     };
 
     return (
         <AppLayout>
             <Head title="All Purchase Returns" />
             <div className="bg-gray-100 p-4">
-                <div className="mb-4 flex items-center justify-between">
+                {/* <div className="mb-4 flex items-center justify-between">
                     <h1 className="text-xl font-semibold">Purchase Return List</h1>
                     <Link
                         href="/purchase-returns/create"
@@ -48,7 +60,9 @@ export default function PurchaseReturnIndex({ returns }: { returns: PaginatedRet
                     >
                         + Add Return
                     </Link>
-                </div>
+                </div> */}
+
+                <PageHeader title='Purchase Return List' addLinkHref='/purchase-returns/create' addLinkText='+ Add Return' />
 
                 <div className="overflow-x-auto rounded-lg border border-gray-300 bg-white shadow-sm">
                     <table className="min-w-full border-collapse text-[13px]">
@@ -70,7 +84,7 @@ export default function PurchaseReturnIndex({ returns }: { returns: PaginatedRet
                                 const totalAmount = ret.return_items.reduce((sum, item) => sum + (parseFloat(item.subtotal as any) || 0), 0);
 
                                 return (
-                                    <tr key={ret.id} className="hover:bg-gray-50">
+                                    <tr key={ret.id} className="hover:bg-gray-50 border">
                                         <td className="border px-3 py-2 text-center">{index + 1}</td>
                                         <td className="border px-3 py-2">{ret.date}</td>
                                         <td className="border px-3 py-2">{ret.return_voucher_no}</td>
@@ -85,7 +99,7 @@ export default function PurchaseReturnIndex({ returns }: { returns: PaginatedRet
                                         </td>
                                         <td className="border px-3 py-2 text-center">{ret.total_qty}</td>
                                         <td className="border px-3 py-2 text-right font-semibold">{totalAmount.toFixed(2)} Tk</td>
-                                        <td className="border px-3 py-2 text-center">
+                                        {/* <td className="border px-3 py-2 text-center">
                                             <div className="flex justify-center space-x-2">
                                                 <Link
                                                     href={`/purchase-returns/${ret.id}/edit`}
@@ -99,7 +113,7 @@ export default function PurchaseReturnIndex({ returns }: { returns: PaginatedRet
                                                 >
                                                     Delete
                                                 </button>
-                                                {/* 🟢 Print button */}
+                                                
                                                 <Link
                                                     href={`/purchase-returns/${ret.id}/invoice`}
                                                     className="rounded bg-blue-600 px-2 py-1 text-xs text-white hover:bg-blue-700"
@@ -107,7 +121,13 @@ export default function PurchaseReturnIndex({ returns }: { returns: PaginatedRet
                                                     Print
                                                 </Link>
                                             </div>
-                                        </td>
+                                        </td> */}
+                                        <ActionButtons
+                                            editHref={`/purchase-returns/${ret.id}/edit`} // URL for the edit action
+                                            onDelete={() => handleDelete(ret.id)} // Function to handle the delete action
+                                            printText='Print' // Text for the print button
+                                            printHref={`/purchase-returns/${ret.id}/invoice`} // URL for the print action
+                                        />
                                     </tr>
                                 );
                             })}
@@ -116,18 +136,18 @@ export default function PurchaseReturnIndex({ returns }: { returns: PaginatedRet
                 </div>
 
                 {/* Pagination */}
-                <div className="mt-4 flex justify-end gap-1">
+                {/* <div className="mt-4 flex justify-end gap-1">
                     {returns.links.map((link, index) => (
                         <Link
                             key={index}
                             href={link.url || ''}
                             dangerouslySetInnerHTML={{ __html: link.label }}
-                            className={`rounded px-3 py-1 text-sm ${
-                                link.active ? 'bg-blue-600 text-white' : 'hover:bg-neutral-200 dark:hover:bg-neutral-800'
-                            } ${!link.url && 'pointer-events-none opacity-50'}`}
+                            className={`rounded px-3 py-1 text-sm ${link.active ? 'bg-blue-600 text-white' : 'hover:bg-neutral-200 dark:hover:bg-neutral-800'
+                                } ${!link.url && 'pointer-events-none opacity-50'}`}
                         />
                     ))}
-                </div>
+                </div> */}
+                <Pagination links={returns.links} />
             </div>
         </AppLayout>
     );

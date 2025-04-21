@@ -1,6 +1,7 @@
 @import 'tailwindcss';
 
 @plugin 'tailwindcss-animate';
+/* @plugin "daisyui"; */
 
 @source "../views";
 @source '../../vendor/laravel/framework/src/Illuminate/Pagination/resources/views/*.blade.php';
@@ -57,6 +58,22 @@
     --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
     --color-sidebar-border: var(--sidebar-border);
     --color-sidebar-ring: var(--sidebar-ring);
+
+
+
+    /* custom properties */
+    --color-primary: var(--primary);
+    --color-primary-hover: var(--primary-hover);
+    --color-info: var(--info);
+    --color-info-hover: var(--info-hover);
+    --color-warning: var(--warning);
+    --color-warning-hover: var(--warning-hover);
+    --color-danger: var(--danger);
+    --color-danger-hover: var(--danger-hover);
+
+
+
+
 }
 
 /*
@@ -111,6 +128,21 @@
     --sidebar-accent-foreground: oklch(0.205 0 0);
     --sidebar-border: oklch(0.922 0 0);
     --sidebar-ring: oklch(0.87 0 0);
+
+
+    /* custom properties */
+    --primary: #8FB1E9;
+    --primary-hover: #639cec;
+    --info: #A9D7F6;
+    --info-hover: #59bdeb;
+    --warning: #F96D6D;
+    --warning-hover: #e25555;
+    --danger: #B84D69;
+    --danger-hover: #9c344e;
+
+
+
+
 }
 
 .dark {

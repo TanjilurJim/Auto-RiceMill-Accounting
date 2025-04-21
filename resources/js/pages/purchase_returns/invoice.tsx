@@ -1,3 +1,4 @@
+import ActionFooter from '@/components/ActionFooter';
 import AppLayout from '@/layouts/app-layout';
 import { Head, Link } from '@inertiajs/react';
 
@@ -62,7 +63,7 @@ export default function PurchaseReturnInvoice({ purchase_return }: { purchase_re
                 </div>
 
                 {/* Print Button */}
-                <div className="mt-6 flex justify-end gap-3 print:hidden">
+                {/* <div className="mt-6 flex justify-end gap-3 print:hidden">
                     <button
                         onClick={() => window.print()}
                         className="rounded bg-blue-600 px-5 py-2 font-semibold text-white shadow hover:bg-blue-700"
@@ -72,7 +73,16 @@ export default function PurchaseReturnInvoice({ purchase_return }: { purchase_re
                     <Link href="/purchase-returns" className="rounded border border-gray-400 px-5 py-2 font-semibold text-gray-700 hover:bg-gray-100">
                         Back
                     </Link>
-                </div>
+                </div> */}
+
+                <ActionFooter
+                    className="w-full justify-end"
+                    cancelHref="/purchase-returns" // URL for the cancel/back action
+                    cancelText="Back" // Text for the cancel button
+                    onSubmit={() => window.print()} // Function to handle the print action
+                    submitText="Print Invoice" // Text for the submit button
+                />
+
             </div>
         </AppLayout>
     );

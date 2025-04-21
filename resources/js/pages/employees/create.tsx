@@ -1,3 +1,5 @@
+import ActionFooter from '@/components/ActionFooter';
+import PageHeader from '@/components/PageHeader';
 import AppLayout from '@/layouts/app-layout';
 import { Head, Link, useForm } from '@inertiajs/react';
 
@@ -30,7 +32,9 @@ export default function CreateEmployee({ departments, designations, shifts, refe
             <Head title="Create Employee" />
 
             <div className="container mx-auto px-4 py-6">
-                <h1 className="mb-4 text-2xl font-bold">Create New Employee</h1>
+                {/* <h1 className="mb-4 text-2xl font-bold">Create New Employee</h1> */}
+
+                <PageHeader title="Create Employee" addLinkHref='/employees' addLinkText="Back" />
 
                 <form onSubmit={handleSubmit} className="space-y-8 rounded-lg bg-white p-6 shadow">
                     {/* 👤 Personal Info */}
@@ -245,7 +249,7 @@ export default function CreateEmployee({ departments, designations, shifts, refe
                     </div>
 
                     {/* Submit */}
-                    <div className="flex justify-end gap-3 pt-6">
+                    {/* <div className="flex justify-end gap-3 pt-6">
                         <Link href="/employees" className="rounded border border-gray-400 px-5 py-2 font-semibold text-gray-700 hover:bg-gray-100">
                             Cancel
                         </Link>
@@ -256,7 +260,15 @@ export default function CreateEmployee({ departments, designations, shifts, refe
                         >
                             {processing ? 'Saving...' : 'Create Employee'}
                         </button>
-                    </div>
+                    </div> */}
+                    <ActionFooter
+                        onSubmit={handleSubmit}
+                        cancelHref="/employees" 
+                        processing={processing} 
+                        submitText="Create Employee"
+                        cancelText="Cancel"
+                        className="justify-end"
+                    />
                 </form>
             </div>
         </AppLayout>
