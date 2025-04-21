@@ -1,6 +1,7 @@
 import ActionButtons from '@/components/ActionButtons';
 import { confirmDialog } from '@/components/confirmDialog';
 import PageHeader from '@/components/PageHeader';
+import TableComponent from '@/components/TableComponent';
 import AppLayout from '@/layouts/app-layout';
 import { Head, Link, router } from '@inertiajs/react';
 import Swal from 'sweetalert2';
@@ -18,20 +19,6 @@ interface Salesman {
 export default function SalesmanIndex({ salesmen }: { salesmen: Salesman[] }) {
 
     const handleDelete = (id: number) => {
-        // Swal.fire({
-        //     title: "Are you sure?",
-        //     text: "You won't be able to revert this!",
-        //     icon: "warning",
-        //     showCancelButton: true,
-        //     confirmButtonColor: "#d33",
-        //     cancelButtonColor: "#3085d6",
-        //     confirmButtonText: "Yes, delete it!",
-        // }).then((result) => {
-        //     if (result.isConfirmed) {
-        //         router.delete(`/salesmen/${id}`);
-        //         Swal.fire("Deleted!", "Salesman has been deleted.", "success");
-        //     }
-        // });
 
         confirmDialog(
             {}, () => {
@@ -40,21 +27,26 @@ export default function SalesmanIndex({ salesmen }: { salesmen: Salesman[] }) {
         );
     };
 
+    // Define the columns for the table
+    const columns = [
+        { header: '#', accessor: (_: any, index: number) => index + 1, className: 'text-center' },
+        { header: 'Salesman Code', accessor: 'salesman_code', className: '' },
+        { header: 'Salesman Name', accessor: 'name', className: '' },
+        { header: 'Phone Number', accessor: 'phone_number', className: '' },
+        { header: 'E-mail', accessor: (row: Salesman) => row.email || 'N/A', className: '' },
+        { header: 'Address', accessor: (row: Salesman) => row.address || 'N/A', className: '' },
+        { header: 'Created By', accessor: (row: Salesman) => row.created_by_user?.name || 'N/A', className: '' },
+    ];
+
     return (
         <AppLayout>
             <Head title="All Salesmen" />
-            <div className="p-6 bg-gray-100">
-                {/* <div className="flex items-center justify-between mb-6">
-                    <h1 className="text-2xl font-bold">All Salesmen</h1>
-                    <Link href="/salesmen/create" className="px-4 py-2 rounded bg-green-600 text-white hover:bg-green-700">
-                        + Add New
-                    </Link>
-                </div> */}
-                
+            <div className="p-6 w-screen lg:w-full bg-gray-100">
+
                 {/* Use the PageHeader component */}
                 <PageHeader title='All Salesmen' addLinkHref='/salesmen/create' />
 
-                <div className="overflow-x-auto bg-white shadow-md rounded-lg">
+                {/* <div className="overflow-x-auto bg-white shadow-md rounded-lg">
                     <table className="min-w-full border-collapse border border-gray-200">
                         <thead className="bg-gray-100 dark:bg-gray-800">
                             <tr>
@@ -78,28 +70,30 @@ export default function SalesmanIndex({ salesmen }: { salesmen: Salesman[] }) {
                                     <td className="py-2 px-4">{salesman.email || 'N/A'}</td>
                                     <td className="py-2 px-4">{salesman.address || 'N/A'}</td>
                                     <td className="py-2 px-4">{salesman.creator?.name || 'N/A'}</td>
-
-                                    {/* <td className="py-2 px-4 flex justify-center space-x-2">
-                                        <Link href={`/salesmen/${salesman.id}/edit`} className="px-3 py-1 text-sm rounded bg-yellow-500 text-white hover:bg-yellow-600">
-                                            Edit
-                                        </Link>
-                                        <button
-                                            onClick={() => handleDelete(salesman.id)}
-                                            className="px-3 py-1 text-sm rounded bg-red-600 text-white hover:bg-red-700"
-                                        >
-                                            Delete
-                                        </button>
-                                    </td> */}
-
+                                    
                                     <ActionButtons
-                                        editHref={`/salesmen/${salesman.id}/edit`} // URL for the edit action
-                                        onDelete={() => handleDelete(salesman.id)} // Function to handle the delete action
+                                        editHref={`/salesmen/${salesman.id}/edit`}
+                                        onDelete={() => handleDelete(salesman.id)}
                                     />
                                 </tr>
                             ))}
                         </tbody>
                     </table>
-                </div>
+                </div> */}
+
+                {/* Responsive Table */}
+                <TableComponent
+                    columns={columns}
+                    data={salesmen}
+                    actions={(salesman) => (
+                        <ActionButtons
+                            editHref={`/salesmen/${salesman.id}/edit`}
+                            onDelete={() => handleDelete(salesman.id)}
+                        />
+                    )}
+                    noDataMessage="No salesmen found."
+                />
+
             </div>
         </AppLayout>
     );

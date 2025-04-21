@@ -1,5 +1,6 @@
 import ActionFooter from '@/components/ActionFooter';
 import InputCheckbox from '@/components/Btn&Link/InputCheckbox';
+import PageHeader from '@/components/PageHeader';
 import AppLayout from '@/layouts/app-layout';
 import { Head, Link, useForm } from '@inertiajs/react';
 
@@ -43,14 +44,14 @@ export default function EditAccountLedger({
             <Head title="Edit Account Ledger" />
             <div className="flex min-h-screen items-center justify-center bg-gray-100">
                 <div className="w-full max-w-4xl p-6">
-                    <h1 className="mb-4 text-2xl font-bold">Edit Account Ledger</h1>
+                    <PageHeader title="Edit Account Ledger" addLinkHref="/account-ledgers" addLinkText="Back" />
 
                     <form
                         onSubmit={handleSubmit}
-                        className="grid grid-cols-1 gap-4 space-y-4 rounded bg-white p-4 shadow md:grid-cols-2 dark:bg-neutral-900"
+                        className="grid grid-cols-1 gap-4 rounded bg-white p-4 shadow md:grid-cols-2 lg:grid-cols-3 dark:bg-neutral-900"
                     >
                         {/* Reference Number (Readonly for Non-admins) */}
-                        <div>
+                        <div className="col-span-1">
                             <label className="mb-1 block font-medium">Reference Number</label>
                             <input
                                 type="text"
@@ -65,7 +66,7 @@ export default function EditAccountLedger({
                         </div>
 
                         {/* Ledger Name */}
-                        <div>
+                        <div className="col-span-1 md:col-span-2 lg:col-span-1">
                             <label className="mb-1 block font-medium">Account Ledger Name*</label>
                             <input
                                 type="text"
@@ -79,7 +80,7 @@ export default function EditAccountLedger({
                         </div>
 
                         {/* Account Group Selector */}
-                        <div>
+                        <div className="col-span-1">
                             <label className="mb-1 block font-medium">Group Under*</label>
                             <select
                                 value={data.account_group_input}
@@ -110,7 +111,7 @@ export default function EditAccountLedger({
                         </div>
 
                         {/* Phone */}
-                        <div>
+                        <div className="col-span-1">
                             <label className="mb-1 block font-medium">Phone Number*</label>
                             <input
                                 type="text"
@@ -122,7 +123,7 @@ export default function EditAccountLedger({
                         </div>
 
                         {/* Email */}
-                        <div>
+                        <div className="col-span-1">
                             <label className="mb-1 block font-medium">E-mail</label>
                             <input
                                 type="email"
@@ -134,7 +135,7 @@ export default function EditAccountLedger({
                         </div>
 
                         {/* Opening Balance */}
-                        <div>
+                        <div className="col-span-1">
                             <label className="mb-1 block font-medium">Opening Balance*</label>
                             <input
                                 type="number"
@@ -148,7 +149,7 @@ export default function EditAccountLedger({
                         </div>
 
                         {/* Debit/Credit */}
-                        <div>
+                        <div className="col-span-1">
                             <label className="mb-1 block font-medium">Debit/Credit*</label>
                             <select
                                 value={data.debit_credit}
@@ -162,7 +163,7 @@ export default function EditAccountLedger({
                         </div>
 
                         {/* Status */}
-                        <div>
+                        <div className="col-span-1">
                             <label className="mb-1 block font-medium">Status*</label>
                             <select
                                 value={data.status}
@@ -176,7 +177,7 @@ export default function EditAccountLedger({
                         </div>
 
                         {/* Address */}
-                        <div>
+                        <div className="col-span-1 md:col-span-2 lg:col-span-3">
                             <label className="mb-1 block font-medium">Address</label>
                             <textarea
                                 value={data.address}
@@ -187,47 +188,30 @@ export default function EditAccountLedger({
                         </div>
 
                         {/* Checkboxes */}
-                        <div className="col-span-2 space-y-2">
+                        <div className="col-span-1 md:col-span-2 lg:col-span-3 flex flex-col gap-2">
                             <InputCheckbox
                                 label="For Transition Mode"
                                 checked={data.for_transition_mode}
-                                onChange={(checked) => setData("for_transition_mode", checked)}
+                                onChange={(checked) => setData('for_transition_mode', checked)}
                             />
                             <InputCheckbox
                                 label="Mark for User"
                                 checked={data.mark_for_user}
-                                onChange={(checked) => setData("mark_for_user", checked)}
+                                onChange={(checked) => setData('mark_for_user', checked)}
                             />
                         </div>
 
-                        {/* Buttons */}
-                        {/* <div className="col-span-2 mt-4 flex justify-between">
-                            <Link href="/account-ledgers" className="rounded border px-4 py-2 hover:bg-neutral-100 dark:hover:bg-neutral-800">
-                                Cancel
-                            </Link>
-                            <CancelLink href="/account-ledgers" />
-
-                            <button
-                                type="submit"
-                                disabled={processing}
-                                className="rounded bg-blue-600 px-4 py-2 text-white hover:bg-blue-700 disabled:opacity-50"
-                            >
-                                {processing ? 'Updating...' : 'Update'}
-                            </button>
-                            <Button processing={processing}>
-                                {processing ? 'Updating...' : 'Update'}
-                            </Button>
-                        </div> */}
-                        {/*Custom Action Buttons */}
-                        <ActionFooter
-                            className='w-full justify-end'
-                            onSubmit={handleSubmit} // Function to handle form submission
-                            cancelHref="/account-ledgers" // URL for the cancel action
-                            processing={processing} // Indicates whether the form is processing
-                            submitText={processing ? 'Updating...' : 'Update'} // Text for the submit button
-                            cancelText="Cancel" // Text for the cancel button
-                            // className="col-span-2 mt-4 flex justify-end gap-3" // Additional classes for styling
-                        />
+                        {/* Action Footer */}
+                        <div className="col-span-1 md:col-span-2 lg:col-span-3">
+                            <ActionFooter
+                                className="w-full justify-end"
+                                onSubmit={handleSubmit}
+                                cancelHref="/account-ledgers"
+                                processing={processing}
+                                submitText={processing ? 'Updating...' : 'Update'}
+                                cancelText="Cancel"
+                            />
+                        </div>
                     </form>
                 </div>
             </div>

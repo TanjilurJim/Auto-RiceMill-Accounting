@@ -29,7 +29,7 @@ const ActionButtons: React.FC<ActionButtonsProps> = ({
     deleteClassName,
 }) => {
     return (
-        <td className={`${className} || flex justify-center space-x-2 px-4 py-2`}>
+        <div className={`flex justify-center space-x-2`}>
             {/* Render Edit Link if editHref is provided */}
             {editHref && (
                 <Link
@@ -77,7 +77,7 @@ const ActionButtons: React.FC<ActionButtonsProps> = ({
                     {printText}
                 </button>
             )}
-        </td>
+        </div>
     );
 };
 

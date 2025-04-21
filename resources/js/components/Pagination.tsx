@@ -11,9 +11,9 @@ const Pagination: React.FC<PaginationProps> = ({ links = [] }) => {
     };
 
     return (
-        <div className="my-4 mx-4 flex justify-end gap-1">
+        <div className="my-4 flex justify-center lg:justify-end">
             <nav aria-label="Pagination Navigation">
-                <ul className="pagination flex justify-center space-x-2">
+                <ul className="pagination flex flex-wrap justify-center gap-2">
                     {links.map((link, index) => (
                         <li
                             key={link.url || index}
@@ -23,13 +23,15 @@ const Pagination: React.FC<PaginationProps> = ({ links = [] }) => {
                                 } ${!link.url ? "disabled" : ""}`}
                         >
                             <a
-                                className={`page-link px-3 py-1 border rounded ${link.active
+                                className={`page-link px-3 py-1 border rounded transition-all duration-200 ${
+                                    link.active
                                         ? "bg-blue-500 text-white"
-                                        : "text-blue-500 hover:bg-blue-200"
-                                    } ${!link.url
+                                        : "text-blue-500 hover:bg-blue-100"
+                                } ${
+                                    !link.url
                                         ? "cursor-not-allowed text-gray-400"
                                         : ""
-                                    }`}
+                                }`}
                                 href={link.url || "#"}
                                 onClick={(e) => {
                                     e.preventDefault();
