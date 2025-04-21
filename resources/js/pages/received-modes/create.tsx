@@ -2,7 +2,6 @@ import AppLayout from '@/layouts/app-layout';
 import { Head, useForm, usePage } from '@inertiajs/react';
 import { PageProps } from '@/types';
 import { AccountLedger } from '@/types';
-
 import React from 'react';
 import PageHeader from '@/components/PageHeader';
 import ActionFooter from '@/components/ActionFooter';
