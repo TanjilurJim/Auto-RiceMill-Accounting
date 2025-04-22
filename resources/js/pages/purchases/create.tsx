@@ -2,10 +2,9 @@ import ActionFooter from '@/components/ActionFooter';
 import { confirmDialog } from '@/components/confirmDialog';
 import PageHeader from '@/components/PageHeader';
 import AppLayout from '@/layouts/app-layout';
-import { Head, Link, useForm } from '@inertiajs/react';
+import { Head, useForm } from '@inertiajs/react';
 import axios from 'axios';
 import { useEffect, useState } from 'react';
-import Swal from 'sweetalert2';
 
 const scrollToFirstError = (errors: Record<string, any>) => {
     const firstField = Object.keys(errors)[0];
@@ -124,24 +123,9 @@ export default function PurchaseCreate({
 
     const removeProductRow = (index: number) => {
         if (data.purchase_items.length === 1) return;
-        // Swal.fire({
-        //     title: 'Are you sure?',
-        //     text: 'Do you want to remove this product row?',
-        //     icon: 'warning',
-        //     showCancelButton: true,
-        //     confirmButtonColor: '#d33',
-        //     cancelButtonColor: '#3085d6',
-        //     confirmButtonText: 'Yes, remove it!',
-        // }).then((result) => {
-        //     if (result.isConfirmed) {
-        //         const updated = [...data.purchase_items];
-        //         updated.splice(index, 1);
-        //         setData('purchase_items', updated);
-        //     }
-        // });
 
         confirmDialog(
-            { }, () => {
+            {}, () => {
                 const updated = [...data.purchase_items];
                 updated.splice(index, 1);
                 setData('purchase_items', updated);
@@ -180,16 +164,9 @@ export default function PurchaseCreate({
     return (
         <AppLayout>
             <Head title="Add Purchase" />
-            <div className="bg-gray-100 p-6">
-                {/* Header */}
-                {/* <div className="mb-6 flex items-center justify-between">
-                    <h1 className="text-2xl font-semibold text-gray-800">Create New Purchase</h1>
-                    <Link href="/purchases" className="rounded bg-gray-300 px-4 py-2 hover:bg-neutral-100">
-                        Back
-                    </Link>
-                </div> */}
+            <div className="bg-gray-100 p-6 w-screen lg:w-full">
 
-                <PageHeader title="Purchase Information" addLinkHref="/purchases" addLinkText="Bank" />
+                <PageHeader title="Purchase Information" addLinkHref="/purchases" addLinkText="Back" />
 
                 {/* Form Card */}
                 <form onSubmit={handleSubmit} className="space-y-6 rounded bg-white p-6 shadow-md">
@@ -256,9 +233,9 @@ export default function PurchaseCreate({
                                 ))}
                             </select>
                             {/* Inventory Ledger */}
-                            <div className="flex items-center gap-2">
+                            <div className="w-full flex flex-col md:flex-row items-center gap-2">
                                 <select
-                                    className="${errors.godown_id ? 'border-red-500' : 'border-gray-300'} border p-2"
+                                    className="${errors.godown_id ? 'border-red-500' : 'border-gray-300'} border p-2 w-full h-full"
                                     value={data.inventory_ledger_id}
                                     onChange={(e) => setData('inventory_ledger_id', e.target.value)}
                                 >
@@ -271,7 +248,7 @@ export default function PurchaseCreate({
                                 </select>
 
                                 {/* Placeholder for Add Button — next step will handle modal */}
-                                <button type="button" className="rounded bg-blue-500 px-2 py-1 text-white" onClick={() => setShowLedgerModal(true)}>
+                                <button type="button" className="rounded bg-blue-500 p-2 text-white w-full h-full" onClick={() => setShowLedgerModal(true)}>
                                     + Create New Ledger
                                 </button>
                             </div>
@@ -401,6 +378,7 @@ export default function PurchaseCreate({
                             </table>
                         </div>
                     </div>
+
                     {/* Payment Info Section */}
                     <div className="mt-8 space-y-4 border-t pt-4">
                         <h2 className="text-lg font-semibold">Payment Info</h2>
@@ -477,29 +455,14 @@ export default function PurchaseCreate({
                     </div>
 
                     {/* Action Buttons */}
-                    {/* <div className="mt-6 flex justify-end gap-3">
-                        <button
-                            type="submit"
-                            disabled={processing}
-                            className="rounded bg-green-600 px-5 py-2 font-semibold text-white shadow hover:bg-green-700"
-                        >
-                            {processing ? 'Saving...' : 'Save'}
-                        </button>
-                        <button
-                            type="button"
-                            disabled={processing}
-                            className="rounded bg-blue-600 px-5 py-2 font-semibold text-white shadow hover:bg-blue-700"
-                        >
-                            Save & Print
-                        </button>
-                    </div> */}
                     <ActionFooter
                         className='w-full justify-end'
-                        onSubmit={handleSubmit} // Function to handle form  submission
-                        cancelHref="/purchases" // URL for the cancel action
-                        processing={processing} // Indicates whether the form is processing
-                        submitText={processing ? 'Saving & Printing...' : 'Save & Print'} // Text for the submit button
-                        cancelText="Cancel" // Text for the cancel button
+                        onSubmit={handleSubmit}
+                        cancelHref="/purchases"
+                        processing={processing}
+                        submitText={processing ? 'Saving...' : 'Save'}
+                        saveAndPrintText="Save & Print"
+                        cancelText="Cancel"
                     />
                 </form>
                 {/* Ledger Modal */}
