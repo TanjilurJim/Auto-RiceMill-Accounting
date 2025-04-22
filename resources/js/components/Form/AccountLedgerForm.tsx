@@ -178,7 +178,6 @@ const AccountLedgerForm: React.FC<AccountLedgerFormProps> = ({
             {/* Action Footer */}
             <div className="col-span-1 md:col-span-2 lg:col-span-3">
                 <ActionFooter
-                    className="w-full justify-end"
                     onSubmit={handleSubmit}
                     cancelHref={cancelHref}
                     processing={processing}

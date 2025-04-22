@@ -1,8 +1,9 @@
 // resources/js/pages/items/edit.tsx
 import ActionFooter from '@/components/ActionFooter';
+import ItemForm from '@/components/Form/ItemForm';
+import PageHeader from '@/components/PageHeader';
 import AppLayout from '@/layouts/app-layout';
 import { Head, useForm } from '@inertiajs/react';
-import { Link } from '@inertiajs/react';
 
 interface Item {
     id: number;
@@ -65,161 +66,20 @@ export default function EditItem({
     return (
         <AppLayout>
             <Head title="Edit Item" />
-            <div className="p-6 max-w-2xl mx-auto">
-                <h1 className="mb-4 text-2xl font-bold">Edit Item</h1>
-                <form onSubmit={handleSubmit} className="space-y-4 bg-white p-4 rounded shadow dark:bg-neutral-900">
-                    <div className="grid grid-cols-1 gap-4">
-                        <div>
-                            <label>Item Name</label>
-                            <input
-                                type="text"
-                                value={data.item_name}
-                                onChange={(e) => setData('item_name', e.target.value)}
-                                className="w-full rounded border p-2"
-                            />
-                            {errors.item_name && <p className="text-sm text-red-500">{errors.item_name}</p>}
-                        </div>
-
-                        {/* <div>
-                            <label>Item Part</label>
-                            <input
-                                type="text"
-                                value={data.item_part}
-                                onChange={(e) => setData('item_part', e.target.value)}
-                                className="w-full rounded border p-2"
-                            />
-                            {errors.item_part && <p className="text-sm text-red-500">{errors.item_part}</p>}
-                        </div>  */}
-
-                        <div>
-                            <label>Category</label>
-                            <select
-                                value={data.category_id}
-                                onChange={(e) => setData('category_id', parseInt(e.target.value))}
-                                className="w-full rounded border p-2"
-                            >
-                                <option value="">Select Category</option>
-                                {categories.map((cat) => (
-                                    <option key={cat.id} value={cat.id}>
-                                        {cat.name}
-                                    </option>
-                                ))}
-                            </select>
-                            {errors.category_id && <p className="text-sm text-red-500">{errors.category_id}</p>}
-                        </div>
-
-                        <div>
-                            <label>Unit</label>
-                            <select
-                                value={data.unit_id}
-                                onChange={(e) => setData('unit_id', parseInt(e.target.value))}
-                                className="w-full rounded border p-2"
-                            >
-                                <option value="">Select Unit</option>
-                                {units.map((unit) => (
-                                    <option key={unit.id} value={unit.id}>
-                                        {unit.name}
-                                    </option>
-                                ))}
-                            </select>
-                            {errors.unit_id && <p className="text-sm text-red-500">{errors.unit_id}</p>}
-                        </div>
-
-                        <div>
-                            <label>Godown</label>
-                            <select
-                                value={data.godown_id}
-                                onChange={(e) => setData('godown_id', parseInt(e.target.value))}
-                                className="w-full rounded border p-2"
-                            >
-                                <option value="">Select Godown</option>
-                                {godowns.map((godown) => (
-                                    <option key={godown.id} value={godown.id}>
-                                        {godown.name}
-                                    </option>
-                                ))}
-                            </select>
-                            {errors.godown_id && <p className="text-sm text-red-500">{errors.godown_id}</p>}
-                        </div>
-
-                        <div className="flex gap-4">
-                            <div className="w-1/2">
-                                <label>Purchase Price</label>
-                                <input
-                                    type="number"
-                                    value={data.purchase_price}
-                                    onChange={(e) => setData('purchase_price', parseFloat(e.target.value))}
-                                    className="w-full rounded border p-2"
-                                />
-                            </div>
-                            <div className="w-1/2">
-                                <label>Sales Price</label>
-                                <input
-                                    type="number"
-                                    value={data.sale_price}
-                                    onChange={(e) => setData('sale_price', parseFloat(e.target.value))}
-                                    className="w-full rounded border p-2"
-                                />
-                            </div>
-                        </div>
-
-                        <div className="flex gap-4">
-                            <div className="w-1/2">
-                                <label>Previous Stock</label>
-                                <input
-                                    type="number"
-                                    value={data.previous_stock}
-                                    onChange={(e) => setData('previous_stock', parseFloat(e.target.value))}
-                                    className="w-full rounded border p-2"
-                                />
-                            </div>
-                            <div className="w-1/2">
-                                <label>Previous Stock Value</label>
-                                <input
-                                    type="number"
-                                    value={data.total_previous_stock_value}
-                                    onChange={(e) => setData('total_previous_stock_value', parseFloat(e.target.value))}
-                                    className="w-full rounded border p-2"
-                                />
-                            </div>
-                        </div>
-
-                        <div>
-                            <label>Description</label>
-                            <textarea
-                                value={data.description}
-                                onChange={(e) => setData('description', e.target.value)}
-                                className="w-full rounded border p-2"
-                            />
-                        </div>
-
-                        {/* <div className="flex justify-between">
-                            <Link href="/items" className="rounded border px-4 py-2 hover:bg-neutral-100 dark:hover:bg-neutral-800">
-                                Cancel
-                            </Link>
-
-                            <button
-                                type="submit"
-                                disabled={processing}
-                                className="rounded bg-yellow-600 px-4 py-2 text-white hover:bg-yellow-700"
-                            >
-                                Update
-                            </button>
-                        </div> */}
-
-                        <div>
-                            <ActionFooter
-                                className='justify-end'
-                                onSubmit={handleSubmit} // Function to handle form submission
-                                cancelHref="/items" // URL for the cancel action
-                                processing={processing} // Indicates whether the form is processing
-                                submitText={processing ? 'Creating...' : 'Create Item'} // Text for the submit button
-                                cancelText="Cancel" // Text for the cancel button
-                            />
-                        </div>
-
-                    </div>
-                </form>
+            <div className="p-6 bg-gray-100">
+                <PageHeader title="Edit Item" addLinkHref='/items' addLinkText="Back" />
+                <ItemForm
+                        data={data}
+                        setData={setData}
+                        handleSubmit={handleSubmit}
+                        processing={processing}
+                        errors={errors}
+                        submitText="Update Item"
+                        cancelHref="/items"
+                        categories={categories}
+                        units={units}
+                        godowns={godowns}
+                    />
             </div>
         </AppLayout>
     );

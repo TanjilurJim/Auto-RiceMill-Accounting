@@ -95,7 +95,6 @@ const SalesmanForm: React.FC<SalesmanFormProps> = ({
 
             {/* Action Footer */}
             <ActionFooter
-                className="w-full justify-end"
                 onSubmit={handleSubmit}
                 cancelHref={cancelHref}
                 processing={processing}

@@ -29,7 +29,7 @@ const ActionFooter: React.FC<ActionFooterProps> = ({
     className = "", // Default to an empty string if not provided
 }) => {
     return (
-        <div className={`col-span-2 mt-4 flex gap-3 || ${className}`}>
+        <div className={`col-span-2 mt-4 flex justify-end gap-3 || ${className}`}>
             {/* Submit Button */}
             {submitText && (
                 <button
