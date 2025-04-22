@@ -2,7 +2,9 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import AppLayout from '@/layouts/app-layout';
 import { useForm, usePage } from '@inertiajs/react';
+import PageHeader from '@/components/PageHeader';
 import React, { useState } from 'react';
+import { Head, router } from '@inertiajs/react';
 
 interface Props {
     godowns: { id: number; name: string }[];
@@ -37,6 +39,8 @@ export default function StockSummaryFilter({ godowns, categories, items }: Props
 
     return (
         <AppLayout title="Stock Report Filter">
+            <Head title="Stock Report" />
+            
             <div className="mx-auto max-w-6xl p-4">
                 <Card className="shadow-xl">
                     <CardHeader className="border-b bg-gray-50 px-6 py-4">

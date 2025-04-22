@@ -20,6 +20,8 @@ use App\Models\Category;
 use App\Models\PurchaseItem;
 use App\Models\SaleItem;
 use App\Models\User;
+use App\Models\AccountLedger;
+
 
 use App\Models\JournalEntry;
 use Inertia\Inertia;
@@ -97,54 +99,33 @@ class ReportController extends Controller
         $to = $request->input('to');
 
         // If filters are missing, show filter page
-        $godowns = Godown::where('created_by', auth()->id())->select('id', 'name')->get();
-        $categories = Category::where('created_by', auth()->id())->get(['id', 'name']); // ✅ FETCH CATEGORIES
+        $godowns = Godown::when(!auth()->user()->hasRole('admin'), fn($q) => $q->where('created_by', auth()->id()))
+            ->select('id', 'name')->get();
+        $categories = Category::when(!auth()->user()->hasRole('admin'), fn($q) => $q->where('created_by', auth()->id()))
+            ->get(['id', 'name']); // ✅ FETCH CATEGORIES
 
+        $items = Item::when(!auth()->user()->hasRole('admin'), fn($q) => $q->where('created_by', auth()->id()))
+            ->get(['id', 'item_name']);
         if (!$from || !$to) {
             return Inertia::render('reports/StockSummaryFilter', [
                 'godowns' => $godowns,
                 'categories' => $categories,
-                'items' => Item::where('created_by', auth()->id())->get(['id', 'item_name']), // ✅ Add this line
+                'items' => $items, // ✅ Add this line
             ]);
         }
-        $stocks = Stock::with(['item.unit', 'godown'])
-            ->when($request->godown_id, fn($q) => $q->where('godown_id', $request->godown_id))
-            ->get()
-            ->map(function ($stock) {
-                $lastPurchaseDate = PurchaseItem::where('product_id', $stock->item_id)
-                    ->latest('created_at')->value('created_at');
-
-                $lastSaleDate = SaleItem::where('product_id', $stock->item_id)
-                    ->latest('created_at')->value('created_at');
-
-                $totalPurchaseValue = PurchaseItem::where('product_id', $stock->item_id)->sum('subtotal');
-                $totalSalesValue = SaleItem::where('product_id', $stock->item_id)->sum('subtotal');
-                $totalSaleQty = SaleItem::where('product_id', $stock->item_id)->sum('qty');
-
-                return [
-                    'item_name'        => $stock->item->item_name,
-                    'godown_name'      => $stock->godown->name,
-
-                    'unit'             => $stock->item->unit->name, // include unit name
-                    'qty'              => (float) $stock->qty,
-                    'total_sale_qty' => $totalSaleQty, // ✅ ADD THIS
-                    'last_purchase_at' => $lastPurchaseDate,
-                    'last_sale_at'     => $lastSaleDate,
-                    'total_purchase'   => (float) $totalPurchaseValue,
-                    'total_sale'       => (float) $totalSalesValue,
-                ];
-            });
+        // dd(auth()->user()->hasRole('admin'), auth()->id());
+        $stocks = $this->getStockData($request);
 
 
 
         $company = CompanySetting::where('created_by', auth()->id())->first();
 
         return Inertia::render('reports/StockSummary', [
-            'items' => Item::where('created_by', auth()->id())->get(['id', 'item_name']), // ✅ Add this
+            'items' => $items, // ✅ use pre-filtered variable here
             'stocks' => $stocks,
             'company' => $company,
             'godowns' => $godowns,
-            'categories' => $categories, // ✅ PASS HERE
+            'categories' => $categories,
             'filters' => [
                 'from' => $from,
                 'to' => $to,
@@ -180,6 +161,11 @@ class ReportController extends Controller
     private function getStockData(Request $request)
     {
         return Stock::with(['item.unit', 'godown'])
+            ->when(!auth()->user()->hasRole('admin'), function ($q) {
+                $q->whereHas('item', function ($subQuery) {
+                    $subQuery->where('created_by', auth()->id());
+                });
+            })
             ->when($request->godown_id, fn($q) => $q->where('godown_id', $request->godown_id))
             ->get()
             ->map(function ($stock) {
@@ -187,14 +173,16 @@ class ReportController extends Controller
                     'item_name' => $stock->item->item_name,
                     'godown_name' => $stock->godown->name,
                     'unit' => $stock->item->unit->name,
-                    'qty' => (float) $stock->qty,
-                    'total_purchase' => PurchaseItem::where('product_id', $stock->item_id)->sum('subtotal'),
-                    'total_sale' => SaleItem::where('product_id', $stock->item_id)->sum('subtotal'),
+                    'qty' => (float) $stock->qty ?? 0,
+                    'total_purchase' => (float) (PurchaseItem::where('product_id', $stock->item_id)->sum('subtotal') ?? 0),
+                    'total_sale' => (float) (SaleItem::where('product_id', $stock->item_id)->sum('subtotal') ?? 0),
+                    'total_sale_qty' => (float) (SaleItem::where('product_id', $stock->item_id)->sum('qty') ?? 0), // ✅ ADD THIS
                     'last_purchase_at' => PurchaseItem::where('product_id', $stock->item_id)->latest()->value('created_at'),
                     'last_sale_at' => SaleItem::where('product_id', $stock->item_id)->latest()->value('created_at'),
                 ];
             });
     }
+
 
     public function categoryWiseStockSummary(Request $request)
     {
@@ -203,7 +191,9 @@ class ReportController extends Controller
         $categoryId = $request->input('category_id');
 
         $query = Category::with(['items.stocks'])
-            ->whereHas('items', fn($q) => $q->where('created_by', auth()->id()));
+            ->when(!auth()->user()->hasRole('admin'), function ($q) {
+                $q->whereHas('items', fn($qq) => $qq->where('created_by', auth()->id()));
+            });
 
         if ($categoryId) {
             $query->where('id', $categoryId);
@@ -220,7 +210,11 @@ class ReportController extends Controller
             $lastPurchaseUnit = '';
             $lastSaleUnit = '';
 
-            foreach ($category->items as $item) {
+            $items = $category->items->filter(function ($item) {
+                return auth()->user()->hasRole('admin') || $item->created_by === auth()->id();
+            });
+
+            foreach ($items as $item) {
                 $totalQty += $item->stocks->sum('qty');
                 $totalPurchase += PurchaseItem::where('product_id', $item->id)->sum('subtotal');
                 $totalSale += SaleItem::where('product_id', $item->id)->sum('subtotal');
@@ -269,6 +263,7 @@ class ReportController extends Controller
         ]);
     }
 
+
     // category wise stock summary pdf and excel
 
 
@@ -304,7 +299,10 @@ class ReportController extends Controller
         $godownId = $request->input('godown_id');
         $itemId = $request->input('item_id');
 
-        $query = Item::with(['unit', 'stocks'])->where('created_by', auth()->id());
+        $query = Item::with(['unit', 'stocks'])
+            ->when(!auth()->user()->hasRole('admin'), function ($q) {
+                $q->where('created_by', auth()->id());
+            });
 
         if ($itemId) {
             $query->where('id', $itemId);
@@ -354,8 +352,10 @@ class ReportController extends Controller
 
         return Inertia::render('reports/ItemWiseStockSummary', [
             'items' => $items,
-            'godowns' => Godown::where('created_by', auth()->id())->get(['id', 'name']),
-            'categories' => Category::where('created_by', auth()->id())->get(['id', 'name']),
+            'godowns' => Godown::when(!auth()->user()->hasRole('admin'), fn($q) => $q->where('created_by', auth()->id()))
+                ->get(['id', 'name']),
+            'categories' => Category::when(!auth()->user()->hasRole('admin'), fn($q) => $q->where('created_by', auth()->id()))
+                ->get(['id', 'name']),
             'company' => CompanySetting::where('created_by', auth()->id())->first(),
             'filters' => [
                 'from' => $from,
@@ -364,6 +364,7 @@ class ReportController extends Controller
             ],
         ]);
     }
+
     public function itemWiseStockSummaryPDF(Request $request)
     {
         $items = $this->getItemWiseStockData($request);
@@ -396,7 +397,9 @@ class ReportController extends Controller
         $godownId = $request->input('godown_id');
 
         return Item::with(['unit', 'stocks'])
-            ->where('created_by', auth()->id())
+            ->when(!auth()->user()->hasRole('admin'), function ($q) {
+                $q->where('created_by', auth()->id());
+            })
             ->get()
             ->map(function ($item) use ($from, $to, $godownId) {
                 $stocks = $item->stocks;
