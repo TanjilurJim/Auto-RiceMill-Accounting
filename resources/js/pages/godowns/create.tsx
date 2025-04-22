@@ -1,5 +1,4 @@
 // resources/js/pages/godowns/create.tsx
-import ActionFooter from '@/components/ActionFooter';
 import GodownForm from '@/components/Form/GodownForm';
 import PageHeader from '@/components/PageHeader';
 import AppLayout from '@/layouts/app-layout';

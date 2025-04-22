@@ -1,8 +1,7 @@
-import ActionFooter from '@/components/ActionFooter';
 import GodownForm from '@/components/Form/GodownForm';
 import PageHeader from '@/components/PageHeader';
 import AppLayout from '@/layouts/app-layout';
-import { Head, Link, useForm } from '@inertiajs/react';
+import { Head, useForm } from '@inertiajs/react';
 
 interface Godown {
     id: number;

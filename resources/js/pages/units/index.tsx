@@ -3,11 +3,12 @@ import ActionButtons from '@/components/ActionButtons';
 import ActionFooter from '@/components/ActionFooter';
 import AddBtn from '@/components/Btn&Link/AddBtn';
 import { confirmDialog } from '@/components/confirmDialog';
+import PageHeader from '@/components/PageHeader';
 import Pagination from '@/components/Pagination';
+import TableComponent from '@/components/TableComponent';
 import AppLayout from '@/layouts/app-layout';
-import { Head, Link, useForm } from '@inertiajs/react';
+import { Head, useForm } from '@inertiajs/react';
 import { useState } from 'react';
-import Swal from 'sweetalert2';
 
 interface Unit {
     id: number;
@@ -17,6 +18,9 @@ interface Unit {
 interface PaginatedUnits {
     data: Unit[];
     links: { url: string | null; label: string; active: boolean }[];
+    current_page: number;
+    last_page: number;
+    total: number;
 }
 
 export default function UnitIndex({ units }: { units: PaginatedUnits }) {
@@ -41,21 +45,6 @@ export default function UnitIndex({ units }: { units: PaginatedUnits }) {
     };
 
     const handleDelete = (id: number) => {
-        // Swal.fire({
-        //     title: 'Are you sure?',
-        //     text: "You won't be able to revert this!",
-        //     icon: 'warning',
-        //     showCancelButton: true,
-        //     confirmButtonColor: '#d33',
-        //     cancelButtonColor: '#3085d6',
-        //     confirmButtonText: 'Yes, delete it!',
-        // }).then((result) => {
-        //     if (result.isConfirmed) {
-        //         destroy(`/units/${id}`, {
-        //             onSuccess: () => reset(),
-        //         });
-        //     }
-        // });
 
         confirmDialog(
             {}, () => {
@@ -87,70 +76,51 @@ export default function UnitIndex({ units }: { units: PaginatedUnits }) {
         setEditUnit(null);
     };
 
+    const columns = [
+        {
+            header: '#SL',
+            accessor: (_: Unit, index?: number) => (index !== undefined ? index + 1 : '-'),
+            className: 'text-center',
+        },
+        { header: 'Unit Name', accessor: 'name' },
+        {
+            header: 'Action',
+            accessor: (unit: Unit) => (
+                <ActionButtons
+                    onEdit={() => handleEdit(unit)}
+                    onDelete={() => handleDelete(unit.id)}
+                />
+            ),
+            className: 'text-center',
+        },
+    ];
+
     return (
         <AppLayout>
             <Head title="Unit Manage" />
             <div className="bg-gray-100">
-                {/* <div className="grid grid-cols-1 gap-4 p-6 md:grid-cols-3"> */}
                 <div className="flex flex-col-reverse justify-between gap-4 p-6 md:flex-row">
                     {/* Left: List */}
-                    <div className="col-span-2 space-y-4 rounded bg-white p-4 shadow lg:w-2/3">
-                        <h2 className="text-lg font-bold">All Unit Manage</h2>
-                        <table className="min-w-full border-collapse border border-gray-200 text-left">
-                            <thead className="bg-gray-100">
-                                <tr>
-                                    <th className="border px-4 py-2">#SL</th>
-                                    <th className="border px-4 py-2">Unit Name</th>
-                                    <th className="border px-4 py-2 text-center">Action</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {units.data.map((unit, idx) => (
-                                    <tr key={unit.id} className="border-t hover:bg-gray-100">
-                                        <td className="border px-4 py-2">{idx + 1}</td>
-                                        <td className="border px-4 py-2">{unit.name}</td>
-                                        {/* <td className="flex justify-center gap-1 border px-4 py-2">
-                                            <button
-                                                onClick={() => handleEdit(unit)}
-                                                className="rounded bg-purple-500 px-2 py-1 text-xs text-white hover:bg-purple-600"
-                                            >
-                                                Edit
-                                            </button>
-
-                                            <button
-                                                onClick={() => handleDelete(unit.id)}
-                                                className="rounded bg-red-600 px-2 py-1 text-xs text-white hover:bg-red-700"
-                                            >
-                                                Delete
-                                            </button>
-                                        </td> */}
-                                        <ActionButtons
-                                            onEdit={() => handleEdit(unit)} // Function to handle the edit action
-                                            onDelete={() => handleDelete(unit.id)} // Function to handle the delete action
-                                        />
-                                    </tr>
-                                ))}
-                            </tbody>
-                        </table>
+                    <div className="col-span-2 space-y-4 rounded bg-white p-4 shadow md:w-2/3">
+                        <PageHeader title="Unit Manage" />
+                        <TableComponent
+                            columns={columns}
+                            data={units.data}
+                            noDataMessage="No units found."
+                        />
 
                         {/* Pagination */}
-                        {/* <div className="mt-4 flex flex-wrap justify-end gap-1">
-                            {units.links.map((link, index) => (
-                                <Link
-                                    key={index}
-                                    href={link.url || ''}
-                                    dangerouslySetInnerHTML={{ __html: link.label }}
-                                    className={`rounded px-3 py-1 text-sm ${link.active ? 'bg-blue-600 text-white' : 'hover:bg-neutral-200 dark:hover:bg-neutral-800'
-                                        } ${!link.url && 'pointer-events-none opacity-50'}`}
-                                />
-                            ))}
-                        </div> */}
-                        <Pagination links={units.links} />
+                        <Pagination
+                            links={units.links}
+                            currentPage={units.current_page}
+                            lastPage={units.last_page}
+                            total={units.total}
+                        />
                     </div>
 
                     {/* Right: Form */}
-                    <div className="rounded bg-white p-4 shadow lg:w-1/3">
-                        <h2 className="mb-4 text-lg font-bold">{editUnit ? 'Edit Unit' : 'Add Unit'}</h2>
+                    <div className="rounded bg-white p-4 shadow md:w-1/3">
+                        <PageHeader title={editUnit ? 'Edit Unit' : 'Add Unit'} />
                         <form onSubmit={handleSubmit} className="space-y-3">
                             <input
                                 type="text"
@@ -163,37 +133,16 @@ export default function UnitIndex({ units }: { units: PaginatedUnits }) {
 
                             <div className="flex justify-between">
                                 {editUnit ? (
-                                    // <>
-                                    //     <button
-                                    //         type="submit"
-                                    //         disabled={processing}
-                                    //         className="rounded bg-yellow-500 px-4 py-2 text-white hover:bg-yellow-600"
-                                    //     >
-                                    //         Update
-                                    //     </button>
-
-                                    //     <button type="button" onClick={handleCancel} className="rounded border px-4 py-2 hover:bg-neutral-100">
-                                    //         Cancel
-                                    //     </button>
-                                    // </>
-
                                     <ActionFooter
                                         className='w-full justify-between'
-                                        onSubmit={handleSubmit} // Function to handle form submission
-                                        onCancel={handleCancel} // Function to handle cancel action
-                                        processing={processing} // Indicates whether the form is processing
-                                        submitText="Update" // Text for the submit button
-                                        cancelText="Cancel" // Text for the cancel button
+                                        onSubmit={handleSubmit}
+                                        onCancel={handleCancel}
+                                        processing={processing}
+                                        submitText="Update"
+                                        cancelText="Cancel"
                                     />
 
                                 ) : (
-                                    // <button
-                                    //     type="submit"
-                                    //     disabled={processing}
-                                    //     className="w-full rounded bg-green-600 px-4 py-2 text-white hover:bg-green-700"
-                                    // >
-                                    //     Add Unit
-                                    // </button>
                                     <AddBtn processing={processing} children="Add Unit" />
                                 )}
                             </div>
