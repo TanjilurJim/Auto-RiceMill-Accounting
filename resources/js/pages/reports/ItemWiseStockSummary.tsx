@@ -1,20 +1,23 @@
+import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import AppLayout from '@/layouts/app-layout';
-import { useEffect,  } from 'react';
-import { Link } from '@inertiajs/react';
 import { FileSpreadsheet, FileText, Printer } from 'lucide-react';
+import { useEffect } from 'react';
+import { route } from 'ziggy-js';
 
-interface CategorySummary {
-    category_name: string;
+import { Link } from '@inertiajs/react';
+
+interface ItemSummary {
+    item_name: string;
+    unit: string;
     total_qty: number;
     total_purchase: number;
     total_sale: number;
+    total_sale_qty: number;
     last_purchase_at: string | null;
-    last_sale_at: string | null;
     last_purchase_qty: number;
+    last_sale_at: string | null;
     last_sale_qty: number;
-    last_purchase_unit?: string;
-    last_sale_unit?: string;
 }
 
 interface Company {
@@ -27,29 +30,28 @@ interface Company {
 }
 
 interface Props {
-    categories: CategorySummary[];
+    items: ItemSummary[];
     filters: {
         from: string;
         to: string;
+        godown_id?: string;
     };
     company: Company;
 }
 
-export default function CategoryWiseStockSummary({ categories, filters, company }: Props) {
-    const totalQty = categories.reduce((sum, c) => sum + c.total_qty, 0);
-    const totalPurchase = categories.reduce((sum, c) => sum + c.total_purchase, 0);
-    const totalSale = categories.reduce((sum, c) => sum + c.total_sale, 0);
-    const totalLastPurchaseQty = categories.reduce((sum, c) => sum + (typeof c.last_purchase_qty === 'number' ? c.last_purchase_qty : 0), 0);
-    const totalLastSaleQty = categories.reduce((sum, c) => sum + (typeof c.last_sale_qty === 'number' ? c.last_sale_qty : 0), 0);
-
+export default function ItemWiseStockSummary({ items, filters, company }: Props) {
+    const totalQty = items.reduce((sum, c) => sum + Number(c.total_qty ?? 0), 0);
+    const totalPurchase = items.reduce((sum, c) => sum + Number(c.total_purchase ?? 0), 0);
+    const totalSale = items.reduce((sum, c) => sum + Number(c.total_sale ?? 0), 0);
+    const totalSaleQty = items.reduce((sum, c) => sum + Number(c.total_sale_qty ?? 0), 0);
     const handlePrint = () => window.print();
 
     useEffect(() => {
-        document.title = 'Category Wise Stock Summary';
+        document.title = 'Item Wise Stock Summary';
     }, []);
 
     return (
-        <AppLayout title="Category Wise Stock Summary">
+        <AppLayout title="Item Wise Stock Summary">
             <div className="mx-auto max-w-6xl space-y-6 p-4">
                 <Card className="shadow">
                     <CardHeader className="space-y-1 border-b bg-gray-50 py-6 text-center">
@@ -64,16 +66,14 @@ export default function CategoryWiseStockSummary({ categories, filters, company 
                         )}
 
                         <div className="mt-3">
-                            <h2 className="text-xl font-semibold underline">Category Wise Stock Summary</h2>
+                            <h2 className="text-xl font-semibold underline">Item Wise Stock Summary</h2>
                             <p className="text-sm text-gray-600">
                                 From: <strong>{filters.from}</strong> To: <strong>{filters.to}</strong>
                             </p>
                         </div>
-                        <div className="absolute top-4 right-4 print:hidden">
-                            <Link href={route('reports.stock-summary')} className="text-sm text-blue-600 hover:underline">
-                                Change Filters
-                            </Link>
-                        </div>
+                        <Link href={route('reports.stock-summary')} className="text-sm text-blue-600 hover:underline">
+                            Change Filters
+                        </Link>
                     </CardHeader>
 
                     <CardContent className="p-6">
@@ -82,74 +82,74 @@ export default function CategoryWiseStockSummary({ categories, filters, company 
                                 <thead className="bg-gray-100">
                                     <tr>
                                         <th className="px-4 py-2 text-left text-sm">#</th>
-                                        <th className="px-4 py-2 text-left text-sm">Category</th>
-                                        <th className="px-4 py-2 text-right text-sm">Total Qty</th>
-                                        <th className="px-4 py-2 text-right text-sm">Total Purchase</th>
-                                        <th className="px-4 py-2 text-right text-sm">Total Sale</th>
+                                        <th className="px-4 py-2 text-left text-sm">Item</th>
+                                        <th className="px-4 py-2 text-left text-sm">Unit</th>
+                                        <th className="px-4 py-2 text-right text-sm">Qty</th>
+                                        <th className="px-4 py-2 text-right text-sm">Purchase</th>
+                                        <th className="px-4 py-2 text-right text-sm">Sale</th>
+                                        <th className="px-4 py-2 text-right text-sm">Sale Qty</th>
                                         <th className="px-4 py-2 text-right text-sm">Last Purchase</th>
                                         <th className="px-4 py-2 text-right text-sm">Purchase Qty</th>
                                         <th className="px-4 py-2 text-right text-sm">Last Sale</th>
-                                        <th className="px-4 py-2 text-right text-sm">Last Sale Qty</th>
+                                        <th className="px-4 py-2 text-right text-sm">Sale Qty</th>
                                     </tr>
                                 </thead>
                                 <tbody className="divide-y divide-gray-100">
-                                    {categories.map((cat, idx) => (
+                                    {items.map((item, idx) => (
                                         <tr key={idx} className="break-inside-avoid">
                                             <td className="px-4 py-2 text-sm">{idx + 1}</td>
-                                            <td className="px-4 py-2 text-sm">{cat.category_name}</td>
-                                            <td className="px-4 py-2 text-right text-sm">{cat.total_qty.toFixed(2)}</td>
-                                            <td className="px-4 py-2 text-right text-sm">{cat.total_purchase.toFixed(2)}</td>
-                                            <td className="px-4 py-2 text-right text-sm">{cat.total_sale.toFixed(2)}</td>
+                                            <td className="px-4 py-2 text-sm">{item.item_name}</td>
+                                            <td className="px-4 py-2 text-sm">{item.unit}</td>
+                                            <td className="px-4 py-2 text-right text-sm">{Number(item.total_qty ?? 0).toFixed(2)}</td>
+                                            <td className="px-4 py-2 text-right text-sm">{Number(item.total_purchase ?? 0).toFixed(2)}</td>
+                                            <td className="px-4 py-2 text-right text-sm">{Number(item.total_sale ?? 0).toFixed(2)}</td>
+                                            <td className="px-4 py-2 text-right text-sm">{Number(item.total_sale_qty ?? 0).toFixed(2)}</td>
                                             <td className="px-4 py-2 text-right text-sm">
-                                                {cat.last_purchase_at ? new Date(cat.last_purchase_at).toLocaleDateString() : '-'}
+                                                {item.last_purchase_at ? new Date(item.last_purchase_at).toLocaleDateString() : '-'}
                                             </td>
+                                            <td className="px-4 py-2 text-right text-sm">{Number(item.last_purchase_qty ?? 0).toFixed(2)}</td>
                                             <td className="px-4 py-2 text-right text-sm">
-                                                {Number(cat.last_purchase_qty).toFixed(2)} {cat.last_purchase_unit ?? ''}
+                                                {item.last_sale_at ? new Date(item.last_sale_at).toLocaleDateString() : '-'}
                                             </td>
-                                            <td className="px-4 py-2 text-right text-sm">
-                                                {cat.last_sale_at ? new Date(cat.last_sale_at).toLocaleDateString() : '-'}
-                                            </td>
-                                            <td className="px-4 py-2 text-right text-sm">
-                                                {Number(cat.last_sale_qty).toFixed(2)} {cat.last_sale_unit ?? ''}
-                                            </td>
+                                            <td className="px-4 py-2 text-right text-sm">{Number(item.last_sale_qty ?? 0).toFixed(2)}</td>
                                         </tr>
                                     ))}
-
                                     <tr className="bg-gray-100 font-semibold">
-                                        <td className="px-4 py-2 text-right text-sm" colSpan={2}>
+                                        <td className="px-4 py-2 text-right text-sm" colSpan={3}>
                                             Total
                                         </td>
-                                        <td className="px-4 py-2 text-right text-sm">{totalQty.toFixed(2)}</td>
-                                        <td className="px-4 py-2 text-right text-sm">{totalPurchase.toFixed(2)}</td>
-                                        <td className="px-4 py-2 text-right text-sm">{totalSale.toFixed(2)}</td>
-                                        <td className="px-4 py-2 text-right text-sm">—</td>
-                                        {/* <td className="px-4 py-2 text-right text-sm">{totalLastPurchaseQty.toFixed(2)}</td> */}
-
+                                        <td className="px-4 py-2 text-right text-sm">{Number(totalQty).toFixed(2)}</td>
+                                        <td className="px-4 py-2 text-right text-sm">{Number(totalPurchase).toFixed(2)}</td>
+                                        <td className="px-4 py-2 text-right text-sm">{Number(totalSale).toFixed(2)}</td>
+                                        <td className="px-4 py-2 text-right text-sm">{Number(totalSaleQty).toFixed(2)}</td>
                                         <td className="px-4 py-2 text-right text-sm">—</td>
                                         <td className="px-4 py-2 text-right text-sm">—</td>
                                         <td className="px-4 py-2 text-right text-sm">—</td>
-                                        {/* <td className="px-4 py-2 text-right text-sm">{totalLastSaleQty.toFixed(2)}</td> */}
+                                        <td className="px-4 py-2 text-right text-sm">—</td>
                                     </tr>
                                 </tbody>
                             </table>
                         </div>
 
                         <div className="mt-6 flex justify-end gap-2 print:hidden">
-                            {/* <Button variant="outline" onClick={handlePrint}>
+                            <Button variant="outline" onClick={handlePrint}>
                                 <Printer className="mr-2 h-4 w-4" /> Print
                             </Button>
                             <a
-                                href={route('reports.stock-summary.category-wise.pdf', filters)}
+                                href={route('reports.stock-summary.item-wise.pdf', filters)}
                                 target="_blank"
                                 className="inline-flex items-center gap-1 rounded-md border px-4 py-2 text-sm hover:bg-gray-100"
                             >
-                                <FileText className="h-4 w-4" /> Save as PDF
-                            </a> */}
+                                <FileText className="h-4 w-4" />
+                                Save as PDF
+                            </a>
+
                             <a
-                                href={route('reports.stock-summary.category-wise.excel', filters)}
+                                href={route('reports.stock-summary.item-wise.excel', filters)}
                                 className="inline-flex items-center gap-1 rounded-md border px-4 py-2 text-sm hover:bg-gray-100"
                             >
-                                <FileSpreadsheet className="h-4 w-4" /> Export Excel
+                                <FileSpreadsheet className="h-4 w-4" />
+                                Export Excel
                             </a>
                         </div>
                     </CardContent>
