@@ -2,6 +2,8 @@ import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import AppLayout from '@/layouts/app-layout';
 import { Head, Link } from '@inertiajs/react';
 import dayjs from 'dayjs';
+import { Button } from '@/components/ui/button';
+import { FileSpreadsheet, FileText, Printer } from 'lucide-react';
 
 interface Entry {
     date: string;
@@ -41,6 +43,8 @@ export default function DayBook({ entries, filters, company }: Props) {
                 </Link>
             </div>
             <div className="space-y-6 p-6">
+               
+
                 <Card>
                     <CardHeader className="relative bg-gray-50 py-6 text-center">
                         <div className="space-y-1">
@@ -117,6 +121,35 @@ export default function DayBook({ entries, filters, company }: Props) {
                         </div>
                     </CardContent>
                 </Card>
+                <div className="mt-4 flex justify-end gap-2 print:hidden">
+                    <Button variant="outline" onClick={() => window.print()}> <Printer className="mr-2 h-4 w-4"/>
+                        Print
+                    </Button>
+                    <a
+                        href={route('reports.day-book.pdf', {
+                            from_date: filters.from,
+                            to_date: filters.to,
+                            transaction_type: filters.transaction_type,
+                            created_by: filters.created_by,
+                        })}
+                        target="_blank"
+                        className="inline-flex items-center gap-1 rounded-md border px-4 py-2 text-sm hover:bg-gray-100"
+                    >
+                        <FileText className="h-4 w-4" />
+                        Download PDF
+                    </a>
+                    <a
+                        href={route('reports.day-book.excel', {
+                            from_date: filters.from,
+                            to_date: filters.to,
+                            transaction_type: filters.transaction_type,
+                            created_by: filters.created_by,
+                        })}
+                        className="inline-flex items-center gap-1 rounded-md border px-4 py-2 text-sm hover:bg-gray-100"
+                    ><FileSpreadsheet className="h-4 w-4" />
+                         Export Excel
+                    </a>
+                </div>
             </div>
         </AppLayout>
     );

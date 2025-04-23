@@ -168,5 +168,11 @@ Route::get('reports/stock-summary/category-wise/excel', [ReportController::class
 Route::get('reports/stock-summary/item-wise/pdf', [ReportController::class, 'itemWiseStockSummaryPDF'])->name('reports.stock-summary.item-wise.pdf');
 Route::get('reports/stock-summary/item-wise/excel', [ReportController::class, 'itemWiseStockSummaryExcel'])->name('reports.stock-summary.item-wise.excel');
 
+Route::prefix('reports')->name('reports.')->group(function () {
+    Route::get('day-book', [ReportController::class, 'dayBook'])->name('day-book');
+    Route::get('day-book/pdf', [ReportController::class, 'dayBookPdf'])->name('day-book.pdf');
+    Route::get('day-book/excel', [ReportController::class, 'dayBookExcel'])->name('day-book.excel');
+});
+
 require __DIR__ . '/settings.php';
 require __DIR__ . '/auth.php';

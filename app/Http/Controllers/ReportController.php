@@ -673,4 +673,255 @@ class ReportController extends Controller
             'company' => $company,
         ]);
     }
+
+    private function getDayBookEntries(Request $request, $allowedUserIds, $isAdmin)
+    {
+        $from = $request->from_date;
+        $to = $request->to_date;
+        $userId = $request->created_by;
+        $type = $request->transaction_type;
+
+        $entries = collect();
+
+        $applyFilters = fn($query) => $query
+            ->whereBetween('date', [$from, $to])
+            ->when($userId, fn($q) => $q->where('created_by', $userId))
+            ->when(!$isAdmin, fn($q) => $q->whereIn('created_by', $allowedUserIds));
+
+        // ✅ Purchase
+        if (!$type || $type === 'Purchase') {
+            $entries = $entries->merge(
+                $applyFilters(\App\Models\Purchase::query())
+                    ->with(['creator', 'accountLedger'])
+                    ->get()
+                    ->map(fn($r) => [
+                        'date' => $r->date,
+                        'voucher_no' => $r->voucher_no,
+                        'type' => 'Purchase',
+                        'ledger' => optional($r->accountLedger)->account_ledger_name,
+                        'debit' => $r->grand_total,
+                        'credit' => 0,
+                        'note' => $r->note ?? '-',
+                        'created_by' => optional($r->creator)->name,
+                    ])
+            );
+        }
+
+        // ✅ Purchase Return
+        if (!$type || $type === 'Purchase Return') {
+            $entries = $entries->merge(
+                \App\Models\PurchaseReturn::query()
+                    ->whereBetween('date', [$from, $to])
+                    ->when($userId, fn($q) => $q->where('created_by', $userId))
+                    ->when(!$isAdmin, fn($q) => $q->whereIn('created_by', $allowedUserIds))
+                    ->with(['creator', 'accountLedger'])
+                    ->get()
+                    ->map(fn($r) => [
+                        'date' => $r->date,
+                        'voucher_no' => $r->return_voucher_no,
+                        'type' => 'Purchase Return',
+                        'ledger' => optional($r->accountLedger)->account_ledger_name,
+                        'debit' => 0,
+                        'credit' => $r->grand_total,
+                        'note' => $r->reason ?? '-',
+                        'created_by' => optional($r->creator)->name,
+                    ])
+            );
+        }
+
+        // ✅ Sale
+        if (!$type || $type === 'Sale') {
+            $entries = $entries->merge(
+                \App\Models\Sale::query()
+                    ->whereBetween('date', [$from, $to])
+                    ->when($userId, fn($q) => $q->where('created_by', $userId))
+                    ->when(!$isAdmin, fn($q) => $q->whereIn('created_by', $allowedUserIds))
+                    ->with(['creator', 'accountLedger'])
+                    ->get()
+                    ->map(fn($r) => [
+                        'date' => $r->date,
+                        'voucher_no' => $r->voucher_no,
+                        'type' => 'Sale',
+                        'ledger' => optional($r->accountLedger)->account_ledger_name,
+                        'debit' => $r->grand_total,
+                        'credit' => 0,
+                        'note' => '-',
+                        'created_by' => optional($r->creator)->name,
+                    ])
+            );
+        }
+
+        // ✅ Sale Return
+        if (!$type || $type === 'Sale Return') {
+            $entries = $entries->merge(
+                \App\Models\SalesReturn::query()
+                    ->whereBetween('return_date', [$from, $to])
+                    ->when($userId, fn($q) => $q->where('created_by', $userId))
+                    ->when(!$isAdmin, fn($q) => $q->whereIn('created_by', $allowedUserIds))
+                    ->with(['creator', 'accountLedger'])
+                    ->get()
+                    ->map(fn($r) => [
+                        'date' => $r->return_date,
+                        'voucher_no' => $r->voucher_no,
+                        'type' => 'Sale Return',
+                        'ledger' => optional($r->accountLedger)->account_ledger_name,
+                        'debit' => 0,
+                        'credit' => $r->total_return_amount,
+                        'note' => $r->reason ?? '-',
+                        'created_by' => optional($r->creator)->name,
+                    ])
+            );
+        }
+
+        // ✅ Receive
+        if (!$type || $type === 'Receive') {
+            $entries = $entries->merge(
+                $applyFilters(\App\Models\ReceivedAdd::query())
+                    ->with(['accountLedger', 'creator'])
+                    ->get()
+                    ->map(fn($r) => [
+                        'date' => $r->date,
+                        'voucher_no' => $r->voucher_no,
+                        'type' => 'Receive',
+                        'ledger' => optional($r->accountLedger)->account_ledger_name ?? '-',
+                        'debit' => $r->amount,
+                        'credit' => 0,
+                        'note' => $r->description ?? '-',
+                        'created_by' => optional($r->creator)->name,
+                    ])
+            );
+        }
+
+        // ✅ Payment
+        if (!$type || $type === 'Payment') {
+            $entries = $entries->merge(
+                $applyFilters(\App\Models\PaymentAdd::query())
+                    ->with(['creator', 'accountLedger'])
+                    ->get()
+                    ->map(fn($r) => [
+                        'date' => $r->date,
+                        'voucher_no' => $r->voucher_no,
+                        'type' => 'Payment',
+                        'ledger' => optional($r->accountLedger)->account_ledger_name,
+                        'debit' => 0,
+                        'credit' => $r->amount,
+                        'note' => $r->description ?? '-',
+                        'created_by' => optional($r->creator)->name,
+                    ])
+            );
+        }
+
+        // ✅ Contra
+        if (!$type || $type === 'Contra') {
+            $entries = $entries->merge(
+                $applyFilters(\App\Models\ContraAdd::query())
+                    ->with('creator')
+                    ->get()
+                    ->map(fn($r) => [
+                        'date' => $r->date,
+                        'voucher_no' => $r->voucher_no,
+                        'type' => 'Contra',
+                        'ledger' => '-',
+                        'debit' => $r->amount,
+                        'credit' => 0,
+                        'note' => $r->description ?? '-',
+                        'created_by' => optional($r->creator)->name,
+                    ])
+            );
+        }
+
+        // ✅ Journal
+        if (!$type || $type === 'Journal') {
+            $entries = $entries->merge(
+                $applyFilters(\App\Models\Journal::query())
+                    ->with('entries.ledger', 'creator')
+                    ->get()
+                    ->flatMap(function ($journal) {
+                        return $journal->entries->map(function ($entry) use ($journal) {
+                            return [
+                                'date' => $journal->date,
+                                'voucher_no' => $journal->voucher_no,
+                                'type' => 'Journal',
+                                'ledger' => optional($entry->ledger)->account_ledger_name,
+                                'debit' => $entry->type === 'debit' ? $entry->amount : 0,
+                                'credit' => $entry->type === 'credit' ? $entry->amount : 0,
+                                'note' => $entry->note ?? $journal->narration,
+                                'created_by' => optional($journal->creator)->name,
+                            ];
+                        });
+                    })
+            );
+        }
+
+        return $entries->sortBy(['date', 'voucher_no'])->values();
+    }
+
+
+
+    public function dayBookExcel(Request $request)
+    {
+        $request->validate([
+            'from_date' => 'required|date',
+            'to_date' => 'required|date|after_or_equal:from_date',
+        ]);
+        
+        $authUser = auth()->user();
+        $isAdmin = $authUser->hasRole('admin');
+        
+        $allowedUserIds = $isAdmin
+            ? \App\Models\User::pluck('id')
+            : \App\Models\User::where('created_by', $authUser->id)->orWhere('id', $authUser->id)->pluck('id');
+        
+        $request->merge([
+            'from_date' => $request->from_date ?? now()->format('Y-m-d'),
+            'to_date' => $request->to_date ?? now()->format('Y-m-d'),
+        ]);
+        $authUser = auth()->user();
+        $isAdmin = $authUser->hasRole('admin');
+
+        $allowedUserIds = $isAdmin
+            ? \App\Models\User::pluck('id')
+            : \App\Models\User::where('created_by', $authUser->id)->orWhere('id', $authUser->id)->pluck('id');
+
+        $entries = $this->getDayBookEntries($request, $allowedUserIds, $isAdmin);
+
+        return \Excel::download(new \App\Exports\DayBookExport($entries->toArray()), 'day-book-report.xlsx');
+    }
+
+    public function dayBookPdf(Request $request)
+    {
+        $request->validate([
+            'from_date' => 'required|date',
+            'to_date' => 'required|date|after_or_equal:from_date',
+        ]);
+        
+        $authUser = auth()->user();
+        $isAdmin = $authUser->hasRole('admin');
+        
+        $allowedUserIds = $isAdmin
+            ? \App\Models\User::pluck('id')
+            : \App\Models\User::where('created_by', $authUser->id)->orWhere('id', $authUser->id)->pluck('id');
+        
+        $request->merge([
+            'from_date' => $request->from_date ?? now()->format('Y-m-d'),
+            'to_date' => $request->to_date ?? now()->format('Y-m-d'),
+        ]);
+        $authUser = auth()->user();
+        $isAdmin = $authUser->hasRole('admin');
+
+        $allowedUserIds = $isAdmin
+            ? \App\Models\User::pluck('id')
+            : \App\Models\User::where('created_by', $authUser->id)->orWhere('id', $authUser->id)->pluck('id');
+
+        $entries = $this->getDayBookEntries($request, $allowedUserIds, $isAdmin);
+        $company = \App\Models\CompanySetting::firstWhere('created_by', auth()->id());
+
+        $pdf = \PDF::loadView('reports.day-book-pdf', [
+            'entries' => $entries,
+            'filters' => $request->all(),
+            'company' => $company,
+        ])->setPaper('a4', 'landscape');
+
+        return $pdf->download('day-book-report.pdf');
+    }
 }
