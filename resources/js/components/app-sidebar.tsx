@@ -234,8 +234,8 @@ const mainNavItems: NavItem[] = [
                 icon: Users,
             },
             {
-                title: 'Company Settings',
-                href: '/company-settings',
+                title: 'Day Book',
+                href: '/reports/day-book',
                 icon: Building2, // 👈 This icon works well for users
             },
             // Later you can add more inventory-related items here (e.g., Products, Stock Transfers, etc.)

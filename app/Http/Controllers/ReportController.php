@@ -442,4 +442,176 @@ class ReportController extends Controller
                 ];
             });
     }
+
+    public function dayBook(Request $request)
+    {
+
+        $users = \App\Models\User::select('id', 'name')
+            ->when(!auth()->user()->hasRole('admin'), fn($q) => $q->where('id', auth()->id()))
+            ->get();
+
+        // 🔍 If any required filters are missing, render the filter page
+        if (!$request->filled('from_date') || !$request->filled('to_date')) {
+            return Inertia::render('reports/DayBookFilter', [
+                'users' => $users,
+            ]);
+        }
+
+
+        $request->validate([
+            'from_date' => 'required|date',
+            'to_date' => 'required|date|after_or_equal:from_date',
+            'transaction_type' => 'nullable|string',
+            'created_by' => 'nullable|integer',
+        ]);
+
+        $from = $request->from_date;
+        $to = $request->to_date;
+        $userId = $request->created_by;
+        $type = $request->transaction_type;
+
+        $entries = collect();
+
+        // Helper to apply common filters
+        $applyFilters = fn($query) => $query
+            ->whereBetween('date', [$from, $to])
+            ->when($userId, fn($q) => $q->where('created_by', $userId));
+
+        if (!$type || $type === 'Purchase') {
+            $entries = $entries->merge(
+                $applyFilters(\App\Models\Purchase::query())
+                    ->get()
+                    ->map(fn($r) => [
+                        'date' => $r->date,
+                        'voucher_no' => $r->voucher_no,
+                        'type' => 'Purchase',
+                        'amount' => $r->total,
+                        'description' => $r->note,
+                        'created_by' => optional($r->creator)->name,
+                    ])
+            );
+        }
+
+        if (!$type || $type === 'Purchase Return') {
+            $entries = $entries->merge(
+                \App\Models\PurchaseReturn::query()
+                    ->whereBetween('date', [$from, $to]) // ✅ correct field
+                    ->when($userId, fn($q) => $q->where('created_by', $userId))
+                    ->get()
+                    ->map(fn($r) => [
+                        'date' => $r->date,
+                        'voucher_no' => $r->return_voucher_no, // ✅ correct field
+                        'type' => 'Purchase Return',
+                        'amount' => $r->grand_total, // ✅ use grand_total
+                        'description' => $r->reason,
+                        'created_by' => optional($r->creator)->name,
+                    ])
+            );
+        }
+
+
+        if (!$type || $type === 'Sale') {
+            $entries = $entries->merge(
+                $applyFilters(\App\Models\Sale::query())
+                    ->get()
+                    ->map(fn($r) => [
+                        'date' => $r->date,
+                        'voucher_no' => $r->voucher_no,
+                        'type' => 'Sale',
+                        'amount' => $r->total,
+                        'description' => $r->note,
+                        'created_by' => optional($r->creator)->name,
+                    ])
+            );
+        }
+
+        if (!$type || $type === 'Sale Return') {
+            $entries = $entries->merge(
+                \App\Models\SalesReturn::query()
+                    ->whereBetween('return_date', [$from, $to]) // ✅ fixed field name
+                    ->when($userId, fn($q) => $q->where('created_by', $userId))
+                    ->get()
+                    ->map(fn($r) => [
+                        'date' => $r->return_date, // ✅ updated field
+                        'voucher_no' => $r->voucher_no,
+                        'type' => 'Sale Return',
+                        'amount' => $r->total_return_amount, // ✅ correct amount field
+                        'description' => $r->reason, // optional, if you prefer using 'reason'
+                        'created_by' => optional($r->creator)->name,
+                    ])
+            );
+        }
+
+        if (!$type || $type === 'Receive') {
+            $entries = $entries->merge(
+                $applyFilters(\App\Models\ReceivedAdd::query())
+                    ->get()
+                    ->map(fn($r) => [
+                        'date' => $r->date,
+                        'voucher_no' => $r->voucher_no,
+                        'type' => 'Receive',
+                        'amount' => $r->amount,
+                        'description' => $r->description,
+                        'created_by' => optional($r->creator)->name,
+                    ])
+            );
+        }
+
+        if (!$type || $type === 'Payment') {
+            $entries = $entries->merge(
+                $applyFilters(\App\Models\PaymentAdd::query())
+                    ->with(['accountLedger', 'creator']) // 👈 add creator here
+                    ->get()
+                    ->map(fn($r) => [
+                        'date' => $r->date,
+                        'voucher_no' => $r->voucher_no,
+                        'type' => 'Payment',
+                        'ledger' => optional($r->accountLedger)->account_ledger_name,
+                        'debit' => 0,
+                        'credit' => $r->amount,
+                        'note' => $r->description,
+                        'created_by' => optional($r->creator)->name, // ✅ will now work
+                    ])
+            );
+        }
+
+        if (!$type || $type === 'Contra') {
+            $entries = $entries->merge(
+                $applyFilters(\App\Models\ContraAdd::query())
+                    ->get()
+                    ->map(fn($r) => [
+                        'date' => $r->date,
+                        'voucher_no' => $r->voucher_no,
+                        'type' => 'Contra',
+                        'amount' => $r->amount,
+                        'description' => $r->description,
+                        'created_by' => optional($r->creator)->name,
+                    ])
+            );
+        }
+
+        if (!$type || $type === 'Journal') {
+            $entries = $entries->merge(
+                $applyFilters(\App\Models\Journal::query())
+                    ->get()
+                    ->map(fn($r) => [
+                        'date' => $r->date,
+                        'voucher_no' => $r->voucher_no,
+                        'type' => 'Journal',
+                        'amount' => $r->entries->sum('amount'),
+                        'description' => $r->note,
+                        'created_by' => optional($r->creator)->name,
+                    ])
+            );
+        }
+
+        $sorted = $entries->sortBy(['date', 'voucher_no'])->values();
+
+        return Inertia::render('reports/DayBook', [
+            'entries' => $sorted,
+            'from' => $from,
+            'to' => $to,
+            'filters' => $request->only(['transaction_type', 'created_by']),
+        ]);
+    }
 }

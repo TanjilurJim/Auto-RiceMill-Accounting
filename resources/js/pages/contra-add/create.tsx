@@ -37,7 +37,7 @@ export default function Create({ paymentModes }: any) {
 
     const getBalance = (id: string) => {
         const mode = paymentModes.find((m: any) => m.id == id);
-        return Number(mode?.closing_balance ?? mode?.opening_balance ?? 0).toFixed(2);
+        return Number(mode?.ledger?.closing_balance ?? mode?.ledger?.opening_balance ?? 0).toFixed(2);
     };
 
     return (

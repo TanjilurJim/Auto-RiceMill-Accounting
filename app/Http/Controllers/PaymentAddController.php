@@ -5,6 +5,10 @@ namespace App\Http\Controllers;
 use App\Models\PaymentAdd;
 use App\Models\ReceivedMode;
 use App\Models\AccountLedger;
+use App\Models\Journal;
+use App\Models\JournalEntry;
+// use App\Models\ReceivedMode;
+
 
 
 use Inertia\Inertia;
@@ -75,7 +79,7 @@ class PaymentAddController extends Controller
     public function create()
     {
         return Inertia::render('payment-add/create', [
-            'paymentModes' => ReceivedMode::select('id', 'mode_name', 'opening_balance', 'closing_balance')
+            'paymentModes' => ReceivedMode::with(['ledger:id,account_ledger_name,closing_balance'])
                 ->when(!auth()->user()->hasRole('admin'), fn($q) => $q->where('created_by', auth()->id()))
                 ->get(),
             'accountLedgers' => AccountLedger::when(!auth()->user()->hasRole('admin'), fn($q) => $q->where('created_by', auth()->id()))->get(),
@@ -119,15 +123,47 @@ class PaymentAddController extends Controller
                 'created_by' => auth()->id(),
             ]);
 
-            // Update the closing balance of the account ledger
+            // 🔁 Update account ledger balance
             $ledger = \App\Models\AccountLedger::findOrFail($row['account_ledger_id']);
-            $currentBalance = $ledger->closing_balance ?? $ledger->opening_balance;
-            $ledger->closing_balance = $currentBalance + $row['amount'];
+            $ledger->closing_balance = ($ledger->closing_balance ?? $ledger->opening_balance) + $row['amount'];
             $ledger->save();
+
+            // 🔁 Get received mode's ledger (cash/bank)
+            $receivedMode = \App\Models\ReceivedMode::findOrFail($row['payment_mode_id']);
+
+            // 🧾 Create journal
+            $journal = \App\Models\Journal::create([
+                'date' => $request->date,
+                'voucher_no' => $request->voucher_no,
+                'narration' => $request->description ?? 'Payment to ' . $ledger->account_ledger_name,
+                'created_by' => auth()->id(),
+            ]);
+
+            \App\Models\JournalEntry::insert([
+                [
+                    'journal_id' => $journal->id,
+                    'account_ledger_id' => $row['account_ledger_id'],
+                    'type' => 'debit',
+                    'amount' => $row['amount'],
+                    'note' => 'Payment to ' . $ledger->account_ledger_name,
+                    'created_at' => now(),
+                    'updated_at' => now(),
+                ],
+                [
+                    'journal_id' => $journal->id,
+                    'account_ledger_id' => $receivedMode->ledger_id,
+                    'type' => 'credit',
+                    'amount' => $row['amount'],
+                    'note' => 'Paid via ' . $receivedMode->mode_name,
+                    'created_at' => now(),
+                    'updated_at' => now(),
+                ],
+            ]);
         }
 
         return redirect()->route('payment-add.index')->with('success', 'Payments added successfully!');
     }
+
 
 
 

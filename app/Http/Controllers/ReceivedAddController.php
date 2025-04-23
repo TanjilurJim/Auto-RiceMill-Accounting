@@ -5,6 +5,9 @@ namespace App\Http\Controllers;
 use App\Models\ReceivedAdd;
 use App\Models\ReceivedMode;
 use App\Models\AccountLedger;
+use App\Models\Journal;
+use App\Models\JournalEntry;
+
 use App\Models\CompanySetting;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Http\Request;
@@ -43,35 +46,61 @@ class ReceivedAddController extends Controller
             'send_sms' => 'boolean',
         ]);
 
-        // Create the received entry
+        // 💾 Create ReceivedAdd entry
         $received = ReceivedAdd::create([
-            ...$request->all(),
-            'created_by' => auth()->id(), // ✅ track the user
+            ...$request->only([
+                'date',
+                'voucher_no',
+                'received_mode_id',
+                'account_ledger_id',
+                'amount',
+                'description',
+                'send_sms',
+            ]),
+            'created_by' => auth()->id(),
         ]);
 
-        // Fetch the ledger and update its balance
-        $ledger = AccountLedger::findOrFail($request->account_ledger_id);
+        // 📤 Credit from payer (account ledger)
+        $payerLedger = AccountLedger::findOrFail($request->account_ledger_id);
+        $payerLedger->closing_balance = ($payerLedger->closing_balance ?? $payerLedger->opening_balance) - $request->amount;
+        $payerLedger->save();
 
-        // Use closing_balance if it exists, otherwise fallback to opening_balance
-        $currentBalance = $ledger->closing_balance ?? $ledger->opening_balance;
+        // 📥 Debit into receiver (received_mode → ledger)
+        $receivedMode = ReceivedMode::with('ledger')->findOrFail($request->received_mode_id);
+        $receiverLedger = $receivedMode->ledger;
+        $receiverLedger->closing_balance = ($receiverLedger->closing_balance ?? $receiverLedger->opening_balance) + $request->amount;
+        $receiverLedger->save();
 
-        // Subtract the received amount
-        $newBalance = $currentBalance - $request->amount;
+        // 📘 Journal entry
+        $journal = Journal::create([
+            'date' => $request->date,
+            'voucher_no' => $request->voucher_no,
+            'narration' => $request->description ?? 'Received from ' . $payerLedger->account_ledger_name,
+            'created_by' => auth()->id(),
+        ]);
 
-        $ledger->closing_balance = $newBalance;
-        $ledger->save();
+        JournalEntry::insert([
+            [
+                'journal_id' => $journal->id,
+                'account_ledger_id' => $receiverLedger->id,
+                'type' => 'debit',
+                'amount' => $request->amount,
+                'note' => 'Received via ' . $receivedMode->mode_name,
+                'created_at' => now(),
+                'updated_at' => now(),
+            ],
+            [
+                'journal_id' => $journal->id,
+                'account_ledger_id' => $payerLedger->id,
+                'type' => 'credit',
+                'amount' => $request->amount,
+                'note' => 'Received from ' . $payerLedger->account_ledger_name,
+                'created_at' => now(),
+                'updated_at' => now(),
+            ],
+        ]);
 
-        $receivedMode = ReceivedMode::with('ledger')->find($request->received_mode_id);
-
-        if ($receivedMode && $receivedMode->ledger) {
-            $receiverLedger = $receivedMode->ledger;
-            $receiverCurrentBalance = $receiverLedger->closing_balance ?? $receiverLedger->opening_balance;
-            $receiverLedger->closing_balance = $receiverCurrentBalance + $request->amount;
-            $receiverLedger->save();
-        }
-
-
-        return redirect()->route('received-add.index')->with('success', 'Received voucher saved successfully!');
+        return redirect()->route('received-add.index')->with('success', 'Received voucher saved and journal posted successfully!');
     }
 
 

@@ -29,4 +29,8 @@ class PaymentAdd extends Model
     {
         return $this->belongsTo(AccountLedger::class);
     }
+    public function creator()
+    {
+        return $this->belongsTo(User::class, 'created_by');
+    }
 }

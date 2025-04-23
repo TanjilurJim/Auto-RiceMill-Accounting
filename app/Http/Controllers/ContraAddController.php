@@ -4,6 +4,9 @@ namespace App\Http\Controllers;
 
 use App\Models\ContraAdd;
 use App\Models\ReceivedMode;
+use App\Models\Journal;
+use App\Models\JournalEntry;
+use App\Models\AccountLedger;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 
@@ -26,17 +29,18 @@ class ContraAddController extends Controller
     public function create()
     {
         return Inertia::render('contra-add/create', [
-            'paymentModes' => ReceivedMode::select('id', 'mode_name', 'opening_balance', 'closing_balance')
+            'paymentModes' => ReceivedMode::with('ledger:id,opening_balance,closing_balance')
                 ->when(!auth()->user()->hasRole('admin'), fn($q) => $q->where('created_by', auth()->id()))
-                ->get(),
+                ->get(['id', 'mode_name', 'ledger_id']),
         ]);
     }
+
 
     public function store(Request $request)
     {
         $request->validate([
             'date' => 'required|date',
-            'voucher_no' => 'required|string',
+            'voucher_no' => 'required|string|unique:contra_adds,voucher_no',
             'mode_from_id' => 'required|exists:received_modes,id|different:mode_to_id',
             'mode_to_id' => 'required|exists:received_modes,id',
             'amount' => 'required|numeric|min:0.01',
@@ -44,7 +48,7 @@ class ContraAddController extends Controller
             'send_sms' => 'boolean',
         ]);
 
-        // Save the contra entry
+        // 💾 Save contra
         $contra = ContraAdd::create([
             'date' => $request->date,
             'voucher_no' => $request->voucher_no,
@@ -56,22 +60,49 @@ class ContraAddController extends Controller
             'created_by' => auth()->id(),
         ]);
 
-        // Handle balance updates (Debit/Credit logic)
-        $fromMode = \App\Models\ReceivedMode::findOrFail($request->mode_from_id);
-        $toMode = \App\Models\ReceivedMode::findOrFail($request->mode_to_id);
+        // 🔄 Update balances
+        $fromMode = ReceivedMode::with('ledger')->findOrFail($request->mode_from_id);
+        $toMode = ReceivedMode::with('ledger')->findOrFail($request->mode_to_id);
 
-        $fromBalance = $fromMode->closing_balance ?? $fromMode->opening_balance ?? 0;
-        $toBalance = $toMode->closing_balance ?? $toMode->opening_balance ?? 0;
+        $fromLedger = $fromMode->ledger;
+        $toLedger = $toMode->ledger;
 
-        // Credit fromMode (reduce)
-        $fromMode->closing_balance = $fromBalance - $request->amount;
-        $fromMode->save();
+        $fromLedger->closing_balance -= $request->amount;
+        $fromLedger->save();
 
-        // Debit toMode (increase)
-        $toMode->closing_balance = $toBalance + $request->amount;
-        $toMode->save();
+        $toLedger->closing_balance += $request->amount;
+        $toLedger->save();
 
-        return redirect()->route('contra-add.index')->with('success', 'Contra entry created successfully!');
+        // 📘 Journal Entry
+        $journal = Journal::create([
+            'date' => $request->date,
+            'voucher_no' => $request->voucher_no,
+            'narration' => $request->description ?? 'Contra entry',
+            'created_by' => auth()->id(),
+        ]);
+
+        JournalEntry::insert([
+            [
+                'journal_id' => $journal->id,
+                'account_ledger_id' => $toLedger->id,
+                'type' => 'debit',
+                'amount' => $request->amount,
+                'note' => 'Received to ' . $toMode->mode_name,
+                'created_at' => now(),
+                'updated_at' => now(),
+            ],
+            [
+                'journal_id' => $journal->id,
+                'account_ledger_id' => $fromLedger->id,
+                'type' => 'credit',
+                'amount' => $request->amount,
+                'note' => 'Transferred from ' . $fromMode->mode_name,
+                'created_at' => now(),
+                'updated_at' => now(),
+            ],
+        ]);
+
+        return redirect()->route('contra-add.index')->with('success', 'Contra entry saved and journal posted successfully!');
     }
     public function edit($id)
     {

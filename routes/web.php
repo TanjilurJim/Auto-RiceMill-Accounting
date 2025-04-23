@@ -151,7 +151,8 @@ Route::middleware(['auth', 'verified'])->group(function () {
     ->name('reports.stock-summary.category-wise');
     Route::get('/reports/stock-summary/item-wise', [ReportController::class, 'itemWiseStockSummary'])
     ->name('reports.stock-summary.item-wise');
-    
+    // DayBook
+    Route::get('/reports/day-book', [ReportController::class, 'dayBook'])->name('reports.day-book');
    
 });
 

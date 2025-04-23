@@ -34,7 +34,7 @@ export default function Create({ paymentModes, accountLedgers }: any) {
 
         if (field === 'payment_mode_id') {
             const selected = paymentModes.find((m: any) => m.id === parseInt(value));
-            const balance = Number(selected?.closing_balance ?? selected?.opening_balance ?? 0);
+            const balance = Number(selected?.ledger?.closing_balance ?? 0);
             newRows[index].payment_balance = balance;
         }
 
@@ -89,7 +89,7 @@ export default function Create({ paymentModes, accountLedgers }: any) {
 
             <div className="p-6">
                 {/* <h1 className="mb-4 text-xl font-bold">Add Payment</h1> */}
-                <PageHeader title="Add Payment" addLinkHref="/payment-add" addLinkText='Back' />
+                <PageHeader title="Add Payment" addLinkHref="/payment-add" addLinkText="Back" />
 
                 <form onSubmit={handleSubmit} className="space-y-4">
                     <div className="grid grid-cols-3 gap-4">
@@ -126,7 +126,7 @@ export default function Create({ paymentModes, accountLedgers }: any) {
                                             <option value="">Select</option>
                                             {paymentModes.map((mode: any) => (
                                                 <option key={mode.id} value={mode.id}>
-                                                    {mode.mode_name} ({Number(mode.closing_balance ?? mode.opening_balance ?? 0).toFixed(2)})
+                                                    {mode.mode_name} ({Number(mode?.ledger?.closing_balance ?? 0).toFixed(2)})
                                                 </option>
                                             ))}
                                         </select>
