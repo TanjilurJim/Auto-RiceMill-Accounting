@@ -1,3 +1,4 @@
+import ActionFooter from '@/components/ActionFooter';
 import PageHeader from '@/components/PageHeader';
 import AppLayout from '@/layouts/app-layout';
 import { Head, useForm, usePage } from '@inertiajs/react';
@@ -121,15 +122,12 @@ export default function Edit({ receivedMode }: ReceivedModeProps) {
                     </div>
 
                     {/* Sticky Action Bar */}
-                    <div className="sticky bottom-0 left-0 z-10 flex justify-end border-t bg-white p-4 pt-4 shadow-sm">
-                        <button
-                            type="submit"
-                            disabled={processing}
-                            className="rounded bg-blue-600 px-6 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-blue-700"
-                        >
-                            {processing ? 'Updating...' : 'Update Received Mode'}
-                        </button>
-                    </div>
+                    <ActionFooter
+                        onSubmit={handleSubmit}
+                        cancelHref="/received-modes"
+                        processing={processing}
+                        submitText="Update Received Mode"
+                    />
                 </form>
             </div>
         </AppLayout>

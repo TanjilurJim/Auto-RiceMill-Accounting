@@ -31,9 +31,6 @@ export default function Create() {
             <Head title="Create Received Mode" />
 
             <div className="space-y-6 p-6">
-                {/* <div className="flex items-center justify-between border-b pb-4">
-                    <h1 className="text-2xl font-semibold text-gray-800">Create Received Mode</h1>
-                </div> */}
 
                 <PageHeader title='Create Received Mode' addLinkHref='/received-modes' addLinkText='Back' />
 
@@ -76,7 +73,8 @@ export default function Create() {
                                 <select
                                     value={data.ledger_id}
                                     onChange={(e) => setData('ledger_id', e.target.value)}
-                                    className="block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring focus:ring-blue-200"
+                                    // className="block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring focus:ring-blue-200"
+                                    className = "focus:ring-opacity-50 block w-full rounded-md border border-gray-300 px-4 py-2 text-sm shadow-sm focus:border-blue-500 focus:ring focus:ring-blue-200"
                                 >
                                     <option value="">Select Ledger</option>
                                     {ledgers.map((ledger) => (
@@ -90,23 +88,15 @@ export default function Create() {
                         </div>
                     </div>
 
-                    {/* Sticky Action Bar */}
-                    {/* <div className="sticky bottom-0 left-0 z-10 flex justify-end border-t bg-white p-4 pt-4 shadow-sm">
-                        <button
-                            type="submit"
-                            disabled={processing}
-                            className="rounded bg-blue-600 px-6 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-blue-700"
-                        >
-                            {processing ? 'Saving...' : 'Save Received Mode'}
-                        </button>
-                    </div> */}
+                    
+                    
                     <ActionFooter
                         className='justify-end'
-                        onSubmit={handleSubmit} // Function to handle form submission
-                        cancelHref="/received-modes" // URL for the cancel action
-                        processing={processing} // Indicates whether the form is processing
-                        submitText={processing ? 'Saving...' : 'Save Received Mode'} // Text for the submit button
-                        cancelText="Cancel" // Text for the cancel button
+                        onSubmit={handleSubmit}
+                        cancelHref="/received-modes"
+                        processing={processing}
+                        submitText={processing ? 'Saving...' : 'Save Received Mode'}
+                        cancelText="Cancel"
                     />
                 </form>
             </div>
