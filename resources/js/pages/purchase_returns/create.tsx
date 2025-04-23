@@ -2,9 +2,8 @@ import ActionFooter from '@/components/ActionFooter';
 import { confirmDialog } from '@/components/confirmDialog';
 import PageHeader from '@/components/PageHeader';
 import AppLayout from '@/layouts/app-layout';
-import { Head, Link, router, useForm } from '@inertiajs/react';
+import { Head, router, useForm } from '@inertiajs/react';
 import { useEffect } from 'react';
-import Swal from 'sweetalert2';
 
 interface Godown {
     id: number;
@@ -67,22 +66,6 @@ export default function PurchaseReturnCreate({ godowns, ledgers, items,receivedM
 
     const removeProductRow = (index: number) => {
         if (data.return_items.length === 1) return;
-        // Swal.fire({
-        //     title: 'Are you sure?',
-        //     text: 'Remove this item row?',
-        //     icon: 'warning',
-        //     showCancelButton: true,
-        //     confirmButtonColor: '#d33',
-        //     cancelButtonColor: '#3085d6',
-        //     confirmButtonText: 'Yes, remove it!',
-        // }).then((result) => {
-        //     if (result.isConfirmed) {
-        //         const updated = [...data.return_items];
-        //         updated.splice(index, 1);
-        //         setData('return_items', updated);
-        //     }
-        // });
-
         confirmDialog({}, () => {
                 const updated = [...data.return_items];
                 updated.splice(index, 1);
@@ -108,13 +91,6 @@ export default function PurchaseReturnCreate({ godowns, ledgers, items,receivedM
         <AppLayout>
             <Head title="Add Purchase Return" />
             <div className="bg-gray-100 p-6">
-                {/* <div className="mb-6 flex items-center justify-between">
-                    <h1 className="text-2xl font-semibold text-gray-800">Create Purchase Return</h1>
-                    <Link href="/purchase-returns" className="rounded bg-gray-300 px-4 py-2 hover:bg-neutral-100">
-                        Back
-                    </Link>
-                </div> */}
-
                 <PageHeader title='Create Purchase Return' addLinkText='Back' addLinkHref='/purchase-returns' />
 
                 {/* Form Card */}
@@ -261,12 +237,12 @@ export default function PurchaseReturnCreate({ godowns, ledgers, items,receivedM
 
                     {/* Totals */}
                     <div className="mt-6 flex justify-between gap-4">
-                        <div className="w-1/3 space-y-3">
-                            <div className="flex justify-between rounded border bg-gray-50 p-3 shadow-sm">
+                        <div className="w-full flex flex-col md:flex-row  gap-2.5">
+                            <div className="w-full flex justify-between rounded border bg-gray-50 p-3 shadow-sm">
                                 <span className="font-semibold text-gray-700">Total Qty:</span>
                                 <span className="font-semibold">{data.return_items.reduce((sum, item) => sum + (parseFloat(item.qty) || 0), 0)}</span>
                             </div>
-                            <div className="flex justify-between rounded border bg-gray-50 p-3 shadow-sm">
+                            <div className="w-full flex justify-between rounded border bg-gray-50 p-3 shadow-sm">
                                 <span className="font-semibold text-gray-700">Total Return Value:</span>
                                 <span className="font-semibold">
                                     {data.return_items.reduce((sum, item) => sum + (parseFloat(item.subtotal) || 0), 0)} Tk
@@ -278,7 +254,7 @@ export default function PurchaseReturnCreate({ godowns, ledgers, items,receivedM
                     <div className="mt-6 space-y-4">
                         <h2 className="border-b pb-1 text-lg font-semibold">Refund Mode</h2>
                         {data.refund_modes.map((mode, index) => (
-                            <div key={index} className="grid grid-cols-1 items-center gap-4 md:grid-cols-5">
+                            <div key={index} className="grid grid-cols-1 items-center gap-4 md:grid-cols-4">
                                 <select
                                     className="border p-2"
                                     value={mode.ledger_id}
@@ -330,7 +306,7 @@ export default function PurchaseReturnCreate({ godowns, ledgers, items,receivedM
                                                 updated.splice(index, 1);
                                                 setData('refund_modes', updated);
                                             }}
-                                            className="rounded bg-red-500 px-3 py-1 text-white"
+                                            className="rounded bg-danger hover:bg-danger-hover px-3 py-1 text-white w-full md:w-fit"
                                         >
                                             &minus;
                                         </button>
@@ -344,7 +320,7 @@ export default function PurchaseReturnCreate({ godowns, ledgers, items,receivedM
                                                     { mode_name: '', phone_number: '', ledger_id: '', amount_paid: '' },
                                                 ])
                                             }
-                                            className="rounded bg-blue-500 px-3 py-1 text-white"
+                                            className="rounded bg-primary hover:bg-primary-hover px-3 py-1 text-white w-full md:w-fit"
                                         >
                                             +
                                         </button>
@@ -359,26 +335,7 @@ export default function PurchaseReturnCreate({ godowns, ledgers, items,receivedM
                     </div>
 
                     {/* Submit */}
-                    {/* <div className="mt-6 flex justify-end gap-3">
-                        <button
-                            type="button"
-                            onClick={(e) => handleSubmit(e, false)}
-                            disabled={processing}
-                            className="rounded bg-green-600 px-5 py-2 font-semibold text-white shadow hover:bg-green-700"
-                        >
-                            {processing ? 'Saving...' : 'Save'}
-                        </button>
-                        <button
-                            type="button"
-                            onClick={(e) => handleSubmit(e, true)}
-                            disabled={processing}
-                            className="rounded bg-blue-600 px-5 py-2 font-semibold text-white shadow hover:bg-blue-700"
-                        >
-                            Save & Print
-                        </button>
-                    </div> */}
                     <ActionFooter
-                        className='w-full justify-end'
                         onSubmit={(e) => handleSubmit(e, false)}
                         onSaveAndPrint={(e) => handleSubmit(e, true)}
                         cancelHref="/purchase-returns"
