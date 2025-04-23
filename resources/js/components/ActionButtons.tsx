@@ -2,18 +2,18 @@ import { Link } from "@inertiajs/react";
 import { ReactNode } from "react";
 
 interface ActionButtonsProps {
-    editHref?: string; // Optional URL for the edit action
-    onEdit?: () => void; // Optional function for the edit button
-    onDelete: () => void; // Function to handle the delete action
-    editText?: ReactNode; // Optional custom text for the Edit button or link
-    deleteText?: ReactNode; // Optional custom text for the Delete button
-    printHref?: string; // Optional URL for the print action
-    printText?: ReactNode; // Optional custom text for the Print button
-    onPrint?: (e: any) => void; // Optional function for the Print button
-    className?: string; // Optional className prop for additional styling
-    deleteClassName?: string; // Optional className for the delete button
-    editClassName?: string; // Optional className for the edit button
-    printClassName?: string; // Optional className for the print button
+    editHref?: string;
+    onEdit?: () => void;
+    onDelete: () => void;
+    editText?: ReactNode;
+    deleteText?: ReactNode;
+    printHref?: string;
+    printText?: ReactNode;
+    onPrint?: (e: any) => void;
+    className?: string;
+    deleteClassName?: string;
+    editClassName?: string;
+    printClassName?: string;
 }
 
 const ActionButtons: React.FC<ActionButtonsProps> = ({
@@ -25,7 +25,6 @@ const ActionButtons: React.FC<ActionButtonsProps> = ({
     printHref,
     printText = 'Print',
     onPrint,
-    className = "", // Default to an empty string if not provided
     deleteClassName,
 }) => {
     return (
@@ -34,7 +33,7 @@ const ActionButtons: React.FC<ActionButtonsProps> = ({
             {editHref && (
                 <Link
                     href={editHref}
-                    className="rounded bg-warning px-3 py-1 text-sm text-white hover:bg-warning-hover"
+                    className="rounded bg-warning px-3 py-1 text-sm text-white hover:bg-warning-hover flex items-center"
                 >
                     {editText}
                 </Link>
