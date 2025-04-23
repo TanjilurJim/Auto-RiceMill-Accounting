@@ -4,7 +4,7 @@ import AppLayout from '@/layouts/app-layout';
 import { Head, router } from '@inertiajs/react';
 import React, { useEffect, useState } from 'react';
 
-export default function Edit({ payment, paymentModes, accountLedgers }: any) {
+export default function Edit({ voucher_no, date: initDate, description: initDescription, send_sms, paymentRows, paymentModes, accountLedgers }: any) {
     const [rows, setRows] = useState([
         {
             payment_mode_id: '',
@@ -20,22 +20,27 @@ export default function Edit({ payment, paymentModes, accountLedgers }: any) {
     const [sendSms, setSendSms] = useState(false);
 
     useEffect(() => {
-        // Load existing payment data into form
-        setVoucherNo(payment.voucher_no);
-        setDate(payment.date);
-        setDescription(payment.description);
-        setSendSms(payment.send_sms);
+        setVoucherNo(voucher_no);
+        setDate(initDate);
+        setDescription(initDescription);
+        setSendSms(send_sms);
 
-        setRows([
-            {
-                payment_mode_id: payment.payment_mode_id,
-                account_ledger_id: payment.account_ledger_id,
-                amount: payment.amount,
-                payment_balance: 0,
-                ledger_balance: 0,
-            },
-        ]);
-    }, [payment]);
+        // Convert paymentRows to rows with balances
+        const formattedRows = paymentRows.map((p: any) => {
+            const pm = paymentModes.find((m: any) => m.id === p.payment_mode_id);
+            const al = accountLedgers.find((l: any) => l.id === p.account_ledger_id);
+
+            return {
+                payment_mode_id: p.payment_mode_id,
+                account_ledger_id: p.account_ledger_id,
+                amount: p.amount,
+                payment_balance: Number(pm?.ledger?.closing_balance ?? 0),
+                ledger_balance: Number(al?.closing_balance ?? 0) + Number(p.amount),
+            };
+        });
+
+        setRows(formattedRows);
+    }, [voucher_no, initDate, initDescription, send_sms, paymentRows, paymentModes, accountLedgers]);
 
     const handleChange = (index: number, field: string, value: any) => {
         const newRows = [...rows];
@@ -66,7 +71,13 @@ export default function Edit({ payment, paymentModes, accountLedgers }: any) {
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
 
-        router.put(`/payment-add/${payment.id}`, {
+        const firstPayment = paymentRows?.[0];
+        if (!firstPayment) {
+            alert('Missing payment ID.');
+            return;
+        }
+
+        router.put(`/payment-add/${firstPayment.id}`, {
             date,
             voucher_no: voucherNo,
             description,
@@ -83,7 +94,7 @@ export default function Edit({ payment, paymentModes, accountLedgers }: any) {
 
             <div className="p-6">
                 {/* <h1 className="mb-4 text-xl font-bold">Edit Payment</h1> */}
-                <PageHeader title='Edit Payment' addLinkHref='/payment-add' addLinkText='Back' />
+                <PageHeader title="Edit Payment" addLinkHref="/payment-add" addLinkText="Back" />
 
                 <form onSubmit={handleSubmit} className="space-y-4">
                     <div className="grid grid-cols-3 gap-4">
@@ -201,14 +212,13 @@ export default function Edit({ payment, paymentModes, accountLedgers }: any) {
                     </div> */}
 
                     <ActionFooter
-                        className='justify-end'
+                        className="justify-end"
                         onSubmit={handleSubmit} // Function to handle form submission
                         submitText="Update Payment" // Text for the submit button
                         processing={false} // Indicates whether the form is processing
                         cancelHref="/payment-add" // URL for the cancel action
                         cancelText="Cancel" // Text for the cancel button
                     />
-
                 </form>
             </div>
         </AppLayout>

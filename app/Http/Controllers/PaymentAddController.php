@@ -180,20 +180,32 @@ class PaymentAddController extends Controller
      */
     public function edit($id)
     {
-        $payment = PaymentAdd::where('id', $id)
-            ->when(
-                !auth()->user()->hasRole('admin'),
-                fn($q) =>
-                $q->where('created_by', auth()->id())
-            )
+        $payment = PaymentAdd::with(['paymentMode.ledger', 'accountLedger'])
+            ->where('id', $id)
+            ->when(!auth()->user()->hasRole('admin'), fn($q) => $q->where('created_by', auth()->id()))
             ->firstOrFail();
 
+        $voucherNo = $payment->voucher_no;
+
+        $paymentRows = PaymentAdd::with(['paymentMode.ledger', 'accountLedger'])
+            ->where('voucher_no', $voucherNo)
+            ->get();
+
         return Inertia::render('payment-add/edit', [
-            'payment' => $payment,
-            'paymentModes' => ReceivedMode::select('id', 'mode_name', 'opening_balance', 'closing_balance')->get(),
-            'accountLedgers' => AccountLedger::select('id', 'account_ledger_name', 'reference_number', 'phone_number', 'opening_balance', 'closing_balance')->get(),
+            'paymentRows' => $paymentRows,
+            'voucher_no' => $voucherNo,
+            'date' => $payment->date,
+            'description' => $payment->description,
+            'send_sms' => $payment->send_sms,
+            'paymentModes' => ReceivedMode::with(['ledger:id,account_ledger_name,closing_balance'])
+                ->when(!auth()->user()->hasRole('admin'), fn($q) => $q->where('created_by', auth()->id()))
+                ->get(),
+            'accountLedgers' => AccountLedger::select('id', 'account_ledger_name', 'reference_number', 'phone_number', 'opening_balance', 'closing_balance')
+                ->when(!auth()->user()->hasRole('admin'), fn($q) => $q->where('created_by', auth()->id()))
+                ->get(),
         ]);
     }
+
 
 
 
@@ -213,36 +225,39 @@ class PaymentAddController extends Controller
             'rows.*.amount' => 'required|numeric|min:0.01',
         ]);
 
-        $existing = PaymentAdd::where('voucher_no', $request->voucher_no)
-            ->when(
-                !auth()->user()->hasRole('admin'),
-                fn($q) =>
-                $q->where('created_by', auth()->id())
-            )
+        $voucherNo = $request->voucher_no;
+
+        // 1️⃣ Reverse old payments + ledgers
+        $oldPayments = PaymentAdd::where('voucher_no', $voucherNo)
+            ->when(!auth()->user()->hasRole('admin'), fn($q) => $q->where('created_by', auth()->id()))
             ->get();
 
-        if ($existing->isEmpty()) {
-            return redirect()->back()->withErrors(['msg' => 'Payment not found or unauthorized.']);
-        }
-
-        foreach ($existing as $old) {
+        foreach ($oldPayments as $old) {
             $ledger = $old->accountLedger;
             $ledger->closing_balance -= $old->amount;
             $ledger->save();
         }
 
-        PaymentAdd::where('voucher_no', $request->voucher_no)
-            ->when(
-                !auth()->user()->hasRole('admin'),
-                fn($q) =>
-                $q->where('created_by', auth()->id())
-            )
+        // 2️⃣ Delete old journals
+        Journal::where('voucher_no', $voucherNo)->delete();
+
+        // 3️⃣ Delete old payments
+        PaymentAdd::where('voucher_no', $voucherNo)
+            ->when(!auth()->user()->hasRole('admin'), fn($q) => $q->where('created_by', auth()->id()))
             ->delete();
 
+        // 4️⃣ Recreate payments + ledger updates + journal
+        $journal = Journal::create([
+            'date' => $request->date,
+            'voucher_no' => $voucherNo,
+            'narration' => $request->description ?? 'Updated Payment',
+            'created_by' => auth()->id(),
+        ]);
+
         foreach ($request->rows as $row) {
-            PaymentAdd::create([
+            $payment = PaymentAdd::create([
                 'date' => $request->date,
-                'voucher_no' => $request->voucher_no,
+                'voucher_no' => $voucherNo,
                 'payment_mode_id' => $row['payment_mode_id'],
                 'account_ledger_id' => $row['account_ledger_id'],
                 'amount' => $row['amount'],
@@ -252,13 +267,36 @@ class PaymentAddController extends Controller
             ]);
 
             $ledger = AccountLedger::findOrFail($row['account_ledger_id']);
-            $currentBalance = $ledger->closing_balance ?? $ledger->opening_balance;
-            $ledger->closing_balance = $currentBalance + $row['amount'];
+            $ledger->closing_balance = ($ledger->closing_balance ?? $ledger->opening_balance) + $row['amount'];
             $ledger->save();
+
+            $receivedMode = ReceivedMode::findOrFail($row['payment_mode_id']);
+
+            JournalEntry::insert([
+                [
+                    'journal_id' => $journal->id,
+                    'account_ledger_id' => $row['account_ledger_id'],
+                    'type' => 'debit',
+                    'amount' => $row['amount'],
+                    'note' => 'Payment to ' . $ledger->account_ledger_name,
+                    'created_at' => now(),
+                    'updated_at' => now(),
+                ],
+                [
+                    'journal_id' => $journal->id,
+                    'account_ledger_id' => $receivedMode->ledger_id,
+                    'type' => 'credit',
+                    'amount' => $row['amount'],
+                    'note' => 'Paid via ' . $receivedMode->mode_name,
+                    'created_at' => now(),
+                    'updated_at' => now(),
+                ],
+            ]);
         }
 
         return redirect()->route('payment-add.index')->with('success', 'Payment updated successfully!');
     }
+
 
 
 
