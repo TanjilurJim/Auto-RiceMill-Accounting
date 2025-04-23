@@ -22,13 +22,13 @@ const TableComponent = <T,>({ columns, data, actions, noDataMessage = 'No data f
               {columns.map((column, index) => (
                 <th
                   key={index}
-                  className={`border border-gray-300 p-2 text-left text-sm font-medium text-gray-700 ${column.className || ''}`}
+                  className={` border border-gray-300 p-2 text-center text-sm font-medium text-gray-700 ${column.className || ''}`}
                 >
                   {column.header}
                 </th>
               ))}
               {actions && (
-                <th className="border border-gray-300 p-2 text-left text-sm font-medium text-gray-700">Actions</th>
+                <th className="border border-gray-300 p-2 text-center text-sm font-medium text-gray-700">Actions</th>
               )}
             </tr>
           </thead>

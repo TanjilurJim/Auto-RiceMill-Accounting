@@ -3,7 +3,6 @@ import PageHeader from '@/components/PageHeader';
 import AppLayout from '@/layouts/app-layout';
 import { Head, useForm } from '@inertiajs/react';
 import React, { useEffect } from 'react';
-import BackButton from '@/components/BackButton';
 
 interface Props {
     ledgers: { id: number; name: string }[];
@@ -92,7 +91,7 @@ export default function SalesOrderCreate({ ledgers, salesmen, products, units, g
 
     return (
         <AppLayout>
-            <div className="min-h-screen bg-gray-100 p-6">
+            <div className="bg-gray-100 p-6 w-screen md:w-full">
                 <Head title="Create Sales Order" />
                 
                 <div className="rounded border border-gray-200 bg-white p-6 shadow-md">
