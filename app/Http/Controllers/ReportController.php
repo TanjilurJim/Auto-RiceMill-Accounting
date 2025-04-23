@@ -445,19 +445,31 @@ class ReportController extends Controller
 
     public function dayBook(Request $request)
     {
+        $authUser = auth()->user();
+        $isAdmin = $authUser->hasRole('admin');
+
+        $company = \App\Models\CompanySetting::where('created_by', auth()->id())->first();
+
+        // 👇 Admin gets all users; non-admin gets self + users they created
+        $allowedUserIds = $isAdmin
+            ? \App\Models\User::pluck('id')
+            : \App\Models\User::where('created_by', $authUser->id)
+            ->orWhere('id', $authUser->id)
+            ->pluck('id');
 
         $users = \App\Models\User::select('id', 'name')
-            ->when(!auth()->user()->hasRole('admin'), fn($q) => $q->where('id', auth()->id()))
+            ->whereIn('id', $allowedUserIds)
             ->get();
 
-        // 🔍 If any required filters are missing, render the filter page
+        // 🔍 If filters missing, show filter page
         if (!$request->filled('from_date') || !$request->filled('to_date')) {
             return Inertia::render('reports/DayBookFilter', [
                 'users' => $users,
+                'isAdmin' => $isAdmin,
             ]);
         }
 
-
+        // ✅ Validation
         $request->validate([
             'from_date' => 'required|date',
             'to_date' => 'required|date|after_or_equal:from_date',
@@ -472,95 +484,122 @@ class ReportController extends Controller
 
         $entries = collect();
 
-        // Helper to apply common filters
+        // ✅ Common filter closure
         $applyFilters = fn($query) => $query
             ->whereBetween('date', [$from, $to])
-            ->when($userId, fn($q) => $q->where('created_by', $userId));
+            ->when($userId, fn($q) => $q->where('created_by', $userId))
+            ->when(!$isAdmin, fn($q) => $q->whereIn('created_by', $allowedUserIds));
 
+        // ✅ Purchase
         if (!$type || $type === 'Purchase') {
             $entries = $entries->merge(
                 $applyFilters(\App\Models\Purchase::query())
+                    ->with(['creator', 'accountLedger'])
                     ->get()
                     ->map(fn($r) => [
                         'date' => $r->date,
                         'voucher_no' => $r->voucher_no,
                         'type' => 'Purchase',
-                        'amount' => $r->total,
-                        'description' => $r->note,
+                        'ledger' => optional($r->accountLedger)->account_ledger_name,
+                        'debit' => $r->grand_total,
+                        'credit' => 0,
+                        'note' => $r->note ?? '-',
                         'created_by' => optional($r->creator)->name,
                     ])
             );
         }
 
+        // ✅ Purchase Return
         if (!$type || $type === 'Purchase Return') {
             $entries = $entries->merge(
                 \App\Models\PurchaseReturn::query()
-                    ->whereBetween('date', [$from, $to]) // ✅ correct field
+                    ->whereBetween('date', [$from, $to])
                     ->when($userId, fn($q) => $q->where('created_by', $userId))
+                    ->when(!$isAdmin, fn($q) => $q->whereIn('created_by', $allowedUserIds))
+                    ->with(['creator', 'accountLedger'])
                     ->get()
                     ->map(fn($r) => [
                         'date' => $r->date,
-                        'voucher_no' => $r->return_voucher_no, // ✅ correct field
+                        'voucher_no' => $r->return_voucher_no,
                         'type' => 'Purchase Return',
-                        'amount' => $r->grand_total, // ✅ use grand_total
-                        'description' => $r->reason,
+                        'ledger' => optional($r->accountLedger)->account_ledger_name,
+                        'debit' => 0,
+                        'credit' => $r->grand_total,
+                        'note' => $r->reason ?? '-',
                         'created_by' => optional($r->creator)->name,
                     ])
             );
         }
 
-
+        // ✅ Sale
         if (!$type || $type === 'Sale') {
             $entries = $entries->merge(
-                $applyFilters(\App\Models\Sale::query())
+                \App\Models\Sale::query()
+                    ->whereBetween('date', [$from, $to])
+                    ->when($userId, fn($q) => $q->where('created_by', $userId))
+                    ->when(!$isAdmin, fn($q) => $q->whereIn('created_by', $allowedUserIds))
+                    ->with(['creator', 'accountLedger'])
                     ->get()
                     ->map(fn($r) => [
                         'date' => $r->date,
                         'voucher_no' => $r->voucher_no,
                         'type' => 'Sale',
-                        'amount' => $r->total,
-                        'description' => $r->note,
+                        'ledger' => optional($r->accountLedger)->account_ledger_name,
+                        'debit' => $r->grand_total,
+                        'credit' => 0,
+                        'note' => '-',
                         'created_by' => optional($r->creator)->name,
                     ])
             );
         }
 
+        // ✅ Sale Return
         if (!$type || $type === 'Sale Return') {
             $entries = $entries->merge(
                 \App\Models\SalesReturn::query()
-                    ->whereBetween('return_date', [$from, $to]) // ✅ fixed field name
+                    ->whereBetween('return_date', [$from, $to])
                     ->when($userId, fn($q) => $q->where('created_by', $userId))
+                    ->when(!$isAdmin, fn($q) => $q->whereIn('created_by', $allowedUserIds))
+                    ->with(['creator', 'accountLedger'])
                     ->get()
                     ->map(fn($r) => [
-                        'date' => $r->return_date, // ✅ updated field
+                        'date' => $r->return_date,
                         'voucher_no' => $r->voucher_no,
                         'type' => 'Sale Return',
-                        'amount' => $r->total_return_amount, // ✅ correct amount field
-                        'description' => $r->reason, // optional, if you prefer using 'reason'
+                        'ledger' => optional($r->accountLedger)->account_ledger_name,
+                        'debit' => 0,
+                        'credit' => $r->total_return_amount,
+                        'note' => $r->reason ?? '-',
                         'created_by' => optional($r->creator)->name,
                     ])
             );
         }
 
+        // ✅ Receive
         if (!$type || $type === 'Receive') {
             $entries = $entries->merge(
                 $applyFilters(\App\Models\ReceivedAdd::query())
+                    ->with(['accountLedger', 'creator']) // ✅ eager load both
                     ->get()
                     ->map(fn($r) => [
                         'date' => $r->date,
                         'voucher_no' => $r->voucher_no,
                         'type' => 'Receive',
-                        'amount' => $r->amount,
-                        'description' => $r->description,
+                        'ledger' => optional($r->accountLedger)->account_ledger_name ?? '-', // ✅ correctly access ledger name
+                        'debit' => $r->amount,
+                        'credit' => 0,
+                        'note' => $r->description ?? '-',
                         'created_by' => optional($r->creator)->name,
                     ])
             );
         }
 
+
+        // ✅ Payment
         if (!$type || $type === 'Payment') {
             $entries = $entries->merge(
                 $applyFilters(\App\Models\PaymentAdd::query())
-                    ->with(['accountLedger', 'creator']) // 👈 add creator here
+                    ->with(['creator', 'accountLedger'])
                     ->get()
                     ->map(fn($r) => [
                         'date' => $r->date,
@@ -569,49 +608,69 @@ class ReportController extends Controller
                         'ledger' => optional($r->accountLedger)->account_ledger_name,
                         'debit' => 0,
                         'credit' => $r->amount,
-                        'note' => $r->description,
-                        'created_by' => optional($r->creator)->name, // ✅ will now work
+                        'note' => $r->description ?? '-',
+                        'created_by' => optional($r->creator)->name,
                     ])
             );
         }
 
+        // ✅ Contra
         if (!$type || $type === 'Contra') {
             $entries = $entries->merge(
                 $applyFilters(\App\Models\ContraAdd::query())
+                    ->with('creator')
                     ->get()
                     ->map(fn($r) => [
                         'date' => $r->date,
                         'voucher_no' => $r->voucher_no,
                         'type' => 'Contra',
-                        'amount' => $r->amount,
-                        'description' => $r->description,
+                        'ledger' => '-',
+                        'debit' => $r->amount,
+                        'credit' => 0,
+                        'note' => $r->description ?? '-',
                         'created_by' => optional($r->creator)->name,
                     ])
             );
         }
 
+        // ✅ Journal
         if (!$type || $type === 'Journal') {
             $entries = $entries->merge(
                 $applyFilters(\App\Models\Journal::query())
+                    ->with('entries.ledger', 'creator')
                     ->get()
-                    ->map(fn($r) => [
-                        'date' => $r->date,
-                        'voucher_no' => $r->voucher_no,
-                        'type' => 'Journal',
-                        'amount' => $r->entries->sum('amount'),
-                        'description' => $r->note,
-                        'created_by' => optional($r->creator)->name,
-                    ])
+                    ->flatMap(function ($journal) {
+                        return $journal->entries->map(function ($entry) use ($journal) {
+                            return [
+                                'date' => $journal->date,
+                                'voucher_no' => $journal->voucher_no,
+                                'type' => 'Journal',
+                                'ledger' => optional($entry->ledger)->account_ledger_name,
+                                'debit' => $entry->type === 'debit' ? $entry->amount : 0,
+                                'credit' => $entry->type === 'credit' ? $entry->amount : 0,
+                                'note' => $entry->note ?? $journal->narration,
+                                'created_by' => optional($journal->creator)->name,
+                            ];
+                        });
+                    })
             );
         }
 
         $sorted = $entries->sortBy(['date', 'voucher_no'])->values();
 
         return Inertia::render('reports/DayBook', [
+            'users' => $users,
+            'isAdmin' => $isAdmin,
             'entries' => $sorted,
             'from' => $from,
             'to' => $to,
-            'filters' => $request->only(['transaction_type', 'created_by']),
+            'filters' => [
+                'from' => $from,
+                'to' => $to,
+                'transaction_type' => $type,
+                'created_by' => $userId,
+            ],
+            'company' => $company,
         ]);
     }
 }

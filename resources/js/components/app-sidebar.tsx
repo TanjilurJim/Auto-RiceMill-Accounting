@@ -6,6 +6,9 @@ import { type NavItem } from '@/types';
 import { Link, usePage } from '@inertiajs/react';
 import {
     Banknote,
+    BarChartBig,
+    Warehouse,
+    ScrollText,
     BanknoteIcon,
     BookOpen,
     Boxes,
@@ -16,6 +19,7 @@ import {
     Folder,
     FolderKanban,
     InfoIcon,
+    CalendarClock,
     Landmark,
     LayoutGrid,
     Lock,
@@ -30,6 +34,7 @@ import {
     Users,
     Wallet,
     Workflow,
+    BarChart,
 } from 'lucide-react';
 import { FiSettings, FiHome, FiAward, FiClock, FiUsers } from 'react-icons/fi';
 import AppLogo from './app-logo';
@@ -225,18 +230,18 @@ const mainNavItems: NavItem[] = [
 
     {
         title: 'Reports',
-        icon: Settings2,
+        icon: BarChartBig,
 
         children: [
             {
                 title: 'Stock Report',
                 href: '/reports/stock-summary',
-                icon: Users,
+                icon: Warehouse,
             },
             {
                 title: 'Day Book',
                 href: '/reports/day-book',
-                icon: Building2, // 👈 This icon works well for users
+                icon: ScrollText, // 👈 This icon works well for users
             },
             // Later you can add more inventory-related items here (e.g., Products, Stock Transfers, etc.)
         ],
@@ -250,7 +255,7 @@ const mainNavItems: NavItem[] = [
             {
                 title: 'Financial Year',
                 href: '/financial-years',
-                icon: Users,
+                icon: CalendarClock,
             },
             {
                 title: 'Company Settings',

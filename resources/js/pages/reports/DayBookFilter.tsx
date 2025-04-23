@@ -1,8 +1,8 @@
-import AppLayout from '@/layouts/app-layout';
-import { Head, router, usePage } from '@inertiajs/react';
-import { useState } from 'react';
 import PageHeader from '@/components/PageHeader';
 import { Button } from '@/components/ui/button';
+import AppLayout from '@/layouts/app-layout';
+import { Head, router } from '@inertiajs/react';
+import { useState } from 'react';
 
 export default function DayBookFilter({ users, isAdmin }: { users: any[]; isAdmin: boolean }) {
     const [filters, setFilters] = useState({
@@ -12,16 +12,7 @@ export default function DayBookFilter({ users, isAdmin }: { users: any[]; isAdmi
         created_by: '',
     });
 
-    const transactionTypes = [
-        'Purchase',
-        'Purchase Return',
-        'Sale',
-        'Sale Return',
-        'Receive',
-        'Payment',
-        'Contra',
-        'Journal',
-    ];
+    const transactionTypes = ['Purchase', 'Purchase Return', 'Sale', 'Sale Return', 'Receive', 'Payment', 'Contra', 'Journal'];
 
     const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
         setFilters({ ...filters, [e.target.name]: e.target.value });
@@ -35,44 +26,49 @@ export default function DayBookFilter({ users, isAdmin }: { users: any[]; isAdmi
         }
         router.get('/reports/day-book', filters);
     };
+    console.log('isAdmin', isAdmin);
 
     return (
         <AppLayout>
             <Head title="Day Book Filter" />
-            <div className="p-6 max-w-4xl mx-auto">
-                <PageHeader title="Day Book Report Filter" addLinkHref="/reports" addLinkText="Back to Reports" />
+            <div className="mx-auto max-w-4xl p-6">
+                <PageHeader title="Day Book Report Filter" />
 
-                <form onSubmit={handleSubmit} className="space-y-6 bg-white shadow rounded-lg p-6 border">
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <form onSubmit={handleSubmit} className="space-y-6 rounded-lg border bg-white p-6 shadow">
+                    <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
                         <div>
-                            <label className="block mb-1 font-medium text-gray-700">From Date<span className="text-red-500">*</span></label>
+                            <label className="mb-1 block font-medium text-gray-700">
+                                From Date<span className="text-red-500">*</span>
+                            </label>
                             <input
                                 type="date"
                                 name="from_date"
                                 value={filters.from_date}
                                 onChange={handleChange}
-                                className="w-full border rounded px-3 py-2"
+                                className="w-full rounded border px-3 py-2"
                                 required
                             />
                         </div>
                         <div>
-                            <label className="block mb-1 font-medium text-gray-700">To Date<span className="text-red-500">*</span></label>
+                            <label className="mb-1 block font-medium text-gray-700">
+                                To Date<span className="text-red-500">*</span>
+                            </label>
                             <input
                                 type="date"
                                 name="to_date"
                                 value={filters.to_date}
                                 onChange={handleChange}
-                                className="w-full border rounded px-3 py-2"
+                                className="w-full rounded border px-3 py-2"
                                 required
                             />
                         </div>
                         <div>
-                            <label className="block mb-1 font-medium text-gray-700">Transaction Type</label>
+                            <label className="mb-1 block font-medium text-gray-700">Transaction Type</label>
                             <select
                                 name="transaction_type"
                                 value={filters.transaction_type}
                                 onChange={handleChange}
-                                className="w-full border rounded px-3 py-2"
+                                className="w-full rounded border px-3 py-2"
                             >
                                 <option value="">All</option>
                                 {transactionTypes.map((type) => (
@@ -84,12 +80,12 @@ export default function DayBookFilter({ users, isAdmin }: { users: any[]; isAdmi
                         </div>
                         {isAdmin && (
                             <div>
-                                <label className="block mb-1 font-medium text-gray-700">Created By</label>
+                                <label className="mb-1 block font-medium text-gray-700">Created By</label>
                                 <select
                                     name="created_by"
                                     value={filters.created_by}
                                     onChange={handleChange}
-                                    className="w-full border rounded px-3 py-2"
+                                    className="w-full rounded border px-3 py-2"
                                 >
                                     <option value="">All</option>
                                     {users.map((user) => (
@@ -100,6 +96,7 @@ export default function DayBookFilter({ users, isAdmin }: { users: any[]; isAdmi
                                 </select>
                             </div>
                         )}
+                        
                     </div>
 
                     <div className="flex justify-end">

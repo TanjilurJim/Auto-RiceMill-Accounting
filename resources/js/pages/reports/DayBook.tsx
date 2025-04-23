@@ -1,9 +1,7 @@
-import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import AppLayout from '@/layouts/app-layout';
-import { Head } from '@inertiajs/react';
+import { Head, Link } from '@inertiajs/react';
 import dayjs from 'dayjs';
-import { FileSpreadsheet, FileText, Printer } from 'lucide-react';
 
 interface Entry {
     date: string;
@@ -37,27 +35,35 @@ export default function DayBook({ entries, filters, company }: Props) {
     return (
         <AppLayout>
             <Head title="Day Book Report" />
+            <div className="absolute top-4 right-4 print:hidden">
+                <Link href={route('reports.day-book')} className="text-sm text-blue-600 hover:underline">
+                    Change Filters
+                </Link>
+            </div>
             <div className="space-y-6 p-6">
                 <Card>
-                    <CardHeader className="flex items-center justify-between">
-                        <div>
-                            <h2 className="text-xl font-semibold">Day Book Report</h2>
-                            <p className="text-sm text-gray-500">
-                                From {filters.from} to {filters.to}
+                    <CardHeader className="relative bg-gray-50 py-6 text-center">
+                        <div className="space-y-1">
+                            <h1 className="text-3xl font-bold uppercase">{company?.company_name ?? 'Company Name'}</h1>
+                            {company?.address && <p className="text-sm text-gray-700">{company.address}</p>}
+                            {company?.mobile && <p className="text-sm text-gray-700">Phone: {company.mobile}</p>}
+                            {(company?.email || company?.website) && (
+                                <p className="text-sm text-gray-700">
+                                    {company.email && <span>{company.email}</span>}
+                                    {company.email && company.website && <span className="mx-1">|</span>}
+                                    {company.website && <span>{company.website}</span>}
+                                </p>
+                            )}
+                        </div>
+
+                        <div className="mt-4">
+                            <h2 className="text-xl font-semibold underline">Day Book Report</h2>
+                            <p className="text-sm text-gray-600">
+                                From: <strong>{dayjs(filters.from).format('MMMM D, YYYY')}</strong>, To:{' '}
+                                <strong>{dayjs(filters.to).format('MMMM D, YYYY')}</strong>
                                 {filters.transaction_type && ` | Type: ${filters.transaction_type}`}
                                 {filters.created_by && ` | Created by: ${filters.created_by}`}
                             </p>
-                        </div>
-                        <div className="flex gap-3">
-                            <Button variant="outline">
-                                <Printer className="mr-2 h-4 w-4" /> Print
-                            </Button>
-                            <Button variant="outline">
-                                <FileText className="mr-2 h-4 w-4" /> PDF
-                            </Button>
-                            <Button variant="outline">
-                                <FileSpreadsheet className="mr-2 h-4 w-4" /> Excel
-                            </Button>
                         </div>
                     </CardHeader>
                     <CardContent>
@@ -70,8 +76,8 @@ export default function DayBook({ entries, filters, company }: Props) {
                                         <th className="border p-2">Voucher No</th>
                                         <th className="border p-2">Ledger</th>
                                         <th className="border p-2">Created By</th>
-                                        <th className="border p-2 text-right">Debit</th>
-                                        <th className="border p-2 text-right">Credit</th>
+                                        <th className="border p-2 text-right">Debit(TK)</th>
+                                        <th className="border p-2 text-right">Credit(TK)</th>
                                         <th className="border p-2">Note</th>
                                     </tr>
                                 </thead>
@@ -101,8 +107,8 @@ export default function DayBook({ entries, filters, company }: Props) {
                                             <td colSpan={5} className="border p-2 text-right">
                                                 Total
                                             </td>
-                                            <td className="border p-2 text-right">{totalDebit.toFixed(2)}</td>
-                                            <td className="border p-2 text-right">{totalCredit.toFixed(2)}</td>
+                                            <td className="border p-2 text-right">{totalDebit.toFixed(2)}(TK)</td>
+                                            <td className="border p-2 text-right">{totalCredit.toFixed(2)}(TK)</td>
                                             <td className="border p-2"></td>
                                         </tr>
                                     )}
