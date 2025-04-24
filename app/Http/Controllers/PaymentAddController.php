@@ -137,6 +137,7 @@ class PaymentAddController extends Controller
                 'voucher_no' => $request->voucher_no,
                 'narration' => $request->description ?? 'Payment to ' . $ledger->account_ledger_name,
                 'created_by' => auth()->id(),
+                'voucher_type' => 'Payment',
             ]);
 
             \App\Models\JournalEntry::insert([

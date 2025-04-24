@@ -243,6 +243,11 @@ const mainNavItems: NavItem[] = [
                 href: '/reports/day-book',
                 icon: ScrollText, // 👈 This icon works well for users
             },
+            {
+                title: 'Account Book',
+                href: '/reports/account-book',
+                icon: ScrollText, // 👈 This icon works well for users
+            },
             // Later you can add more inventory-related items here (e.g., Products, Stock Transfers, etc.)
         ],
     },

@@ -162,6 +162,7 @@ class PurchaseController extends Controller
             'voucher_no' => $voucherNo,
             'narration' => 'Auto journal for Purchase',
             'created_by' => auth()->id(),
+            'voucher_type' => 'Purchase',
         ]);
 
         // 1️⃣ Inventory (debit)

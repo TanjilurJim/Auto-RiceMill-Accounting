@@ -79,6 +79,7 @@ class ContraAddController extends Controller
             'voucher_no' => $request->voucher_no,
             'narration' => $request->description ?? 'Contra entry',
             'created_by' => auth()->id(),
+            'voucher_type' => 'Contra',
         ]);
 
         JournalEntry::insert([

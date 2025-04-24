@@ -92,6 +92,7 @@ class PurchaseReturnController extends Controller
             'date' => $request->date,
             'narration' => 'Auto Journal for Purchase Return',
             'created_by' => auth()->id(),
+            'voucher_type' => 'Purchase Return',
         ]);
 
         $journal->entries()->createMany([

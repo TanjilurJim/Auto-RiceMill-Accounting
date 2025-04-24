@@ -8,7 +8,7 @@ class Journal extends Model
 {
     //
 
-    protected $fillable = ['date', 'voucher_no', 'narration', 'created_by'];
+    protected $fillable = ['date', 'voucher_no', 'narration', 'created_by','voucher_type'];
 
     public function entries()
     {

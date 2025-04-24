@@ -34,7 +34,7 @@ class SalesReturnController extends Controller
     // Show create form
     public function create()
     {
-        $voucher = 'RET-' . now()->format('Ymd') . '-' . str_pad(SalesReturn::max('id') + 1, 4, '0', STR_PAD_LEFT);
+        $voucher = 'SRL-' . now()->format('Ymd') . '-' . str_pad(SalesReturn::max('id') + 1, 4, '0', STR_PAD_LEFT);
 
         return Inertia::render('sales_returns/create', [
             'voucher' => $voucher,
@@ -120,6 +120,7 @@ class SalesReturnController extends Controller
                 'date' => $request->return_date,
                 'voucher_no' => $request->voucher_no,
                 'narration' => 'Sales return journal',
+                'voucher_type' => 'Sale Return', // ✅ Add this
                 'created_by' => auth()->id(),
             ]);
             $salesReturn->update(['journal_id' => $journal->id]);
@@ -225,6 +226,12 @@ class SalesReturnController extends Controller
             'total_qty' => collect($request->sales_return_items)->sum('qty'),
             'total_return_amount' => collect($request->sales_return_items)->sum('return_amount'),
         ]);
+
+        if ($salesReturn->journal) {
+            $salesReturn->journal->update([
+                'voucher_type' => 'Sale Return',
+            ]);
+        }
 
         $salesReturn->items()->delete();
         foreach ($request->sales_return_items as $item) {

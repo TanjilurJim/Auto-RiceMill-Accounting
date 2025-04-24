@@ -77,6 +77,7 @@ class ReceivedAddController extends Controller
             'voucher_no' => $request->voucher_no,
             'narration' => $request->description ?? 'Received from ' . $payerLedger->account_ledger_name,
             'created_by' => auth()->id(),
+            'voucher_type' => 'Received',
         ]);
 
         JournalEntry::insert([

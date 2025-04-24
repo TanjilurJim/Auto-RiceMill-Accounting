@@ -64,6 +64,7 @@ class JournalAddController extends Controller
         $journal = Journal::create([
             'date' => $request->date,
             'voucher_no' => $request->voucher_no,
+            'voucher_type' => 'Journal',
             'total_debit' => $totalDr,
             'total_credit' => $totalCr,
             'created_by' => auth()->id(),
@@ -142,6 +143,8 @@ class JournalAddController extends Controller
         // No need to save `total_debit` and `total_credit` if you aren't storing them in the table.
         // Instead, you just calculate totals dynamically when needed.
 
+        $journal->voucher_type = 'Journal';
+        
         $journal->save();
 
         // First, delete all the current entries for this journal

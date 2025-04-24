@@ -153,6 +153,9 @@ Route::middleware(['auth', 'verified'])->group(function () {
     ->name('reports.stock-summary.item-wise');
     // DayBook
     Route::get('/reports/day-book', [ReportController::class, 'dayBook'])->name('reports.day-book');
+
+    // Account Ledger Report
+    Route::get('/reports/account-book', [ReportController::class, 'accountBook'])->name('reports.account-book');
    
 });
 
@@ -169,10 +172,15 @@ Route::get('reports/stock-summary/item-wise/pdf', [ReportController::class, 'ite
 Route::get('reports/stock-summary/item-wise/excel', [ReportController::class, 'itemWiseStockSummaryExcel'])->name('reports.stock-summary.item-wise.excel');
 
 Route::prefix('reports')->name('reports.')->group(function () {
-    Route::get('day-book', [ReportController::class, 'dayBook'])->name('day-book');
+    // Route::get('day-book', [ReportController::class, 'dayBook'])->name('day-book');
     Route::get('day-book/pdf', [ReportController::class, 'dayBookPdf'])->name('day-book.pdf');
     Route::get('day-book/excel', [ReportController::class, 'dayBookExcel'])->name('day-book.excel');
 });
+
+
+Route::get('/reports/account-book/export/excel', [ReportController::class, 'exportAccountBookExcel'])->name('reports.account-book.excel');
+Route::get('/reports/account-book/export/pdf', [ReportController::class, 'exportAccountBookPDF'])->name('reports.account-book.pdf');
+
 
 require __DIR__ . '/settings.php';
 require __DIR__ . '/auth.php';

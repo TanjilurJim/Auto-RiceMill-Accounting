@@ -133,6 +133,7 @@ class SaleController extends Controller
                 'voucher_no' => $voucherNo,
                 'narration' => 'Auto journal for Sale',
                 'created_by' => auth()->id(),
+                'voucher_type' => 'Sale',
             ]);
             $sale->update(['journal_id' => $journal->id]);
 

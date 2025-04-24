@@ -6,6 +6,7 @@ use App\Models\CompanySetting;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use App\Models\Employee;
+use App\Exports\AccountBookExport;
 use App\Exports\CategoryWiseStockSummaryExport;
 use Illuminate\Contracts\View\View;
 use Maatwebsite\Excel\Concerns\FromArray;
@@ -864,14 +865,14 @@ class ReportController extends Controller
             'from_date' => 'required|date',
             'to_date' => 'required|date|after_or_equal:from_date',
         ]);
-        
+
         $authUser = auth()->user();
         $isAdmin = $authUser->hasRole('admin');
-        
+
         $allowedUserIds = $isAdmin
             ? \App\Models\User::pluck('id')
             : \App\Models\User::where('created_by', $authUser->id)->orWhere('id', $authUser->id)->pluck('id');
-        
+
         $request->merge([
             'from_date' => $request->from_date ?? now()->format('Y-m-d'),
             'to_date' => $request->to_date ?? now()->format('Y-m-d'),
@@ -894,14 +895,14 @@ class ReportController extends Controller
             'from_date' => 'required|date',
             'to_date' => 'required|date|after_or_equal:from_date',
         ]);
-        
+
         $authUser = auth()->user();
         $isAdmin = $authUser->hasRole('admin');
-        
+
         $allowedUserIds = $isAdmin
             ? \App\Models\User::pluck('id')
             : \App\Models\User::where('created_by', $authUser->id)->orWhere('id', $authUser->id)->pluck('id');
-        
+
         $request->merge([
             'from_date' => $request->from_date ?? now()->format('Y-m-d'),
             'to_date' => $request->to_date ?? now()->format('Y-m-d'),
@@ -923,5 +924,194 @@ class ReportController extends Controller
         ])->setPaper('a4', 'landscape');
 
         return $pdf->download('day-book-report.pdf');
+    }
+
+    public function accountBook(Request $request)
+    {
+        // ── 1.  Ledgers for the filter drop-down ─────────────────────────────────────
+        $ledgers = AccountLedger::select('id', 'account_ledger_name')
+            ->when(
+                !auth()->user()->hasRole('admin'),
+                fn($q) => $q->where('created_by', auth()->id())
+            )
+            ->get();
+
+        // ── 2.  Show filter page if any field missing ───────────────────────────────
+        if (
+            !$request->filled('ledger_id') ||
+            !$request->filled('from_date') ||
+            !$request->filled('to_date')
+        ) {
+
+            return Inertia::render('reports/AccountBookFilter', [
+                'ledgers' => $ledgers,
+            ]);
+        }
+
+        // ── 3.  Core variables ──────────────────────────────────────────────────────
+        $ledgerId = $request->ledger_id;
+        $from     = $request->from_date;
+        $to       = $request->to_date;
+
+        // ── 4.  Get the full ledger profile (phone, email, etc.) ────────────────────
+        $ledger = AccountLedger::findOrFail($ledgerId);
+
+        // ── 5.  Opening balance before the FROM date ────────────────────────────────
+        $openingBalance = JournalEntry::where('account_ledger_id', $ledgerId)
+            ->whereHas('journal', fn($q) => $q->where('date', '<', $from))
+            ->sum(DB::raw("CASE
+                          WHEN type = 'credit' THEN amount
+                          ELSE -amount
+                       END"));
+
+        // ── 6.  Ledger transactions within the range ────────────────────────────────
+        $entries = JournalEntry::with(['journal', 'ledger'])   // 👈 eager-load ledger
+            ->where('account_ledger_id', $ledgerId)
+            ->whereHas('journal', fn($q) => $q->whereBetween('date', [$from, $to]))
+            ->get()
+            ->sortBy(fn($e) => $e->journal->date)
+            ->values();
+
+        // ── 6-A.  Helper to derive the same labels Day Book uses ───────────────
+        $resolveType = static function ($journal) {
+            // You can derive from either voucher prefix …or… the morph class
+            return match (substr($journal->voucher_no, 0, 3)) {
+                'PUR' => 'Purchase',
+                'RET' => 'Purchase Return',     // purchase-return prefix
+                'SAL' => 'Sale',
+                'SRL' => 'Sale Return',         // sales-return prefix (adjust if different)
+                'PAY' => 'Payment',
+                'REC' => 'Receive',
+                'CON' => 'Contra',
+                default => 'Journal',
+            };
+        };
+
+        // ── 7.  Company info ────────────────────────────────────────────────────────
+        $company = CompanySetting::firstWhere('created_by', auth()->id());
+
+        // ── 8.  Send data to React page ─────────────────────────────────────────────
+        return Inertia::render('reports/AccountBook', [
+            // dropdown data so the page can keep the Select2 populated
+            'ledgers'         => $ledgers,
+
+            // single ledger profile (for header at left)
+            'ledger'          => [
+                'id'                => $ledger->id,
+                'account_ledger_name' => $ledger->account_ledger_name,
+                'phone_number'      => $ledger->phone_number,
+                'email'             => $ledger->email,
+                'address'           => $ledger->address,
+                'opening_balance'   => (float) $ledger->opening_balance,
+                'debit_credit'      => $ledger->debit_credit,   // 'debit' | 'credit'
+            ],
+
+            'company'         => $company,
+            'opening_balance' => (float) $openingBalance,
+
+            // map entries so debit/credit are always floats
+            'entries' => $entries->map(function ($entry) use ($resolveType) {
+                return [
+                    'date'        => $entry->journal->date,
+                    'voucher_no'  => $entry->journal->voucher_no,
+                    'type'        => $entry->journal->voucher_type ?? $resolveType($entry->journal),
+                    'account'     => $entry->ledger->account_ledger_name ?? '',
+                    'note'        => $entry->note ?? '-',
+                    'debit'       => $entry->type === 'debit'  ? (float) $entry->amount : 0.0,
+                    'credit'      => $entry->type === 'credit' ? (float) $entry->amount : 0.0,
+                ];
+            }),
+
+            'from'       => $from,
+            'to'         => $to,
+            'ledger_id'  => $ledgerId,
+        ]);
+    }
+    public function exportAccountBookExcel(Request $request)
+    {
+        $data = $this->getAccountBookData($request);
+        return Excel::download(new AccountBookExport(collect($data['entries'])), 'account_book.xlsx');
+    }
+
+
+
+    public function exportAccountBookPDF(Request $request)
+    {
+        $data = $this->getAccountBookData($request);
+
+        $company = CompanySetting::firstWhere('created_by', auth()->id());
+        $ledger = AccountLedger::findOrFail($request->ledger_id);
+
+        $ledgerProfile = [
+            'id' => $ledger->id,
+            'account_ledger_name' => $ledger->account_ledger_name,
+            'phone_number' => $ledger->phone_number ?? '-',
+            'email' => $ledger->email ?? '-',
+            'address' => $ledger->address ?? '-',
+            'opening_balance' => (float) $ledger->opening_balance,
+            'debit_credit' => $ledger->debit_credit,
+        ];
+
+        return Pdf::loadView('pdf.account-book', [
+            'entries' => $data['entries'],
+            'opening_balance' => $data['opening_balance'],
+            'company' => $company,
+            'ledger' => $ledgerProfile,
+            'from' => $request->from,
+            'to' => $request->to,
+        ])->setPaper('a4', 'landscape')->download('account_book.pdf');
+    }
+
+    private function getAccountBookData(Request $request): array
+    {
+        $request->validate([
+            'ledger_id' => 'required|exists:account_ledgers,id',
+            'from' => 'required|date',
+            'to' => 'required|date',
+        ]);
+
+        $ledgerId = $request->ledger_id;
+        $from = $request->from;
+        $to = $request->to;
+
+        $openingBalance = \App\Models\JournalEntry::where('account_ledger_id', $ledgerId)
+            ->whereHas('journal', fn($q) => $q->where('date', '<', $from))
+            ->sum(\DB::raw("CASE WHEN type = 'credit' THEN amount ELSE -amount END"));
+
+        $entries = \App\Models\JournalEntry::with(['journal', 'ledger'])
+            ->where('account_ledger_id', $ledgerId)
+            ->whereHas('journal', fn($q) => $q->whereBetween('date', [$from, $to]))
+            ->get()
+            ->sortBy(fn($e) => $e->journal->date)
+            ->values()
+            ->map(function ($entry) {
+                return [
+                    'date'       => $entry->journal->date,
+                    'voucher_no' => $entry->journal->voucher_no,
+                    'type'       => $entry->journal->voucher_type ?? $this->resolveVoucherType($entry->journal->voucher_no),
+                    'account'    => $entry->ledger->account_ledger_name ?? '-',
+                    'note'       => $entry->note ?? '-',
+                    'debit'      => $entry->type === 'debit' ? (float) $entry->amount : 0.0,
+                    'credit'     => $entry->type === 'credit' ? (float) $entry->amount : 0.0,
+                ];
+            });
+
+        return [
+            'entries' => $entries,
+            'opening_balance' => $openingBalance,
+        ];
+    }
+    private function resolveVoucherType(string $voucherNo): string
+    {
+        return match (substr($voucherNo, 0, 3)) {
+            'PUR' => 'Purchase',
+            'SAL' => 'Sale',
+            'SRL' => 'Sale Return',     // clearly separate
+            'RET' => 'Purchase Return', // clarify RET = purchase return only
+            'PAY' => 'Payment',
+            'REC' => 'Receive',
+            'CON' => 'Contra',
+            default => 'Journal',
+        };
     }
 }

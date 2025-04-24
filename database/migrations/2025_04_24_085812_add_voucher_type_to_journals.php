@@ -9,10 +9,10 @@ return new class extends Migration
     /**
      * Run the migrations.
      */
-    public function up()
+    public function up(): void
     {
-        Schema::table('account_ledgers', function (Blueprint $table) {
-            $table->foreignId('employee_id')->nullable()->constrained()->onDelete('cascade');
+        Schema::table('journals', function (Blueprint $table) {
+            $table->string('voucher_type', 60)->nullable()->after('voucher_no')->index();
         });
     }
 
@@ -21,7 +21,7 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::table('account_ledgers', function (Blueprint $table) {
+        Schema::table('journals', function (Blueprint $table) {
             //
         });
     }
