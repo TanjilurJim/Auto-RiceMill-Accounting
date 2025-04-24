@@ -248,6 +248,12 @@ const mainNavItems: NavItem[] = [
                 href: '/reports/account-book',
                 icon: ScrollText, // 👈 This icon works well for users
             },
+            {
+                title: 'Ledger Group Summary',
+                href: '/reports/ledger-group-summary/filter',
+                icon: FolderKanban, // 🗂 or use Icon that represents grouping/categories
+            },
+
             // Later you can add more inventory-related items here (e.g., Products, Stock Transfers, etc.)
         ],
     },

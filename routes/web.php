@@ -9,6 +9,7 @@ use App\Http\Controllers\AccountGroupController;
 use App\Http\Controllers\AccountLedgerController;
 use App\Http\Controllers\SalesManController;
 use App\Http\Controllers\GodownController;
+use App\Http\Controllers\LedgerGroupReportController;
 use App\Http\Controllers\UnitController;
 use App\Http\Controllers\CategoryController;
 use App\Http\Controllers\ItemController;
@@ -148,39 +149,42 @@ Route::middleware(['auth', 'verified'])->group(function () {
     //Stock Report
     Route::get('/reports/stock-summary', [ReportController::class, 'stockSummary'])->name('reports.stock-summary');
     Route::get('/reports/stock-summary/category-wise', [ReportController::class, 'categoryWiseStockSummary'])
-    ->name('reports.stock-summary.category-wise');
+        ->name('reports.stock-summary.category-wise');
     Route::get('/reports/stock-summary/item-wise', [ReportController::class, 'itemWiseStockSummary'])
-    ->name('reports.stock-summary.item-wise');
+        ->name('reports.stock-summary.item-wise');
     // DayBook
     Route::get('/reports/day-book', [ReportController::class, 'dayBook'])->name('reports.day-book');
 
     // Account Ledger Report
     Route::get('/reports/account-book', [ReportController::class, 'accountBook'])->name('reports.account-book');
-   
+    // account-group wise
+    Route::get('/reports/ledger-group-summary/filter', [LedgerGroupReportController::class, 'filter'])->name('reports.ledger-group-summary.filter');
+    Route::get('/reports/ledger-group-summary', [LedgerGroupReportController::class, 'index'])->name('reports.ledger-group-summary');
 });
-
+//stock report pdf and excel
 Route::get('/reports/stock-summary/pdf', [ReportController::class, 'stockSummaryPDF'])
-->name('reports.stock-summary.pdf');
-
-
+    ->name('reports.stock-summary.pdf');
 Route::get('/reports/stock-summary/excel', [ReportController::class, 'stockSummaryExcel'])
-->name('reports.stock-summary.excel');
-
+    ->name('reports.stock-summary.excel');
 Route::get('reports/stock-summary/category-wise/pdf', [ReportController::class, 'categoryWiseStockSummaryPDF'])->name('reports.stock-summary.category-wise.pdf');
 Route::get('reports/stock-summary/category-wise/excel', [ReportController::class, 'categoryWiseStockSummaryExcel'])->name('reports.stock-summary.category-wise.excel');
 Route::get('reports/stock-summary/item-wise/pdf', [ReportController::class, 'itemWiseStockSummaryPDF'])->name('reports.stock-summary.item-wise.pdf');
 Route::get('reports/stock-summary/item-wise/excel', [ReportController::class, 'itemWiseStockSummaryExcel'])->name('reports.stock-summary.item-wise.excel');
 
+// Day Book Report pdf and excel
 Route::prefix('reports')->name('reports.')->group(function () {
     // Route::get('day-book', [ReportController::class, 'dayBook'])->name('day-book');
     Route::get('day-book/pdf', [ReportController::class, 'dayBookPdf'])->name('day-book.pdf');
     Route::get('day-book/excel', [ReportController::class, 'dayBookExcel'])->name('day-book.excel');
 });
 
-
+// Account Book Report pdf and excel
 Route::get('/reports/account-book/export/excel', [ReportController::class, 'exportAccountBookExcel'])->name('reports.account-book.excel');
 Route::get('/reports/account-book/export/pdf', [ReportController::class, 'exportAccountBookPDF'])->name('reports.account-book.pdf');
 
+// Account Group Summary Report pdf and excel
+Route::get('/reports/ledger-group-summary/excel', [LedgerGroupReportController::class, 'exportExcel'])->name('reports.ledger-group-summary.excel');
+Route::get('/reports/ledger-group-summary/pdf', [LedgerGroupReportController::class, 'exportPDF'])->name('reports.ledger-group-summary.pdf');
 
 require __DIR__ . '/settings.php';
 require __DIR__ . '/auth.php';
