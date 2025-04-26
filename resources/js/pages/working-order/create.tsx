@@ -1,10 +1,10 @@
 import AppLayout from '@/layouts/app-layout';
-import { Head, Link, router } from '@inertiajs/react';
+import { Head, router } from '@inertiajs/react';
 
+import ActionFooter from '@/components/ActionFooter';
+import PageHeader from '@/components/PageHeader';
 import { PlusCircleIcon, TrashIcon } from '@heroicons/react/24/outline';
 import { useState } from 'react';
-import PageHeader from '@/components/PageHeader';
-import ActionFooter from '@/components/ActionFooter';
 
 /* ─────────── Types ─────────── */
 interface Godown {
@@ -77,12 +77,23 @@ const WorkingOrderCreate: React.FC<Props> = ({ autoVoucherNo, products, godowns 
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
 
+        const orderData = rows;
+        const extrasData = extras;
+
+        console.log({
+            date,
+            voucher_no: autoVoucherNo,
+            reference_no: referenceNo,
+            orderData,
+            extrasData,
+        });
+
         router.post(route('working-orders.store'), {
             date,
             voucher_no: autoVoucherNo,
             reference_no: referenceNo,
-            orderData: rows,
-            extrasData: extras,
+            orderData,
+            extrasData,
         });
     };
 
@@ -205,7 +216,7 @@ const WorkingOrderCreate: React.FC<Props> = ({ autoVoucherNo, products, godowns 
                                                 name="product_id"
                                                 value={row.product_id}
                                                 onChange={(e) => handleInputChange(e, idx)}
-                                                className=" rounded border-2 border-black px-2 py-1 text-xs"
+                                                className="rounded border-2 border-black px-2 py-1 text-xs"
                                                 required
                                             >
                                                 <option value="">Select Product</option>
@@ -244,7 +255,7 @@ const WorkingOrderCreate: React.FC<Props> = ({ autoVoucherNo, products, godowns 
                                                 name="quantity"
                                                 value={row.quantity}
                                                 onChange={(e) => handleInputChange(e, idx)}
-                                                className="w-full rounded border-black border-2 px-2 py-1 text-right text-xs"
+                                                className="w-full rounded border-2 border-black px-2 py-1 text-right text-xs"
                                                 min="1"
                                                 required
                                             />
@@ -258,7 +269,7 @@ const WorkingOrderCreate: React.FC<Props> = ({ autoVoucherNo, products, godowns 
                                                 name="purchase_price"
                                                 value={row.purchase_price}
                                                 onChange={(e) => handleInputChange(e, idx)}
-                                                className="w-full rounded border-black border-2 px-2 py-1 text-right text-xs"
+                                                className="w-full rounded border-2 border-black px-2 py-1 text-right text-xs"
                                                 step="0.01"
                                                 required
                                             />
@@ -381,7 +392,7 @@ const WorkingOrderCreate: React.FC<Props> = ({ autoVoucherNo, products, godowns 
                                 </button>
                             </div> */}
                             <ActionFooter
-                                className='justify-end'
+                                className="justify-end"
                                 onSubmit={handleSubmit}
                                 cancelHref={route('working-orders.index')}
                                 processing={false}

@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\AccountLedger;
 use App\Models\GroupUnder;
+use App\Models\CompanySetting;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 
@@ -67,10 +68,14 @@ class LedgerGroupReportController extends Controller
             ];
         });
 
+        $company = CompanySetting::firstWhere('created_by', auth()->id());
+        
+
         return Inertia::render('reports/LedgerGroupSummary', [
             'data' => $data,
             'grand_total_debit' => $data->sum('total_debit'),
             'grand_total_credit' => $data->sum('total_credit'),
+            'company' => $company,
             'filters' => [
                 'from_date' => $from,
                 'to_date' => $to,

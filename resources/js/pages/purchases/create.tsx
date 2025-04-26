@@ -118,19 +118,48 @@ export default function PurchaseCreate({
         setData('purchase_items', updatedItems);
     };
 
+    const [partyBalance, setPartyBalance] = useState<number | null>(null);
+    const [inventoryBalance, setInventoryBalance] = useState<number | null>(null);
+    const [paymentLedgerBalance, setPaymentLedgerBalance] = useState<number | null>(null);
+
+    const fetchBalance = async (ledgerId: string, type: 'party' | 'inventory' | 'payment') => {
+        if (!ledgerId) {
+            if (type === 'party') setPartyBalance(null);
+            if (type === 'inventory') setInventoryBalance(null);
+            if (type === 'payment') setPaymentLedgerBalance(null);
+            return;
+        }
+
+        try {
+            const res = await axios.get(`/account-ledgers/${ledgerId}/balance`);
+            const balance = res.data.closing_balance ?? 0;
+
+            if (type === 'party') setPartyBalance(balance);
+            if (type === 'inventory') setInventoryBalance(balance);
+            if (type === 'payment') setPaymentLedgerBalance(balance);
+        } catch (err) {
+            console.error(err);
+        }
+    };
+
+    /* -------------------------------------------------
+     * Derived values (re-compute on every render)
+     * ------------------------------------------------*/
+    const grandTotal = data.purchase_items.reduce((sum, item) => sum + (parseFloat(item.subtotal) || 0), 0);
+    const amountPaidNum = parseFloat(data.amount_paid) || 0;
+    const remainingDue = grandTotal - amountPaidNum;
+
     const addProductRow = () =>
         setData('purchase_items', [...data.purchase_items, { product_id: '', qty: '', price: '', discount: '', discount_type: 'bdt', subtotal: '' }]);
 
     const removeProductRow = (index: number) => {
         if (data.purchase_items.length === 1) return;
 
-        confirmDialog(
-            {}, () => {
-                const updated = [...data.purchase_items];
-                updated.splice(index, 1);
-                setData('purchase_items', updated);
-            }
-        );
+        confirmDialog({}, () => {
+            const updated = [...data.purchase_items];
+            updated.splice(index, 1);
+            setData('purchase_items', updated);
+        });
     };
 
     const handleSubmit = (e: React.FormEvent) => {
@@ -164,8 +193,7 @@ export default function PurchaseCreate({
     return (
         <AppLayout>
             <Head title="Add Purchase" />
-            <div className="bg-gray-100 p-6 w-screen lg:w-full">
-
+            <div className="w-screen bg-gray-100 p-6 lg:w-full">
                 <PageHeader title="Purchase Information" addLinkHref="/purchases" addLinkText="Back" />
 
                 {/* Form Card */}
@@ -174,6 +202,7 @@ export default function PurchaseCreate({
                     <div className="space-y-4">
                         <h2 className="border-b pb-1 text-lg font-semibold">Purchase Information</h2>
                         <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+                            {/* Date */}
                             <input
                                 type="date"
                                 className="${errors.godown_id ? 'border-red-500' : 'border-gray-300'} border p-2"
@@ -181,6 +210,8 @@ export default function PurchaseCreate({
                                 value={data.date}
                                 onChange={(e) => setData('date', e.target.value)}
                             />
+
+                            {/* Voucher No */}
                             <input
                                 type="text"
                                 className="border p-2"
@@ -190,6 +221,7 @@ export default function PurchaseCreate({
                                 readOnly // Optional, remove 'readOnly' if you want to allow manual edits
                             />
                             {errors.voucher_no && <p className="mt-1 text-sm text-red-500">{errors.voucher_no}</p>}
+
                             {/* Godown */}
                             <select
                                 name="godown_id" //  👈 name is important for scroll
@@ -209,6 +241,7 @@ export default function PurchaseCreate({
                             </select>
 
                             {errors.godown_id && <p className="mt-1 text-sm text-red-500">{errors.godown_id}</p>}
+
                             {/* Salesman */}
                             <select className="border p-2" value={data.salesman_id} onChange={(e) => setData('salesman_id', e.target.value)}>
                                 <option value="">Select Salesman</option>
@@ -221,9 +254,13 @@ export default function PurchaseCreate({
 
                             {/* Party Ledger */}
                             <select
-                                className="${errors.godown_id ? 'border-red-500' : 'border-gray-300'} border p-2"
+                                className="border p-2"
                                 value={data.account_ledger_id}
-                                onChange={(e) => setData('account_ledger_id', e.target.value)}
+                                onChange={(e) => {
+                                    const val = e.target.value;
+                                    setData('account_ledger_id', val);
+                                    fetchBalance(val, 'party'); // ☑ now hits the new route
+                                }}
                             >
                                 <option value="">Select Party Ledger</option>
                                 {ledgers.map((l) => (
@@ -232,10 +269,16 @@ export default function PurchaseCreate({
                                     </option>
                                 ))}
                             </select>
+
+                            {/* Party balance label – put directly after the select */}
+                            {partyBalance !== null && (
+                                <div className="col-span-2 text-xs text-gray-600">Party Balance: {Number(partyBalance).toFixed(2)}</div>
+                            )}
+
                             {/* Inventory Ledger */}
-                            <div className="w-full flex flex-col md:flex-row items-center gap-2">
+                            <div className="flex w-full flex-col items-center gap-2 md:flex-row">
                                 <select
-                                    className="${errors.godown_id ? 'border-red-500' : 'border-gray-300'} border p-2 w-full h-full"
+                                    className={`${errors.godown_id ? 'border-red-500' : 'border-gray-300'} h-full w-full border p-2`}
                                     value={data.inventory_ledger_id}
                                     onChange={(e) => setData('inventory_ledger_id', e.target.value)}
                                 >
@@ -247,12 +290,21 @@ export default function PurchaseCreate({
                                     ))}
                                 </select>
 
+                                {inventoryBalance !== null && (
+                                    <div className="mt-1 text-xs text-gray-600">Inventory Balance: {Number(inventoryBalance).toFixed(2)}</div>
+                                )}
+
                                 {/* Placeholder for Add Button — next step will handle modal */}
-                                <button type="button" className="rounded bg-blue-500 p-2 text-white w-full h-full" onClick={() => setShowLedgerModal(true)}>
+                                <button
+                                    type="button"
+                                    className="h-full w-full rounded bg-blue-500 p-2 text-white"
+                                    onClick={() => setShowLedgerModal(true)}
+                                >
                                     + Create New Ledger
                                 </button>
                             </div>
 
+                            {/* Phone and Address Inputs */}
                             <input
                                 type="text"
                                 className="border p-2"
@@ -356,7 +408,7 @@ export default function PurchaseCreate({
                                                         <button
                                                             type="button"
                                                             onClick={() => removeProductRow(index)}
-                                                            className="rounded bg-danger px-2 py-1 text-white hover:bg-danger-hover"
+                                                            className="bg-danger hover:bg-danger-hover rounded px-2 py-1 text-white"
                                                         >
                                                             &minus;
                                                         </button>
@@ -365,7 +417,7 @@ export default function PurchaseCreate({
                                                         <button
                                                             type="button"
                                                             onClick={addProductRow}
-                                                            className="rounded bg-primary px-2 py-1 text-white hover:bg-primary-hover"
+                                                            className="bg-primary hover:bg-primary-hover rounded px-2 py-1 text-white"
                                                         >
                                                             +
                                                         </button>
@@ -387,7 +439,17 @@ export default function PurchaseCreate({
                             <select
                                 className="border p-2"
                                 value={data.received_mode_id}
-                                onChange={(e) => setData('received_mode_id', e.target.value)}
+                                onChange={(e) => {
+                                    const modeId = e.target.value;
+                                    setData('received_mode_id', modeId);
+
+                                    const selectedMode = receivedModes.find((m) => m.id == Number(modeId));
+                                    if (selectedMode?.ledger_id) {
+                                        fetchBalance(selectedMode.ledger_id.toString(), 'payment');
+                                    } else {
+                                        setPaymentLedgerBalance(null);
+                                    }
+                                }}
                             >
                                 <option value="">Select Payment Mode</option>
                                 {receivedModes.map((mode) => (
@@ -396,14 +458,31 @@ export default function PurchaseCreate({
                                     </option>
                                 ))}
                             </select>
+                            {paymentLedgerBalance !== null && (
+                                <div className="mt-1 text-xs text-gray-600">Payment Ledger Balance: {Number(paymentLedgerBalance).toFixed(2)}</div>
+                            )}
 
                             <input
                                 type="number"
                                 className="border p-2"
                                 placeholder="Amount Paid"
                                 value={data.amount_paid}
-                                onChange={(e) => setData('amount_paid', e.target.value)}
+                                onChange={(e) => {
+                                    /* optionally clamp to grandTotal */
+                                    const val = e.target.value;
+                                    if (parseFloat(val) > grandTotal) {
+                                        setData('amount_paid', grandTotal.toString());
+                                    } else {
+                                        setData('amount_paid', val);
+                                    }
+                                }}
                             />
+
+                            {/* NEW: Remaining Due label, full row */}
+                            <div className="col-span-2 text-xs text-red-600">
+                                 Remaining Due:&nbsp;
+                                {remainingDue.toFixed(2)}
+                            </div>
                         </div>
                     </div>
                     <hr />
@@ -456,7 +535,7 @@ export default function PurchaseCreate({
 
                     {/* Action Buttons */}
                     <ActionFooter
-                        className='w-full justify-end'
+                        className="w-full justify-end"
                         onSubmit={handleSubmit}
                         cancelHref="/purchases"
                         processing={processing}

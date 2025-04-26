@@ -28,7 +28,8 @@ use App\Http\Controllers\FinishedProductController;
 use App\Http\Controllers\JournalAddController;
 use App\Http\Controllers\ProductionController;
 use App\Http\Controllers\StockTransferController;
-use App\Http\Controllers\WorkingOrderController;
+use App\Http\Controllers\WorkingOrderController;  
+use App\Http\Controllers\PurchaseReportController;  
 
 
 use App\Http\Controllers\ReportController;
@@ -74,6 +75,15 @@ Route::middleware(['auth', 'verified'])->group(function () {
 
     // Account Ledgers
     Route::resource('account-groups', AccountGroupController::class);
+
+    Route::get('/account-ledgers/{ledger}/balance', function (\App\Models\AccountLedger $ledger) {
+        // if closing_balance is null, fall back to opening_balance
+        return response()->json([
+            'closing_balance' => $ledger->closing_balance ?? $ledger->opening_balance ?? 0,
+            'debit_credit'    => $ledger->debit_credit      // we may use this later
+        ]);
+    })->name('account-ledgers.balance');
+
     Route::post('/account-ledgers/modal', [\App\Http\Controllers\AccountLedgerController::class, 'storeFromModal']);
     Route::resource('account-ledgers', AccountLedgerController::class);
     Route::get('/account-ledgers/{id}/balance', [AccountLedgerController::class, 'balance']);
@@ -160,6 +170,23 @@ Route::middleware(['auth', 'verified'])->group(function () {
     // account-group wise
     Route::get('/reports/ledger-group-summary/filter', [LedgerGroupReportController::class, 'filter'])->name('reports.ledger-group-summary.filter');
     Route::get('/reports/ledger-group-summary', [LedgerGroupReportController::class, 'index'])->name('reports.ledger-group-summary');
+
+    // Purchase Report
+    Route::redirect('/reports/purchase', '/reports/purchase/filter');
+    Route::prefix('reports/purchase')->name('reports.purchase.')->group(function () {
+        Route::get('filter/{tab?}', [PurchaseReportController::class, 'filter'])
+             ->where('tab', 'category|item|party|return|all')
+             ->name('filter');              // default hits “category”
+        Route::get('{tab}',        [PurchaseReportController::class, 'index'])
+             ->where('tab', 'category|item|party|return|all')
+             ->name('index');
+        Route::get('{tab}/export', [PurchaseReportController::class, 'export'])
+             ->where('tab', 'category|item|party|return|all')
+             ->name('export');
+    });
+
+
+
 });
 //stock report pdf and excel
 Route::get('/reports/stock-summary/pdf', [ReportController::class, 'stockSummaryPDF'])

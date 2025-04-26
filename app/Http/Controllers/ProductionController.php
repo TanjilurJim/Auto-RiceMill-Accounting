@@ -60,18 +60,17 @@ class ProductionController extends Controller
     /* ─────────────────────────  STORE  ───────────────────────── */
     public function store(Request $request)
     {
+        // Validate the incoming request
         $data = $request->validate([
             'date'         => 'required|date',
             'voucher_no'   => 'required|string',
             'reference_no' => 'nullable|string',
-
             'orderData'    => 'required|array|min:1',
             'orderData.*.product_id'     => 'required|exists:items,id',
             'orderData.*.godown_id'      => 'required|exists:godowns,id',
             'orderData.*.quantity'       => 'required|numeric|min:1',
             'orderData.*.purchase_price' => 'required|numeric|min:0',
             'orderData.*.subtotal'       => 'required|numeric|min:0',
-
             'extrasData'            => 'nullable|array',
             'extrasData.*.title'    => 'required_with:extrasData|string',
             'extrasData.*.quantity' => 'nullable|numeric',
@@ -79,27 +78,43 @@ class ProductionController extends Controller
             'extrasData.*.total'    => 'required|numeric',
         ]);
 
-        /* header */
+        // Ensure tenant_id is properly set (using current authenticated user's ID)
+        $tenantId = auth()->id();  // Assuming the tenant_id is the current authenticated user
+
+        // Check if the voucher_no already exists for the same tenant_id
+        $existingOrder = WorkingOrder::where('tenant_id', $tenantId)
+            ->where('voucher_no', $data['voucher_no'])
+            ->first();
+
+        if ($existingOrder) {
+            // If exists, generate a new voucher number or throw an error
+            return back()->withErrors(['voucher_no' => 'Voucher number already exists for this tenant.']);
+        }
+
+        // Create the working order with tenant_id
         $wo = WorkingOrder::create([
+            'tenant_id'    => $tenantId,  // Now tenant_id is explicitly set
             'date'         => $data['date'],
             'voucher_no'   => $data['voucher_no'],
             'reference_no' => $data['reference_no'],
-            'created_by'   => auth()->id(),
+            'created_by'   => $tenantId,  // Assuming created_by is the same as tenant_id
         ]);
 
-        /* items */
+        // Continue with the rest of the store logic...
+
+        // Insert items and extras as necessary
         $grandTotal = 0;
         foreach ($data['orderData'] as $row) {
             $grandTotal += $row['subtotal'];
             $wo->items()->create($row);
         }
 
-        /* extras */
         foreach ($data['extrasData'] ?? [] as $extra) {
             $grandTotal += $extra['total'];
             $wo->extras()->create($extra);
         }
 
+        // Update total amount for the working order
         $wo->update(['total_amount' => $grandTotal]);
 
         return redirect()->route('working-orders.index')

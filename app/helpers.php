@@ -9,3 +9,4 @@ if (!function_exists('numberToWords')) {
         return ucfirst($f->format($number)) . ' only';
     }
 }
+
