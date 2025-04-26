@@ -253,6 +253,11 @@ const mainNavItems: NavItem[] = [
                 href: '/reports/ledger-group-summary/filter',
                 icon: FolderKanban, // 🗂 or use Icon that represents grouping/categories
             },
+            {
+                title: 'Purchase Report',
+                href: '/reports/purchase/filter',
+                icon: FolderKanban, // 🗂 or use Icon that represents grouping/categories
+            },
 
             // Later you can add more inventory-related items here (e.g., Products, Stock Transfers, etc.)
         ],

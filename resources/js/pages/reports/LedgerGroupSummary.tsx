@@ -1,8 +1,22 @@
 import AppLayout from '@/layouts/app-layout';
-import { Head } from '@inertiajs/react';
+import { Head, Link, usePage } from '@inertiajs/react';
 import { Button } from '@/components/ui/button';
 import { Printer } from 'lucide-react';
 import React from 'react';
+
+interface Company {
+  company_name: string;
+  address?: string;
+  mobile?: string;
+  logo_path?: string;
+  website?: string;
+  email?: string;
+  financial_year?: string; // <-- string, not varChar
+}
+interface Filters {
+  from_date: string;
+  to_date: string;
+}
 
 interface Ledger {
   id: number;
@@ -21,6 +35,9 @@ interface Props {
   data:        LedgerGroup[];
   grand_total_debit:  number;
   grand_total_credit: number;
+  company: Company;
+  filters: Filters;
+  group_label?: string;
 }
 
 const money = new Intl.NumberFormat('en-BD', { minimumFractionDigits: 2 });
@@ -29,11 +46,68 @@ export default function LedgerGroupSummary({
   data = [],
   grand_total_debit = 0,
   grand_total_credit = 0,
-  group_label,
-}: Props) {
+  company,
+  filters,
+  group_label = '',
+  
+}: Props & {group_label?: string}) {
   return (
     <AppLayout title="Ledger Group Summary" header="Ledger Group Summary">
       <Head title="Ledger Group Summary" />
+
+       {/* ⬅️ change-filters link (optional) */}
+       <div className="absolute top-4 right-4 print:hidden">
+        <Link
+          href={route('reports.ledger-group-summary.filter')}
+          className="text-sm text-blue-600 hover:underline"
+        >
+          Change Filters
+        </Link>
+      </div>
+
+      {/* main card */}
+      <div className="mx-auto mt-6 max-w-6xl rounded bg-white p-4 shadow print:text-xs">
+
+        {/* ── Company header (print-friendly) ───────────────── */}
+        <div className="mb-6 text-center">
+          {company.logo_path && (
+            <img src={company.logo_path} alt="Logo" className="mx-auto mb-2 h-16" />
+          )}
+
+          <h2 className="text-2xl font-bold">{company.company_name}</h2>
+
+          {company.address && <p className="text-sm">{company.address}</p>}
+          {company.mobile  && <p className="text-sm">Mobile: {company.mobile}</p>}
+          {company.email   && <p className="text-sm">Email: {company.email}</p>}
+          {company.website && (
+            <p className="text-sm">
+              Website:{' '}
+              <a href={company.website} target="_blank" rel="noopener noreferrer"
+                 className="text-blue-600 underline">
+                {company.website}
+              </a>
+            </p>
+          )}
+          {company.financial_year && (
+            <p className="mt-1 text-sm italic">
+              Financial Year:&nbsp;<strong>{company.financial_year}</strong>
+            </p>
+          )}
+        </div>
+
+        {/* ── context row: date-range + optional group label ─ */}
+        <div className="mb-4 flex items-center justify-between print:hidden">
+          <span className="inline-block rounded-full bg-gray-100 px-3 py-1 text-xs text-gray-600">
+            From&nbsp;{filters.from_date}&nbsp;to&nbsp;{filters.to_date}
+          </span>
+
+          {group_label && (
+            <span className="inline-block rounded-full bg-gray-100 px-3 py-1 text-xs text-gray-600">
+              {group_label}
+            </span>
+          )}
+          </div>
+        </div>
 
       <div className="mx-auto mt-6 max-w-6xl rounded bg-white p-4 shadow">
         {/* title + print */}

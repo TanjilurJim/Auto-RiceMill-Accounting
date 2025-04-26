@@ -475,6 +475,15 @@ class PurchaseController extends Controller
             // pass any other data you want to display
         ]);
     }
+    public function fetchBalance($id)
+    {
+        $ledger = AccountLedger::findOrFail($id);
+        return response()->json([
+            'closing_balance' => $ledger->closing_balance ?? 0,
+            'debit_credit'    => $ledger->debit_credit ?? 'debit',  // optional
+        ]);
+    }
+
 
 
 
