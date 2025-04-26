@@ -1,4 +1,5 @@
 import ActionFooter from '@/components/ActionFooter';
+import PageHeader from '@/components/PageHeader';
 import AppLayout from '@/layouts/app-layout';
 import { Head, Link, useForm } from '@inertiajs/react';
 
@@ -16,9 +17,9 @@ export default function CreateDesignation() {
     return (
         <AppLayout>
             <Head title="Create Designation" />
-            <div className="flex min-h-screen items-center justify-center bg-gray-100">
+            <div className="flex h-full items-center justify-center bg-gray-100">
                 <div className="w-full max-w-xl p-6">
-                    <h1 className="mb-4 text-2xl font-bold">Create Designation</h1>
+                    <PageHeader title="Create Designation" addLinkHref='/designations' addLinkText="Back" /> 
 
                     <form onSubmit={handleSubmit} className="space-y-5 rounded bg-white p-6 shadow dark:bg-neutral-900">
                         {/* Designation Name */}

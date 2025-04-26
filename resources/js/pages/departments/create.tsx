@@ -1,4 +1,5 @@
 import ActionFooter from '@/components/ActionFooter';
+import PageHeader from '@/components/PageHeader';
 import AppLayout from '@/layouts/app-layout';
 import { Head, Link, useForm } from '@inertiajs/react';
 
@@ -16,9 +17,9 @@ export default function CreateDepartment() {
     return (
         <AppLayout>
             <Head title="Create Department" />
-            <div className="flex min-h-screen items-center justify-center bg-gray-100">
+            <div className="flex h-full items-center justify-center bg-gray-100">
                 <div className="w-full max-w-xl p-6">
-                    <h1 className="mb-4 text-2xl font-bold">Create Department</h1>
+                    <PageHeader title="Create Department" addLinkHref='/departments' addLinkText="Back" /> 
 
                     <form onSubmit={handleSubmit} className="space-y-5 rounded bg-white p-6 shadow dark:bg-neutral-900">
                         {/* Department Name */}
@@ -49,18 +50,6 @@ export default function CreateDepartment() {
                         </div>
 
                         {/* Actions */}
-                        {/* <div className="flex justify-end space-x-2">
-                            <Link href="/departments" className="rounded border px-4 py-2 hover:bg-neutral-100 dark:hover:bg-neutral-800">
-                                Cancel
-                            </Link>
-                            <button
-                                type="submit"
-                                disabled={processing}
-                                className="rounded bg-blue-600 px-4 py-2 text-white hover:bg-blue-700 disabled:opacity-50"
-                            >
-                                {processing ? 'Saving...' : 'Create'}
-                            </button>
-                        </div> */}
                         <ActionFooter
                             className='justify-end'
                             onSubmit={handleSubmit}

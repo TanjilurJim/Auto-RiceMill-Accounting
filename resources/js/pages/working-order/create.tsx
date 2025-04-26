@@ -1,6 +1,5 @@
 import AppLayout from '@/layouts/app-layout';
-import { Head, Link, router } from '@inertiajs/react';
-
+import { Head, router } from '@inertiajs/react';
 import { PlusCircleIcon, TrashIcon } from '@heroicons/react/24/outline';
 import { useState } from 'react';
 import PageHeader from '@/components/PageHeader';
@@ -91,34 +90,15 @@ const WorkingOrderCreate: React.FC<Props> = ({ autoVoucherNo, products, godowns 
         <AppLayout>
             <Head title="Create Working Order" />
 
-            <div className="mx-auto max-w-5xl bg-gray-300 px-3 py-6 shadow-xl sm:px-6 lg:px-8">
+            <div className="mx-auto w-full ">
                 <div className="border border-gray-200 bg-white/80 shadow-lg">
-                    <div className="rounded-xl bg-white p-6 shadow-sm sm:p-8">
+                    <div className="w-full bg-gray-100 p-6 shadow-sm sm:p-8">
                         {/* Header bar */}
-                        {/* <div className="flex items-center justify-between border-b border-gray-100 px-6 py-4">
-                            <div>
-                                <h1 className="text-xl font-semibold text-gray-800">Create Working Order</h1>
-                                <p className="text-xs text-gray-500">Add materials and extra expenses</p>
-                            </div>
-                            <Link
-                                href={route('working-orders.index')}
-                                className="inline-flex items-center text-sm font-medium text-indigo-600 hover:text-indigo-700"
-                            >
-                                <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
-                                    <path
-                                        fillRule="evenodd"
-                                        d="M9.707 14.707a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414l4-4a1 1 0 011.414 1.414L7.414 9H15a1 1 0 110 2H7.414l2.293 2.293a1 1 0 010 1.414z"
-                                        clipRule="evenodd"
-                                    />
-                                </svg>
-                                Back to Orders
-                            </Link>
-                        </div> */}
 
                         <PageHeader
                             title={
                                 <>
-                                    <h1 className="text-xl font-semibold text-gray-800">Create Working Order</h1>
+                                    <h1>Create Working Order</h1>
                                     <p className="text-xs text-gray-500">Add materials and extra expenses</p>
                                 </>
                             }
@@ -196,16 +176,16 @@ const WorkingOrderCreate: React.FC<Props> = ({ autoVoucherNo, products, godowns 
                                 {rows.map((row, idx) => (
                                     <div
                                         key={idx}
-                                        className="grid grid-cols-12 items-center gap-2 rounded border border-gray-100 bg-gray-50 px-3 py-2 shadow-md"
+                                        className="grid grid-cols-1 gap-4 rounded border border-gray-100 bg-gray-50 p-4 shadow-md sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-6 xl:grid-cols-12"
                                     >
-                                        {/* product */}
-                                        <div className="sm:col-span-3">
+                                        {/* Product */}
+                                        <div className="col-span-1 lg:col-span-3">
                                             <label className="mb-2 block text-sm font-medium text-gray-700">Product</label>
                                             <select
                                                 name="product_id"
                                                 value={row.product_id}
                                                 onChange={(e) => handleInputChange(e, idx)}
-                                                className=" rounded border-2 border-black px-2 py-1 text-xs"
+                                                className="w-full rounded border-2 border-black px-2 py-1 text-xs"
                                                 required
                                             >
                                                 <option value="">Select Product</option>
@@ -217,8 +197,8 @@ const WorkingOrderCreate: React.FC<Props> = ({ autoVoucherNo, products, godowns 
                                             </select>
                                         </div>
 
-                                        {/* godown */}
-                                        <div className="sm:col-span-2">
+                                        {/* Godown */}
+                                        <div className="col-span-1 lg:col-span-2">
                                             <label className="mb-2 block text-sm font-medium text-gray-700">Godown</label>
                                             <select
                                                 name="godown_id"
@@ -236,8 +216,8 @@ const WorkingOrderCreate: React.FC<Props> = ({ autoVoucherNo, products, godowns 
                                             </select>
                                         </div>
 
-                                        {/* qty */}
-                                        <div className="sm:col-span-2">
+                                        {/* Quantity */}
+                                        <div className="col-span-1 lg:col-span-2">
                                             <label className="mb-2 block text-sm font-medium text-gray-700">Qty</label>
                                             <input
                                                 type="number"
@@ -250,8 +230,8 @@ const WorkingOrderCreate: React.FC<Props> = ({ autoVoucherNo, products, godowns 
                                             />
                                         </div>
 
-                                        {/* price */}
-                                        <div className="sm:col-span-2">
+                                        {/* Unit Price */}
+                                        <div className="col-span-1 lg:col-span-2">
                                             <label className="mb-2 block text-sm font-medium text-gray-700">Unit Price</label>
                                             <input
                                                 type="number"
@@ -264,13 +244,13 @@ const WorkingOrderCreate: React.FC<Props> = ({ autoVoucherNo, products, godowns 
                                             />
                                         </div>
 
-                                        {/* subtotal */}
-                                        <div className="col-span-2 flex items-center justify-end">
+                                        {/* Subtotal */}
+                                        <div className="col-span-1 lg:col-span-2 flex items-center justify-end">
                                             <span className="text-sm font-medium text-indigo-600">{row.subtotal.toFixed(2)}</span>
                                         </div>
 
-                                        {/* remove */}
-                                        <div className="flex items-center justify-end sm:col-span-1">
+                                        {/* Remove Button */}
+                                        <div className="col-span-1 flex items-center justify-end">
                                             <button
                                                 type="button"
                                                 onClick={() => removeRow(idx)}
@@ -301,10 +281,10 @@ const WorkingOrderCreate: React.FC<Props> = ({ autoVoucherNo, products, godowns 
                                 {extras.map((row, idx) => (
                                     <div
                                         key={idx}
-                                        className="grid grid-cols-12 items-center gap-2 rounded border border-gray-100 bg-gray-50 px-3 py-2 shadow-md"
+                                        className="grid grid-cols-1 gap-4 rounded border border-gray-100 bg-gray-50 p-4 shadow-md sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-6 xl:grid-cols-12"
                                     >
-                                        {/* title */}
-                                        <div className="col-span-5">
+                                        {/* Title */}
+                                        <div className="col-span-1 lg:col-span-5">
                                             <label className="mb-2 block text-sm font-medium text-gray-700">Title</label>
                                             <input
                                                 type="text"
@@ -317,8 +297,8 @@ const WorkingOrderCreate: React.FC<Props> = ({ autoVoucherNo, products, godowns 
                                             />
                                         </div>
 
-                                        {/* qty */}
-                                        <div className="col-span-2">
+                                        {/* Quantity */}
+                                        <div className="col-span-1 lg:col-span-2">
                                             <label className="mb-2 block text-sm font-medium text-gray-700">Qty</label>
                                             <input
                                                 type="number"
@@ -330,8 +310,8 @@ const WorkingOrderCreate: React.FC<Props> = ({ autoVoucherNo, products, godowns 
                                             />
                                         </div>
 
-                                        {/* price */}
-                                        <div className="col-span-2">
+                                        {/* Price */}
+                                        <div className="col-span-1 lg:col-span-2">
                                             <label className="mb-2 block text-sm font-medium text-gray-700">Price</label>
                                             <input
                                                 type="number"
@@ -343,12 +323,12 @@ const WorkingOrderCreate: React.FC<Props> = ({ autoVoucherNo, products, godowns 
                                             />
                                         </div>
 
-                                        {/* total */}
-                                        <div className="col-span-2 flex items-center justify-end">
+                                        {/* Total */}
+                                        <div className="col-span-1 lg:col-span-2 flex items-center justify-end">
                                             <span className="text-sm font-medium text-indigo-600">{row.total.toFixed(2)}</span>
                                         </div>
 
-                                        {/* remove */}
+                                        {/* Remove Button */}
                                         <div className="col-span-1 flex items-center justify-end">
                                             <button
                                                 type="button"
@@ -372,14 +352,6 @@ const WorkingOrderCreate: React.FC<Props> = ({ autoVoucherNo, products, godowns 
                             </div>
 
                             {/* submit */}
-                            {/* <div className="flex justify-end">
-                                <button
-                                    type="submit"
-                                    className="inline-flex items-center justify-center rounded-lg bg-indigo-600 px-6 py-3.5 font-medium text-white shadow-sm transition-all hover:bg-indigo-700 focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 focus:outline-none"
-                                >
-                                    Save Working Order
-                                </button>
-                            </div> */}
                             <ActionFooter
                                 className='justify-end'
                                 onSubmit={handleSubmit}

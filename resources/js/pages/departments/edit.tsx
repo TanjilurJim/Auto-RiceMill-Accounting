@@ -1,4 +1,5 @@
 import ActionFooter from '@/components/ActionFooter';
+import PageHeader from '@/components/PageHeader';
 import AppLayout from '@/layouts/app-layout';
 import { Head, Link, useForm } from '@inertiajs/react';
 
@@ -20,10 +21,9 @@ export default function EditDepartment({
     return (
         <AppLayout>
             <Head title={`Edit Department - ${department.name}`} />
-            <div className="flex min-h-screen items-center justify-center bg-gray-100">
+            <div className="flex h-full items-center justify-center bg-gray-100">
                 <div className="w-full max-w-xl p-6">
-                    <h1 className="mb-4 text-2xl font-bold">Edit Department</h1>
-
+                    <PageHeader title="Edit Department" addLinkHref='/departments' addLinkText="Back" /> 
                     <form onSubmit={handleSubmit} className="space-y-4 rounded bg-white p-4 shadow dark:bg-neutral-900">
 
                         {/* Name */}

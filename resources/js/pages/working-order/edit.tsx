@@ -1,5 +1,5 @@
 import AppLayout from '@/layouts/app-layout';
-import { Head, Link, router } from '@inertiajs/react';
+import { Head, router } from '@inertiajs/react';
 import { PlusCircleIcon, TrashIcon } from '@heroicons/react/24/outline';
 import { useState } from 'react';
 import PageHeader from '@/components/PageHeader';
@@ -120,10 +120,11 @@ const WorkingOrderEdit: React.FC<Props> = ({ workingOrder, products, godowns }) 
     <AppLayout>
       <Head title="Edit Working Order" />
 
-      <div className="mx-auto max-w-5xl bg-gray-300 px-3 py-6 shadow-xl sm:px-6 lg:px-8">
+      <div className="mx-auto w-full ">
         <div className="border border-gray-200 bg-white/80 shadow-lg">
-          <div className="rounded-xl bg-white p-6 shadow-sm sm:p-8">
+          <div className="w-full bg-gray-100 p-6 shadow-sm sm:p-8">
             <PageHeader title="Edit Working Order" addLinkText="Back to Orders" addLinkHref="/working-orders" />
+
             <form onSubmit={handleSubmit} className="space-y-8 px-6 py-5">
               <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
                 <div>
@@ -162,8 +163,12 @@ const WorkingOrderEdit: React.FC<Props> = ({ workingOrder, products, godowns }) 
               <div className="space-y-1">
                 <div className="flex items-center justify-between">
                   <h3 className="text-sm font-medium text-gray-900">Materials / Stock</h3>
-                  <button type="button" onClick={addRow} className="text-sm text-indigo-600 hover:text-indigo-700">
-                    <PlusCircleIcon className="inline h-5 w-5" />
+                  <button
+                    type="button"
+                    onClick={addRow}
+                    className="inline-flex items-center gap-1 text-sm font-medium text-indigo-600 hover:text-indigo-700"
+                  >
+                    <PlusCircleIcon className="h-5 w-5" />
                     Add Item
                   </button>
                 </div>
@@ -171,9 +176,11 @@ const WorkingOrderEdit: React.FC<Props> = ({ workingOrder, products, godowns }) 
                 {rows.map((row, idx) => (
                   <div
                     key={idx}
-                    className="grid grid-cols-12 items-center gap-2 rounded border border-gray-100 bg-gray-50 px-3 py-2 shadow-md"
+                    className="grid grid-cols-1 gap-4 rounded border border-gray-100 bg-gray-50 p-4 shadow-md sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-6 xl:grid-cols-12"
                   >
-                    <div className="col-span-3">
+                    {/* Product */}
+                    <div className="col-span-1 lg:col-span-3">
+                      <label className="mb-2 block text-sm font-medium text-gray-700">Product</label>
                       <select
                         name="product_id"
                         value={row.product_id}
@@ -189,7 +196,10 @@ const WorkingOrderEdit: React.FC<Props> = ({ workingOrder, products, godowns }) 
                         ))}
                       </select>
                     </div>
-                    <div className="col-span-2">
+
+                    {/* Godown */}
+                    <div className="col-span-1 lg:col-span-2">
+                      <label className="mb-2 block text-sm font-medium text-gray-700">Godown</label>
                       <select
                         name="godown_id"
                         value={row.godown_id}
@@ -205,7 +215,10 @@ const WorkingOrderEdit: React.FC<Props> = ({ workingOrder, products, godowns }) 
                         ))}
                       </select>
                     </div>
-                    <div className="col-span-2">
+
+                    {/* Quantity */}
+                    <div className="col-span-1 lg:col-span-2">
+                      <label className="mb-2 block text-sm font-medium text-gray-700">Qty</label>
                       <input
                         type="number"
                         name="quantity"
@@ -216,7 +229,10 @@ const WorkingOrderEdit: React.FC<Props> = ({ workingOrder, products, godowns }) 
                         required
                       />
                     </div>
-                    <div className="col-span-2">
+
+                    {/* Unit Price */}
+                    <div className="col-span-1 lg:col-span-2">
+                      <label className="mb-2 block text-sm font-medium text-gray-700">Unit Price</label>
                       <input
                         type="number"
                         name="purchase_price"
@@ -227,12 +243,21 @@ const WorkingOrderEdit: React.FC<Props> = ({ workingOrder, products, godowns }) 
                         required
                       />
                     </div>
-                    <div className="col-span-2 text-right text-xs font-medium text-indigo-600">
-                      {Number(row.subtotal).toFixed(2)}
+
+                    {/* Subtotal */}
+                    <div className="col-span-1 lg:col-span-2 flex items-center justify-end">
+                      <span className="text-sm font-medium text-indigo-600">{Number(row.subtotal).toFixed(2)}</span>
                     </div>
-                    <div className="col-span-1 text-right">
-                      <button type="button" onClick={() => removeRow(idx)} disabled={rows.length === 1}>
-                        <TrashIcon className="h-5 w-5 text-danger hover:text-danger-hover" />
+
+                    {/* Remove Button */}
+                    <div className="col-span-1 flex items-center justify-end">
+                      <button
+                        type="button"
+                        onClick={() => removeRow(idx)}
+                        className="text-red-500 hover:text-red-700 disabled:opacity-50"
+                        disabled={rows.length === 1}
+                      >
+                        <TrashIcon className="h-5 w-5" />
                       </button>
                     </div>
                   </div>
@@ -243,8 +268,12 @@ const WorkingOrderEdit: React.FC<Props> = ({ workingOrder, products, godowns }) 
               <div className="space-y-1">
                 <div className="flex items-center justify-between">
                   <h3 className="text-sm font-medium text-gray-900">Additional Expenses</h3>
-                  <button type="button" onClick={addExtra} className="text-sm text-indigo-600 hover:text-indigo-700">
-                    <PlusCircleIcon className="inline h-5 w-5" />
+                  <button
+                    type="button"
+                    onClick={addExtra}
+                    className="inline-flex items-center gap-1 text-sm font-medium text-indigo-600 hover:text-indigo-700"
+                  >
+                    <PlusCircleIcon className="h-5 w-5" />
                     Add Expense
                   </button>
                 </div>
@@ -252,9 +281,11 @@ const WorkingOrderEdit: React.FC<Props> = ({ workingOrder, products, godowns }) 
                 {extras.map((row, idx) => (
                   <div
                     key={idx}
-                    className="grid grid-cols-12 items-center gap-2 rounded border border-gray-100 bg-gray-50 px-3 py-2 shadow-md"
+                    className="grid grid-cols-1 gap-4 rounded border border-gray-100 bg-gray-50 p-4 shadow-md sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-6 xl:grid-cols-12"
                   >
-                    <div className="col-span-5">
+                    {/* Title */}
+                    <div className="col-span-1 lg:col-span-5">
+                      <label className="mb-2 block text-sm font-medium text-gray-700">Title</label>
                       <input
                         type="text"
                         name="title"
@@ -262,9 +293,13 @@ const WorkingOrderEdit: React.FC<Props> = ({ workingOrder, products, godowns }) 
                         onChange={(e) => handleExtraChange(e, idx)}
                         className="w-full rounded border border-black px-2 py-1 text-xs"
                         placeholder="Expense title"
+                        required
                       />
                     </div>
-                    <div className="col-span-2">
+
+                    {/* Quantity */}
+                    <div className="col-span-1 lg:col-span-2">
+                      <label className="mb-2 block text-sm font-medium text-gray-700">Qty</label>
                       <input
                         type="number"
                         name="quantity"
@@ -273,7 +308,10 @@ const WorkingOrderEdit: React.FC<Props> = ({ workingOrder, products, godowns }) 
                         className="w-full rounded border border-black px-2 py-1 text-xs text-right"
                       />
                     </div>
-                    <div className="col-span-2">
+
+                    {/* Price */}
+                    <div className="col-span-1 lg:col-span-2">
+                      <label className="mb-2 block text-sm font-medium text-gray-700">Price</label>
                       <input
                         type="number"
                         name="price"
@@ -282,12 +320,21 @@ const WorkingOrderEdit: React.FC<Props> = ({ workingOrder, products, godowns }) 
                         className="w-full rounded border border-black px-2 py-1 text-xs text-right"
                       />
                     </div>
-                    <div className="col-span-2 text-right text-xs font-medium text-indigo-600">
-                      {Number(row.total).toFixed(2)}
+
+                    {/* Total */}
+                    <div className="col-span-1 lg:col-span-2 flex items-center justify-end">
+                      <span className="text-sm font-medium text-indigo-600">{Number(row.total).toFixed(2)}</span>
                     </div>
-                    <div className="col-span-1 text-right">
-                      <button type="button" onClick={() => removeExtra(idx)} disabled={extras.length === 1}>
-                        <TrashIcon className="h-5 w-5 text-danger hover:text-danger-hover" />
+
+                    {/* Remove Button */}
+                    <div className="col-span-1 flex items-center justify-end">
+                      <button
+                        type="button"
+                        onClick={() => removeExtra(idx)}
+                        className="text-red-500 hover:text-red-700 disabled:opacity-50"
+                        disabled={extras.length === 1}
+                      >
+                        <TrashIcon className="h-5 w-5" />
                       </button>
                     </div>
                   </div>
@@ -301,15 +348,6 @@ const WorkingOrderEdit: React.FC<Props> = ({ workingOrder, products, godowns }) 
                   <span className="text-lg font-bold text-indigo-700">{grandTotal.toFixed(2)}</span>
                 </div>
               </div>
-
-              {/* <div className="flex justify-end">
-                <button
-                  type="submit"
-                  className="rounded-lg bg-indigo-600 px-6 py-3.5 font-medium text-white hover:bg-indigo-700"
-                >
-                  Update Working Order
-                </button>
-              </div> */}
               <ActionFooter
                 className="justify-end"
                 onSubmit={handleSubmit}

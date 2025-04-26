@@ -3,11 +3,10 @@ import { confirmDialog } from '@/components/confirmDialog';
 import PageHeader from '@/components/PageHeader';
 import Pagination from '@/components/Pagination';
 import AppLayout from '@/layouts/app-layout';
-import { Head, Link, router } from '@inertiajs/react';
+import { Head, router } from '@inertiajs/react';
 import { useState } from 'react';
 import Select from 'react-select';
 import CreatableSelect from 'react-select/creatable';
-import Swal from 'sweetalert2';
 import { route } from 'ziggy-js';
 
 
@@ -55,20 +54,6 @@ export default function SalarySlipIndex({ salarySlips, employees }: Props) {
     const [expandedRowId, setExpandedRowId] = useState<number | null>(null);
 
     const handleDelete = (id: number) => {
-        // Swal.fire({
-        //     title: 'Are you sure?',
-        //     text: 'This salary slip will be permanently deleted!',
-        //     icon: 'warning',
-        //     showCancelButton: true,
-        //     confirmButtonColor: '#d33',
-        //     cancelButtonColor: '#3085d6',
-        //     confirmButtonText: 'Yes, delete it!',
-        // }).then((result) => {
-        //     if (result.isConfirmed) {
-        //         router.delete(`/salary-slips/${id}`);
-        //         Swal.fire('Deleted!', 'The salary slip has been deleted.', 'success');
-        //     }
-        // });
 
         confirmDialog(
             {}, () => {
@@ -95,19 +80,54 @@ export default function SalarySlipIndex({ salarySlips, employees }: Props) {
         return { value: y.toString(), label: y.toString() };
     });
 
+    const columns = [
+        { header: 'SL', accessor: (_: any, index: number) => index + 1, className: 'text-center' },
+        { header: 'Voucher', accessor: 'voucher_number' },
+        { header: 'Date', accessor: 'date' },
+        {
+            header: 'Salary For',
+            accessor: (row: any) =>
+                row.month && row.year
+                    ? `${new Date(row.year, row.month - 1).toLocaleString('default', { month: 'long', year: 'numeric' })}`
+                    : 'N/A',
+        },
+        {
+            header: 'Total',
+            accessor: (row: any) =>
+                `৳ ${(row.salary_slip_employees ?? []).reduce((sum: number, item: any) => sum + parseFloat(item.total_amount), 0).toFixed(2)}`,
+        },
+        {
+            header: 'Status Journal',
+            accessor: (row: any) => (
+                <span
+                    className={`rounded-full px-2 py-0.5 text-xs font-semibold ${row.is_posted_to_accounts ? 'bg-green-100 text-green-700' : 'bg-yellow-100 text-yellow-700'
+                        }`}
+                >
+                    {row.is_posted_to_accounts ? 'Posted' : 'Draft'}
+                </span>
+            ),
+        },
+        {
+            header: 'Actions',
+            accessor: (row: any) => (
+                <ActionButtons
+                    onDelete={() => handleDelete(row.id)}
+                    editHref={`/salary-slips/${row.id}/edit`}
+                    printHref={route('salary-slips.show', row.id)}
+                    printText="View"
+                />
+            ),
+            className: 'text-center',
+        },
+    ];
+
     return (
         <AppLayout>
             <Head title="Salary Slips" />
             <div className="bg-gray-100 p-4">
-                {/* Header */}
-                {/* <div className="mb-4 flex items-center justify-between">
-                    <h1 className="text-xl font-semibold">All Salary Slips</h1>
-                    <Link href="/salary-slips/create" className="rounded bg-green-600 px-4 py-2 text-sm font-medium text-white hover:bg-green-700">
-                        + Add New
-                    </Link>
-                </div> */}
 
-                <PageHeader title="Salary Slips" addLinkHref='/salary-slips/create' />
+
+                <PageHeader title="Salary Slips" addLinkHref='/salary-slips/create' addLinkText="+ Add New" />
 
                 {/* Summary */}
                 <div className="mb-4 flex flex-wrap gap-4 rounded bg-white p-4 shadow">
@@ -167,7 +187,7 @@ export default function SalarySlipIndex({ salarySlips, employees }: Props) {
                                 <th className="border px-3 py-2">Date</th>
                                 <th className="border px-3 py-2">Salary For</th>
                                 <th className="border px-3 py-2">Total</th>
-                                {/* <th className="border px-3 py-2">Status Journal</th> */}
+                                <th className="border px-3 py-2">Status Journal</th>
                                 <th className="border px-3 py-2 text-center">Actions</th>
                             </tr>
                         </thead>
@@ -209,29 +229,7 @@ export default function SalarySlipIndex({ salarySlips, employees }: Props) {
                                                         {status}
                                                     </span>
                                                 </td>
-                                                <td className="border px-3 py-2 text-center">
-                                                    <div className="flex justify-center gap-2">
-                                                        <Link
-                                                            href={route('salary-slips.show', salarySlip.id)}
-                                                            // href={route('salary-slips.show', salarySlip.id)}
-                                                            className="rounded bg-blue-600 px-2 py-1 text-xs text-white hover:bg-blue-700"
-                                                        >
-                                                            View
-                                                        </Link>
-                                                        <Link
-                                                            href={`/salary-slips/${salarySlip.id}/edit`}
-                                                            className="rounded bg-purple-500 px-2 py-1 text-xs text-white hover:bg-purple-600"
-                                                        >
-                                                            Edit
-                                                        </Link>
-                                                        <button
-                                                            onClick={() => handleDelete(salarySlip.id)}
-                                                            className="rounded bg-red-600 px-2 py-1 text-xs text-white hover:bg-red-700"
-                                                        >
-                                                            Delete
-                                                        </button>
-                                                    </div>
-                                                </td> 
+
                                                 <ActionButtons
                                                     onDelete={() => handleDelete(salarySlip.id)}
                                                     editHref={`/salary-slips/${salarySlip.id}/edit`}
@@ -276,13 +274,12 @@ export default function SalarySlipIndex({ salarySlips, employees }: Props) {
                                                                         </td>
                                                                         <td className="border px-2 py-1">
                                                                             <span
-                                                                                className={`rounded-full px-2 py-1 text-xs font-medium ${
-                                                                                    emp.status === 'Paid'
-                                                                                        ? 'bg-green-100 text-green-800'
-                                                                                        : emp.status === 'Partially Paid'
-                                                                                          ? 'bg-yellow-100 text-yellow-800'
-                                                                                          : 'bg-red-100 text-red-800'
-                                                                                }`}
+                                                                                className={`rounded-full px-2 py-1 text-xs font-medium ${emp.status === 'Paid'
+                                                                                    ? 'bg-green-100 text-green-800'
+                                                                                    : emp.status === 'Partially Paid'
+                                                                                        ? 'bg-yellow-100 text-yellow-800'
+                                                                                        : 'bg-red-100 text-red-800'
+                                                                                    }`}
                                                                             >
                                                                                 {emp.status || 'Unpaid'}
                                                                             </span>
@@ -303,17 +300,12 @@ export default function SalarySlipIndex({ salarySlips, employees }: Props) {
                 </div>
 
                 {/* Pagination */}
-                {/* <div className="mt-4 flex justify-end gap-1">
-                    {salarySlips.links.map((link, index) => (
-                        <Link
-                            key={index}
-                            href={link.url || ''}
-                            dangerouslySetInnerHTML={{ __html: link.label }}
-                            className={`rounded px-3 py-1 text-sm ${link.active ? 'bg-blue-600 text-white' : 'hover:bg-neutral-200'} ${!link.url && 'pointer-events-none opacity-50'}`}
-                        />
-                    ))}
-                </div> */}
-                <Pagination links={salarySlips.links} />
+                <Pagination
+                    links={salarySlips.links}
+                    currentPage={salarySlips.current_page}
+                    lastPage={salarySlips.last_page}
+                    total={salarySlips.total}
+                />
             </div>
         </AppLayout>
     );

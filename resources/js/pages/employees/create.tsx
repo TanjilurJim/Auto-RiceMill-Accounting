@@ -1,7 +1,7 @@
 import ActionFooter from '@/components/ActionFooter';
 import PageHeader from '@/components/PageHeader';
 import AppLayout from '@/layouts/app-layout';
-import { Head, Link, useForm } from '@inertiajs/react';
+import { Head, useForm } from '@inertiajs/react';
 
 export default function CreateEmployee({ departments, designations, shifts, references }) {
     // useForm hook for handling form state and submission
@@ -31,8 +31,7 @@ export default function CreateEmployee({ departments, designations, shifts, refe
         <AppLayout>
             <Head title="Create Employee" />
 
-            <div className="container mx-auto px-4 py-6">
-                {/* <h1 className="mb-4 text-2xl font-bold">Create New Employee</h1> */}
+            <div className="container mx-auto px-6 py-6">
 
                 <PageHeader title="Create Employee" addLinkHref='/employees' addLinkText="Back" />
 
@@ -249,18 +248,6 @@ export default function CreateEmployee({ departments, designations, shifts, refe
                     </div>
 
                     {/* Submit */}
-                    {/* <div className="flex justify-end gap-3 pt-6">
-                        <Link href="/employees" className="rounded border border-gray-400 px-5 py-2 font-semibold text-gray-700 hover:bg-gray-100">
-                            Cancel
-                        </Link>
-                        <button
-                            type="submit"
-                            disabled={processing}
-                            className="rounded bg-blue-600 px-5 py-2 font-semibold text-white hover:bg-blue-700 disabled:opacity-50"
-                        >
-                            {processing ? 'Saving...' : 'Create Employee'}
-                        </button>
-                    </div> */}
                     <ActionFooter
                         onSubmit={handleSubmit}
                         cancelHref="/employees" 

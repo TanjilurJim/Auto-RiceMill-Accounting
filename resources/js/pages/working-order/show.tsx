@@ -1,6 +1,6 @@
 import PageHeader from '@/components/PageHeader';
 import AppLayout from '@/layouts/app-layout';
-import { Head, Link } from '@inertiajs/react';
+import { Head, } from '@inertiajs/react';
 
 /* same types as before */
 interface Godown {
@@ -45,23 +45,13 @@ export default function Show({ workingOrder }: Props) {
         <AppLayout>
             <Head title={`WO ${workingOrder.voucher_no}`} />
 
-            <div className="mx-auto max-w-5xl bg-gray-300 px-3 py-6 shadow-xl">
-                <div className="rounded-xl border border-gray-200 bg-white p-6 shadow-lg">
-                    {/* header */}
-                    {/* <div className="mb-4 flex items-center justify-between border-b border-gray-100 pb-3">
-                        <div>
-                            <h1 className="text-xl font-semibold text-gray-800">Working Order&nbsp;{workingOrder.voucher_no}</h1>
-                            <p className="text-xs text-gray-500">Date: {workingOrder.date}</p>
-                        </div>
-                        <Link href={route('working-orders.index')} className="text-sm font-medium text-indigo-600 hover:text-indigo-700">
-                            ← Back
-                        </Link>
-                    </div> */}
-
+            <div className="mx-auto w-full p-6 shadow-xl">
+                <div className=" border-gray-200 bg-white">
+                    {/* Header */}
                     <PageHeader
                         title={
                             <>
-                                <h1 className="text-xl font-semibold text-gray-800">Working Order&nbsp;{workingOrder.voucher_no}</h1>
+                                <h1 className="">Working Order&nbsp;{workingOrder.voucher_no}</h1>
                                 <p className="text-xs text-gray-500">Date: {workingOrder.date}</p>
                             </>
                         }
@@ -80,42 +70,48 @@ export default function Show({ workingOrder }: Props) {
                         }
                     />
 
-                    {/* items */}
+                    {/* Items */}
                     <h2 className="mb-2 text-sm font-semibold text-gray-800">Materials / Stock</h2>
                     <div className="space-y-1">
                         {workingOrder.items.map((row) => (
-                            <div key={row.id} className="grid grid-cols-12 gap-2 rounded border border-gray-100 bg-gray-50 px-3 py-2">
-                                <div className="col-span-4 text-xs">{row.item?.item_name ?? '—'}</div>
-
-                                <div className="col-span-2 text-xs">{row.godown?.name ?? '—'}</div>
-
-                                <div className="col-span-2 text-right text-xs">{Number(row.quantity).toFixed(2)}</div>
-
-                                <div className="col-span-2 text-right text-xs">{Number(row.purchase_price).toFixed(2)}</div>
-
-                                <div className="col-span-2 text-right text-xs font-medium text-indigo-600">{Number(row.subtotal).toFixed(2)}</div>
+                            <div
+                                key={row.id}
+                                className="grid grid-cols-1 gap-4 rounded border border-gray-100 bg-gray-50 p-4 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-6 xl:grid-cols-12"
+                            >
+                                <div className="col-span-4 lg:col-span-4 text-xs">{row.item?.item_name ?? '—'}</div>
+                                <div className="col-span-2 lg:col-span-2 text-xs">{row.godown?.name ?? '—'}</div>
+                                <div className="col-span-2 lg:col-span-2 text-right text-xs">{Number(row.quantity).toFixed(2)}</div>
+                                <div className="col-span-2 lg:col-span-2 text-right text-xs">{Number(row.purchase_price).toFixed(2)}</div>
+                                <div className="col-span-2 lg:col-span-2 text-right text-xs font-medium text-indigo-600">
+                                    {Number(row.subtotal).toFixed(2)}
+                                </div>
                             </div>
                         ))}
                     </div>
 
-                    {/* extras */}
+                    {/* Extras */}
                     {workingOrder.extras.length > 0 && (
                         <>
                             <h2 className="mt-4 mb-2 text-sm font-semibold text-gray-800">Additional Expenses</h2>
                             <div className="space-y-1">
                                 {workingOrder.extras.map((ex) => (
-                                    <div key={ex.id} className="grid grid-cols-12 gap-2 rounded border border-gray-100 bg-gray-50 px-3 py-2">
-                                        <div className="col-span-6 text-xs">{ex.title}</div>
-                                        <div className="col-span-2 text-right text-xs">{ex.quantity ?? '-'}</div>
-                                        <div className="col-span-2 text-right text-xs">{ex.price ?? '-'}</div>
-                                        <div className="col-span-2 text-right text-xs font-medium text-indigo-600">{Number(ex.total).toFixed(2)}</div>
+                                    <div
+                                        key={ex.id}
+                                        className="grid grid-cols-1 gap-4 rounded border border-gray-100 bg-gray-50 p-4 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-6 xl:grid-cols-12"
+                                    >
+                                        <div className="col-span-6 lg:col-span-6 text-xs">{ex.title}</div>
+                                        <div className="col-span-2 lg:col-span-2 text-right text-xs">{ex.quantity ?? '-'}</div>
+                                        <div className="col-span-2 lg:col-span-2 text-right text-xs">{ex.price ?? '-'}</div>
+                                        <div className="col-span-2 lg:col-span-2 text-right text-xs font-medium text-indigo-600">
+                                            {Number(ex.total).toFixed(2)}
+                                        </div>
                                     </div>
                                 ))}
                             </div>
                         </>
                     )}
 
-                    {/* totals */}
+                    {/* Totals */}
                     <div className="mt-4 rounded border border-indigo-100 bg-indigo-50 px-4 py-3">
                         <div className="flex items-center justify-between text-sm">
                             <span>Materials Total</span>
