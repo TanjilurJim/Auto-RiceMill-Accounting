@@ -33,3 +33,42 @@ if (!function_exists('numberToWords')) {
     }
 }
 
+use App\Models\CompanySetting;
+use Illuminate\Support\Facades\Auth; 
+if (! function_exists('company_info')) {
+    /**
+     * Returns the “company profile” row that belongs to the
+     * current tenant. Admins get the first record (or you can
+     * customise below).
+     *
+     * @return \App\Models\CompanySetting|null
+     */
+    function company_info(): ?CompanySetting
+    {
+        /* ----------------------------------------------------------
+         | Cache result for the remainder of THIS request
+         * --------------------------------------------------------*/
+        static $cached = null;
+        if ($cached !== null) {
+            return $cached;
+        }
+
+        /* ----------------------------------------------------------
+         | Decide which row to return
+         * --------------------------------------------------------*/
+        $user = Auth::user();
+
+        // 1️⃣  Admin  → first record (or change logic if you need)
+        if ($user && $user->hasRole('admin')) {
+            return $cached = CompanySetting::first();
+        }
+
+        // 2️⃣  Normal user  → company created by ME
+        if ($user) {
+            return $cached = CompanySetting::where('created_by', $user->id)->first();
+        }
+
+        // 3️⃣  Fallback (guest / no row found) → null
+        return $cached = null;
+    }
+}
