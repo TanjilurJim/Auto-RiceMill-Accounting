@@ -82,7 +82,7 @@ export default function Create({ receivedModes, accountLedgers }: Props) {
         <AppLayout>
             <Head title="Add Received Voucher" />
 
-            <div className="space-y-6 p-6">
+            <div className="space-y-6 p-6 bg-gray-100">
                 {/* <h1 className="border-b pb-3 text-xl font-semibold text-gray-800">Add Received Voucher</h1> */}
                 <PageHeader title="Add Received Voucher" addLinkHref="/received-add" addLinkText="Back" />
 

@@ -3,7 +3,6 @@ import PageHeader from '@/components/PageHeader';
 import AppLayout from '@/layouts/app-layout';
 import { Head, router } from '@inertiajs/react';
 import { useEffect, useState } from 'react';
-import BackButton from '@/components/BackButton';
 
 export default function Create({ accountLedgers = [] }: any) {
     const [voucherNo, setVoucherNo] = useState('');
@@ -63,9 +62,8 @@ export default function Create({ accountLedgers = [] }: any) {
     return (
         <AppLayout>
             <Head title="Add Journal Entry" />
-            <div className="mx-auto max-w-5xl p-6">
-                {/* <h1 className="mb-6 text-2xl font-bold">Add Journal Entry</h1> */}
-                <PageHeader title="Journal Entries" addLinkHref="/journal-add" addLinkText='Back' />
+            <div className="mx-auto w-full p-6">
+                <PageHeader title="Add Journal Entries" addLinkHref="/journal-add" addLinkText='Back' />
 
                 <form onSubmit={handleSubmit} className="space-y-6">
                     <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
@@ -181,20 +179,15 @@ export default function Create({ accountLedgers = [] }: any) {
                             Total Credit: <span className="text-red-600">{getTotalCredit().toFixed(2)}</span>
                         </div>
                     </div>
-
-                    {/* <div className="flex items-center justify-between">
-                        <button type="submit" className="rounded bg-blue-600 px-5 py-2 text-sm text-white hover:bg-blue-700">
-                            Save Journal
-                        </button>
-                    </div> */}
+                    
 
                     <ActionFooter
-                        className="justify-end" // Custom class for styling
-                        onSubmit={handleSubmit} // Function to handle form submission
-                        cancelHref="/journal-add" // URL for the cancel action
-                        processing={false} // Indicates whether the form is processing
-                        submitText="Save Journal Entry" // Text for the submit button
-                        cancelText="Cancel" // Text for the cancel button
+                        className="justify-end" 
+                        onSubmit={handleSubmit} 
+                        cancelHref="/journal-add" 
+                        processing={false} 
+                        submitText="Save Journal Entry" 
+                        cancelText="Cancel"
                     />
 
 

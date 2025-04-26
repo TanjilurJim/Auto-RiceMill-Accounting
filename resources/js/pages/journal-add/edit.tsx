@@ -59,10 +59,9 @@ export default function Edit({ journal, accountLedgers, errors }: any) {
     return (
         <AppLayout>
             <Head title="Edit Journal Entry" />
-            <div className="mx-auto max-w-5xl p-6">
-                {/* <h1 className="mb-6 text-2xl font-bold">Edit Journal Entry</h1> */}
+            <div className="mx-auto w-full p-6">
 
-                <PageHeader title="Edit Journal Entry" addLinkHref="/journal-add/create" addLinkText='Back' />
+                <PageHeader title="Edit Journal Entry" addLinkHref="/journal-add" addLinkText='Back' />
 
                 <form onSubmit={handleSubmit} className="space-y-6">
                     <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
