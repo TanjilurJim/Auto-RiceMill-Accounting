@@ -1,6 +1,5 @@
 import ActionFooter from '@/components/ActionFooter';
 import PageHeader from '@/components/PageHeader';
-import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import AppLayout from '@/layouts/app-layout';
 import { Head, router } from '@inertiajs/react';
@@ -43,8 +42,7 @@ export default function Create({ paymentModes }: any) {
     return (
         <AppLayout>
             <Head title="Add Contra Entry" />
-            <div className="mx-auto max-w-4xl space-y-6 p-6">
-                {/* <h1 className="mb-2 text-2xl font-bold">Add Contra Entry</h1> */}
+            <div className="mx-auto space-y-6 p-6 w-full">
 
                 <PageHeader title='Add Contra Entry' addLinkHref='/contra-add' addLinkText='Back' />
 
@@ -129,22 +127,14 @@ export default function Create({ paymentModes }: any) {
                             <input type="checkbox" checked={sendSms} onChange={(e) => setSendSms(e.target.checked)} />
                             <label className="text-sm">Send SMS</label>
                         </div>
-
-                        {/* <div className="flex gap-4 pt-2">
-                            <Button type="submit" onClick={handleSubmit}>
-                                 Save
-                            </Button>
-                            <Button type="button" variant="secondary" onClick={() => window.history.back()}>
-                                Cancel
-                            </Button>
-                        </div> */}
+                        
                         <ActionFooter
                             className='justify-end'
-                            onSubmit={handleSubmit} // Function to handle form submission
-                            cancelHref="/contra-add" // URL for the cancel action
-                            processing={false} // Indicates whether the form is processing
-                            submitText="Save Contra Entry" // Text for the submit button
-                            cancelText="Cancel" // Text for the cancel button
+                            onSubmit={handleSubmit}
+                            cancelHref="/contra-add"
+                            processing={false}
+                            submitText="Save Contra Entry"
+                            cancelText="Cancel"
                         />
 
                     </CardContent>

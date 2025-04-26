@@ -2,7 +2,7 @@ import ActionFooter from '@/components/ActionFooter';
 import PageHeader from '@/components/PageHeader';
 import AppLayout from '@/layouts/app-layout';
 import { Head, router } from '@inertiajs/react';
-import { useEffect, useState } from 'react';
+import {  useState } from 'react';
 
 export default function Edit({ contra, modes }: any) {
     const [date, setDate] = useState(contra.date || '');
@@ -29,13 +29,12 @@ export default function Edit({ contra, modes }: any) {
     return (
         <AppLayout>
             <Head title="Edit Contra Entry" />
-            <div className="mx-auto max-w-3xl p-6">
-                {/* <h1 className="mb-4 text-xl font-bold">Edit Contra Entry</h1> */}
+            <div className="mx-auto w-full p-6">
 
                 <PageHeader title='Edit Contra Entry' addLinkHref='/contra-add' addLinkText='Back' />
 
                 <form onSubmit={handleSubmit} className="space-y-4">
-                    <div className="grid grid-cols-2 gap-4">
+                    <div className="grid grid-cols-2 gap-4 border p-6 rounded-2xl">
                         <div>
                             <label className="mb-1 block font-medium">Date</label>
                             <input type="date" value={date} onChange={(e) => setDate(e.target.value)} className="w-full rounded border px-3 py-2" />
@@ -46,7 +45,7 @@ export default function Edit({ contra, modes }: any) {
                         </div>
                     </div>
 
-                    <div className="grid grid-cols-2 gap-4">
+                    <div className="grid grid-cols-2 gap-4 border p-6 rounded-2xl">
                         <div>
                             <label className="mb-1 block font-medium">From Mode</label>
                             <select value={modeFromId} onChange={(e) => setModeFromId(e.target.value)} className="w-full rounded border px-3 py-2">
@@ -71,12 +70,13 @@ export default function Edit({ contra, modes }: any) {
                         </div>
                     </div>
 
-                    <div>
+
+                    <div className='border p-6 rounded-2xl'>
                         <label className="mb-1 block font-medium">Amount</label>
                         <input type="number" value={amount} onChange={(e) => setAmount(e.target.value)} className="w-full rounded border px-3 py-2" />
                     </div>
 
-                    <div>
+                    <div className='border p-6 rounded-2xl'>
                         <label className="mb-1 block font-medium">Description</label>
                         <textarea value={description} onChange={(e) => setDescription(e.target.value)} className="w-full rounded border px-3 py-2" />
                     </div>
@@ -86,22 +86,13 @@ export default function Edit({ contra, modes }: any) {
                         <label className="text-sm">Send SMS</label>
                     </div>
 
-                    {/* <div className="flex gap-4">
-                        <button type="submit" className="rounded bg-green-600 px-4 py-2 text-white hover:bg-green-700">
-                            Update
-                        </button>
-                        <button type="button" onClick={() => window.history.back()} className="rounded bg-gray-300 px-4 py-2">
-                            Cancel
-                        </button>
-                    </div> */}
-
                     <ActionFooter
                         className='justify-end'
-                        onSubmit={handleSubmit} // Function to handle form submission
-                        cancelHref="/contra-add" // URL for the cancel action
-                        processing={false} // Indicates whether the form is processing
-                        submitText="Update Contra Entry" // Text for the submit button
-                        cancelText="Cancel" // Text for the cancel button
+                        onSubmit={handleSubmit}
+                        cancelHref="/contra-add"
+                        processing={false}
+                        submitText="Update Contra Entry"
+                        cancelText="Cancel"
                     />
 
                 </form>

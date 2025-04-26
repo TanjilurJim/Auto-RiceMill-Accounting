@@ -74,8 +74,7 @@ export default function Edit({ receivedAdd, receivedModes, accountLedgers }: Pro
             <div className='bg-gray-100'>
                 <Head title="Edit Received Voucher" />
 
-                <div className="space-y-6 p-6">
-                    {/* <h1 className="border-b pb-3 text-xl font-semibold text-gray-800">Edit Received Voucher</h1> */}
+                <div className="space-y-6 p-6 bg-gray-100">
 
                     <PageHeader title='Edit Received Voucher' addLinkText='Back' addLinkHref='/received-add' />
 
@@ -179,7 +178,7 @@ export default function Edit({ receivedAdd, receivedModes, accountLedgers }: Pro
                                 <textarea
                                     value={data.description}
                                     onChange={(e) => setData('description', e.target.value)}
-                                    className="form-textarea w-full"
+                                    className="form-textarea border rounded-lg w-full"
                                     rows={3}
                                 />
                             </div>
@@ -190,29 +189,13 @@ export default function Edit({ receivedAdd, receivedModes, accountLedgers }: Pro
                         </div>
 
                         {/* Buttons */}
-                        {/* <div className="flex justify-end gap-3 border-t pt-6">
-                        <button
-                            type="submit"
-                            disabled={processing}
-                            className="rounded bg-green-600 px-6 py-2 font-medium text-white hover:bg-green-700"
-                        >
-                            {processing ? 'Saving...' : 'Update'}
-                        </button>
-                        <button
-                            type="button"
-                            onClick={() => window.history.back()}
-                            className="rounded bg-white px-6 py-2 font-medium text-gray-700 hover:bg-gray-200"
-                        >
-                            Cancel
-                        </button>
-                    </div> */}
                         <ActionFooter
                             className='justify-end'
-                            onSubmit={handleSubmit} // Function to handle form submission
-                            cancelHref="/received-add" // URL for the cancel action
-                            processing={processing} // Indicates whether the form is processing
-                            submitText={processing ? 'Saving...' : 'Update Received Voucher'} // Text for the submit button
-                            cancelText="Cancel" // Text for the cancel button
+                            onSubmit={handleSubmit}
+                            cancelHref="/received-add"
+                            processing={processing}
+                            submitText={processing ? 'Saving...' : 'Update Received Voucher'}
+                            cancelText="Cancel"
                         />
                     </form>
                 </div>
