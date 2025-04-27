@@ -49,7 +49,7 @@ class FinishedProductController extends Controller
         $data = $request->validate([
             'working_order_id'       => 'required|exists:working_orders,id',
             'production_date'        => 'required|date',
-            'production_voucher_no'  => 'required|string|unique:finished_products,production_voucher_no',
+            'production_voucher_no'  => 'required|string|unique:finished_products,production_voucher_no,NULL,id,created_by,' . auth()->id(),
             'reference_no'           => 'nullable|string',
             'remarks'                => 'nullable|string',
             'productRows'            => 'required|array|min:1',
@@ -59,6 +59,7 @@ class FinishedProductController extends Controller
             'productRows.*.unit_price'   => 'nullable|numeric|min:0',
             'productRows.*.total'        => 'nullable|numeric|min:0',
         ]);
+        
 
         // Header
         $fp = FinishedProduct::create([

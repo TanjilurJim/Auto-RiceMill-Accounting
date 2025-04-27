@@ -72,10 +72,10 @@ class ProductionController extends Controller
             'orderData.*.purchase_price' => 'required|numeric|min:0',
             'orderData.*.subtotal'       => 'required|numeric|min:0',
             'extrasData'            => 'nullable|array',
-            'extrasData.*.title'    => 'required_with:extrasData|string',
+            'extrasData.*.title'    => 'nullable|string',
             'extrasData.*.quantity' => 'nullable|numeric',
             'extrasData.*.price'    => 'nullable|numeric',
-            'extrasData.*.total'    => 'required|numeric',
+            'extrasData.*.total'    => 'nullable|numeric',
         ]);
 
         // Ensure tenant_id is properly set (using current authenticated user's ID)
@@ -159,10 +159,10 @@ class ProductionController extends Controller
             'orderData.*.subtotal'       => 'required|numeric|min:0',
 
             'extrasData'            => 'nullable|array',
-            'extrasData.*.title'    => 'required_with:extrasData|string',
+            'extrasData.*.title'    => 'nullable|string',
             'extrasData.*.quantity' => 'nullable|numeric',
             'extrasData.*.price'    => 'nullable|numeric',
-            'extrasData.*.total'    => 'required|numeric',
+            'extrasData.*.total'    => 'nullable|numeric',
         ]);
 
         $workingOrder->update([

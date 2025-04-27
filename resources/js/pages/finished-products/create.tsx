@@ -17,10 +17,6 @@ interface WorkingOrder {
         purchase_price: number;
         subtotal: number;
     }[];
-    extras: {
-        title: string;
-        total: number;
-    }[];
 }
 
 interface Item {
@@ -43,7 +39,6 @@ interface Props {
 export default function Create({ workingOrders, products, godowns, autoVoucherNo }: Props) {
     const [selectedWOId, setSelectedWOId] = useState<number | null>(null);
     const [selectedWO, setSelectedWO] = useState<WorkingOrder | null>(null);
-
     const [productionDate, setProductionDate] = useState('');
     const [referenceNo, setReferenceNo] = useState('');
     const [note, setNote] = useState('');
@@ -57,12 +52,25 @@ export default function Create({ workingOrders, products, godowns, autoVoucherNo
 
     useEffect(() => {
         if (selectedWOId) {
-            const wo = workingOrders.find((wo) => wo.id === selectedWOId);
-            setSelectedWO(wo || null);
+            const selectedWO = workingOrders.find((wo) => wo.id === selectedWOId);
+            setSelectedWO(selectedWO || null);
+
+            // Pre-fill the rows with selected items from the working order
+            if (selectedWO) {
+                const preFilledRows = selectedWO.items.map((item) => ({
+                    product_id: item.item.id,
+                    godown_id: item.godown.id,
+                    quantity: item.quantity,
+                    unit_price: item.purchase_price,
+                    total: item.subtotal,
+                }));
+                setRows(preFilledRows);
+            }
         } else {
-            setSelectedWO(null);
+            // Clear the data if no working order is selected
+            setRows([{ product_id: '', godown_id: '', quantity: '', unit_price: '', total: 0 }]);
         }
-    }, [selectedWOId]);
+    }, [selectedWOId, workingOrders]);
 
     const handleRowChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>, idx: number) => {
         const { name, value } = e.target;
@@ -80,11 +88,16 @@ export default function Create({ workingOrders, products, godowns, autoVoucherNo
 
     const removeRow = (idx: number) => rows.length > 1 && setRows(rows.filter((_, i) => i !== idx));
 
-    const itemTotal = rows.reduce((t, r) => t + r.total, 0);
+    const itemTotal = rows.reduce((total, row) => {
+        const rowTotal = parseFloat(row.total) || 0; // Ensuring total is always a number
+        return total + rowTotal;
+    }, 0);
+
+    // Ensure itemTotal is a valid number before rendering
+    const validItemTotal = isNaN(itemTotal) ? 0 : itemTotal;
 
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
-        console.log('Form submitted');
 
         router.post(route('finished-products.store'), {
             working_order_id: selectedWOId,
@@ -101,8 +114,7 @@ export default function Create({ workingOrders, products, godowns, autoVoucherNo
             <Head title="Add Finished Product" />
 
             <div className="mx-auto max-w-6xl space-y-6 rounded-xl bg-gray-100 px-6 py-8 shadow-xl">
-
-                <PageHeader title="Add Finished Product" addLinkHref='/finished-products' addLinkText='Back' />
+                <PageHeader title="Add Finished Product" addLinkHref="/finished-products" addLinkText="Back" />
 
                 {/* Working Order Selection */}
                 <div className="rounded border bg-white p-6 shadow-md">
@@ -128,23 +140,6 @@ export default function Create({ workingOrders, products, godowns, autoVoucherNo
                                     <li>No material items</li>
                                 )}
                             </ul>
-
-                            {selectedWO?.extras?.length > 0 && (
-                                <div className="mt-4">
-                                    <h4 className="text-sm font-medium text-gray-800">Extras:</h4>
-                                    <ul className="text-sm text-gray-600">
-                                        {selectedWO?.extras?.length ? (
-                                            selectedWO.extras.map((e, i) => (
-                                                <li key={i}>
-                                                    {e.title} - {e.total}
-                                                </li>
-                                            ))
-                                        ) : (
-                                            <li>No extra expenses</li>
-                                        )}
-                                    </ul>
-                                </div>
-                            )}
                         </div>
                     )}
                 </div>
@@ -198,7 +193,7 @@ export default function Create({ workingOrders, products, godowns, autoVoucherNo
                         {rows.map((row, idx) => (
                             <div key={idx} className="grid grid-cols-12 items-center gap-2 rounded bg-gray-50 p-2">
                                 <div className="col-span-3">
-                                <label className="text-sm font-medium text-gray-700">Item</label>
+                                    <label className="text-sm font-medium text-gray-700">Item</label>
                                     <select
                                         name="product_id"
                                         value={row.product_id}
@@ -215,7 +210,7 @@ export default function Create({ workingOrders, products, godowns, autoVoucherNo
                                     </select>
                                 </div>
                                 <div className="col-span-2">
-                                <label className="text-sm font-medium text-gray-700">Godown</label>
+                                    <label className="text-sm font-medium text-gray-700">Godown</label>
                                     <select
                                         name="godown_id"
                                         value={row.godown_id}
@@ -232,7 +227,7 @@ export default function Create({ workingOrders, products, godowns, autoVoucherNo
                                     </select>
                                 </div>
                                 <div className="col-span-2">
-                                <label className="text-sm font-medium text-gray-700">Quantity</label>
+                                    <label className="text-sm font-medium text-gray-700">Quantity</label>
                                     <input
                                         type="number"
                                         name="quantity"
@@ -243,7 +238,7 @@ export default function Create({ workingOrders, products, godowns, autoVoucherNo
                                     />
                                 </div>
                                 <div className="col-span-2">
-                                <label className="text-sm font-medium text-gray-700">Price</label>
+                                    <label className="text-sm font-medium text-gray-700">Price</label>
                                     <input
                                         type="number"
                                         name="unit_price"
@@ -270,7 +265,7 @@ export default function Create({ workingOrders, products, godowns, autoVoucherNo
                     {/* Totals */}
                     <div className="flex items-center justify-between border-t pt-2 text-sm font-medium text-gray-800">
                         <span>Total Items: {rows.length}</span>
-                        <span>Total Amount: {itemTotal.toFixed(2)}</span>
+                        <span>Total Amount: {isNaN(itemTotal) ? '0.00' : itemTotal.toFixed(2)}</span>
                     </div>
 
                     {/* Note */}
@@ -287,7 +282,7 @@ export default function Create({ workingOrders, products, godowns, autoVoucherNo
 
                     {/* Submit */}
                     <ActionFooter
-                        className='justify-end'
+                        className="justify-end"
                         onSubmit={handleSubmit}
                         cancelHref="/finished-products"
                         processing={false}
