@@ -72,13 +72,15 @@ const EmployeeLedgerFilter: React.FC<Props> = ({ employees }) => {
             {errors.to_date && <div className="text-red-600">{errors.to_date}</div>}
           </div>
 
-          <button
-            type="submit"
-            className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700"
-            disabled={processing}
-          >
-            Generate Report
-          </button>
+          <div className="flex justify-end">
+            <button
+              type="submit"
+              className="bg-primary text-white px-4 py-2 rounded hover:bg-primary-hover"
+              disabled={processing}
+            >
+              Generate Report
+            </button>
+          </div>
         </form>
       </div>
     </AppLayout>

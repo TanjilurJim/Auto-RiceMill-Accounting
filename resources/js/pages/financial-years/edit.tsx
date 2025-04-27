@@ -2,6 +2,7 @@ import React from 'react';
 import { Head, useForm } from '@inertiajs/react';
 import AppLayout from '@/layouts/app-layout';
 import ActionFooter from '@/components/ActionFooter';
+import PageHeader from '@/components/PageHeader';
 
 interface FinancialYear {
   id: number;
@@ -28,11 +29,10 @@ export default function Edit({ financialYear }: { financialYear: FinancialYear }
     <AppLayout>
       <Head title="Edit Financial Year" />
 
-      <div className="p-6 max-w-2xl mx-auto">
-        <h1 className="text-2xl font-semibold text-gray-800 border-b pb-4 mb-6">Edit Financial Year</h1>
+      <div className="p-6 w-full mx-auto">
+        <PageHeader title="Edit Financial Year" addLinkHref="/financial-years" addLinkText="Back" />
 
         <form onSubmit={handleSubmit} className="space-y-6 bg-white rounded-lg shadow p-6 border">
-
           {/* Title */}
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">
@@ -40,7 +40,7 @@ export default function Edit({ financialYear }: { financialYear: FinancialYear }
             </label>
             <input
               type="text"
-              className="form-input w-full"
+              className="w-full rounded-md border border-gray-300 px-4 py-2 text-sm font-semibold shadow focus:border-blue-500 focus:ring-blue-500"
               value={data.title}
               onChange={(e) => setData('title', e.target.value)}
             />
@@ -54,7 +54,7 @@ export default function Edit({ financialYear }: { financialYear: FinancialYear }
             </label>
             <input
               type="date"
-              className="form-input w-full"
+              className="w-full rounded-md border border-gray-300 px-4 py-2 text-sm font-semibold shadow focus:border-blue-500 focus:ring-blue-500"
               value={data.start_date}
               onChange={(e) => setData('start_date', e.target.value)}
               disabled={data.is_closed}
@@ -69,7 +69,7 @@ export default function Edit({ financialYear }: { financialYear: FinancialYear }
             </label>
             <input
               type="date"
-              className="form-input w-full"
+              className="w-full rounded-md border border-gray-300 px-4 py-2 text-sm font-semibold shadow focus:border-blue-500 focus:ring-blue-500"
               value={data.end_date}
               onChange={(e) => setData('end_date', e.target.value)}
               disabled={data.is_closed}
@@ -90,30 +90,14 @@ export default function Edit({ financialYear }: { financialYear: FinancialYear }
             </label>
           </div>
 
-          {/* Buttons */}
-          {/* <div className="pt-4 border-t flex justify-end gap-3">
-            <button
-              type="submit"
-              className="px-6 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
-              disabled={processing}
-            >
-              {processing ? 'Saving...' : 'Update'}
-            </button>
-            <button
-              type="button"
-              onClick={() => window.history.back()}
-              className="px-6 py-2 bg-gray-100 text-gray-700 rounded hover:bg-gray-200"
-            >
-              Cancel
-            </button>
-          </div> */}
-          <ActionFooter 
+          {/* Action Footer */}
+          <ActionFooter
             processing={processing}
-            onCancel={() => window.history.back()}
-            onSubmit={handleSubmit}
             submitText={processing ? 'Saving...' : 'Update'}
+            onSubmit={handleSubmit}
+            onCancel={() => window.history.back()}
             cancelText="Cancel"
-            className='justify-end'
+            className="justify-end"
           />
         </form>
       </div>

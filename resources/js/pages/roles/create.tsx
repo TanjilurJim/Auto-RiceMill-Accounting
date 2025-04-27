@@ -2,7 +2,7 @@ import ActionFooter from '@/components/ActionFooter';
 import PageHeader from '@/components/PageHeader';
 import AppLayout from '@/layouts/app-layout';
 import { type BreadcrumbItem } from '@/types';
-import { Head, Link, useForm } from '@inertiajs/react';
+import { Head, useForm } from '@inertiajs/react';
 
 interface Permission {
     id: number;
@@ -33,9 +33,8 @@ export default function CreateRole({ permissions }: { permissions: Permission[] 
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
             <Head title="Create Role" />
-            <div className="flex min-h-screen justify-center bg-gray-100 dark:bg-neutral-950">
-                <div className="w-full max-w-xl p-6">
-                    {/* <h1 className="mb-6 text-2xl font-bold">Create Role</h1> */}
+            <div className="flex w-full md:h-screen justify-center bg-gray-100 dark:bg-neutral-950">
+                <div className="w-full p-6">
                     <PageHeader title="Create Role" addLinkHref='/roles' addLinkText="Back" />
 
                     <form onSubmit={submit} className="space-y-4 rounded bg-white p-4 shadow dark:bg-neutral-900">

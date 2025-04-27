@@ -84,6 +84,7 @@ export default function Create({ workingOrders, products, godowns, autoVoucherNo
 
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
+        console.log('Form submitted');
 
         router.post(route('finished-products.store'), {
             working_order_id: selectedWOId,
@@ -281,11 +282,6 @@ export default function Create({ workingOrders, products, godowns, autoVoucherNo
                     </div>
 
                     {/* Submit */}
-                    {/* <div className="flex justify-end">
-                        <button type="submit" className="rounded-lg bg-indigo-600 px-6 py-3 font-semibold text-white shadow hover:bg-indigo-700">
-                            Save Finished Product
-                        </button>
-                    </div> */}
                     <ActionFooter
                         className='justify-end'
                         onSubmit={handleSubmit}

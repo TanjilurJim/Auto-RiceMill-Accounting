@@ -125,8 +125,6 @@ export default function SalarySlipIndex({ salarySlips, employees }: Props) {
         <AppLayout>
             <Head title="Salary Slips" />
             <div className="bg-gray-100 p-4">
-
-
                 <PageHeader title="Salary Slips" addLinkHref='/salary-slips/create' addLinkText="+ Add New" />
 
                 {/* Summary */}
@@ -179,16 +177,16 @@ export default function SalarySlipIndex({ salarySlips, employees }: Props) {
 
                 {/* Table */}
                 <div className="overflow-x-auto rounded-lg border border-gray-300 bg-white shadow-sm">
-                    <table className="min-w-full border-collapse text-sm">
-                        <thead className="bg-gray-100 text-xs text-gray-600 uppercase">
+                    <table className="min-w-full border-collapse text-xs sm:text-sm md:text-base lg:text-lg">
+                        <thead className="bg-gray-100 text-xs sm:text-sm text-gray-600 uppercase">
                             <tr>
-                                <th className="border px-3 py-2">SL</th>
-                                <th className="border px-3 py-2">Voucher</th>
-                                <th className="border px-3 py-2">Date</th>
-                                <th className="border px-3 py-2">Salary For</th>
-                                <th className="border px-3 py-2">Total</th>
-                                <th className="border px-3 py-2">Status Journal</th>
-                                <th className="border px-3 py-2 text-center">Actions</th>
+                                <th className="border px-2 sm:px-3 py-2">SL</th>
+                                <th className="border px-2 sm:px-3 py-2">Voucher</th>
+                                <th className="border px-2 sm:px-3 py-2">Date</th>
+                                <th className="border px-2 sm:px-3 py-2">Salary For</th>
+                                <th className="border px-2 sm:px-3 py-2">Total</th>
+                                <th className="border px-2 sm:px-3 py-2">Status Journal</th>
+                                <th className="border px-2 sm:px-3 py-2 text-center">Actions</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -217,39 +215,38 @@ export default function SalarySlipIndex({ salarySlips, employees }: Props) {
                                                 className="cursor-pointer hover:bg-gray-50 border"
                                                 onClick={() => setExpandedRowId(expandedRowId === salarySlip.id ? null : salarySlip.id)}
                                             >
-                                                <td className="border px-3 py-2 text-center">{index + 1}</td>
-                                                <td className="border px-3 py-2">{salarySlip.voucher_number}</td>
-                                                <td className="border px-3 py-2">{salarySlip.date}</td>
-                                                <td className="border px-3 py-2">{salaryFor}</td>
-                                                <td className="border px-3 py-2">৳ {total.toFixed(2)}</td>
-                                                <td className="border px-3 py-2">
+                                                <td className="border px-2 sm:px-3 py-2 text-center">{index + 1}</td>
+                                                <td className="border px-2 sm:px-3 py-2">{salarySlip.voucher_number}</td>
+                                                <td className="border px-2 sm:px-3 py-2">{salarySlip.date}</td>
+                                                <td className="border px-2 sm:px-3 py-2">{salaryFor}</td>
+                                                <td className="border px-2 sm:px-3 py-2">৳ {total.toFixed(2)}</td>
+                                                <td className="border px-2 sm:px-3 py-2">
                                                     <span
                                                         className={`rounded-full px-2 py-0.5 text-xs font-semibold ${status === 'Posted' ? 'bg-green-100 text-green-700' : 'bg-yellow-100 text-yellow-700'}`}
                                                     >
                                                         {status}
                                                     </span>
                                                 </td>
-
-                                                <ActionButtons
-                                                    onDelete={() => handleDelete(salarySlip.id)}
-                                                    editHref={`/salary-slips/${salarySlip.id}/edit`}
-                                                    printHref={route('salary-slips.show', salarySlip.id)}
-                                                    printText="View"
-                                                />
+                                                <td className="border px-2 sm:px-3 py-2">
+                                                    <ActionButtons
+                                                        onDelete={() => handleDelete(salarySlip.id)}
+                                                        editHref={`/salary-slips/${salarySlip.id}/edit`}
+                                                        printHref={route('salary-slips.show', salarySlip.id)}
+                                                        printText="View"
+                                                    />
+                                                </td>
                                             </tr>
                                             {expandedRowId === salarySlip.id && (
                                                 <tr>
                                                     <td colSpan={7} className="bg-gray-50 px-4 py-3">
                                                         <div className="mb-2 text-sm font-semibold">Employee Breakdown</div>
-                                                        <table className="w-full border text-xs">
+                                                        <table className="w-full border text-xs sm:text-sm">
                                                             <thead>
                                                                 <tr className="bg-gray-100">
                                                                     <th className="border px-2 py-1">Employee</th>
                                                                     <th className="border px-2 py-1">Basic</th>
                                                                     <th className="border px-2 py-1">Additional</th>
                                                                     <th className="border px-2 py-1">Total</th>
-                                                                    <th className="border px-2 py-1">Paid</th>
-                                                                    <th className="border px-2 py-1">Status</th>
                                                                     <th className="border px-2 py-1">Paid</th>
                                                                     <th className="border px-2 py-1">Status</th>
                                                                 </tr>

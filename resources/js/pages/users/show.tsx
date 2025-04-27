@@ -1,7 +1,8 @@
 import ActionFooter from '@/components/ActionFooter';
+import PageHeader from '@/components/PageHeader';
 import AppLayout from '@/layouts/app-layout';
 import { type BreadcrumbItem } from '@/types';
-import { Head, Link, usePage } from '@inertiajs/react';
+import { Head, usePage } from '@inertiajs/react';
 
 interface User {
     id: number;
@@ -27,8 +28,8 @@ export default function UserShow({ user }: { user: User }) {
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
             <Head title={`User - ${user.name}`} />
-            <div className="mx-auto max-w-xl p-6">
-                <h1 className="mb-4 text-2xl font-bold">User Details</h1>
+            <div className="mx-auto w-full p-6">
+                <PageHeader title={`User Details - ${user.name}`} addLinkHref='/users' addLinkText='Back' />
 
                 <div className="space-y-4 rounded bg-white p-4 shadow dark:bg-neutral-900">
                     <div>

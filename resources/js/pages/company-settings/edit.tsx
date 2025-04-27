@@ -1,7 +1,7 @@
-import React from 'react';
 import { useForm, Head } from '@inertiajs/react';
 import AppLayout from '@/layouts/app-layout';
 import ActionFooter from '@/components/ActionFooter';
+import PageHeader from '@/components/PageHeader';
 
 export default function Edit({ setting, financialYears }) {
   const { data, setData, put, processing, errors } = useForm({
@@ -24,41 +24,51 @@ export default function Edit({ setting, financialYears }) {
   return (
     <AppLayout>
       <Head title="Company Settings" />
-      <div className="p-6 max-w-3xl mx-auto space-y-6">
-        <h1 className="text-xl font-bold border-b pb-3">Company Profile</h1>
+      <div className="p-6 w-full mx-auto space-y-6">
+        <PageHeader title="Company Profile" />
 
-        <form onSubmit={handleSubmit} className="space-y-4 bg-white p-6 border shadow rounded-lg">
+        <form onSubmit={handleSubmit} className="space-y-6 bg-white p-6 border shadow rounded-lg">
           {/* Text Fields */}
-          {[
-            ['Company Name', 'company_name'],
-            ['Mailing Name', 'mailing_name'],
-            ['Country', 'country'],
-            ['Email', 'email'],
-            ['Website', 'website'],
-            ['Mobile Number', 'mobile'],
-            ['Address', 'address'],
-            ['Description', 'description'],
-          ].map(([label, key]) => (
-            <div key={key}>
-              <label className="block text-sm font-medium text-gray-700 mb-1">{label}</label>
-              {key === 'address' || key === 'description' ? (
-                <textarea
-                  value={data[key]}
-                  onChange={(e) => setData(key, e.target.value)}
-                  className="w-full border px-3 py-2 rounded"
-                  rows={3}
-                />
-              ) : (
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+            {[
+              ['Company Name', 'company_name'],
+              ['Mailing Name', 'mailing_name'],
+              ['Country', 'country'],
+              ['Email', 'email'],
+              ['Website', 'website'],
+              ['Mobile Number', 'mobile'],
+            ].map(([label, key]) => (
+              <div key={key}>
+                <label className="block text-sm font-medium text-gray-700 mb-1">{label}</label>
                 <input
                   type="text"
                   value={data[key]}
                   onChange={(e) => setData(key, e.target.value)}
-                  className="w-full border px-3 py-2 rounded"
+                  className="w-full border px-3 py-2 rounded shadow-sm focus:border-blue-500 focus:ring-blue-500"
                 />
-              )}
-              {errors[key] && <p className="text-red-500 text-xs mt-1">{errors[key]}</p>}
-            </div>
-          ))}
+                {errors[key] && <p className="text-red-500 text-xs mt-1">{errors[key]}</p>}
+              </div>
+            ))}
+          </div>
+
+          {/* Address and Description */}
+          <div className="grid grid-cols-1 gap-6">
+            {[
+              ['Address', 'address'],
+              ['Description', 'description'],
+            ].map(([label, key]) => (
+              <div key={key}>
+                <label className="block text-sm font-medium text-gray-700 mb-1">{label}</label>
+                <textarea
+                  value={data[key]}
+                  onChange={(e) => setData(key, e.target.value)}
+                  className="w-full border px-3 py-2 rounded shadow-sm focus:border-blue-500 focus:ring-blue-500"
+                  rows={3}
+                />
+                {errors[key] && <p className="text-red-500 text-xs mt-1">{errors[key]}</p>}
+              </div>
+            ))}
+          </div>
 
           {/* Financial Year Dropdown */}
           <div>
@@ -66,7 +76,7 @@ export default function Edit({ setting, financialYears }) {
             <select
               value={data.financial_year_id}
               onChange={(e) => setData('financial_year_id', e.target.value)}
-              className="w-full border px-3 py-2 rounded"
+              className="w-full border px-3 py-2 rounded shadow-sm focus:border-blue-500 focus:ring-blue-500"
             >
               <option value="">Select Financial Year</option>
               {financialYears.map((fy) => (
@@ -80,21 +90,12 @@ export default function Edit({ setting, financialYears }) {
             )}
           </div>
 
-          {/* Save Button */}
-          {/* <div className="pt-4 border-t flex justify-end">
-            <button
-              type="submit"
-              className="px-6 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
-              disabled={processing}
-            >
-              {processing ? 'Saving...' : 'Save Settings'}
-            </button>
-          </div> */}
-          <ActionFooter 
+          {/* Action Footer */}
+          <ActionFooter
             processing={processing}
             onSubmit={handleSubmit}
             submitText={processing ? 'Saving...' : 'Save Settings'}
-            className='justify-end'
+            className="justify-end"
           />
         </form>
       </div>

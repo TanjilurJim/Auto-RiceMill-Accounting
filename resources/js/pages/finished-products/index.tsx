@@ -49,22 +49,6 @@ export default function Index({ finishedProducts }: Props) {
     const products = finishedProducts.data;
 
     const handleDelete = (id: number) => {
-        // Swal.fire({
-        //     title: 'Are you sure?',
-        //     text: 'This finished product entry will be deleted!',
-        //     icon: 'warning',
-        //     showCancelButton: true,
-        //     confirmButtonColor: '#d33',
-        //     cancelButtonColor: '#3085d6',
-        //     confirmButtonText: 'Yes, delete it!',
-        // }).then((res) => {
-        //     if (res.isConfirmed) {
-        //         router.delete(`/finished-products/${id}`, {
-        //             onSuccess: () => Swal.fire('Deleted!', 'Entry deleted.', 'success'),
-        //         });
-        //     }
-        // });
-
         confirmDialog(
             {},() => {
                 router.delete(`/finished-products/${id}`);
@@ -79,16 +63,6 @@ export default function Index({ finishedProducts }: Props) {
             <Head title="Finished Products" />
 
             <div className="mx-auto max-w-6xl px-6 py-8 bg-gray-100 shadow-xl rounded-xl space-y-6">
-                {/* Header */}
-                {/* <div className="flex justify-between items-center mb-4">
-                    <h1 className="text-2xl font-semibold text-gray-800">Finished Products</h1>
-                    <Link
-                        href="/finished-products/create"
-                        className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-lg text-sm font-medium shadow"
-                    >
-                        + Add Finished Product
-                    </Link>
-                </div> */}
 
                 <PageHeader title='Finished Products' addLinkHref='/finished-products/create' addLinkText='+ Add Finished Product' />
 
@@ -128,28 +102,7 @@ export default function Index({ finishedProducts }: Props) {
                                             <td className="px-4 py-3 text-right">{totalQty.toFixed(2)}</td>
                                             <td className="px-4 py-3 text-right">{totalAmount.toFixed(2)}</td>
                                             <td className="px-4 py-3 text-sm text-gray-700">{fp.remarks || '—'}</td>
-                                            {/* <td className="px-4 py-3 text-center">
-                                                <div className="flex justify-center gap-2">
-                                                    <Link
-                                                        href={`/finished-products/${fp.id}`}
-                                                        className="bg-blue-600 p-2 text-white rounded-full hover:bg-blue-700"
-                                                    >
-                                                        <FiEye />
-                                                    </Link>
-                                                    <Link
-                                                        href={`/finished-products/${fp.id}/edit`}
-                                                        className="bg-yellow-500 p-2 text-white rounded-full hover:bg-yellow-600"
-                                                    >
-                                                        <FiEdit />
-                                                    </Link>
-                                                    <button
-                                                        onClick={() => handleDelete(fp.id)}
-                                                        className="bg-red-600 p-2 text-white rounded-full hover:bg-red-700"
-                                                    >
-                                                        <FiTrash />
-                                                    </button>
-                                                </div>
-                                            </td> */}
+                                            
                                             <ActionButtons
                                                 editHref={`/finished-products/${fp.id}/edit`}
                                                 onDelete={() => handleDelete(fp.id)}

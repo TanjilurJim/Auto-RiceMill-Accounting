@@ -2,7 +2,7 @@ import ActionFooter from '@/components/ActionFooter';
 import { confirmDialog } from '@/components/confirmDialog';
 import PageHeader from '@/components/PageHeader';
 import AppLayout from '@/layouts/app-layout';
-import { Head, Link, useForm } from '@inertiajs/react';
+import { Head, useForm } from '@inertiajs/react';
 import { useEffect } from 'react';
 import Select from 'react-select';
 import Swal from 'sweetalert2';
@@ -71,21 +71,6 @@ export default function SalarySlipCreate({ employees }: { employees: Employee[] 
 
     const removeEmployeeRow = (index: number) => {
         if (data.salary_slip_employees.length === 1) return;
-        // Swal.fire({
-        //     title: 'Are you sure?',
-        //     text: 'Do you want to remove this employee row?',
-        //     icon: 'warning',
-        //     showCancelButton: true,
-        //     confirmButtonColor: '#d33',
-        //     cancelButtonColor: '#3085d6',
-        //     confirmButtonText: 'Yes, remove it!',
-        // }).then((result) => {
-        //     if (result.isConfirmed) {
-        //         const updated = [...data.salary_slip_employees];
-        //         updated.splice(index, 1);
-        //         setData('salary_slip_employees', updated);
-        //     }
-        // });
 
         confirmDialog(
             {}, () => {
@@ -123,14 +108,7 @@ export default function SalarySlipCreate({ employees }: { employees: Employee[] 
     return (
         <AppLayout>
             <Head title="Create Salary Slip" />
-            <div className="bg-gray-100 p-6">
-                {/* <div className="mb-6 flex items-center justify-between">
-                    <h1 className="text-2xl font-semibold text-gray-800">Create New Salary Slip</h1>
-                    <Link href="/salary-slips" className="rounded bg-gray-300 px-4 py-2 hover:bg-neutral-100">
-                        Back
-                    </Link>
-                </div> */}
-
+            <div className="bg-gray-100 p-6 w-screen lg:w-full">
                 <PageHeader title="Create New Salary Slip" addLinkHref='/salary-slips' addLinkText="Back" />
 
                 <form onSubmit={handleSubmit} className="space-y-6 rounded bg-white p-6 shadow-md">
@@ -258,7 +236,7 @@ export default function SalarySlipCreate({ employees }: { employees: Employee[] 
                                                 />
                                             </td>
                                             <td className="border px-2 py-1">{employee.total_amount}</td>
-                                            <td className="space-x-2 border px-2 py-1 text-center">
+                                            <td className="space-x-2 border px-2 py-1 text-center flex items-center justify-center">
                                                 <button
                                                     type="button"
                                                     onClick={() => removeEmployeeRow(index)}
@@ -284,18 +262,6 @@ export default function SalarySlipCreate({ employees }: { employees: Employee[] 
                     </div>
 
                     {/* Buttons */}
-                    {/* <div className="mt-6 flex justify-end gap-3">
-                        <button
-                            type="submit"
-                            disabled={processing}
-                            className="rounded bg-green-600 px-5 py-2 font-semibold text-white shadow hover:bg-green-700"
-                        >
-                            {processing ? 'Saving...' : 'Save'}
-                        </button>
-                        <Link href="/salary-slips" className="rounded border border-gray-400 px-5 py-2 font-semibold text-gray-700 hover:bg-gray-100">
-                            Cancel
-                        </Link>
-                    </div> */}
 
                     <ActionFooter
                         onSubmit={handleSubmit}

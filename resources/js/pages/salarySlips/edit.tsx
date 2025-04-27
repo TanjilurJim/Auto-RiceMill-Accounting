@@ -2,9 +2,8 @@ import ActionFooter from '@/components/ActionFooter';
 import { confirmDialog } from '@/components/confirmDialog';
 import PageHeader from '@/components/PageHeader';
 import AppLayout from '@/layouts/app-layout';
-import { Head, Link, useForm } from '@inertiajs/react';
+import { Head, useForm } from '@inertiajs/react';
 import { useEffect } from 'react';
-import Swal from 'sweetalert2';
 
 interface Employee {
   id: number;
@@ -74,22 +73,6 @@ export default function SalarySlipEdit({
 
   const removeEmployeeRow = (index: number) => {
     if (data.salary_slip_employees.length === 1) return;
-    // Swal.fire({
-    //   title: 'Are you sure?',
-    //   text: 'Do you want to remove this employee row?',
-    //   icon: 'warning',
-    //   showCancelButton: true,
-    //   confirmButtonColor: '#d33',
-    //   cancelButtonColor: '#3085d6',
-    //   confirmButtonText: 'Yes, remove it!',
-    // }).then((result) => {
-    //   if (result.isConfirmed) {
-    //     const updated = [...data.salary_slip_employees];
-    //     updated.splice(index, 1);
-    //     setData('salary_slip_employees', updated);
-    //   }
-    // });
-
     confirmDialog(
       {}, () => {
         const updated = [...data.salary_slip_employees];
@@ -108,15 +91,8 @@ export default function SalarySlipEdit({
   return (
     <AppLayout>
       <Head title="Edit Salary Slip" />
-      <div className="bg-gray-100 p-6">
+      <div className="bg-gray-100 p-6 w-screen lg:w-full">
         {/* Header */}
-        {/* <div className="mb-6 flex items-center justify-between">
-          <h1 className="text-2xl font-semibold text-gray-800">Edit Salary Slip</h1>
-          <Link href="/salary-slips" className="rounded bg-gray-300 px-4 py-2 hover:bg-neutral-100">
-            Back
-          </Link>
-        </div> */}
-
         <PageHeader title='Edit Salary Slip' addLinkHref='/salary-slips' addLinkText='Back'/>
 
         {/* Form Card */}
@@ -217,22 +193,6 @@ export default function SalarySlipEdit({
               </table>
             </div>
           </div>
-
-          {/* <div className="mt-6 flex justify-end gap-3">
-            <button
-              type="submit"
-              disabled={processing}
-              className="rounded bg-green-600 px-5 py-2 font-semibold text-white shadow hover:bg-green-700"
-            >
-              {processing ? 'Saving...' : 'Save'}
-            </button>
-            <Link
-              href="/salary-slips"
-              className="rounded border border-gray-400 px-5 py-2 font-semibold text-gray-700 hover:bg-gray-100"
-            >
-              Cancel
-            </Link>
-          </div> */}
 
           <ActionFooter 
             processing={processing}

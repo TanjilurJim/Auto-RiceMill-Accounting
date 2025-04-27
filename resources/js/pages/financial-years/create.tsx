@@ -23,9 +23,6 @@ export default function Create() {
       <Head title="Create Financial Year" />
 
       <div className="p-6">
-        {/* <h1 className="text-2xl font-semibold text-gray-800 border-b pb-4 mb-6 bg-gray-100 shadow rounded-2xl">
-          Add New Financial Year
-        </h1> */}
 
         <PageHeader title="Add New Financial Year" addLinkHref='/financial-years' addLinkText="Back" />
 

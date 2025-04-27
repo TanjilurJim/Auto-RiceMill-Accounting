@@ -2,6 +2,7 @@ import { Head, Link, useForm, usePage } from '@inertiajs/react';
 import AppLayout from '@/layouts/app-layout';
 import { type BreadcrumbItem } from '@/types';
 import ActionFooter from '@/components/ActionFooter';
+import PageHeader from '@/components/PageHeader';
 
 interface Role {
     id: number;
@@ -59,8 +60,8 @@ export default function EditUser({
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
             <Head title={`Edit User - ${user.name}`} />
-            <div className="p-6 max-w-xl mx-auto">
-                <h1 className="text-2xl font-bold mb-6">Edit User</h1>
+            <div className="p-6 w-full mx-auto">
+                <PageHeader title="Edit User" addLinkHref='/users' addLinkText="Back" />
 
                 <form onSubmit={submit} className="space-y-4 bg-white dark:bg-neutral-900 shadow rounded p-4">
                     <div>

@@ -1,3 +1,4 @@
+import PageHeader from '@/components/PageHeader';
 import AppLayout from '@/layouts/app-layout';
 import { Head } from '@inertiajs/react';
 
@@ -12,8 +13,9 @@ export default function Show({ salaryReceive }) {
     <AppLayout>
       <Head title={`Salary Receive - ${salaryReceive?.vch_no || 'N/A'}`} />
 
-      <div className="max-w-5xl mx-auto mt-10 p-6 bg-white shadow rounded">
-        <h1 className="text-2xl font-bold text-gray-800 mb-6">Salary Receive Details</h1>
+      <div className="w-full mx-auto mt-10 p-6 bg-white shadow rounded">
+        {/* <h1 className="text-2xl font-bold text-gray-800 mb-6">Salary Receive Details</h1> */}
+        <PageHeader title="Salary Receive" addLinkHref='/salary-receives' addLinkText="Back" />
 
         {/* Summary */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
