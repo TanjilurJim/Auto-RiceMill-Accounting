@@ -124,8 +124,8 @@ export default function SalarySlipIndex({ salarySlips, employees }: Props) {
     return (
         <AppLayout>
             <Head title="Salary Slips" />
-            <div className="bg-gray-100 p-4">
-                <PageHeader title="Salary Slips" addLinkHref='/salary-slips/create' addLinkText="+ Add New" />
+            <div className="bg-gray-100 p-6 w-screen h-full md:w-full mx-auto space-y-6">
+                <PageHeader title="Salary Slips" addLinkHref="/salary-slips/create" addLinkText="+ Add New" />
 
                 {/* Summary */}
                 <div className="mb-4 flex flex-wrap gap-4 rounded bg-white p-4 shadow">
@@ -140,7 +140,7 @@ export default function SalarySlipIndex({ salarySlips, employees }: Props) {
                 {/* Filters */}
                 <div className="mb-4 flex flex-wrap items-center gap-3 rounded bg-white p-4 shadow">
                     <select
-                        className="rounded border p-2 text-sm"
+                        className="rounded border p-2 text-sm w-full sm:w-auto"
                         value={filters.month}
                         onChange={(e) => setFilters({ ...filters, month: e.target.value })}
                     >
@@ -152,8 +152,7 @@ export default function SalarySlipIndex({ salarySlips, employees }: Props) {
                         ))}
                     </select>
 
-                    {/* Year as Creatable Select */}
-                    <div className="min-w-[150px]">
+                    <div className="min-w-[150px] w-full sm:w-auto">
                         <CreatableSelect
                             placeholder="Year"
                             options={yearOptions}
@@ -165,7 +164,7 @@ export default function SalarySlipIndex({ salarySlips, employees }: Props) {
                         />
                     </div>
 
-                    <div className="min-w-[250px]">
+                    <div className="min-w-[250px] w-full sm:w-auto">
                         <Select
                             placeholder="Employee"
                             options={employeeOptions}
@@ -200,7 +199,7 @@ export default function SalarySlipIndex({ salarySlips, employees }: Props) {
                                 salarySlips.data.map((salarySlip, index) => {
                                     const total = (salarySlip.salary_slip_employees ?? []).reduce(
                                         (sum, item) => sum + parseFloat(item.total_amount),
-                                        0,
+                                        0
                                     );
                                     const salaryFor =
                                         salarySlip.month && salarySlip.year
@@ -222,7 +221,8 @@ export default function SalarySlipIndex({ salarySlips, employees }: Props) {
                                                 <td className="border px-2 sm:px-3 py-2">৳ {total.toFixed(2)}</td>
                                                 <td className="border px-2 sm:px-3 py-2">
                                                     <span
-                                                        className={`rounded-full px-2 py-0.5 text-xs font-semibold ${status === 'Posted' ? 'bg-green-100 text-green-700' : 'bg-yellow-100 text-yellow-700'}`}
+                                                        className={`rounded-full px-2 py-0.5 text-xs font-semibold ${status === 'Posted' ? 'bg-green-100 text-green-700' : 'bg-yellow-100 text-yellow-700'
+                                                            }`}
                                                     >
                                                         {status}
                                                     </span>
@@ -272,10 +272,10 @@ export default function SalarySlipIndex({ salarySlips, employees }: Props) {
                                                                         <td className="border px-2 py-1">
                                                                             <span
                                                                                 className={`rounded-full px-2 py-1 text-xs font-medium ${emp.status === 'Paid'
-                                                                                    ? 'bg-green-100 text-green-800'
-                                                                                    : emp.status === 'Partially Paid'
-                                                                                        ? 'bg-yellow-100 text-yellow-800'
-                                                                                        : 'bg-red-100 text-red-800'
+                                                                                        ? 'bg-green-100 text-green-800'
+                                                                                        : emp.status === 'Partially Paid'
+                                                                                            ? 'bg-yellow-100 text-yellow-800'
+                                                                                            : 'bg-red-100 text-red-800'
                                                                                     }`}
                                                                             >
                                                                                 {emp.status || 'Unpaid'}

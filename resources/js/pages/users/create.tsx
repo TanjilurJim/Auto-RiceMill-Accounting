@@ -106,19 +106,6 @@ export default function CreateUser({ roles }: { roles: Role[] }) {
                             </div>
                             {errors.roles && <p className="mt-1 text-sm text-red-500">{errors.roles}</p>}
                         </div>
-
-                        {/* <div className="flex justify-end space-x-2">
-                            <Link href="/users" className="rounded border px-4 py-2 hover:bg-neutral-100 dark:hover:bg-neutral-800">
-                                Cancel
-                            </Link>
-                            <button
-                                type="submit"
-                                disabled={processing}
-                                className="rounded bg-blue-600 px-4 py-2 text-white hover:bg-blue-700 disabled:opacity-50"
-                            >
-                                {processing ? 'Creating...' : 'Create User'}
-                            </button>
-                        </div> */}
                         <ActionFooter 
                             processing={processing}
                             onSubmit={submit}

@@ -74,15 +74,6 @@ export default function UserShow({ user }: { user: User }) {
                             <span className="text-xs text-gray-500">No Roles</span>
                         )}
                     </div>
-
-                    {/* <div className="flex justify-end space-x-2 pt-4">
-                        <Link href={`/users/${user.id}/edit`} className="rounded bg-yellow-500 px-4 py-2 text-white hover:bg-yellow-600">
-                            Edit
-                        </Link>
-                        <Link href="/users" className="rounded border px-4 py-2 hover:bg-neutral-100 dark:hover:bg-neutral-800">
-                            Back
-                        </Link>
-                    </div> */}
                     <ActionFooter
                         cancelHref='/users'
                         printHref={`/users/${user.id}/edit`}

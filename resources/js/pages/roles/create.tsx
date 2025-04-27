@@ -74,18 +74,7 @@ export default function CreateRole({ permissions }: { permissions: Permission[] 
                         </div>
 
                         {/* Buttons */}
-                        {/* <div className="flex justify-end space-x-2">
-                            <Link href="/roles" className="rounded border px-4 py-2 hover:bg-neutral-100 dark:hover:bg-neutral-800">
-                                Cancel
-                            </Link>
-                            <button
-                                type="submit"
-                                disabled={processing}
-                                className="rounded bg-blue-600 px-4 py-2 text-white hover:bg-blue-700 disabled:opacity-50"
-                            >
-                                {processing ? 'Creating...' : 'Create'}
-                            </button>
-                        </div> */}
+                        
                         <ActionFooter
                             processing={processing}
                             onSubmit={submit}

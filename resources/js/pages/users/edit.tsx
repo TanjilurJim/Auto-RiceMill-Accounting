@@ -142,22 +142,6 @@ export default function EditUser({
 
                         {errors.roles && <p className="text-sm text-red-500 mt-1">{errors.roles}</p>}
                     </div>
-
-                    {/* <div className="flex justify-end space-x-2">
-                        <Link
-                            href="/users"
-                            className="px-4 py-2 border rounded hover:bg-neutral-100 dark:hover:bg-neutral-800"
-                        >
-                            Cancel
-                        </Link>
-                        <button
-                            type="submit"
-                            disabled={processing}
-                            className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 disabled:opacity-50"
-                        >
-                            {processing ? 'Saving...' : 'Save'}
-                        </button>
-                    </div> */}
                     <ActionFooter 
                         processing={processing}
                         submitText={processing ? 'Saving...' : 'Save'}
