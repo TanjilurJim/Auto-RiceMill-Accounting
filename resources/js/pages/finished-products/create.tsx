@@ -198,6 +198,7 @@ export default function Create({ workingOrders, products, godowns, autoVoucherNo
                         {rows.map((row, idx) => (
                             <div key={idx} className="grid grid-cols-12 items-center gap-2 rounded bg-gray-50 p-2">
                                 <div className="col-span-3">
+                                <label className="text-sm font-medium text-gray-700">Item</label>
                                     <select
                                         name="product_id"
                                         value={row.product_id}
@@ -214,6 +215,7 @@ export default function Create({ workingOrders, products, godowns, autoVoucherNo
                                     </select>
                                 </div>
                                 <div className="col-span-2">
+                                <label className="text-sm font-medium text-gray-700">Godown</label>
                                     <select
                                         name="godown_id"
                                         value={row.godown_id}
@@ -230,6 +232,7 @@ export default function Create({ workingOrders, products, godowns, autoVoucherNo
                                     </select>
                                 </div>
                                 <div className="col-span-2">
+                                <label className="text-sm font-medium text-gray-700">Quantity</label>
                                     <input
                                         type="number"
                                         name="quantity"
@@ -240,6 +243,7 @@ export default function Create({ workingOrders, products, godowns, autoVoucherNo
                                     />
                                 </div>
                                 <div className="col-span-2">
+                                <label className="text-sm font-medium text-gray-700">Price</label>
                                     <input
                                         type="number"
                                         name="unit_price"
