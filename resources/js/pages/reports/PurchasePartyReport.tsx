@@ -1,17 +1,20 @@
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import AppLayout from '@/layouts/app-layout';
-import { Link, Head } from '@inertiajs/react';
+import { Link } from '@inertiajs/react';
 import { FileSpreadsheet, FileText, Printer } from 'lucide-react';
 
+/* ——— data coming from PurchaseReportController::getPartyData() ——— */
 interface Row {
-    date: string;
-    voucher_no: string;
-    supplier: string; // account ledger name
-    item: string; // item details / name
-    total_qty: number;
-    price_each: number;
+    date: string; // ← NEW
+    voucher_no: string; // ← NEW
+    supplier: string;
+    item: string; // ← NEW
+    qty: number; // ← renamed
+    unit_name: string; // ← NEW
     net_amount: number;
+    amount_paid: number;
+    due: number;
 }
 
 interface Company {
@@ -22,37 +25,38 @@ interface Company {
     logo_path?: string;
 }
 
-export default function PurchaseCategoryReport({
+export default function PurchasePartyReport({
     entries,
     filters,
     company,
 }: {
     entries: Row[];
-    filters: { from_date: string; to_date: string; category_id?: string };
+    filters: { from_date: string; to_date: string; supplier_id?: string };
     company: Company;
 }) {
-    /* --- Totals --- */
-    const totalQty = entries.reduce((s, r) => s + Number(r.total_qty), 0);
-    const totalAmt = entries.reduce((s, r) => s + Number(r.net_amount), 0);
+    /* ── Totals ───────────────────────────────────────────── */
+    const totalQty = entries.reduce((s, r) => s + Number(r.qty), 0);
+    const totalNet = entries.reduce((s, r) => s + Number(r.net_amount), 0);
+    const totalPaid = entries.reduce((s, r) => s + Number(r.amount_paid), 0);
+    const totalDue = entries.reduce((s, r) => s + Number(r.due), 0);
 
-    /* --- Print --- */
-    const handlePrint = () => window.print();
-    /******************************
-     *  Grand total by unit block *
-     ******************************/
-    const qtyByUnit = entries.reduce((acc: any, r: any) => {
-        acc[r.unit_name] = (acc[r.unit_name] || 0) + Number(r.total_qty);
+    /* grand-total bucket by unit ---------------------- */
+    const qtyByUnit = entries.reduce((acc: Record<string, number>, r) => {
+        if (r.unit_name) {
+            // <- ignore blank cells
+            acc[r.unit_name] = (acc[r.unit_name] || 0) + Number(r.qty);
+        }
         return acc;
     }, {});
 
+    const handlePrint = () => window.print();
+
     return (
-        <AppLayout title="Category-wise Purchase Report">
+        <AppLayout title="Party-wise Purchase Report">
             <div className="mx-auto max-w-7xl space-y-4 p-4">
-                <Head title="Category-wise Purchase Report" />
                 <Card className="shadow-lg">
-                    {/* ── Header ───────────────────────────────────────────── */}
+                    {/* ── Header ─────────────────────────────────────── */}
                     <CardHeader className="bg-gray-50 py-6 text-center">
-                        {/* company block */}
                         <div className="space-y-1">
                             <h1 className="text-3xl font-bold uppercase">{company?.company_name ?? 'Company Name'}</h1>
                             {company?.address && <p className="text-sm text-gray-700">{company.address}</p>}
@@ -66,23 +70,22 @@ export default function PurchaseCategoryReport({
                             )}
                         </div>
 
-                        {/* title + date range */}
                         <div className="mt-4">
-                            <h2 className="text-xl font-semibold underline">Category-wise Purchase Report</h2>
+                            <h2 className="text-xl font-semibold underline">Party-wise Purchase Report</h2>
                             <p className="text-sm text-gray-600">
-                                From: <strong>{filters.from_date}</strong>, To: <strong>{filters.to_date}</strong>
+                                From&nbsp;<strong>{filters.from_date}</strong>&nbsp;to&nbsp;
+                                <strong>{filters.to_date}</strong>
                             </p>
                         </div>
 
-                        {/* “Change filters” link */}
                         <div className="absolute top-4 right-4 print:hidden">
-                            <Link href={route('reports.purchase.filter', { tab: 'category' })} className="text-sm text-blue-600 hover:underline">
+                            <Link href={route('reports.purchase.filter', { tab: 'party' })} className="text-sm text-blue-600 hover:underline">
                                 Change Filters
                             </Link>
                         </div>
                     </CardHeader>
 
-                    {/* ── Body ─────────────────────────────────────────────── */}
+                    {/* ── Body ───────────────────────────────────────── */}
                     <CardContent className="p-6">
                         <div className="overflow-x-auto">
                             <table className="min-w-full border border-gray-300 text-sm print:text-xs">
@@ -91,14 +94,16 @@ export default function PurchaseCategoryReport({
                                         <th className="border px-2 py-1">#</th>
                                         <th className="border px-2 py-1">Date</th>
                                         <th className="border px-2 py-1">Vch&nbsp;No</th>
-                                        <th className="border px-2 py-1">Account&nbsp;Ledger</th>
-                                        <th className="border px-2 py-1">Item&nbsp;Details</th>
-                                        <th className="border px-2 py-1 text-right">Total&nbsp;Qty</th>
+                                        <th className="border px-2 py-1">Supplier</th>
+                                        <th className="border px-2 py-1">Item</th>
+                                        <th className="border px-2 py-1 text-right">Qty</th>
                                         <th className="border px-2 py-1">Unit</th>
-                                        <th className="border px-2 py-1 text-right">Price&nbsp;(each)</th>
-                                        <th className="border px-2 py-1 text-right">Total&nbsp;Price&nbsp;(Tk)</th>
+                                        <th className="border px-2 py-1 text-right">Net&nbsp;(Tk)</th>
+                                        <th className="border px-2 py-1 text-right">Paid&nbsp;(Tk)</th>
+                                        <th className="border px-2 py-1 text-right">Due&nbsp;(Tk)</th>
                                     </tr>
                                 </thead>
+
                                 <tbody>
                                     {entries.length ? (
                                         <>
@@ -109,32 +114,35 @@ export default function PurchaseCategoryReport({
                                                     <td className="border px-2 py-1">{r.voucher_no}</td>
                                                     <td className="border px-2 py-1">{r.supplier}</td>
                                                     <td className="border px-2 py-1">{r.item}</td>
-                                                    <td className="border px-2 py-1 text-right">{Number(r.total_qty).toFixed(2)}</td>
-                                                    <td className="border px-2 py-1">{r.unit_name}</td>
-                                                    <td className="border px-2 py-1 text-right">{Number(r.price_each).toFixed(2)}</td>
+                                                    <td className="border px-2 py-1 text-right">{Number(r.qty).toFixed(2)}</td>
+                                                    <td className="border px-2 py-1">{r.unit_name || '—'}</td>
                                                     <td className="border px-2 py-1 text-right">{Number(r.net_amount).toFixed(2)}</td>
+                                                    <td className="border px-2 py-1 text-right">{Number(r.amount_paid).toFixed(2)}</td>
+                                                    <td className="border px-2 py-1 text-right">{Number(r.due).toFixed(2)}</td>
                                                 </tr>
                                             ))}
 
-                                            {/* totals row */}
+                                            {/* grand-total row */}
                                             <tr className="bg-gray-100 font-semibold print:bg-white">
                                                 <td className="border px-2 py-1 text-right" colSpan={5}>
                                                     Grand&nbsp;Total
                                                 </td>
                                                 <td className="border px-2 py-1 text-right">{totalQty.toFixed(2)}</td>
-                                                <td className="border px-2 py-1" />
-                                                <td className="border px-2 py-1 text-right">{totalAmt.toFixed(2)}</td>
+                                                <td className="border px-2 py-1"></td>
+                                                <td className="border px-2 py-1 text-right">{totalNet.toFixed(2)}</td>
+                                                <td className="border px-2 py-1 text-right">{totalPaid.toFixed(2)}</td>
+                                                <td className="border px-2 py-1 text-right">{totalDue.toFixed(2)}</td>
                                             </tr>
                                         </>
                                     ) : (
                                         <tr>
-                                            <td colSpan={8} className="px-4 py-4 text-center text-gray-500">
+                                            <td colSpan={10} className="px-4 py-4 text-center text-gray-500">
                                                 No purchase data found.
                                             </td>
                                         </tr>
                                     )}
                                     <tr className="bg-gray-50">
-                                        <td className="border px-2 py-2 text-sm font-medium" colSpan={9}>
+                                        <td className="border px-2 py-2 text-sm font-medium" colSpan={10}>
                                             <strong>Total Qty by Unit:</strong>
                                             <ul className="mt-1 list-disc space-y-0.5 pl-5 text-sm text-gray-700">
                                                 {Object.entries(qtyByUnit).map(([unit, qty]) => (
@@ -149,14 +157,15 @@ export default function PurchaseCategoryReport({
                             </table>
                         </div>
 
-                        {/* ── Action buttons ───────────────────────── */}
+                        {/* ── Buttons ─────────────────────────────────── */}
                         <div className="mt-4 flex justify-end gap-2 print:hidden">
                             <Button variant="outline" onClick={handlePrint}>
                                 <Printer className="mr-2 h-4 w-4" /> Print
                             </Button>
+
                             <a
                                 href={route('reports.purchase.export', {
-                                    tab: 'category',
+                                    tab: 'party',
                                     type: 'pdf',
                                     ...filters,
                                 })}
@@ -164,11 +173,12 @@ export default function PurchaseCategoryReport({
                                 className="inline-flex items-center gap-1 rounded-md border px-4 py-2 text-sm hover:bg-gray-100"
                             >
                                 <FileText className="h-4 w-4" />
-                                Save&nbsp;as&nbsp;PDF
+                                Save&nbsp;PDF
                             </a>
+
                             <a
                                 href={route('reports.purchase.export', {
-                                    tab: 'category',
+                                    tab: 'party',
                                     type: 'xlsx',
                                     ...filters,
                                 })}
@@ -180,7 +190,7 @@ export default function PurchaseCategoryReport({
                         </div>
                     </CardContent>
 
-                    {/* ── Footer ─────────────────────────────────── */}
+                    {/* ── Footer ───────────────────────────────────── */}
                     <div className="text-muted-foreground flex justify-between text-sm">
                         <span>Generated on {new Date().toLocaleString()}</span>
                         <span>
