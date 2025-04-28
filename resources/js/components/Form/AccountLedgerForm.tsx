@@ -30,7 +30,7 @@ const AccountLedgerForm: React.FC<AccountLedgerFormProps> = ({
     return (
         <form
             onSubmit={handleSubmit}
-            className="grid grid-cols-1 gap-4 rounded bg-white p-4 shadow md:grid-cols-2 lg:grid-cols-3 dark:bg-neutral-900"
+            className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-4 rounded bg-white p-4 border shadow dark:bg-neutral-900"
         >
             {/* Reference Number (Readonly for Non-admins) */}
             {isAdmin && (
@@ -48,7 +48,7 @@ const AccountLedgerForm: React.FC<AccountLedgerFormProps> = ({
             )}
 
             {/* Account Ledger Name */}
-            <div className="col-span-1 md:col-span-2 lg:col-span-1">
+            <div className="col-span-1">
                 <label className="mb-1 block font-medium">Account Ledger Name*</label>
                 <input
                     type="text"
@@ -163,11 +163,11 @@ const AccountLedgerForm: React.FC<AccountLedgerFormProps> = ({
 
             {/* Checkboxes */}
             <div className="col-span-1 md:col-span-2 lg:col-span-3 flex flex-col gap-2">
-                <InputCheckbox
+                {/* <InputCheckbox
                     label="For Transition Mode"
                     checked={data.for_transition_mode}
                     onChange={(checked) => setData('for_transition_mode', checked)}
-                />
+                /> */}
                 <InputCheckbox
                     label="Mark for User"
                     checked={data.mark_for_user}

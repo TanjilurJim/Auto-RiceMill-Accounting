@@ -28,13 +28,13 @@ export default function AccountLedgerIndex({ accountLedgers }: { accountLedgers:
         });
 
     };
-    
+
     // Define the columns for the table
     const columns = [
-        { 
-            header: '#', 
-            accessor: (_: AccountLedger, index?: number) => (index !== undefined ? index + 1 : '-'), 
-            className: 'text-center w-1/12' 
+        {
+            header: '#',
+            accessor: (_: AccountLedger, index?: number) => (index !== undefined ? index + 1 : '-'),
+            className: 'text-center w-1/12'
         },
         { header: 'Reference Number', accessor: 'reference_number', className: 'w-2/12' },
         { header: 'Account Name', accessor: 'account_ledger_name', className: 'w-2/12' },
@@ -56,22 +56,24 @@ export default function AccountLedgerIndex({ accountLedgers }: { accountLedgers:
     return (
         <AppLayout>
             <Head title="Account Ledgers" />
-            <div className="p-6 w-screen lg:w-full bg-gray-100">
-                {/* Use the PageHeader component */}
-                <PageHeader title='All List of Account Ledgers' addLinkHref='/account-ledgers/create' addLinkText="+ Add New"/>
+            <div className="p-6 h-full w-screen lg:w-full bg-gray-100">
+                <div className="h-full bg-white rounded-lg p-6">
+                    {/* Use the PageHeader component */}
+                    <PageHeader title='All List of Account Ledgers' addLinkHref='/account-ledgers/create' addLinkText="+ Add New" />
 
-                {/* Make table more responsive */}
-                <TableComponent
-                    columns={columns}
-                    data={accountLedgers}
-                    actions={(ledger) => (
-                        <ActionButtons
-                            editHref={`/account-ledgers/${ledger.id}/edit`}
-                            onDelete={() => handleDelete(ledger.id)}
-                        />
-                    )}
-                    noDataMessage="No account ledgers found."
-                />
+                    {/* Make table more responsive */}
+                    <TableComponent
+                        columns={columns}
+                        data={accountLedgers}
+                        actions={(ledger) => (
+                            <ActionButtons
+                                editHref={`/account-ledgers/${ledger.id}/edit`}
+                                onDelete={() => handleDelete(ledger.id)}
+                            />
+                        )}
+                        noDataMessage="No account ledgers found."
+                    />
+                </div>
             </div>
         </AppLayout>
     );

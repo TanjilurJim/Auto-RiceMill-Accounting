@@ -1,7 +1,5 @@
 import AppLayout from '@/layouts/app-layout';
-import { Head, Link, useForm } from '@inertiajs/react';
-import InputCheckbox from '@/components/Btn&Link/InputCheckbox';
-import ActionFooter from '@/components/ActionFooter';
+import { Head, useForm } from '@inertiajs/react';
 import PageHeader from '@/components/PageHeader';
 import React from 'react';
 import AccountLedgerForm from '@/components/Form/AccountLedgerForm';
@@ -39,8 +37,8 @@ export default function CreateAccountLedger({
     return (
         <AppLayout>
             <Head title="Add Account Ledger" />
-            <div className="flex items-center justify-center bg-gray-100">
-                <div className="w-full max-w-4xl p-6">
+            <div className="h-full p-6 bg-gray-100">
+                <div className="h-full p-6 bg-white rounded-lg">
                     <PageHeader title='Add Account Ledger' addLinkHref='/account-ledgers' addLinkText='Back' />
 
                     <AccountLedgerForm

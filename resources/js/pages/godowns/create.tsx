@@ -18,8 +18,8 @@ export default function CreateGodown() {
     return (
         <AppLayout>
             <Head title="Add Godown" />
-            <div className="flex min-h-screen justify-center  bg-gray-100">
-                <div className="w-full max-w-xl p-6">
+            <div className="h-full bg-gray-100 p-6">
+                <div className="h-full bg-white rounded-lg p-6">
                     <PageHeader title="Add Godown" addLinkHref="/godowns" addLinkText="Back" />
                     <GodownForm
                         data={data}

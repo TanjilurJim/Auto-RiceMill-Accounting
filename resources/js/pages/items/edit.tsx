@@ -66,9 +66,10 @@ export default function EditItem({
     return (
         <AppLayout>
             <Head title="Edit Item" />
-            <div className="p-6 bg-gray-100">
-                <PageHeader title="Edit Item" addLinkHref='/items' addLinkText="Back" />
-                <ItemForm
+            <div className="h-full bg-gray-100 p-6">
+                <div className="h-full bg-white rounded-lg p-6">
+                    <PageHeader title="Edit Item" addLinkHref='/items' addLinkText="Back" />
+                    <ItemForm
                         data={data}
                         setData={setData}
                         handleSubmit={handleSubmit}
@@ -80,6 +81,7 @@ export default function EditItem({
                         units={units}
                         godowns={godowns}
                     />
+                </div>
             </div>
         </AppLayout>
     );

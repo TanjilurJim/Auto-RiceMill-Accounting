@@ -98,55 +98,57 @@ export default function UnitIndex({ units }: { units: PaginatedUnits }) {
     return (
         <AppLayout>
             <Head title="Unit Manage" />
-            <div className="bg-gray-100">
-                <div className="flex flex-col-reverse justify-between gap-4 p-6 md:flex-row">
-                    {/* Left: List */}
-                    <div className="col-span-2 space-y-4 rounded bg-white p-4 shadow md:w-2/3">
-                        <PageHeader title="Unit Manage" />
-                        <TableComponent
-                            columns={columns}
-                            data={units.data}
-                            noDataMessage="No units found."
-                        />
-
-                        {/* Pagination */}
-                        <Pagination
-                            links={units.links}
-                            currentPage={units.current_page}
-                            lastPage={units.last_page}
-                            total={units.total}
-                        />
-                    </div>
-
-                    {/* Right: Form */}
-                    <div className="rounded bg-white p-4 shadow md:w-1/3">
-                        <PageHeader title={editUnit ? 'Edit Unit' : 'Add Unit'} />
-                        <form onSubmit={handleSubmit} className="space-y-3">
-                            <input
-                                type="text"
-                                placeholder="Unit Name"
-                                value={data.name}
-                                onChange={(e) => setData('name', e.target.value)}
-                                className="w-full rounded border p-2"
+            <div className="h-full bg-gray-100 p-6">
+                <div className="h-full bg-white rounded-lg p-6">
+                    <div className="flex flex-col-reverse justify-between gap-4 md:flex-row h-full">
+                        {/* Left: List */}
+                        <div className="col-span-2 space-y-4 rounded bg-white p-4 shadow border md:w-2/3">
+                            <PageHeader title="Unit Manage" />
+                            <TableComponent
+                                columns={columns}
+                                data={units.data}
+                                noDataMessage="No units found."
                             />
-                            {errors.name && <p className="text-sm text-red-500">{errors.name}</p>}
 
-                            <div className="flex justify-between">
-                                {editUnit ? (
-                                    <ActionFooter
-                                        className='w-full justify-between'
-                                        onSubmit={handleSubmit}
-                                        onCancel={handleCancel}
-                                        processing={processing}
-                                        submitText="Update"
-                                        cancelText="Cancel"
-                                    />
+                            {/* Pagination */}
+                            <Pagination
+                                links={units.links}
+                                currentPage={units.current_page}
+                                lastPage={units.last_page}
+                                total={units.total}
+                            />
+                        </div>
 
-                                ) : (
-                                    <AddBtn processing={processing} children="Add Unit" />
-                                )}
-                            </div>
-                        </form>
+                        {/* Right: Form */}
+                        <div className="rounded bg-white p-4 shadow border md:w-1/3">
+                            <PageHeader title={editUnit ? 'Edit Unit' : 'Add Unit'} />
+                            <form onSubmit={handleSubmit} className="space-y-3">
+                                <input
+                                    type="text"
+                                    placeholder="Unit Name"
+                                    value={data.name}
+                                    onChange={(e) => setData('name', e.target.value)}
+                                    className="w-full rounded border p-2"
+                                />
+                                {errors.name && <p className="text-sm text-red-500">{errors.name}</p>}
+
+                                <div className="flex justify-between">
+                                    {editUnit ? (
+                                        <ActionFooter
+                                            className='w-full justify-between'
+                                            onSubmit={handleSubmit}
+                                            onCancel={handleCancel}
+                                            processing={processing}
+                                            submitText="Update"
+                                            cancelText="Cancel"
+                                        />
+
+                                    ) : (
+                                        <AddBtn processing={processing} children="Add Unit" />
+                                    )}
+                                </div>
+                            </form>
+                        </div>
                     </div>
                 </div>
             </div>

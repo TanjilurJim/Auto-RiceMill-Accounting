@@ -1,9 +1,7 @@
-import ActionFooter from '@/components/ActionFooter';
-import InputCheckbox from '@/components/Btn&Link/InputCheckbox';
 import AccountLedgerForm from '@/components/Form/AccountLedgerForm';
 import PageHeader from '@/components/PageHeader';
 import AppLayout from '@/layouts/app-layout';
-import { Head, Link, useForm } from '@inertiajs/react';
+import { Head, useForm } from '@inertiajs/react';
 
 export default function EditAccountLedger({
     ledger,
@@ -43,8 +41,8 @@ export default function EditAccountLedger({
     return (
         <AppLayout>
             <Head title="Edit Account Ledger" />
-            <div className="flex items-center justify-center bg-gray-100">
-                <div className="w-full max-w-4xl p-6">
+            <div className="h-full p-6 bg-gray-100">
+                <div className="h-full p-6 rounded-lg bg-white">
                     <PageHeader title="Edit Account Ledger" addLinkHref="/account-ledgers" addLinkText="Back" />
 
                     <AccountLedgerForm

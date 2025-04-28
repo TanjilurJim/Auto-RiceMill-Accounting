@@ -43,17 +43,18 @@ export default function GodownIndex({ godowns }: { godowns: PaginatedGodowns }) 
     return (
         <AppLayout>
             <Head title="All List Of Godowns" />
-            <div className="p-6 bg-gray-100 w-screen lg:w-full">
-                {/* Use the PageHeader component */}
-                <PageHeader title='All List Of Godowns' addLinkHref='/godowns/create' addLinkText="+ Add New" />
+            <div className="p-6 h-full bg-gray-100 w-screen lg:w-full">
+                <div className="h-full bg-white rounded-lg p-6">
+                    {/* Use the PageHeader component */}
+                    <PageHeader title='All List Of Godowns' addLinkHref='/godowns/create' addLinkText="+ Add New" />
 
-                {/* 🔍 Search Bar */}
-                <div className="mb-4">
-                    <SearchBar endpoint="/godowns" placeholder="Search godowns..." />
-                </div>
+                    {/* 🔍 Search Bar */}
+                    <div className="mb-4">
+                        <SearchBar endpoint="/godowns" placeholder="Search godowns..." />
+                    </div>
 
-                {/* Table */}
-                <TableComponent
+                    {/* Table */}
+                    <TableComponent
                         columns={columns}
                         data={godowns.data}
                         actions={(godown) => (
@@ -72,6 +73,7 @@ export default function GodownIndex({ godowns }: { godowns: PaginatedGodowns }) 
                         lastPage={godowns.last_page}
                         total={godowns.total}
                     />
+                </div>
 
 
             </div>

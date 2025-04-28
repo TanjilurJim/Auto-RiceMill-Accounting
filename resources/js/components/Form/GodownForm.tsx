@@ -24,7 +24,7 @@ const GodownForm: React.FC<GodownFormProps> = ({
     cancelHref,
 }) => {
     return (
-        <form onSubmit={handleSubmit} className="space-y-4 rounded bg-white p-4 shadow dark:bg-neutral-900">
+        <form onSubmit={handleSubmit} className="space-y-4 rounded bg-white p-4 shadow dark:bg-neutral-900 border">
             {/* Godown Name */}
             <div>
                 <label htmlFor="name" className="mb-1 block font-medium">

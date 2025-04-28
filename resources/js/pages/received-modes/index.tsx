@@ -50,8 +50,8 @@ export default function Index({
     const columns = [
         { header: 'SL', accessor: (_: ReceivedMode, index?: number) => <span>{(index ?? 0) + 1}</span>, className: 'text-center' },
         { header: 'Mode Name', accessor: 'mode_name' },
-        { header: 'Opening Balance', accessor: 'opening_balance' },
-        { header: 'Closing Balance', accessor: 'closing_balance' },
+        // { header: 'Opening Balance', accessor: 'opening_balance' },
+        // { header: 'Closing Balance', accessor: 'closing_balance' },
         { header: 'Phone Number', accessor: 'phone_number' },
     ];
 

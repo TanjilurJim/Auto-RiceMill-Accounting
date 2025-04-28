@@ -19,8 +19,8 @@ export default function CreateSalesman() {
     return (
         <AppLayout>
             <Head title="Create Salesman" />
-            <div className="flex items-center justify-center bg-gray-100">
-                <div className="w-full max-w-xl p-6">
+            <div className="h-full bg-gray-100 p-6">
+                <div className="h-full bg-white rounded-lg p-6">
                     <PageHeader title='Add New Salesman' addLinkHref='/salesmen' addLinkText="Back" />
 
                     <SalesmanForm

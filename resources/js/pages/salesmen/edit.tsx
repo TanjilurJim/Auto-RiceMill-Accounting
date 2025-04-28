@@ -19,8 +19,8 @@ export default function EditSalesman({ salesman }: { salesman: any }) {
     return (
         <AppLayout>
             <Head title="Edit Salesman" />
-            <div className="flex items-center justify-center bg-gray-100">
-                <div className="w-full max-w-xl p-6">
+            <div className="h-full bg-gray-100 p-6">
+                <div className="h-full bg-white rounded-lg p-6">
                     <PageHeader title='Edit Salesman' addLinkHref='/salesmen' addLinkText="Back" />
 
                     <SalesmanForm
@@ -33,7 +33,7 @@ export default function EditSalesman({ salesman }: { salesman: any }) {
                         cancelHref="/salesmen"
                         salesmanCode={salesman.salesman_code} // Pass the salesman code for display
                     />
-                    
+
                 </div>
             </div>
         </AppLayout>

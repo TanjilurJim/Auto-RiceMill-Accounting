@@ -28,7 +28,7 @@ const SalesmanForm: React.FC<SalesmanFormProps> = ({
     salesmanCode,
 }) => {
     return (
-        <form onSubmit={handleSubmit} className="space-y-4 rounded bg-white p-4 shadow dark:bg-neutral-900">
+        <form onSubmit={handleSubmit} className="space-y-4 rounded-lg bg-white p-4  dark:bg-neutral-900 border">
             {/* Salesman Code (Readonly for Edit Form) */}
             {salesmanCode && (
                 <div>

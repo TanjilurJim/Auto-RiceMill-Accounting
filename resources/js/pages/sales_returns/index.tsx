@@ -54,30 +54,32 @@ export default function SalesReturnIndex({ salesReturns }: { salesReturns: Pagin
   return (
     <AppLayout>
       <Head title="All Sales Returns" />
-      <div className="bg-gray-100 p-6 w-screen md:w-full">
+      <div className="bg-gray-100 p-6 h-full w-screen lg:w-full">
+        <div className="bg-white h-full rounded-lg p-6">
 
-        <PageHeader title='Sales Return List' addLinkHref='/sales-returns/create' addLinkText='+ Add Sales Return' />
+          <PageHeader title='Sales Return List' addLinkHref='/sales-returns/create' addLinkText='+ Add Sales Return' />
 
-        <TableComponent
-          columns={columns}
-          data={salesReturns.data}
-          actions={(row: SalesReturn) => (
-            <ActionButtons
-              editHref={`/sales-returns/${row.id}/edit`}
-              onDelete={() => handleDelete(row.id)}
-              printHref={`/sales-returns/${row.id}/invoice`}
-              printText="Print"
-            />
-          )}
-        />
+          <TableComponent
+            columns={columns}
+            data={salesReturns.data}
+            actions={(row: SalesReturn) => (
+              <ActionButtons
+                editHref={`/sales-returns/${row.id}/edit`}
+                onDelete={() => handleDelete(row.id)}
+                printHref={`/sales-returns/${row.id}/invoice`}
+                printText="Print"
+              />
+            )}
+          />
 
-        {/* Pagination */}
-        <Pagination
-          links={salesReturns.links}
-          currentPage={salesReturns.current_page}
-          lastPage={salesReturns.last_page}
-          total={salesReturns.total}
-        />
+          {/* Pagination */}
+          <Pagination
+            links={salesReturns.links}
+            currentPage={salesReturns.current_page}
+            lastPage={salesReturns.last_page}
+            total={salesReturns.total}
+          />
+        </div>
       </div>
     </AppLayout>
   );

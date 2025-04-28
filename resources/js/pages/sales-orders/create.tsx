@@ -91,10 +91,9 @@ export default function SalesOrderCreate({ ledgers, salesmen, products, units, g
 
     return (
         <AppLayout>
-            <div className="bg-gray-100 p-6 w-screen md:w-full">
-                <Head title="Create Sales Order" />
-                
-                <div className="rounded border border-gray-200 bg-white p-6 shadow-md">
+            <Head title="Create Sales Order" />
+            <div className="bg-gray-100 p-6 h-full w-screen lg:w-full">
+                <div className="bg-white h-full rounded-lg p-6">
                     {/* <h2 className="mb-6 border-b pb-2 text-2xl font-bold text-gray-800">Create Sales Order</h2> */}
 
                     <PageHeader title='Create Sales Order' addLinkHref='/sales-orders' addLinkText='Back' />

@@ -37,7 +37,7 @@ const ItemForm: React.FC<ItemFormProps> = ({
     godowns,
 }) => {
     return (
-        <form onSubmit={handleSubmit} className="space-y-4 bg-white p-6 rounded shadow-md">
+        <form onSubmit={handleSubmit} className="space-y-4 bg-white p-6 rounded border">
             <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
                 {/* Item Name */}
                 <div>

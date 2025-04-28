@@ -44,23 +44,25 @@ export default function SalesmanIndex({ salesmen }: { salesmen: Salesman[] }) {
     return (
         <AppLayout>
             <Head title="All Salesmen" />
-            <div className="p-6 w-screen lg:w-full bg-gray-100">
+            <div className="p-6 h-full w-screen lg:w-full bg-gray-100">
 
-                {/* Use the PageHeader component */}
-                <PageHeader title='All Salesmen' addLinkHref='/salesmen/create' addLinkText="+ Add New"/>
+                <div className="h-full bg-white rounded-lg p-6">
+                    {/* Use the PageHeader component */}
+                    <PageHeader title='All Salesmen' addLinkHref='/salesmen/create' addLinkText="+ Add New" />
 
-                {/* Responsive Table */}
-                <TableComponent
-                    columns={columns}
-                    data={salesmen}
-                    actions={(salesman) => (
-                        <ActionButtons
-                            editHref={`/salesmen/${salesman.id}/edit`}
-                            onDelete={() => handleDelete(salesman.id)}
-                        />
-                    )}
-                    noDataMessage="No salesmen found."
-                />
+                    {/* Responsive Table */}
+                    <TableComponent
+                        columns={columns}
+                        data={salesmen}
+                        actions={(salesman) => (
+                            <ActionButtons
+                                editHref={`/salesmen/${salesman.id}/edit`}
+                                onDelete={() => handleDelete(salesman.id)}
+                            />
+                        )}
+                        noDataMessage="No salesmen found."
+                    />
+                </div>
 
             </div>
         </AppLayout>

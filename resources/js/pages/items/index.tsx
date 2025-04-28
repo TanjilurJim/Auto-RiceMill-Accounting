@@ -66,26 +66,28 @@ export default function ItemIndex({ items }: { items: PaginatedItems }) {
     return (
         <AppLayout>
             <Head title="Items" />
-            <div className="p-6 w-screen lg:w-full bg-gray-100">
+            <div className="p-6 h-full w-screen lg:w-full bg-gray-100">
 
-                {/* Use the PageHeader component */}
-                <PageHeader title='All Items' addLinkHref='/items/create' addLinkText="+ Add New" />
+                <div className="h-full bg-white rounded-lg p-6">
+                    {/* Use the PageHeader component */}
+                    <PageHeader title='All Items' addLinkHref='/items/create' addLinkText="+ Add New" />
 
 
-                {/* Table */}
-                <TableComponent
-                    columns={columns}
-                    data={items.data}
-                    noDataMessage="No items found."
-                />
+                    {/* Table */}
+                    <TableComponent
+                        columns={columns}
+                        data={items.data}
+                        noDataMessage="No items found."
+                    />
 
-                {/* Pagination */}
-                <Pagination
-                    links={items.links}
-                    currentPage={items.current_page}
-                    lastPage={items.last_page}
-                    total={items.total}
-                />
+                    {/* Pagination */}
+                    <Pagination
+                        links={items.links}
+                        currentPage={items.current_page}
+                        lastPage={items.last_page}
+                        total={items.total}
+                    />
+                </div>
 
             </div>
         </AppLayout>

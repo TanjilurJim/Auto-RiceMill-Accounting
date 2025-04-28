@@ -193,330 +193,340 @@ export default function PurchaseCreate({
     return (
         <AppLayout>
             <Head title="Add Purchase" />
-            <div className="w-screen bg-gray-100 p-6 lg:w-full">
-                <PageHeader title="Purchase Information" addLinkHref="/purchases" addLinkText="Back" />
+            <div className="bg-gray-100 p-6 h-full w-screen lg:w-full">
+                <div className="bg-white h-full rounded-lg p-6">
+                    <PageHeader title="Purchase Information" addLinkHref="/purchases" addLinkText="Back" />
 
-                {/* Form Card */}
-                <form onSubmit={handleSubmit} className="space-y-6 rounded bg-white p-6 shadow-md">
-                    {/* Section 1 - Purchase Info */}
-                    <div className="space-y-4">
-                        <h2 className="border-b pb-1 text-lg font-semibold">Purchase Information</h2>
-                        <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-                            {/* Date */}
-                            <input
-                                type="date"
-                                className="${errors.godown_id ? 'border-red-500' : 'border-gray-300'} border p-2"
-                                placeholder="Date"
-                                value={data.date}
-                                onChange={(e) => setData('date', e.target.value)}
-                            />
+                    {/* Form Card */}
+                    <form onSubmit={handleSubmit} className="space-y-6 rounded-lg bg-white p-6 shadow-md border">
+                        {/* Section 1 - Purchase Info */}
+                        <div className="space-y-4">
+                            <h2 className="border-b pb-1 text-lg font-semibold">Purchase Information</h2>
+                            <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+                                {/* Date */}
+                                <input
+                                    type="date"
+                                    className="${errors.godown_id ? 'border-red-500' : 'border-gray-300'} border p-2"
+                                    placeholder="Date"
+                                    value={data.date}
+                                    onChange={(e) => setData('date', e.target.value)}
+                                />
 
-                            {/* Voucher No */}
-                            <input
-                                type="text"
-                                className="border p-2"
-                                placeholder="Voucher No"
-                                value={data.voucher_no}
-                                onChange={(e) => setData('voucher_no', e.target.value)}
-                                readOnly // Optional, remove 'readOnly' if you want to allow manual edits
-                            />
-                            {errors.voucher_no && <p className="mt-1 text-sm text-red-500">{errors.voucher_no}</p>}
+                                {/* Voucher No */}
+                                <input
+                                    type="text"
+                                    className="border p-2"
+                                    placeholder="Voucher No"
+                                    value={data.voucher_no}
+                                    onChange={(e) => setData('voucher_no', e.target.value)}
+                                    readOnly // Optional, remove 'readOnly' if you want to allow manual edits
+                                />
+                                {errors.voucher_no && <p className="mt-1 text-sm text-red-500">{errors.voucher_no}</p>}
 
-                            {/* Godown */}
-                            <select
-                                name="godown_id" //  👈 name is important for scroll
-                                className={cn(
-                                    'w-full border p-2',
-                                    errors.godown_id && 'border-red-500', //  red border if error
-                                )}
-                                value={data.godown_id}
-                                onChange={(e) => setData('godown_id', e.target.value)}
-                            >
-                                <option value="">Select Godown</option>
-                                {godowns.map((g) => (
-                                    <option key={g.id} value={g.id}>
-                                        {g.name}
-                                    </option>
-                                ))}
-                            </select>
-
-                            {errors.godown_id && <p className="mt-1 text-sm text-red-500">{errors.godown_id}</p>}
-
-                            {/* Salesman */}
-                            <select className="border p-2" value={data.salesman_id} onChange={(e) => setData('salesman_id', e.target.value)}>
-                                <option value="">Select Salesman</option>
-                                {salesmen.map((s) => (
-                                    <option key={s.id} value={s.id}>
-                                        {s.name}
-                                    </option>
-                                ))}
-                            </select>
-
-                            <div>
-                                {/* Party Ledger */}
+                                {/* Godown */}
                                 <select
-                                    className="border p-2 w-full h-fit"
-                                    value={data.account_ledger_id}
-                                    onChange={(e) => {
-                                        const val = e.target.value;
-                                        setData('account_ledger_id', val);
-                                        fetchBalance(val, 'party'); // ☑ now hits the new route
-                                    }}
+                                    name="godown_id" //  👈 name is important for scroll
+                                    className={cn(
+                                        'w-full border p-2',
+                                        errors.godown_id && 'border-red-500', //  red border if error
+                                    )}
+                                    value={data.godown_id}
+                                    onChange={(e) => setData('godown_id', e.target.value)}
                                 >
-                                    <option value="">Select Party Ledger</option>
-                                    {ledgers.map((l) => (
-                                        <option key={l.id} value={l.id}>
-                                            {l.account_ledger_name}
+                                    <option value="">Select Godown</option>
+                                    {godowns.map((g) => (
+                                        <option key={g.id} value={g.id}>
+                                            {g.name}
                                         </option>
                                     ))}
                                 </select>
 
-                                {/* Party balance label – put directly after the select */}
-                                {partyBalance !== null && (
-                                    <div className="col-span-2 text-xs text-gray-600 py-0.5">Party Balance: {Number(partyBalance).toFixed(2)}</div>
-                                )}
-                            </div>
+                                {errors.godown_id && <p className="mt-1 text-sm text-red-500">{errors.godown_id}</p>}
 
-                            {/* Inventory Ledger */}
-                            <div className="flex h-fit w-full flex-col items-center gap-2 md:flex-row">
-                                <select
-                                    className={`${errors.godown_id ? 'border-red-500' : 'border-gray-300'} h-full w-full border p-2`}
-                                    value={data.inventory_ledger_id}
-                                    onChange={(e) => setData('inventory_ledger_id', e.target.value)}
-                                >
-                                    <option value="">Select Inventory Ledger</option>
-                                    {ledgers.map((l) => (
-                                        <option key={l.id} value={l.id}>
-                                            {l.account_ledger_name}
+                                {/* Salesman */}
+                                <select className="border p-2" value={data.salesman_id} onChange={(e) => setData('salesman_id', e.target.value)}>
+                                    <option value="">Select Salesman</option>
+                                    {salesmen.map((s) => (
+                                        <option key={s.id} value={s.id}>
+                                            {s.name}
                                         </option>
                                     ))}
                                 </select>
 
-                                {inventoryBalance !== null && (
-                                    <div className="mt-1 text-xs text-gray-600">Inventory Balance: {Number(inventoryBalance).toFixed(2)}</div>
-                                )}
+                                <div>
+                                    {/* Party Ledger */}
+                                    <select
+                                        className="border p-2 w-full h-fit"
+                                        value={data.account_ledger_id}
+                                        onChange={(e) => {
+                                            const val = e.target.value;
+                                            setData('account_ledger_id', val);
+                                            fetchBalance(val, 'party'); // ☑ now hits the new route
+                                        }}
+                                    >
+                                        <option value="">Select Party Ledger</option>
+                                        {ledgers.map((l) => (
+                                            <option key={l.id} value={l.id}>
+                                                {l.account_ledger_name}
+                                            </option>
+                                        ))}
+                                    </select>
 
-                                {/* Placeholder for Add Button — next step will handle modal */}
-                                <button
-                                    type="button"
-                                    className="h-full w-full rounded bg-blue-500 p-2 text-white"
-                                    onClick={() => setShowLedgerModal(true)}
-                                >
-                                    + Create New Ledger
-                                </button>
+                                    {/* Party balance label – put directly after the select */}
+                                    {partyBalance !== null && (
+                                        <div className="col-span-2 text-xs text-gray-600 py-0.5">Party Balance: {Number(partyBalance).toFixed(2)}</div>
+                                    )}
+                                </div>
+
+                                {/* Inventory Ledger */}
+                                <div className="flex h-fit w-full flex-col items-center gap-2 md:flex-row">
+                                    <select
+                                        className={`${errors.godown_id ? 'border-red-500' : 'border-gray-300'} h-full w-full border p-2`}
+                                        value={data.inventory_ledger_id}
+                                        onChange={(e) => setData('inventory_ledger_id', e.target.value)}
+                                    >
+                                        <option value="">Select Inventory Ledger</option>
+                                        {ledgers.map((l) => (
+                                            <option key={l.id} value={l.id}>
+                                                {l.account_ledger_name}
+                                            </option>
+                                        ))}
+                                    </select>
+
+                                    {inventoryBalance !== null && (
+                                        <div className="mt-1 text-xs text-gray-600">Inventory Balance: {Number(inventoryBalance).toFixed(2)}</div>
+                                    )}
+
+                                    {/* Placeholder for Add Button — next step will handle modal */}
+                                    <button
+                                        type="button"
+                                        className="h-full w-full rounded bg-blue-500 p-2 text-white"
+                                        onClick={() => setShowLedgerModal(true)}
+                                    >
+                                        + Create New Ledger
+                                    </button>
+                                </div>
+
+                                {/* Phone and Address Inputs */}
+                                <input
+                                    type="text"
+                                    className="border p-2"
+                                    placeholder="Phone"
+                                    value={data.phone}
+                                    onChange={(e) => setData('phone', e.target.value)}
+                                />
+                                <input
+                                    type="text"
+                                    className="border p-2"
+                                    placeholder="Address"
+                                    value={data.address}
+                                    onChange={(e) => setData('address', e.target.value)}
+                                />
                             </div>
-
-                            {/* Phone and Address Inputs */}
-                            <input
-                                type="text"
-                                className="border p-2"
-                                placeholder="Phone"
-                                value={data.phone}
-                                onChange={(e) => setData('phone', e.target.value)}
-                            />
-                            <input
-                                type="text"
-                                className="border p-2"
-                                placeholder="Address"
-                                value={data.address}
-                                onChange={(e) => setData('address', e.target.value)}
-                            />
                         </div>
-                    </div>
 
-                    {/* Section 2 - Product Table */}
-                    <div>
-                        <h2 className="mb-3 border-b bg-gray-100 pb-1 text-lg font-semibold">Products</h2>
-                        <div className="overflow-x-auto rounded border">
-                            <table className="min-w-full text-left">
-                                <thead className="bg-gray-50 text-sm">
-                                    <tr>
-                                        <th className="border px-2 py-1">Product</th>
-                                        <th className="border px-2 py-1">Qty</th>
-                                        <th className="border px-2 py-1">Price</th>
-                                        <th className="border px-2 py-1">Discount</th>
-                                        <th className="border px-2 py-1">Type</th>
-                                        <th className="border px-2 py-1">Subtotal</th>
-                                        <th className="border px-2 py-1 text-center">Action</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    {data.purchase_items.map((item, index) => (
-                                        <tr key={index} className="hover:bg-gray-50">
-                                            <td className="border px-2 py-1">
-                                                <select
-                                                    className="w-full"
-                                                    value={item.product_id}
-                                                    onChange={(e) => handleItemChange(index, 'product_id', e.target.value)}
-                                                >
-                                                    <option value="">Select</option>
-                                                    {godownItems.map((stock) => (
-                                                        <option key={stock.item.id} value={stock.item.id}>
-                                                            {stock.item.item_name} ({stock.qty} in stock)
-                                                        </option>
-                                                    ))}
-                                                </select>
-                                                {/* Projected stock AFTER this purchase */}
-                                                {item.product_id && (
-                                                    <div className="text-xs text-gray-500">
-                                                        Projected stock:&nbsp;
-                                                        {(
-                                                            (parseFloat(godownItems.find((s) => s.item.id == item.product_id)?.qty as any) || 0) +
-                                                            (parseFloat(item.qty) || 0)
-                                                        ).toFixed(2)}
-                                                    </div>
-                                                )}
-                                            </td>
-                                            <td className="border px-2 py-1">
-                                                <input
-                                                    type="number"
-                                                    className="w-full"
-                                                    value={item.qty}
-                                                    onChange={(e) => handleItemChange(index, 'qty', e.target.value)}
-                                                />
-                                            </td>
-                                            <td className="border px-2 py-1">
-                                                <input
-                                                    type="number"
-                                                    className="w-full"
-                                                    value={item.price}
-                                                    onChange={(e) => handleItemChange(index, 'price', e.target.value)}
-                                                />
-                                            </td>
-                                            <td className="border px-2 py-1">
-                                                <input
-                                                    type="number"
-                                                    className="w-full"
-                                                    value={item.discount}
-                                                    onChange={(e) => handleItemChange(index, 'discount', e.target.value)}
-                                                />
-                                            </td>
-                                            <td className="border px-2 py-1">
-                                                <select
-                                                    className="w-full"
-                                                    value={item.discount_type}
-                                                    onChange={(e) => handleItemChange(index, 'discount_type', e.target.value)}
-                                                >
-                                                    <option value="bdt">BDT</option>
-                                                    <option value="percent">%</option>
-                                                </select>
-                                            </td>
-                                            <td className="border px-2 py-1">
-                                                <input type="number" className="w-full bg-gray-100" value={item.subtotal} readOnly />
-                                            </td>
-                                            <td className="border px-2 py-1 text-center">
-                                                <div className="flex justify-center space-x-1">
-                                                    {data.purchase_items.length > 1 && (
-                                                        <button
-                                                            type="button"
-                                                            onClick={() => removeProductRow(index)}
-                                                            className="bg-danger hover:bg-danger-hover rounded px-2 py-1 text-white"
-                                                        >
-                                                            &minus;
-                                                        </button>
-                                                    )}
-                                                    {index === data.purchase_items.length - 1 && (
-                                                        <button
-                                                            type="button"
-                                                            onClick={addProductRow}
-                                                            className="bg-primary hover:bg-primary-hover rounded px-2 py-1 text-white"
-                                                        >
-                                                            +
-                                                        </button>
-                                                    )}
-                                                </div>
-                                            </td>
+                        {/* Section 2 - Product Table */}
+                        <div>
+                            <h2 className="mb-3 border-b bg-gray-100 pb-1 text-lg font-semibold">Products</h2>
+                            <div className="overflow-x-auto rounded border">
+                                <table className="min-w-full text-left">
+                                    <thead className="bg-gray-50 text-sm">
+                                        <tr>
+                                            <th className="border px-2 py-1">Product</th>
+                                            <th className="border px-2 py-1">Qty</th>
+                                            <th className="border px-2 py-1">Price</th>
+                                            <th className="border px-2 py-1">Discount</th>
+                                            <th className="border px-2 py-1">Type</th>
+                                            <th className="border px-2 py-1">Subtotal</th>
+                                            <th className="border px-2 py-1 text-center">Action</th>
                                         </tr>
-                                    ))}
-                                </tbody>
-                            </table>
+                                    </thead>
+                                    <tbody>
+                                        {data.purchase_items.map((item, index) => (
+                                            <tr key={index} className="hover:bg-gray-50">
+                                                <td className="border px-2 py-1">
+                                                    <select
+                                                        className="w-full"
+                                                        value={item.product_id}
+                                                        onChange={(e) => handleItemChange(index, 'product_id', e.target.value)}
+                                                    >
+                                                        <option value="">Select</option>
+                                                        {godownItems.map((stock) => (
+                                                            <option key={stock.item.id} value={stock.item.id}>
+                                                                {stock.item.item_name} ({stock.qty} in stock)
+                                                            </option>
+                                                        ))}
+                                                    </select>
+                                                    {/* Projected stock AFTER this purchase */}
+                                                    {item.product_id && (
+                                                        <div className="text-xs text-gray-500">
+                                                            Projected stock:&nbsp;
+                                                            {(
+                                                                (parseFloat(godownItems.find((s) => s.item.id == item.product_id)?.qty as any) || 0) +
+                                                                (parseFloat(item.qty) || 0)
+                                                            ).toFixed(2)}
+                                                        </div>
+                                                    )}
+                                                </td>
+                                                <td className="border px-2 py-1">
+                                                    <input
+                                                        type="number"
+                                                        className="w-full"
+                                                        value={item.qty}
+                                                        onChange={(e) => handleItemChange(index, 'qty', e.target.value)}
+                                                    />
+                                                </td>
+                                                <td className="border px-2 py-1">
+                                                    <input
+                                                        type="number"
+                                                        className="w-full"
+                                                        value={item.price}
+                                                        onChange={(e) => handleItemChange(index, 'price', e.target.value)}
+                                                    />
+                                                </td>
+                                                <td className="border px-2 py-1">
+                                                    <input
+                                                        type="number"
+                                                        className="w-full"
+                                                        value={item.discount}
+                                                        onChange={(e) => handleItemChange(index, 'discount', e.target.value)}
+                                                    />
+                                                </td>
+                                                <td className="border px-2 py-1">
+                                                    <select
+                                                        className="w-full"
+                                                        value={item.discount_type}
+                                                        onChange={(e) => handleItemChange(index, 'discount_type', e.target.value)}
+                                                    >
+                                                        <option value="bdt">BDT</option>
+                                                        <option value="percent">%</option>
+                                                    </select>
+                                                </td>
+                                                <td className="border px-2 py-1">
+                                                    <input type="number" className="w-full bg-gray-100" value={item.subtotal} readOnly />
+                                                </td>
+                                                <td className="border px-2 py-1 text-center">
+                                                    <div className="flex justify-center space-x-1">
+                                                        {data.purchase_items.length > 1 && (
+                                                            <button
+                                                                type="button"
+                                                                onClick={() => removeProductRow(index)}
+                                                                className="bg-danger hover:bg-danger-hover rounded px-2 py-1 text-white"
+                                                            >
+                                                                &minus;
+                                                            </button>
+                                                        )}
+                                                        {index === data.purchase_items.length - 1 && (
+                                                            <button
+                                                                type="button"
+                                                                onClick={addProductRow}
+                                                                className="bg-primary hover:bg-primary-hover rounded px-2 py-1 text-white"
+                                                            >
+                                                                +
+                                                            </button>
+                                                        )}
+                                                    </div>
+                                                </td>
+                                            </tr>
+                                        ))}
+                                    </tbody>
+                                </table>
+                            </div>
                         </div>
-                    </div>
 
-                    {/* Payment Info Section */}
-                    <div className="mt-8 space-y-4 border-t pt-4">
-                        <h2 className="text-lg font-semibold">Payment Info</h2>
+                        {/* Payment Info Section */}
+                        <div className="mt-8 space-y-4 border-t pt-4">
+                            <h2 className="text-lg font-semibold">Payment Info</h2>
 
-                        <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-                            <div>
-                                <select
-                                    className="border p-2 w-full h-fit"
-                                    value={data.received_mode_id}
-                                    onChange={(e) => {
-                                        const modeId = e.target.value;
-                                        setData('received_mode_id', modeId);
+                            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                                {/* Payment Mode */}
+                                <div className="col-span-1">
+                                    <label className="block text-sm font-medium text-gray-700">Payment Mode</label>
+                                    <select
+                                        className="border p-2 w-full rounded"
+                                        value={data.received_mode_id}
+                                        onChange={(e) => {
+                                            const modeId = e.target.value;
+                                            setData('received_mode_id', modeId);
 
-                                        const selectedMode = receivedModes.find((m) => m.id == Number(modeId));
-                                        if (selectedMode?.ledger_id) {
-                                            fetchBalance(selectedMode.ledger_id.toString(), 'payment');
-                                        } else {
-                                            setPaymentLedgerBalance(null);
-                                        }
-                                    }}
-                                >
-                                    <option value="">Select Payment Mode</option>
-                                    {receivedModes.map((mode) => (
-                                        <option key={mode.id} value={mode.id}>
-                                            {mode.mode_name}
-                                        </option>
-                                    ))}
-                                </select>
-                                {paymentLedgerBalance !== null && (
-                                    <div className="mt-1 text-xs text-gray-600 w-full">Payment Ledger Balance: {Number(paymentLedgerBalance).toFixed(2)}</div>
-                                )}
+                                            const selectedMode = receivedModes.find((m) => m.id == Number(modeId));
+                                            if (selectedMode?.ledger_id) {
+                                                fetchBalance(selectedMode.ledger_id.toString(), 'payment');
+                                            } else {
+                                                setPaymentLedgerBalance(null);
+                                            }
+                                        }}
+                                    >
+                                        <option value="">Select Payment Mode</option>
+                                        {receivedModes.map((mode) => (
+                                            <option key={mode.id} value={mode.id}>
+                                                {mode.mode_name}
+                                            </option>
+                                        ))}
+                                    </select>
+                                    {paymentLedgerBalance !== null && (
+                                        <div className="mt-1 text-xs text-gray-600 w-full">
+                                            Payment Ledger Balance: {Number(paymentLedgerBalance).toFixed(2)}
+                                        </div>
+                                    )}
+                                </div>
+
+                                {/* Amount Paid */}
+                                <div className="col-span-1">
+                                    <label className="block text-sm font-medium text-gray-700">Amount Paid</label>
+                                    <input
+                                        type="number"
+                                        className="border p-2 w-full rounded"
+                                        placeholder="Amount Paid"
+                                        value={data.amount_paid}
+                                        onChange={(e) => {
+                                            const val = e.target.value;
+                                            if (parseFloat(val) > grandTotal) {
+                                                setData('amount_paid', grandTotal.toString());
+                                            } else {
+                                                setData('amount_paid', val);
+                                            }
+                                        }}
+                                    />
+                                </div>
+
+                                {/* Remaining Due */}
+                                <div className="col-span-1 sm:col-span-2 lg:col-span-3 text-xs text-red-600">
+                                    <label className="block text-sm font-medium text-gray-700">Remaining Due</label>
+                                    <div>{remainingDue.toFixed(2)}</div>
+                                </div>
                             </div>
 
-                            <input
-                                type="number"
-                                className="border p-2 h-fit"
-                                placeholder="Amount Paid"
-                                value={data.amount_paid}
-                                onChange={(e) => {
-                                    /* optionally clamp to grandTotal */
-                                    const val = e.target.value;
-                                    if (parseFloat(val) > grandTotal) {
-                                        setData('amount_paid', grandTotal.toString());
-                                    } else {
-                                        setData('amount_paid', val);
-                                    }
-                                }}
-                            />
-
-                            {/* NEW: Remaining Due label, full row */}
-                            <div className="col-span-2 text-xs text-red-600">
-                                Remaining Due:&nbsp;
-                                {remainingDue.toFixed(2)}
-                            </div>
                         </div>
-                    </div>
-                    <hr />
+                        <hr />
 
-                    {/* Totals Section */}
-                    <div className="mt-6 grid grid-cols-1 gap-6 md:grid-cols-3">
-                        <div className="space-y-3">
-                            <div className="flex justify-between rounded border bg-gray-50 p-3 shadow-sm">
-                                <span className="font-semibold text-gray-700">Item Qty Total:</span>
-                                <span className="font-semibold">
-                                    {data.purchase_items.reduce((sum, item) => sum + (parseFloat(item.qty) || 0), 0)}
-                                </span>
-                            </div>
-                            <div className="flex justify-between rounded border bg-gray-50 p-3 shadow-sm">
-                                <span className="font-semibold text-gray-700">Total Discount:</span>
-                                <span className="font-semibold">
-                                    {data.purchase_items.reduce((sum, item) => sum + (parseFloat(item.discount) || 0), 0)}
-                                </span>
-                            </div>
-                            <div className="flex justify-between rounded border bg-gray-50 p-3 shadow-sm">
-                                <span className="font-semibold text-gray-700">All Total Amount:</span>
-                                <span className="font-semibold">
-                                    {data.purchase_items.reduce((sum, item) => sum + (parseFloat(item.subtotal) || 0), 0)}
-                                </span>
+                        {/* Totals Section */}
+                        <div className="mt-6">
+                            <div className="grid grid-cols- gap-6 md:grid-cols-3">
+                                <div className="flex justify-between rounded border bg-gray-50 p-3 shadow-sm">
+                                    <span className="font-semibold text-gray-700">Item Qty Total:</span>
+                                    <span className="font-semibold">
+                                        {data.purchase_items.reduce((sum, item) => sum + (parseFloat(item.qty) || 0), 0)}
+                                    </span>
+                                </div>
+                                <div className="flex justify-between rounded border bg-gray-50 p-3 shadow-sm">
+                                    <span className="font-semibold text-gray-700">Total Discount:</span>
+                                    <span className="font-semibold">
+                                        {data.purchase_items.reduce((sum, item) => sum + (parseFloat(item.discount) || 0), 0)}
+                                    </span>
+                                </div>
+                                <div className="flex justify-between rounded border bg-gray-50 p-3 shadow-sm">
+                                    <span className="font-semibold text-gray-700">All Total Amount:</span>
+                                    <span className="font-semibold">
+                                        {data.purchase_items.reduce((sum, item) => sum + (parseFloat(item.subtotal) || 0), 0)}
+                                    </span>
+                                </div>
                             </div>
                         </div>
 
                         {/* Shipping & Delivered To */}
-                        <div className="col-span-2 space-y-4">
-                            <div>
+                        <div className="col-span-2 space-y-4 grid grid-cols-1 gap-4 md:grid-cols-2">
+                            <div className=''>
                                 <label className="mb-1 block font-semibold text-gray-700">Shipping Details</label>
                                 <textarea
                                     className="w-full rounded border bg-white p-2 shadow-sm focus:ring-1 focus:ring-blue-500 focus:outline-none"
@@ -535,80 +545,80 @@ export default function PurchaseCreate({
                                 ></textarea>
                             </div>
                         </div>
-                    </div>
 
-                    {/* Action Buttons */}
-                    <ActionFooter
-                        className="w-full justify-end"
-                        onSubmit={handleSubmit}
-                        cancelHref="/purchases"
-                        processing={processing}
-                        submitText={processing ? 'Saving...' : 'Save'}
-                        saveAndPrintText="Save & Print"
-                        cancelText="Cancel"
-                    />
-                </form>
-                {/* Ledger Modal */}
-                {showLedgerModal && (
-                    <div className="bg-opacity-50 fixed inset-0 z-50 flex items-center justify-center bg-black">
-                        <div className="w-full max-w-md rounded bg-white p-6 shadow-lg">
-                            <h2 className="mb-4 text-lg font-semibold text-gray-700">Create New Inventory Ledger</h2>
+                        {/* Action Buttons */}
+                        <ActionFooter
+                            className="w-full justify-end"
+                            onSubmit={handleSubmit}
+                            cancelHref="/purchases"
+                            processing={processing}
+                            submitText={processing ? 'Saving...' : 'Save'}
+                            saveAndPrintText="Save & Print"
+                            cancelText="Cancel"
+                        />
+                    </form>
+                    {/* Ledger Modal */}
+                    {showLedgerModal && (
+                        <div className="bg-opacity-50 fixed inset-0 z-50 flex items-center justify-center bg-black">
+                            <div className="w-full max-w-md rounded bg-white p-6 shadow-lg">
+                                <h2 className="mb-4 text-lg font-semibold text-gray-700">Create New Inventory Ledger</h2>
 
-                            <input
-                                type="text"
-                                placeholder="Ledger Name"
-                                className="mb-3 w-full rounded border p-2"
-                                value={newLedgerName}
-                                onChange={(e) => setNewLedgerName(e.target.value)}
-                            />
+                                <input
+                                    type="text"
+                                    placeholder="Ledger Name"
+                                    className="mb-3 w-full rounded border p-2"
+                                    value={newLedgerName}
+                                    onChange={(e) => setNewLedgerName(e.target.value)}
+                                />
 
-                            <select className="mb-4 w-full rounded border p-2" value={newGroupId} onChange={(e) => setNewGroupId(e.target.value)}>
-                                <option value="">Select Group</option>
-                                {accountGroups.map((g) => (
-                                    <option key={g.id} value={g.id}>
-                                        {g.name}
-                                    </option>
-                                ))}
-                            </select>
+                                <select className="mb-4 w-full rounded border p-2" value={newGroupId} onChange={(e) => setNewGroupId(e.target.value)}>
+                                    <option value="">Select Group</option>
+                                    {accountGroups.map((g) => (
+                                        <option key={g.id} value={g.id}>
+                                            {g.name}
+                                        </option>
+                                    ))}
+                                </select>
 
-                            <div className="flex justify-end gap-3">
-                                <button className="rounded bg-gray-400 px-4 py-2 text-white" onClick={() => setShowLedgerModal(false)}>
-                                    Cancel
-                                </button>
+                                <div className="flex justify-end gap-3">
+                                    <button className="rounded bg-gray-400 px-4 py-2 text-white" onClick={() => setShowLedgerModal(false)}>
+                                        Cancel
+                                    </button>
 
-                                <button
-                                    className="rounded bg-green-600 px-4 py-2 text-white"
-                                    onClick={async () => {
-                                        try {
-                                            const response = await axios.post('/account-ledgers/modal', {
-                                                account_ledger_name: newLedgerName,
-                                                account_group_id: newGroupId,
-                                                for_transition_mode: 0,
-                                                mark_for_user: 0,
-                                                phone_number: '0',
-                                                opening_balance: 0,
-                                                debit_credit: 'debit', // usually for inventory
-                                                status: 'active',
-                                            });
+                                    <button
+                                        className="rounded bg-green-600 px-4 py-2 text-white"
+                                        onClick={async () => {
+                                            try {
+                                                const response = await axios.post('/account-ledgers/modal', {
+                                                    account_ledger_name: newLedgerName,
+                                                    account_group_id: newGroupId,
+                                                    for_transition_mode: 0,
+                                                    mark_for_user: 0,
+                                                    phone_number: '0',
+                                                    opening_balance: 0,
+                                                    debit_credit: 'debit', // usually for inventory
+                                                    status: 'active',
+                                                });
 
-                                            // Add new ledger to dropdown and select it
-                                            const newLedger = response.data;
-                                            setData('inventory_ledger_id', newLedger.id);
-                                            setNewLedgerName('');
-                                            setNewGroupId('');
-                                            setShowLedgerModal(false);
-                                        } catch (err) {
-                                            console.error(err);
-                                            alert('Failed to create ledger');
-                                        }
-                                    }}
-                                >
-                                    Create Ledger
-                                </button>
+                                                // Add new ledger to dropdown and select it
+                                                const newLedger = response.data;
+                                                setData('inventory_ledger_id', newLedger.id);
+                                                setNewLedgerName('');
+                                                setNewGroupId('');
+                                                setShowLedgerModal(false);
+                                            } catch (err) {
+                                                console.error(err);
+                                                alert('Failed to create ledger');
+                                            }
+                                        }}
+                                    >
+                                        Create Ledger
+                                    </button>
+                                </div>
                             </div>
                         </div>
-                    </div>
-                )}
+                    )}
+                </div>
             </div>
         </AppLayout>
     );

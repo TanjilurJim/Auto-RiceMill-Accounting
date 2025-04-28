@@ -158,243 +158,256 @@ export default function PurchaseEdit({ purchase, godowns, salesmen, ledgers, sto
     return (
         <AppLayout>
             <Head title="Update Purchase" />
-            <div className="bg-gray-100 p-6 w-screen lg:w-full">
-                {/* Header */}
+            <div className="bg-gray-100 p-6 h-full w-screen lg:w-full">
+                <div className="bg-white h-full rounded-lg p-6">
+                    {/* Header */}
+                    <PageHeader title="Update Purchase" addLinkHref="/purchases" addLinkText="Back" />
 
-                <PageHeader title="Update Purchase" addLinkHref="/purchases" addLinkText="Back" />
-
-                <form onSubmit={handleSubmit} className="space-y-6 rounded bg-white p-6 shadow">
-                    {/* ---------- Info section ---------- */}
-                    <div className="space-y-4">
-                        <h2 className="border-b pb-1 text-lg font-semibold">Purchase Information</h2>
-                        <div className="grid gap-4 md:grid-cols-2">
-                            <input
-                                type="date"
-                                name="date"
-                                className="border p-2"
-                                value={data.date}
-                                onChange={(e) => setData('date', e.target.value)}
-                            />
-                            <input type="text" className="border p-2" readOnly value={data.voucher_no ?? ''} />
-                            <select
-                                name="godown_id"
-                                className={cn('border p-2', errors.godown_id && 'border-red-500')}
-                                value={data.godown_id ?? ''}
-                                onChange={(e) => setData('godown_id', e.target.value)}
-                            >
-                                <option value="">Select Godown</option>
-                                {godowns.map((g) => (
-                                    <option key={g.id} value={g.id}>
-                                        {g.name}
-                                    </option>
-                                ))}
-                            </select>
-                            <select className="border p-2" value={data.salesman_id ?? ''} onChange={(e) => setData('salesman_id', e.target.value)}>
-                                <option value="">Select Salesman</option>
-                                {salesmen.map((s) => (
-                                    <option key={s.id} value={s.id}>
-                                        {s.name}
-                                    </option>
-                                ))}
-                            </select>
-                            <select
-                                className="border p-2"
-                                value={data.account_ledger_id ?? ''}
-                                onChange={(e) => setData('account_ledger_id', e.target.value)}
-                            >
-                                <option value="">Select Party Ledger</option>
-                                {ledgers.map((l) => (
-                                    <option key={l.id} value={l.id}>
-                                        {l.account_ledger_name}
-                                    </option>
-                                ))}
-                            </select>
-                            <select
-                                className={cn('border p-2', errors.inventory_ledger_id && 'border-red-500')}
-                                value={data.inventory_ledger_id}
-                                onChange={(e) => setData('inventory_ledger_id', e.target.value)}
-                            >
-                                <option value="">Select Inventory Ledger</option>
-                                {inventoryLedgers.map((l) => (
-                                    <option key={l.id} value={l.id}>
-                                        {l.account_ledger_name}
-                                    </option>
-                                ))}
-                            </select>
-
-                            <input
-                                type="text"
-                                className="border p-2"
-                                placeholder="Phone"
-                                value={data.phone ?? ''}
-                                onChange={(e) => setData('phone', e.target.value)}
-                            />
-                            <input
-                                type="text"
-                                className="border p-2"
-                                placeholder="Address"
-                                value={data.address ?? ''}
-                                onChange={(e) => setData('address', e.target.value)}
-                            />
-                        </div>
-                    </div>
-
-                    {/* ---------- Items table ---------- */}
-                    <div>
-                        <h2 className="mb-3 border-b bg-gray-100 pb-1 text-lg font-semibold">Products</h2>
-                        <div className="overflow-x-auto rounded border">
-                            <table className="min-w-full text-left text-sm">
-                                <thead className="bg-gray-50">
-                                    <tr>
-                                        <th className="border px-2 py-1">Product</th>
-                                        <th className="border px-2 py-1">Qty</th>
-                                        <th className="border px-2 py-1">Price</th>
-                                        <th className="border px-2 py-1">Discount</th>
-                                        <th className="border px-2 py-1">Type</th>
-                                        <th className="border px-2 py-1">Subtotal</th>
-                                        <th className="border px-2 py-1 text-center">Action</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    {data.purchase_items.map((it, idx) => (
-                                        <tr key={idx} className="hover:bg-gray-50">
-                                            <td className="border px-2 py-1">
-                                                <select
-                                                    className="w-full"
-                                                    value={it.product_id}
-                                                    onChange={(e) => handleItemChange(idx, 'product_id', e.target.value)}
-                                                >
-                                                    <option value="">Select</option>
-                                                    {godownItems.map((s) => (
-                                                        <option key={s.item.id} value={s.item.id}>
-                                                            {s.item.item_name} ({s.qty} in stock)
-                                                        </option>
-                                                    ))}
-                                                </select>
-                                            </td>
-                                            <td className="border px-2 py-1">
-                                                <input
-                                                    type="number"
-                                                    className="w-full"
-                                                    value={it.qty}
-                                                    onChange={(e) => handleItemChange(idx, 'qty', e.target.value)}
-                                                />
-                                            </td>
-                                            <td className="border px-2 py-1">
-                                                <input
-                                                    type="number"
-                                                    className="w-full"
-                                                    value={it.price}
-                                                    onChange={(e) => handleItemChange(idx, 'price', e.target.value)}
-                                                />
-                                            </td>
-                                            <td className="border px-2 py-1">
-                                                <input
-                                                    type="number"
-                                                    className="w-full"
-                                                    value={it.discount}
-                                                    onChange={(e) => handleItemChange(idx, 'discount', e.target.value)}
-                                                />
-                                            </td>
-                                            <td className="border px-2 py-1">
-                                                <select
-                                                    className="w-full"
-                                                    value={it.discount_type}
-                                                    onChange={(e) => handleItemChange(idx, 'discount_type', e.target.value)}
-                                                >
-                                                    <option value="bdt">BDT</option>
-                                                    <option value="percent">%</option>
-                                                </select>
-                                            </td>
-                                            <td className="border px-2 py-1">
-                                                <input readOnly type="number" className="w-full bg-gray-100" value={it.subtotal} />
-                                            </td>
-                                            <td className="border px-2 py-1 text-center">
-                                                <div className="flex justify-center space-x-1">
-                                                    {data.purchase_items.length > 1 && (
-                                                        <button
-                                                            type="button"
-                                                            onClick={() => removeRow(idx)}
-                                                            className="bg-danger hover:bg-danger-hover rounded px-2 py-1 text-white"
-                                                        >
-                                                            &minus;
-                                                        </button>
-                                                    )}
-                                                    {idx === data.purchase_items.length - 1 && (
-                                                        <button
-                                                            type="button"
-                                                            onClick={addRow}
-                                                            className="bg-primary hover:bg-primary-hover rounded px-2 py-1 text-white"
-                                                        >
-                                                            +
-                                                        </button>
-                                                    )}
-                                                </div>
-                                            </td>
-                                        </tr>
+                    <form onSubmit={handleSubmit} className="space-y-6 rounded bg-white p-6 shadow">
+                        {/* ---------- Info section ---------- */}
+                        <div className="space-y-4">
+                            <h2 className="border-b pb-1 text-lg font-semibold">Purchase Information</h2>
+                            <div className="grid gap-4 md:grid-cols-2">
+                                <input
+                                    type="date"
+                                    name="date"
+                                    className="border p-2"
+                                    value={data.date}
+                                    onChange={(e) => setData('date', e.target.value)}
+                                />
+                                <input type="text" className="border p-2" readOnly value={data.voucher_no ?? ''} />
+                                <select
+                                    name="godown_id"
+                                    className={cn('border p-2', errors.godown_id && 'border-red-500')}
+                                    value={data.godown_id ?? ''}
+                                    onChange={(e) => setData('godown_id', e.target.value)}
+                                >
+                                    <option value="">Select Godown</option>
+                                    {godowns.map((g) => (
+                                        <option key={g.id} value={g.id}>
+                                            {g.name}
+                                        </option>
                                     ))}
-                                </tbody>
-                            </table>
-                        </div>
-                    </div>
+                                </select>
+                                <select className="border p-2" value={data.salesman_id ?? ''} onChange={(e) => setData('salesman_id', e.target.value)}>
+                                    <option value="">Select Salesman</option>
+                                    {salesmen.map((s) => (
+                                        <option key={s.id} value={s.id}>
+                                            {s.name}
+                                        </option>
+                                    ))}
+                                </select>
+                                <select
+                                    className="border p-2"
+                                    value={data.account_ledger_id ?? ''}
+                                    onChange={(e) => setData('account_ledger_id', e.target.value)}
+                                >
+                                    <option value="">Select Party Ledger</option>
+                                    {ledgers.map((l) => (
+                                        <option key={l.id} value={l.id}>
+                                            {l.account_ledger_name}
+                                        </option>
+                                    ))}
+                                </select>
+                                <select
+                                    className={cn('border p-2', errors.inventory_ledger_id && 'border-red-500')}
+                                    value={data.inventory_ledger_id}
+                                    onChange={(e) => setData('inventory_ledger_id', e.target.value)}
+                                >
+                                    <option value="">Select Inventory Ledger</option>
+                                    {inventoryLedgers.map((l) => (
+                                        <option key={l.id} value={l.id}>
+                                            {l.account_ledger_name}
+                                        </option>
+                                    ))}
+                                </select>
 
-                    {/* ---------- Payment Info ---------- */}
-                    <div className="mt-8 space-y-4 border-t pt-4">
-                        <h2 className="text-lg font-semibold">Payment Info</h2>
-
-                        <div className="grid gap-4 md:grid-cols-2">
-                            <select
-                                className={cn('border p-2', errors.received_mode_id && 'border-red-500')}
-                                value={data.received_mode_id}
-                                onChange={(e) => setData('received_mode_id', e.target.value)}
-                            >
-                                <option value="">Select Payment Mode</option>
-                                {receivedModes.map((m) => (
-                                    <option key={m.id} value={m.id}>
-                                        {m.mode_name}
-                                    </option>
-                                ))}
-                            </select>
-
-                            <input
-                                type="number"
-                                className={cn('border p-2', errors.amount_paid && 'border-red-500')}
-                                placeholder="Amount Paid"
-                                value={data.amount_paid}
-                                onChange={(e) => setData('amount_paid', e.target.value)}
-                            />
-                        </div>
-                    </div>
-
-                    {/* ---------- totals --------------- */}
-                    <div className="mt-6 grid gap-6 md:grid-cols-3">
-                        <div className="space-y-3">
-                            <div className="flex justify-between rounded border bg-gray-50 p-3">
-                                <span>Item Qty Total:</span>
-                                <span>{totalQty}</span>
+                                <input
+                                    type="text"
+                                    className="border p-2"
+                                    placeholder="Phone"
+                                    value={data.phone ?? ''}
+                                    onChange={(e) => setData('phone', e.target.value)}
+                                />
+                                <input
+                                    type="text"
+                                    className="border p-2"
+                                    placeholder="Address"
+                                    value={data.address ?? ''}
+                                    onChange={(e) => setData('address', e.target.value)}
+                                />
                             </div>
-                            <div className="flex justify-between rounded border bg-gray-50 p-3">
-                                <span>Total Discount:</span>
-                                <span>{totalDisc}</span>
-                            </div>
-                            <div className="flex justify-between rounded border bg-gray-50 p-3">
-                                <span>Grand Total:</span>
-                                <span>{grandTotal}</span>
+                        </div>
+
+                        {/* ---------- Items table ---------- */}
+                        <div>
+                            <h2 className="mb-3 border-b bg-gray-100 pb-1 text-lg font-semibold">Products</h2>
+                            <div className="overflow-x-auto rounded border">
+                                <table className="min-w-full text-left text-sm">
+                                    <thead className="bg-gray-50">
+                                        <tr>
+                                            <th className="border px-2 py-1">Product</th>
+                                            <th className="border px-2 py-1">Qty</th>
+                                            <th className="border px-2 py-1">Price</th>
+                                            <th className="border px-2 py-1">Discount</th>
+                                            <th className="border px-2 py-1">Type</th>
+                                            <th className="border px-2 py-1">Subtotal</th>
+                                            <th className="border px-2 py-1 text-center">Action</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {data.purchase_items.map((it, idx) => (
+                                            <tr key={idx} className="hover:bg-gray-50">
+                                                <td className="border px-2 py-1">
+                                                    <select
+                                                        className="w-full"
+                                                        value={it.product_id}
+                                                        onChange={(e) => handleItemChange(idx, 'product_id', e.target.value)}
+                                                    >
+                                                        <option value="">Select</option>
+                                                        {godownItems.map((s) => (
+                                                            <option key={s.item.id} value={s.item.id}>
+                                                                {s.item.item_name} ({s.qty} in stock)
+                                                            </option>
+                                                        ))}
+                                                    </select>
+                                                </td>
+                                                <td className="border px-2 py-1">
+                                                    <input
+                                                        type="number"
+                                                        className="w-full"
+                                                        value={it.qty}
+                                                        onChange={(e) => handleItemChange(idx, 'qty', e.target.value)}
+                                                    />
+                                                </td>
+                                                <td className="border px-2 py-1">
+                                                    <input
+                                                        type="number"
+                                                        className="w-full"
+                                                        value={it.price}
+                                                        onChange={(e) => handleItemChange(idx, 'price', e.target.value)}
+                                                    />
+                                                </td>
+                                                <td className="border px-2 py-1">
+                                                    <input
+                                                        type="number"
+                                                        className="w-full"
+                                                        value={it.discount}
+                                                        onChange={(e) => handleItemChange(idx, 'discount', e.target.value)}
+                                                    />
+                                                </td>
+                                                <td className="border px-2 py-1">
+                                                    <select
+                                                        className="w-full"
+                                                        value={it.discount_type}
+                                                        onChange={(e) => handleItemChange(idx, 'discount_type', e.target.value)}
+                                                    >
+                                                        <option value="bdt">BDT</option>
+                                                        <option value="percent">%</option>
+                                                    </select>
+                                                </td>
+                                                <td className="border px-2 py-1">
+                                                    <input readOnly type="number" className="w-full bg-gray-100" value={it.subtotal} />
+                                                </td>
+                                                <td className="border px-2 py-1 text-center">
+                                                    <div className="flex justify-center space-x-1">
+                                                        {data.purchase_items.length > 1 && (
+                                                            <button
+                                                                type="button"
+                                                                onClick={() => removeRow(idx)}
+                                                                className="bg-danger hover:bg-danger-hover rounded px-2 py-1 text-white"
+                                                            >
+                                                                &minus;
+                                                            </button>
+                                                        )}
+                                                        {idx === data.purchase_items.length - 1 && (
+                                                            <button
+                                                                type="button"
+                                                                onClick={addRow}
+                                                                className="bg-primary hover:bg-primary-hover rounded px-2 py-1 text-white"
+                                                            >
+                                                                +
+                                                            </button>
+                                                        )}
+                                                    </div>
+                                                </td>
+                                            </tr>
+                                        ))}
+                                    </tbody>
+                                </table>
                             </div>
                         </div>
-                        {/* shipping / delivered textareas kept as‑is */}
-                    </div>
 
-                    {/* Action Buttons */}
-                    <ActionFooter
-                        onSubmit={handleSubmit}
-                        processing={processing}
-                        saveAndPrintText='Save & Print'
-                        cancelText="Cancel"
-                        cancelHref="/purchases"
-                        submitText={processing ? 'Updating...' : 'Update'}
-                    />
-                </form>
+                        {/* ---------- Payment Info ---------- */}
+                        <div className="mt-8 space-y-4 border-t pt-4">
+                            <h2 className="text-lg font-semibold">Payment Info</h2>
+
+                            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                                {/* Payment Mode */}
+                                <div className="col-span-1">
+                                    <label className="block text-sm font-medium text-gray-700">Payment Mode</label>
+                                    <select
+                                        className={cn('border p-2 w-full rounded', errors.received_mode_id && 'border-red-500')}
+                                        value={data.received_mode_id}
+                                        onChange={(e) => setData('received_mode_id', e.target.value)}
+                                    >
+                                        <option value="">Select Payment Mode</option>
+                                        {receivedModes.map((m) => (
+                                            <option key={m.id} value={m.id}>
+                                                {m.mode_name}
+                                            </option>
+                                        ))}
+                                    </select>
+                                </div>
+
+                                {/* Amount Paid */}
+                                <div className="col-span-1">
+                                    <label className="block text-sm font-medium text-gray-700">Amount Paid</label>
+                                    <input
+                                        type="number"
+                                        className={cn('border p-2 w-full rounded', errors.amount_paid && 'border-red-500')}
+                                        placeholder="Amount Paid"
+                                        value={data.amount_paid}
+                                        onChange={(e) => setData('amount_paid', e.target.value)}
+                                    />
+                                </div>
+                            </div>
+                        </div>
+
+                        {/* ---------- totals --------------- */}
+                        <div className="mt-6">
+                            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+                                {/* Item Qty Total */}
+                                <div className="flex justify-between rounded border bg-gray-50 p-3">
+                                    <span className="font-medium text-gray-700">Item Qty Total:</span>
+                                    <span className="font-semibold text-gray-900">{totalQty}</span>
+                                </div>
+
+                                {/* Total Discount */}
+                                <div className="flex justify-between rounded border bg-gray-50 p-3">
+                                    <span className="font-medium text-gray-700">Total Discount:</span>
+                                    <span className="font-semibold text-gray-900">{totalDisc}</span>
+                                </div>
+
+                                {/* Grand Total */}
+                                <div className="flex justify-between rounded border bg-gray-50 p-3">
+                                    <span className="font-medium text-gray-700">Grand Total:</span>
+                                    <span className="font-semibold text-gray-900">{grandTotal}</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        {/* Action Buttons */}
+                        <ActionFooter
+                            onSubmit={handleSubmit}
+                            processing={processing}
+                            saveAndPrintText='Save & Print'
+                            cancelText="Cancel"
+                            cancelHref="/purchases"
+                            submitText={processing ? 'Updating...' : 'Update'}
+                        />
+                    </form>
+                </div>
 
             </div>
         </AppLayout>

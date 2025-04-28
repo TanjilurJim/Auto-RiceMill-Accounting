@@ -86,54 +86,56 @@ export default function CategoryIndex({ categories }: { categories: PaginatedCat
     return (
         <AppLayout>
             <Head title="Category Manage" />
-            <div className="bg-gray-100">
-                <div className="flex flex-col-reverse gap-4 p-4 sm:p-6 md:flex-row">
-                    {/* Left: List */}
-                    <div className="space-y-4 rounded bg-white p-4 shadow w-full md:w-2/3">
-                        <PageHeader title="All Category Manage" />
-                        <TableComponent
-                            columns={columns}
-                            data={categories.data}
-                            noDataMessage="No categories found."
-                        />
-
-                        {/* Pagination */}
-                        <Pagination
-                            links={categories.links}
-                            currentPage={categories.current_page}
-                            lastPage={categories.last_page}
-                            total={categories.total}
-                        />
-                    </div>
-
-                    {/* Right: Form */}
-                    <div className="rounded bg-white p-4 shadow w-full md:w-1/3">
-                        <PageHeader title={editCategory ? 'Edit Category' : 'Add Category'} />
-                        <form onSubmit={handleSubmit} className="space-y-3">
-                            <input
-                                type="text"
-                                placeholder="Category Name"
-                                value={data.name}
-                                onChange={(e) => setData('name', e.target.value)}
-                                className="w-full rounded border p-2"
+            <div className="h-full bg-gray-100 p-6">
+                <div className="h-full bg-white rounded-lg p-6">
+                    <div className="flex flex-col-reverse justify-between gap-4 md:flex-row h-full">
+                        {/* Left: List */}
+                        <div className="space-y-4 rounded bg-white p-4 shadow w-full md:w-2/3 border">
+                            <PageHeader title="All Category Manage" />
+                            <TableComponent
+                                columns={columns}
+                                data={categories.data}
+                                noDataMessage="No categories found."
                             />
-                            {errors.name && <p className="text-sm text-red-500">{errors.name}</p>}
 
-                            <div className="flex justify-between">
-                                {editCategory ? (
-                                    <ActionFooter
-                                        className="w-full justify-between"
-                                        onSubmit={handleSubmit}
-                                        onCancel={handleCancel}
-                                        processing={processing}
-                                        submitText="Update"
-                                        cancelText="Cancel"
-                                    />
-                                ) : (
-                                    <AddBtn processing={processing}>Add Category</AddBtn>
-                                )}
-                            </div>
-                        </form>
+                            {/* Pagination */}
+                            <Pagination
+                                links={categories.links}
+                                currentPage={categories.current_page}
+                                lastPage={categories.last_page}
+                                total={categories.total}
+                            />
+                        </div>
+
+                        {/* Right: Form */}
+                        <div className="rounded bg-white p-4 shadow w-full md:w-1/3 border">
+                            <PageHeader title={editCategory ? 'Edit Category' : 'Add Category'} />
+                            <form onSubmit={handleSubmit} className="space-y-3">
+                                <input
+                                    type="text"
+                                    placeholder="Category Name"
+                                    value={data.name}
+                                    onChange={(e) => setData('name', e.target.value)}
+                                    className="w-full rounded border p-2"
+                                />
+                                {errors.name && <p className="text-sm text-red-500">{errors.name}</p>}
+
+                                <div className="flex justify-between">
+                                    {editCategory ? (
+                                        <ActionFooter
+                                            className="w-full justify-between"
+                                            onSubmit={handleSubmit}
+                                            onCancel={handleCancel}
+                                            processing={processing}
+                                            submitText="Update"
+                                            cancelText="Cancel"
+                                        />
+                                    ) : (
+                                        <AddBtn processing={processing}>Add Category</AddBtn>
+                                    )}
+                                </div>
+                            </form>
+                        </div>
                     </div>
                 </div>
             </div>

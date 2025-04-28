@@ -81,9 +81,9 @@ export default function SalesOrderEdit({ salesOrder, ledgers, salesmen, products
 
     return (
         <AppLayout>
-            <div className=" bg-gray-100 p-6 w-screen md:w-full">
                 <Head title="Edit Sales Order" />
-                <div className="rounded border border-gray-200 bg-white p-6 shadow-md">
+                <div className="bg-gray-100 p-6 h-full w-screen lg:w-full">
+                <div className="bg-white h-full rounded-lg p-6">
 
                     <PageHeader title='Edit Sales Order' addLinkHref='/sales-orders' addLinkText='Back' />
 

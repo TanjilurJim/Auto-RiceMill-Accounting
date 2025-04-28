@@ -118,7 +118,7 @@ export default function SalesReturnCreate({
         const refundAmount = calculateTotals().totalReturnAmount;
         setData('amount_received', refundAmount.toFixed(2));
     }, [data.sales_return_items]);
-    
+
 
 
     const handleItemChange = (index: number, field: string, value: any) => {
@@ -159,316 +159,317 @@ export default function SalesReturnCreate({
     return (
         <AppLayout>
             <Head title="Create Sales Return" />
-            <div className="bg-gray-100 p-6">
-                {/* <div className="mb-6 flex items-center justify-between">
+            <div className="bg-gray-100 p-6 h-full w-screen lg:w-full">
+                <div className="bg-white h-full rounded-lg p-6">
+                    {/* <div className="mb-6 flex items-center justify-between">
                     <h1 className="text-2xl font-semibold text-gray-800">Create Sales Return</h1>
                     <Link href="/sales-returns" className="rounded bg-gray-300 px-5 py-2 text-sm font-medium text-gray-700 hover:bg-gray-400">
                         Back
                     </Link>
                 </div> */}
 
-                <PageHeader title="Create Sales Return" addLinkHref="/sales-returns" addLinkText="Back" />
+                    <PageHeader title="Create Sales Return" addLinkHref="/sales-returns" addLinkText="Back" />
 
-                <form onSubmit={handleSubmit} className="space-y-6 rounded bg-white p-6 shadow-md">
-                    {/* Top Info */}
-                    <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
-                        <div>
-                            <label className="mb-1 block text-sm font-medium">Voucher No</label>
-                            <input type="text" className="w-full rounded border bg-gray-100 p-2" value={data.voucher_no} readOnly />
-                        </div>
-
-                        <div>
-                            <label className="mb-1 block text-sm font-medium">Related Sale</label>
-                            <select className="w-full rounded border p-2" value={data.sale_id} onChange={(e) => setData('sale_id', e.target.value)}>
-                                <option value="">Select Sale (optional)</option>
-                                {sales.map((sale) => (
-                                    <option key={sale.id} value={sale.id}>
-                                        {sale.voucher_no}
-                                    </option>
-                                ))}
-                            </select>
-                        </div>
-
-                        <div>
-                            <label className="mb-1 block text-sm font-medium">Account Ledger</label>
-                            <select
-                                className="w-full rounded border p-2"
-                                value={data.account_ledger_id}
-                                onChange={(e) => setData('account_ledger_id', e.target.value)}
-                            >
-                                <option value="">Select Ledger</option>
-                                {ledgers.map((l) => (
-                                    <option key={l.id} value={l.id}>
-                                        {l.account_ledger_name}
-                                    </option>
-                                ))}
-                            </select>
-                        </div>
-                        {/* Inventory Ledger Selection */}
-                        <label className="mb-1 block text-sm font-medium">Inventory Ledger</label>
-                        <select
-                            className="w-full border p-2"
-                            value={data.inventory_ledger_id}
-                            onChange={(e) => setData('inventory_ledger_id', e.target.value)}
-                        >
-                            <option value="">Select Inventory Ledger</option>
-                            {ledgers.map((ledger) => (
-                                <option key={ledger.id} value={ledger.id}>
-                                    {ledger.account_ledger_name}
-                                </option>
-                            ))}
-                        </select>
-                        <div className="text-sm text-gray-500">
-                            Don’t see one?{' '}
-                            <button
-                                type="button"
-                                className="text-blue-600 underline"
-                                onClick={() => {
-                                    setModalTargetField('inventory');
-                                    setShowInventoryLedgerModal(true);
-                                }}
-                            >
-                                Create
-                            </button>
-                        </div>
-                        <label className="mb-1 block text-sm font-medium">COGS Ledger</label>
-                        <select
-                            className="w-full border p-2"
-                            value={data.cogs_ledger_id || ''}
-                            onChange={(e) => setData('cogs_ledger_id', e.target.value)}
-                        >
-                            <option value="">Select COGS Ledger</option>
-                            {ledgers.map((ledger) => (
-                                <option key={ledger.id} value={ledger.id}>
-                                    {ledger.account_ledger_name}
-                                </option>
-                            ))}
-                        </select>
-                        <div className="text-sm text-gray-500">
-                            Don’t see one?{' '}
-                            <button
-                                type="button"
-                                className="text-blue-600 underline"
-                                onClick={() => {
-                                    setModalTargetField('cogs');
-                                    setShowInventoryLedgerModal(true); // same modal
-                                }}
-                            >
-                                Create
-                            </button>
-                        </div>
-                        <div>
-                            <label className="mb-1 block text-sm font-medium">Refund Mode</label>
-                            <select
-                                className="w-full border p-2"
-                                value={data.received_mode_id}
-                                onChange={(e) => setData('received_mode_id', e.target.value)}
-                            >
-                                <option value="">Select Mode</option>
-                                {receivedModes.map((mode) => (
-                                    <option key={mode.id} value={mode.id}>
-                                        {mode.mode_name}
-                                    </option>
-                                ))}
-                            </select>
-                        </div>
-
-                        <div>
-                            <label className="mb-1 block text-sm font-medium">Refund Amount</label>
-                            <input
-                                type="number"
-                                className="w-full border p-2"
-                                value={data.amount_received}
-                                onChange={(e) => setData('amount_received', e.target.value)}
-                            />
-                        </div>
-
-                        <div>
-                            <label className="mb-1 block text-sm font-medium">Godown</label>
-                            <select
-                                className="w-full rounded border p-2"
-                                value={data.godown_id}
-                                onChange={(e) => setData('godown_id', e.target.value)}
-                            >
-                                <option value="">Select Godown</option>
-                                {godowns.map((g) => (
-                                    <option key={g.id} value={g.id}>
-                                        {g.name}
-                                    </option>
-                                ))}
-                            </select>
-                        </div>
-
-                        <div>
-                            <label className="mb-1 block text-sm font-medium">Salesman</label>
-                            <select
-                                className="w-full rounded border p-2"
-                                value={data.salesman_id}
-                                onChange={(e) => setData('salesman_id', e.target.value)}
-                            >
-                                <option value="">Select Salesman</option>
-                                {salesmen.map((sm) => (
-                                    <option key={sm.id} value={sm.id}>
-                                        {sm.name}
-                                    </option>
-                                ))}
-                            </select>
-                        </div>
-
-                        <div>
-                            <label className="mb-1 block text-sm font-medium">Return Date</label>
-                            <input
-                                type="date"
-                                className="w-full rounded border p-2"
-                                value={data.return_date}
-                                onChange={(e) => setData('return_date', e.target.value)}
-                            />
-                        </div>
-
-                        <div>
-                            <label className="mb-1 block text-sm font-medium">Phone</label>
-                            <input
-                                type="text"
-                                className="w-full rounded border p-2"
-                                value={data.phone}
-                                onChange={(e) => setData('phone', e.target.value)}
-                            />
-                        </div>
-
-                        <div className="md:col-span-2">
-                            <label className="mb-1 block text-sm font-medium">Address</label>
-                            <input
-                                type="text"
-                                className="w-full rounded border p-2"
-                                value={data.address}
-                                onChange={(e) => setData('address', e.target.value)}
-                            />
-                        </div>
-                    </div>
-
-                    {/* Product Section */}
-                    <div>
-                        <h2 className="mb-2 text-lg font-semibold">Returned Products</h2>
-
-                        {data.sales_return_items.map((item, index) => (
-                            <div key={index} className="mb-3 grid grid-cols-12 items-end gap-2">
-                                {/* Product Selector */}
-                                <div className="col-span-3">
-                                    <label className="mb-1 block text-sm font-medium">Product</label>
-                                    <select
-                                        className="w-full rounded border p-2"
-                                        value={item.product_id}
-                                        onChange={(e) => handleItemChange(index, 'product_id', e.target.value)}
-                                    >
-                                        <option value="">Select Product</option>
-                                        {products.map((p) => (
-                                            <option key={p.id} value={p.id}>
-                                                {p.item_name}
-                                            </option>
-                                        ))}
-                                    </select>
-                                </div>
-
-                                {/* Quantity */}
-                                <div className="col-span-1">
-                                    <label className="mb-1 block text-sm font-medium">Qty</label>
-                                    <input
-                                        type="number"
-                                        max={item.max_qty}
-                                        className="w-full rounded border p-2"
-                                        value={item.qty}
-                                        onChange={(e) => handleItemChange(index, 'qty', e.target.value)}
-                                    />
-                                </div>
-
-                                {/* Price */}
-                                <div className="col-span-2">
-                                    <label className="mb-1 block text-sm font-medium">Price</label>
-                                    <input
-                                        type="number"
-                                        placeholder="Price"
-                                        className="w-full rounded border p-2"
-                                        value={item.main_price}
-                                        onChange={(e) => handleItemChange(index, 'main_price', e.target.value)}
-                                    />
-                                </div>
-
-                                {/* Discount */}
-                                <div className="col-span-2">
-                                    <label className="mb-1 block text-sm font-medium">Discount</label>
-                                    <input
-                                        type="number"
-                                        placeholder="Discount"
-                                        className="w-full rounded border p-2"
-                                        value={item.discount}
-                                        onChange={(e) => handleItemChange(index, 'discount', e.target.value)}
-                                    />
-                                </div>
-
-                                {/* Subtotal */}
-                                <div className="col-span-2">
-                                    <label className="mb-1 block text-sm font-medium">Subtotal</label>
-                                    <input
-                                        type="number"
-                                        placeholder="Subtotal"
-                                        className="w-full rounded border bg-gray-100 p-2"
-                                        value={item.return_amount}
-                                        readOnly
-                                    />
-                                </div>
-
-                                {/* Buttons for Adding and Removing Rows */}
-                                <div className="col-span-1 flex gap-1">
-                                    {data.sales_return_items.length > 1 && (
-                                        <button
-                                            type="button"
-                                            onClick={() => removeProductRow(index)}
-                                            className="rounded bg-danger hover:bg-danger-hover px-3 py-1 text-white"
-                                        >
-                                            &minus;
-                                        </button>
-                                    )}
-                                    {index === data.sales_return_items.length - 1 && (
-                                        <button type="button" onClick={addProductRow} className="rounded bg-primary hover:bg-primary-hover px-3 py-1 text-white">
-                                            +
-                                        </button>
-                                    )}
-                                </div>
+                    <form onSubmit={handleSubmit} className="space-y-6 rounded bg-white p-6 shadow-md">
+                        {/* Top Info */}
+                        <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
+                            <div>
+                                <label className="mb-1 block text-sm font-medium">Voucher No</label>
+                                <input type="text" className="w-full rounded border bg-gray-100 p-2" value={data.voucher_no} readOnly />
                             </div>
-                        ))}
-                    </div>
 
-                    {/* Delivery Info */}
-                    <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-                        <div>
-                            <label className="mb-1 block text-sm font-medium">Shipping Details</label>
-                            <input
-                                type="text"
-                                className="w-full rounded border p-2"
-                                value={data.shipping_details}
-                                onChange={(e) => setData('shipping_details', e.target.value)}
-                            />
+                            <div>
+                                <label className="mb-1 block text-sm font-medium">Related Sale</label>
+                                <select className="w-full rounded border p-2" value={data.sale_id} onChange={(e) => setData('sale_id', e.target.value)}>
+                                    <option value="">Select Sale (optional)</option>
+                                    {sales.map((sale) => (
+                                        <option key={sale.id} value={sale.id}>
+                                            {sale.voucher_no}
+                                        </option>
+                                    ))}
+                                </select>
+                            </div>
+
+                            <div>
+                                <label className="mb-1 block text-sm font-medium">Account Ledger</label>
+                                <select
+                                    className="w-full rounded border p-2"
+                                    value={data.account_ledger_id}
+                                    onChange={(e) => setData('account_ledger_id', e.target.value)}
+                                >
+                                    <option value="">Select Ledger</option>
+                                    {ledgers.map((l) => (
+                                        <option key={l.id} value={l.id}>
+                                            {l.account_ledger_name}
+                                        </option>
+                                    ))}
+                                </select>
+                            </div>
+                            {/* Inventory Ledger Selection */}
+                            <label className="mb-1 block text-sm font-medium">Inventory Ledger</label>
+                            <select
+                                className="w-full border p-2"
+                                value={data.inventory_ledger_id}
+                                onChange={(e) => setData('inventory_ledger_id', e.target.value)}
+                            >
+                                <option value="">Select Inventory Ledger</option>
+                                {ledgers.map((ledger) => (
+                                    <option key={ledger.id} value={ledger.id}>
+                                        {ledger.account_ledger_name}
+                                    </option>
+                                ))}
+                            </select>
+                            <div className="text-sm text-gray-500">
+                                Don’t see one?{' '}
+                                <button
+                                    type="button"
+                                    className="text-blue-600 underline"
+                                    onClick={() => {
+                                        setModalTargetField('inventory');
+                                        setShowInventoryLedgerModal(true);
+                                    }}
+                                >
+                                    Create
+                                </button>
+                            </div>
+                            <label className="mb-1 block text-sm font-medium">COGS Ledger</label>
+                            <select
+                                className="w-full border p-2"
+                                value={data.cogs_ledger_id || ''}
+                                onChange={(e) => setData('cogs_ledger_id', e.target.value)}
+                            >
+                                <option value="">Select COGS Ledger</option>
+                                {ledgers.map((ledger) => (
+                                    <option key={ledger.id} value={ledger.id}>
+                                        {ledger.account_ledger_name}
+                                    </option>
+                                ))}
+                            </select>
+                            <div className="text-sm text-gray-500">
+                                Don’t see one?{' '}
+                                <button
+                                    type="button"
+                                    className="text-blue-600 underline"
+                                    onClick={() => {
+                                        setModalTargetField('cogs');
+                                        setShowInventoryLedgerModal(true); // same modal
+                                    }}
+                                >
+                                    Create
+                                </button>
+                            </div>
+                            <div>
+                                <label className="mb-1 block text-sm font-medium">Refund Mode</label>
+                                <select
+                                    className="w-full border p-2"
+                                    value={data.received_mode_id}
+                                    onChange={(e) => setData('received_mode_id', e.target.value)}
+                                >
+                                    <option value="">Select Mode</option>
+                                    {receivedModes.map((mode) => (
+                                        <option key={mode.id} value={mode.id}>
+                                            {mode.mode_name}
+                                        </option>
+                                    ))}
+                                </select>
+                            </div>
+
+                            <div>
+                                <label className="mb-1 block text-sm font-medium">Refund Amount</label>
+                                <input
+                                    type="number"
+                                    className="w-full border p-2"
+                                    value={data.amount_received}
+                                    onChange={(e) => setData('amount_received', e.target.value)}
+                                />
+                            </div>
+
+                            <div>
+                                <label className="mb-1 block text-sm font-medium">Godown</label>
+                                <select
+                                    className="w-full rounded border p-2"
+                                    value={data.godown_id}
+                                    onChange={(e) => setData('godown_id', e.target.value)}
+                                >
+                                    <option value="">Select Godown</option>
+                                    {godowns.map((g) => (
+                                        <option key={g.id} value={g.id}>
+                                            {g.name}
+                                        </option>
+                                    ))}
+                                </select>
+                            </div>
+
+                            <div>
+                                <label className="mb-1 block text-sm font-medium">Salesman</label>
+                                <select
+                                    className="w-full rounded border p-2"
+                                    value={data.salesman_id}
+                                    onChange={(e) => setData('salesman_id', e.target.value)}
+                                >
+                                    <option value="">Select Salesman</option>
+                                    {salesmen.map((sm) => (
+                                        <option key={sm.id} value={sm.id}>
+                                            {sm.name}
+                                        </option>
+                                    ))}
+                                </select>
+                            </div>
+
+                            <div>
+                                <label className="mb-1 block text-sm font-medium">Return Date</label>
+                                <input
+                                    type="date"
+                                    className="w-full rounded border p-2"
+                                    value={data.return_date}
+                                    onChange={(e) => setData('return_date', e.target.value)}
+                                />
+                            </div>
+
+                            <div>
+                                <label className="mb-1 block text-sm font-medium">Phone</label>
+                                <input
+                                    type="text"
+                                    className="w-full rounded border p-2"
+                                    value={data.phone}
+                                    onChange={(e) => setData('phone', e.target.value)}
+                                />
+                            </div>
+
+                            <div className="md:col-span-2">
+                                <label className="mb-1 block text-sm font-medium">Address</label>
+                                <input
+                                    type="text"
+                                    className="w-full rounded border p-2"
+                                    value={data.address}
+                                    onChange={(e) => setData('address', e.target.value)}
+                                />
+                            </div>
                         </div>
 
+                        {/* Product Section */}
                         <div>
-                            <label className="mb-1 block text-sm font-medium">Delivered To</label>
-                            <input
-                                type="text"
-                                className="w-full rounded border p-2"
-                                value={data.delivered_to}
-                                onChange={(e) => setData('delivered_to', e.target.value)}
-                            />
+                            <h2 className="mb-2 text-lg font-semibold">Returned Products</h2>
+
+                            {data.sales_return_items.map((item, index) => (
+                                <div key={index} className="mb-3 grid grid-cols-12 items-end gap-2">
+                                    {/* Product Selector */}
+                                    <div className="col-span-3">
+                                        <label className="mb-1 block text-sm font-medium">Product</label>
+                                        <select
+                                            className="w-full rounded border p-2"
+                                            value={item.product_id}
+                                            onChange={(e) => handleItemChange(index, 'product_id', e.target.value)}
+                                        >
+                                            <option value="">Select Product</option>
+                                            {products.map((p) => (
+                                                <option key={p.id} value={p.id}>
+                                                    {p.item_name}
+                                                </option>
+                                            ))}
+                                        </select>
+                                    </div>
+
+                                    {/* Quantity */}
+                                    <div className="col-span-1">
+                                        <label className="mb-1 block text-sm font-medium">Qty</label>
+                                        <input
+                                            type="number"
+                                            max={item.max_qty}
+                                            className="w-full rounded border p-2"
+                                            value={item.qty}
+                                            onChange={(e) => handleItemChange(index, 'qty', e.target.value)}
+                                        />
+                                    </div>
+
+                                    {/* Price */}
+                                    <div className="col-span-2">
+                                        <label className="mb-1 block text-sm font-medium">Price</label>
+                                        <input
+                                            type="number"
+                                            placeholder="Price"
+                                            className="w-full rounded border p-2"
+                                            value={item.main_price}
+                                            onChange={(e) => handleItemChange(index, 'main_price', e.target.value)}
+                                        />
+                                    </div>
+
+                                    {/* Discount */}
+                                    <div className="col-span-2">
+                                        <label className="mb-1 block text-sm font-medium">Discount</label>
+                                        <input
+                                            type="number"
+                                            placeholder="Discount"
+                                            className="w-full rounded border p-2"
+                                            value={item.discount}
+                                            onChange={(e) => handleItemChange(index, 'discount', e.target.value)}
+                                        />
+                                    </div>
+
+                                    {/* Subtotal */}
+                                    <div className="col-span-2">
+                                        <label className="mb-1 block text-sm font-medium">Subtotal</label>
+                                        <input
+                                            type="number"
+                                            placeholder="Subtotal"
+                                            className="w-full rounded border bg-gray-100 p-2"
+                                            value={item.return_amount}
+                                            readOnly
+                                        />
+                                    </div>
+
+                                    {/* Buttons for Adding and Removing Rows */}
+                                    <div className="col-span-1 flex gap-1">
+                                        {data.sales_return_items.length > 1 && (
+                                            <button
+                                                type="button"
+                                                onClick={() => removeProductRow(index)}
+                                                className="rounded bg-danger hover:bg-danger-hover px-3 py-1 text-white"
+                                            >
+                                                &minus;
+                                            </button>
+                                        )}
+                                        {index === data.sales_return_items.length - 1 && (
+                                            <button type="button" onClick={addProductRow} className="rounded bg-primary hover:bg-primary-hover px-3 py-1 text-white">
+                                                +
+                                            </button>
+                                        )}
+                                    </div>
+                                </div>
+                            ))}
                         </div>
-                    </div>
 
-                    {/* Reason */}
-                    <div>
-                        <label className="mb-1 block text-sm font-medium">Return Reason</label>
-                        <textarea className="w-full rounded border p-2" value={data.reason} onChange={(e) => setData('reason', e.target.value)} />
-                    </div>
+                        {/* Delivery Info */}
+                        <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+                            <div>
+                                <label className="mb-1 block text-sm font-medium">Shipping Details</label>
+                                <input
+                                    type="text"
+                                    className="w-full rounded border p-2"
+                                    value={data.shipping_details}
+                                    onChange={(e) => setData('shipping_details', e.target.value)}
+                                />
+                            </div>
 
-                    {/* Submit */}
-                    {/* <div className="flex justify-end pt-4">
+                            <div>
+                                <label className="mb-1 block text-sm font-medium">Delivered To</label>
+                                <input
+                                    type="text"
+                                    className="w-full rounded border p-2"
+                                    value={data.delivered_to}
+                                    onChange={(e) => setData('delivered_to', e.target.value)}
+                                />
+                            </div>
+                        </div>
+
+                        {/* Reason */}
+                        <div>
+                            <label className="mb-1 block text-sm font-medium">Return Reason</label>
+                            <textarea className="w-full rounded border p-2" value={data.reason} onChange={(e) => setData('reason', e.target.value)} />
+                        </div>
+
+                        {/* Submit */}
+                        {/* <div className="flex justify-end pt-4">
                         <button
                             type="submit"
                             disabled={processing}
@@ -478,16 +479,17 @@ export default function SalesReturnCreate({
                         </button>
                     </div> */}
 
-                    <ActionFooter
-                        className="w-full justify-end"
-                        onSubmit={handleSubmit} // Function to handle form submission
-                        cancelHref="/sales-returns" // URL for the cancel action
-                        processing={processing} // Indicates whether the form is processing
-                        submitText={processing ? 'Saving...' : 'Save Sales Return'} // Text for the submit button
-                        cancelText="Cancel" // Text for the cancel button
-                    />
+                        <ActionFooter
+                            className="w-full justify-end"
+                            onSubmit={handleSubmit} // Function to handle form submission
+                            cancelHref="/sales-returns" // URL for the cancel action
+                            processing={processing} // Indicates whether the form is processing
+                            submitText={processing ? 'Saving...' : 'Save Sales Return'} // Text for the submit button
+                            cancelText="Cancel" // Text for the cancel button
+                        />
 
-                </form>
+                    </form>
+                </div>
             </div>
             {showInventoryLedgerModal && (
                 <div className="bg-opacity-50 fixed inset-0 z-50 flex items-center justify-center bg-black">

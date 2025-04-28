@@ -40,21 +40,23 @@ export default function ItemCreate({ categories, units, godowns }: { categories:
     return (
         <AppLayout>
             <Head title="Create Item" />
-            <div className="bg-gray-100 p-6">
-                <PageHeader title="Create Item" addLinkHref='/items' addLinkText="Back" />
+            <div className="h-full bg-gray-100 p-6">
+                <div className="h-full bg-white rounded-lg p-6">
+                    <PageHeader title="Create Item" addLinkHref='/items' addLinkText="Back" />
 
-                <ItemForm
-                    data={data}
-                    setData={setData}
-                    handleSubmit={handleSubmit}
-                    processing={processing}
-                    errors={errors}
-                    submitText="Create Item"
-                    cancelHref="/items"
-                    categories={categories}
-                    units={units}
-                    godowns={godowns}
-                />
+                    <ItemForm
+                        data={data}
+                        setData={setData}
+                        handleSubmit={handleSubmit}
+                        processing={processing}
+                        errors={errors}
+                        submitText="Create Item"
+                        cancelHref="/items"
+                        categories={categories}
+                        units={units}
+                        godowns={godowns}
+                    />
+                </div>
             </div>
         </AppLayout>
     );

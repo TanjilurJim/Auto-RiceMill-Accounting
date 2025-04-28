@@ -22,7 +22,7 @@ interface PaginatedReturns {
     links: { url: string | null; label: string; active: boolean }[];
     current_page: number;
     last_page: number;
-    total: number; 
+    total: number;
 }
 
 export default function PurchaseReturnIndex({ returns }: { returns: PaginatedReturns }) {
@@ -69,29 +69,31 @@ export default function PurchaseReturnIndex({ returns }: { returns: PaginatedRet
     return (
         <AppLayout>
             <Head title="All Purchase Returns" />
-            <div className="bg-gray-100 p-4 w-screen lg:w-full">
-                {/* Header */}
-                <PageHeader title='Purchase Return List' addLinkHref='/purchase-returns/create' addLinkText='+ Add Return' />
-                {/* Table */}
-                <TableComponent
-                    columns={columns}
-                    data={returns.data}
-                    actions={(row: ReturnItem) => (
-                        <ActionButtons
-                            editHref={`/purchase-returns/${row.id}/edit`}
-                            onDelete={() => handleDelete(row.id)}
-                            printText="Print"
-                            printHref={`/purchase-returns/${row.id}/invoice`}
-                        />
-                    )}
-                />
-                {/* Pagination */}
-                <Pagination
-                    links={returns.links}
-                    currentPage={returns.current_page}
-                    lastPage={returns.last_page}
-                    total={returns.total}
-                />
+            <div className="bg-gray-100 p-6 h-full w-screen lg:w-full">
+                <div className="bg-white h-full rounded-lg p-6">
+                    {/* Header */}
+                    <PageHeader title='Purchase Return List' addLinkHref='/purchase-returns/create' addLinkText='+ Add Return' />
+                    {/* Table */}
+                    <TableComponent
+                        columns={columns}
+                        data={returns.data}
+                        actions={(row: ReturnItem) => (
+                            <ActionButtons
+                                editHref={`/purchase-returns/${row.id}/edit`}
+                                onDelete={() => handleDelete(row.id)}
+                                printText="Print"
+                                printHref={`/purchase-returns/${row.id}/invoice`}
+                            />
+                        )}
+                    />
+                    {/* Pagination */}
+                    <Pagination
+                        links={returns.links}
+                        currentPage={returns.current_page}
+                        lastPage={returns.last_page}
+                        total={returns.total}
+                    />
+                </div>
             </div>
         </AppLayout>
     );

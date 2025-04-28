@@ -77,10 +77,10 @@ export default function PurchaseReturnInvoice({ purchase_return }: { purchase_re
 
                 <ActionFooter
                     className="w-full justify-end"
-                    cancelHref="/purchase-returns" // URL for the cancel/back action
-                    cancelText="Back" // Text for the cancel button
-                    onSubmit={() => window.print()} // Function to handle the print action
-                    submitText="Print Invoice" // Text for the submit button
+                    cancelHref="/purchase-returns"
+                    cancelText="Back"
+                    onSubmit={() => window.print()}
+                    submitText="Print Invoice"
                 />
 
             </div>

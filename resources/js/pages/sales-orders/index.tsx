@@ -104,73 +104,75 @@ export default function SalesOrderIndex() {
     return (
         <AppLayout>
             <Head title="Sales Order List" />
-            <div className="bg-gray-100 p-4 w-screen md:w-full">
+            <div className="bg-gray-100 p-6 h-full w-screen lg:w-full">
+                <div className="bg-white h-full rounded-lg p-6">
 
-                <PageHeader title='Sales Order List' addLinkHref='/sales-orders/create' addLinkText='+ Add Sales Order' />
+                    <PageHeader title='Sales Order List' addLinkHref='/sales-orders/create' addLinkText='+ Add Sales Order' />
 
-                {/* <div className="overflow-visible overflow-x-auto rounded-lg border border-gray-300 bg-white shadow-sm">
-                    <table className="min-w-full border-collapse text-[13px]">
-                        <thead className="bg-gray-100 text-xs text-gray-600 uppercase">
-                            <tr>
-                                <th className="border px-3 py-2">SL</th>
-                                <th className="border px-3 py-2">Date</th>
-                                <th className="border px-3 py-2">Voucher No</th>
-                                <th className="border px-3 py-2">Ledger</th>
-                                <th className="border px-3 py-2">Salesman</th>
-                                <th className="border px-3 py-2">Item + Qty + Rate</th>
-                                <th className="border px-3 py-2">Total Qty</th>
-                                <th className="border px-3 py-2">Total Amount</th>
-                                <th className="border px-3 py-2 text-center">Actions</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {salesOrders.data.map((order, index) => (
-                                <tr key={order.id} className="hover:bg-gray-50">
-                                    <td className="border px-3 py-2 text-center">{index + 1}</td>
-                                    <td className="border px-3 py-2">{order.date}</td>
-                                    <td className="border px-3 py-2">{order.voucher_no}</td>
-                                    <td className="border px-3 py-2">{order.ledger?.account_ledger_name ?? 'N/A'}</td>
-                                    <td className="border px-3 py-2">{order.salesman?.name || '-'}</td>
-                                    <td className="border px-3 py-2">
-                                        {order.items.map((item, idx) => (
-                                            <div key={idx} className="mb-1">
-                                                {item.product?.item_name || 'N/A'} - {item.quantity} x {item.rate}tk
-                                            </div>
-                                        ))}
-                                    </td>
-                                    <td className="border px-3 py-2 text-center">{order.total_qty}</td>
-                                    <td className="border px-3 py-2 text-right font-semibold">{Number(order.total_amount || 0).toFixed(2)} Tk</td>
-                                    <ActionButtons
-                                        editHref={`/sales-orders/${order.id}/edit`}
-                                        onDelete={() => handleDelete(order.id)}
-                                        printHref={`/sales-orders/${order.id}/invoice`}
-                                        printText="Print"
-                                    />
-                                </tr>
-                            ))}
-                        </tbody>
-                    </table>
-                </div> */}
+                    {/* <div className="overflow-visible overflow-x-auto rounded-lg border border-gray-300 bg-white shadow-sm">
+    <table className="min-w-full border-collapse text-[13px]">
+        <thead className="bg-gray-100 text-xs text-gray-600 uppercase">
+            <tr>
+                <th className="border px-3 py-2">SL</th>
+                <th className="border px-3 py-2">Date</th>
+                <th className="border px-3 py-2">Voucher No</th>
+                <th className="border px-3 py-2">Ledger</th>
+                <th className="border px-3 py-2">Salesman</th>
+                <th className="border px-3 py-2">Item + Qty + Rate</th>
+                <th className="border px-3 py-2">Total Qty</th>
+                <th className="border px-3 py-2">Total Amount</th>
+                <th className="border px-3 py-2 text-center">Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            {salesOrders.data.map((order, index) => (
+                <tr key={order.id} className="hover:bg-gray-50">
+                    <td className="border px-3 py-2 text-center">{index + 1}</td>
+                    <td className="border px-3 py-2">{order.date}</td>
+                    <td className="border px-3 py-2">{order.voucher_no}</td>
+                    <td className="border px-3 py-2">{order.ledger?.account_ledger_name ?? 'N/A'}</td>
+                    <td className="border px-3 py-2">{order.salesman?.name || '-'}</td>
+                    <td className="border px-3 py-2">
+                        {order.items.map((item, idx) => (
+                            <div key={idx} className="mb-1">
+                                {item.product?.item_name || 'N/A'} - {item.quantity} x {item.rate}tk
+                            </div>
+                        ))}
+                    </td>
+                    <td className="border px-3 py-2 text-center">{order.total_qty}</td>
+                    <td className="border px-3 py-2 text-right font-semibold">{Number(order.total_amount || 0).toFixed(2)} Tk</td>
+                    <ActionButtons
+                        editHref={`/sales-orders/${order.id}/edit`}
+                        onDelete={() => handleDelete(order.id)}
+                        printHref={`/sales-orders/${order.id}/invoice`}
+                        printText="Print"
+                    />
+                </tr>
+            ))}
+        </tbody>
+    </table>
+</div> */}
 
-                <TableComponent
-                    columns={columns}
-                    data={salesOrders.data}
-                    actions={(row: SalesOrder) => (
-                        <ActionButtons
-                            editHref={`/sales-orders/${row.id}/edit`}
-                            onDelete={() => handleDelete(row.id)}
-                            printHref={`/sales-orders/${row.id}/invoice`}
-                            printText="Print"
-                        />
-                    )}
-                />
+                    <TableComponent
+                        columns={columns}
+                        data={salesOrders.data}
+                        actions={(row: SalesOrder) => (
+                            <ActionButtons
+                                editHref={`/sales-orders/${row.id}/edit`}
+                                onDelete={() => handleDelete(row.id)}
+                                printHref={`/sales-orders/${row.id}/invoice`}
+                                printText="Print"
+                            />
+                        )}
+                    />
 
-                <Pagination
-                    links={salesOrders.links}
-                    currentPage={salesOrders.current_page}
-                    lastPage={salesOrders.last_page}
-                    total={salesOrders.total}
-                />
+                    <Pagination
+                        links={salesOrders.links}
+                        currentPage={salesOrders.current_page}
+                        lastPage={salesOrders.last_page}
+                        total={salesOrders.total}
+                    />
+                </div>
             </div>
         </AppLayout>
     );

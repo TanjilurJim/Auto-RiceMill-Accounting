@@ -100,25 +100,27 @@ export default function PurchaseIndex({ purchases }: { purchases: PaginatedPurch
     return (
         <AppLayout>
             <Head title="All Purchases" />
-            <div className="bg-gray-100 p-4 w-screen lg:w-full">
+            <div className="bg-gray-100 p-6 h-full w-screen lg:w-full">
+                <div className="bg-white h-full rounded-lg p-6">
+                    {/* Use the PageHeader component  */}
+                    <PageHeader title="Purchase List" addLinkHref="/purchases/create" addLinkText="+ Add New" />
 
-                {/* Use the PageHeader component  */}
-                <PageHeader title="Purchase List" addLinkHref="/purchases/create" addLinkText="+ Add New" />
+                    {/* Table */}
+                    <TableComponent
+                        columns={columns}
+                        data={purchases.data}
+                        noDataMessage="No purchases found."
+                    />
 
-                {/* Table */}
-                <TableComponent
-                    columns={columns}
-                    data={purchases.data}
-                    noDataMessage="No purchases found."
-                />
+                    {/* Pagination */}
+                    <Pagination
+                        links={purchases.links}
+                        currentPage={purchases.current_page}
+                        lastPage={purchases.last_page}
+                        total={purchases.total}
+                    />
+                </div>
 
-                {/* Pagination */}
-                <Pagination
-                    links={purchases.links}
-                    currentPage={purchases.current_page}
-                    lastPage={purchases.last_page}
-                    total={purchases.total}
-                />
             </div>
         </AppLayout>
     );

@@ -115,72 +115,74 @@ export default function SaleIndex({ sales }: { sales: PaginatedSales }) {
   return (
     <AppLayout>
       <Head title="Sales List" />
-      <div className="p-4 bg-gray-100 w-screen md:w-full">
+      <div className="bg-gray-100 p-6 h-full w-screen lg:w-full">
+        <div className="bg-white h-full rounded-lg p-6">
 
-        {/* Header */}
-        <PageHeader title='Sales List' addLinkHref='/sales/create' addLinkText='+ Add Sale' />
-        
-        {/* Table */}
-        <TableComponent
-          columns={columns}
-          data={sales.data}
-          actions={(row: Sale, rowIndex: number) => (
-            <ActionButtons
-              editHref={`/sales/${row.id}/edit`}
-              onDelete={() => handleDelete(row.id)}
-              onPrint={(e) => toggleDropdown(rowIndex, e)}
-              printText="Print ▼"
-            />
+          {/* Header */}
+          <PageHeader title='Sales List' addLinkHref='/sales/create' addLinkText='+ Add Sale' />
+
+          {/* Table */}
+          <TableComponent
+            columns={columns}
+            data={sales.data}
+            actions={(row: Sale, rowIndex: number) => (
+              <ActionButtons
+                editHref={`/sales/${row.id}/edit`}
+                onDelete={() => handleDelete(row.id)}
+                onPrint={(e) => toggleDropdown(rowIndex, e)}
+                printText="Print ▼"
+              />
+            )}
+          />
+
+
+
+          {/* Pagination */}
+          <Pagination
+            links={sales.links}
+            currentPage={sales.current_page}
+            lastPage={sales.last_page}
+            total={sales.total}
+          />
+
+          {/* 🔥 The "Print" Dropdown outside the table so it won't be clipped */}
+          {openDropdown !== null && (
+            <div
+              className="fixed z-50 w-40 rounded border bg-white shadow"
+              style={{ top: dropdownPos.y, left: dropdownPos.x }}
+              onClick={(e) => e.stopPropagation()} // so clicking inside won't close it
+            >
+              <Link
+                href={`/sales/${sales.data[openDropdown].id}/invoice`}
+                target="_blank"
+                className="block px-4 py-2 text-sm hover:bg-gray-100"
+              >
+                Sale Invoice
+              </Link>
+              <Link
+                href={`/sales/${sales.data[openDropdown].id}/truck-chalan`}
+                target="_blank"
+                className="block px-4 py-2 text-sm hover:bg-gray-100"
+              >
+                Truck Chalan
+              </Link>
+              <Link
+                href={`/sales/${sales.data[openDropdown].id}/load-slip`}
+                target="_blank"
+                className="block px-4 py-2 text-sm hover:bg-gray-100"
+              >
+                Load Slip
+              </Link>
+              <Link
+                href={`/sales/${sales.data[openDropdown].id}/gate-pass`}
+                target="_blank"
+                className="block px-4 py-2 text-sm hover:bg-gray-100"
+              >
+                Gate Pass
+              </Link>
+            </div>
           )}
-        />
-
-
-
-        {/* Pagination */}
-        <Pagination
-          links={sales.links}
-          currentPage={sales.current_page}
-          lastPage={sales.last_page}
-          total={sales.total}
-        />
-
-        {/* 🔥 The "Print" Dropdown outside the table so it won't be clipped */}
-        {openDropdown !== null && (
-          <div
-            className="fixed z-50 w-40 rounded border bg-white shadow"
-            style={{ top: dropdownPos.y, left: dropdownPos.x }}
-            onClick={(e) => e.stopPropagation()} // so clicking inside won't close it
-          >
-            <Link
-              href={`/sales/${sales.data[openDropdown].id}/invoice`}
-              target="_blank"
-              className="block px-4 py-2 text-sm hover:bg-gray-100"
-            >
-              Sale Invoice
-            </Link>
-            <Link
-              href={`/sales/${sales.data[openDropdown].id}/truck-chalan`}
-              target="_blank"
-              className="block px-4 py-2 text-sm hover:bg-gray-100"
-            >
-              Truck Chalan
-            </Link>
-            <Link
-              href={`/sales/${sales.data[openDropdown].id}/load-slip`}
-              target="_blank"
-              className="block px-4 py-2 text-sm hover:bg-gray-100"
-            >
-              Load Slip
-            </Link>
-            <Link
-              href={`/sales/${sales.data[openDropdown].id}/gate-pass`}
-              target="_blank"
-              className="block px-4 py-2 text-sm hover:bg-gray-100"
-            >
-              Gate Pass
-            </Link>
-          </div>
-        )}
+        </div>
       </div>
     </AppLayout>
   );
