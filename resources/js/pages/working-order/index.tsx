@@ -109,34 +109,36 @@ export default function Index({ workingOrders }: Props) {
         <AppLayout>
             <Head title="Working Orders" />
 
-            <div className="mx-auto p-8 w-screen lg:w-full bg-gray-100">
-                {/* Header Bar */}
-                <PageHeader title="Working Orders" addLinkHref="/working-orders/create" addLinkText="+ New Working Order" />
+            <div className="mx-auto p-6 h-full w-screen bg-gray-100">
+                <div className="h-full bg-white shadow-md rounded-lg p-6">
+                    {/* Header Bar */}
+                    <PageHeader title="Working Orders" addLinkHref="/working-orders/create" addLinkText="+ New Working Order" />
 
-                {/* Responsive Table */}
-                <TableComponent
-                    columns={columns}
-                    data={orders}
-                    actions={(order) => (
-                        <ActionButtons
-                            editHref={`/working-orders/${order.id}/edit`}
-                            onDelete={() => handleDelete(order.id)}
-                            printHref={`/working-orders/${order.id}`}
-                            editText={<FiEdit />}
-                            deleteText={<FiTrash />}
-                            printText={<FiEye />}
-                        />
-                    )}
-                    noDataMessage="No working orders found."
-                />
+                    {/* Responsive Table */}
+                    <TableComponent
+                        columns={columns}
+                        data={orders}
+                        actions={(order) => (
+                            <ActionButtons
+                                editHref={`/working-orders/${order.id}/edit`}
+                                onDelete={() => handleDelete(order.id)}
+                                printHref={`/working-orders/${order.id}`}
+                                editText={<FiEdit />}
+                                deleteText={<FiTrash />}
+                                printText={<FiEye />}
+                            />
+                        )}
+                        noDataMessage="No working orders found."
+                    />
 
-                {/* Pagination Links */}
-                <Pagination
-                    links={workingOrders.links}
-                    currentPage={workingOrders.current_page}
-                    lastPage={workingOrders.last_page}
-                    total={workingOrders.total}
-                />
+                    {/* Pagination Links */}
+                    <Pagination
+                        links={workingOrders.links}
+                        currentPage={workingOrders.current_page}
+                        lastPage={workingOrders.last_page}
+                        total={workingOrders.total}
+                    />
+                </div>
             </div>
         </AppLayout>
     );
