@@ -87,11 +87,11 @@ export default function Show({ workingOrder }: Props) {
                                     {row.godown?.name ?? '—'}
                                 </div>
                                 <div className="col-span-2 lg:col-span-2 text-right text-xs">
-                                    <label className="mb-2 block text-sm font-medium text-gray-700">Qty</label>
+                                    <label className="mb-2 block text-sm font-medium text-gray-700">Unit Price</label>
                                     {Number(row.quantity).toFixed(2)}
                                 </div>
                                 <div className="col-span-2 lg:col-span-2 text-right text-xs">
-                                    <label className="mb-2 block text-sm font-medium text-gray-700">Unit Price</label>
+                                    <label className="mb-2 block text-sm font-medium text-gray-700">Qty</label>
                                     {Number(row.purchase_price).toFixed(2)}
                                 </div>
                                 <div className="col-span-2 lg:col-span-2 text-right text-xs font-medium text-indigo-600">

@@ -98,170 +98,171 @@ export default function Edit({ finishedProduct, workingOrders, products, godowns
     return (
         <AppLayout>
             <Head title="Edit Finished Product" />
-            <div className="mx-auto max-w-6xl space-y-6 rounded-xl bg-gray-100 px-6 py-8 shadow-xl">
-                {/* <h2 className="text-xl font-semibold text-gray-700">Edit Finished Product</h2> */}
-                <PageHeader title='Edit Finished Product' addLinkHref='/finished-products' addLinkText="Back" />
-                <form onSubmit={handleSubmit} className="space-y-6 rounded border bg-white p-6 shadow-md">
+            <div className="mx-auto bg-gray-100 p-6 border">
+                <div className="h-full bg-white rounded-lg p-6">
+                    <PageHeader title='Edit Finished Product' addLinkHref='/finished-products' addLinkText="Back" />
+                    <form onSubmit={handleSubmit} className="space-y-6 rounded border bg-white p-6 shadow-md">
 
-                    <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
-                        <div>
-                            <label className="text-sm font-medium text-gray-700">Working Order</label>
-                            <Select
-                                options={workingOrderOptions}
-                                onChange={(opt) => setSelectedWOId(opt?.value || null)}
-                                value={workingOrderOptions.find((opt) => opt.value === selectedWOId) || null}
-                                isClearable
-                            />
-                        </div>
-
-                        <div>
-                            <label className="text-sm font-medium text-gray-700">Date</label>
-                            <input
-                                type="date"
-                                value={date}
-                                onChange={(e) => setDate(e.target.value)}
-                                className="w-full rounded border px-2 py-2"
-                                required
-                            />
-                        </div>
-
-                        <div>
-                            <label className="text-sm font-medium text-gray-700">Voucher No</label>
-                            <input
-                                type="text"
-                                value={voucherNo}
-                                readOnly
-                                className="w-full cursor-not-allowed rounded border bg-gray-100 px-2 py-2"
-                            />
-                        </div>
-
-                        <div>
-                            <label className="text-sm font-medium text-gray-700">Reference No</label>
-                            <input
-                                type="text"
-                                value={referenceNo}
-                                onChange={(e) => setReferenceNo(e.target.value)}
-                                className="w-full rounded border px-2 py-2"
-                            />
-                        </div>
-                    </div>
-
-                    {/* Output Product Rows */}
-                    <div className="space-y-2">
-                        <div className="flex items-center justify-between">
-                            <h3 className="font-semibold text-gray-800">Product Output</h3>
-                            <button
-                                type="button"
-                                onClick={addRow}
-                                className="flex items-center gap-1 text-sm text-indigo-600 hover:underline"
-                            >
-                                <PlusCircleIcon className="h-5 w-5" />
-                                Add Row
-                            </button>
-                        </div>
-
-                        {rows.map((row, idx) => (
-                            <div key={idx} className="grid grid-cols-12 items-center gap-2 rounded bg-gray-50 p-2">
-                                <div className="col-span-3">
-                                    <select
-                                        name="product_id"
-                                        value={row.product_id}
-                                        onChange={(e) => handleRowChange(e, idx)}
-                                        className="w-full rounded border px-2 py-1"
-                                        required
-                                    >
-                                        <option value="">Select Product</option>
-                                        {products.map((p) => (
-                                            <option key={p.id} value={p.id}>
-                                                {p.item_name}
-                                            </option>
-                                        ))}
-                                    </select>
-                                </div>
-
-                                <div className="col-span-2">
-                                    <select
-                                        name="godown_id"
-                                        value={row.godown_id}
-                                        onChange={(e) => handleRowChange(e, idx)}
-                                        className="w-full rounded border px-2 py-1"
-                                        required
-                                    >
-                                        <option value="">Select Godown</option>
-                                        {godowns.map((g) => (
-                                            <option key={g.id} value={g.id}>
-                                                {g.name}
-                                            </option>
-                                        ))}
-                                    </select>
-                                </div>
-
-                                <div className="col-span-2">
-                                    <input
-                                        type="number"
-                                        name="quantity"
-                                        value={row.quantity}
-                                        onChange={(e) => handleRowChange(e, idx)}
-                                        className="w-full rounded border px-2 py-1 text-right"
-                                        required
-                                    />
-                                </div>
-
-                                <div className="col-span-2">
-                                    <input
-                                        type="number"
-                                        name="unit_price"
-                                        value={row.unit_price}
-                                        onChange={(e) => handleRowChange(e, idx)}
-                                        className="w-full rounded border px-2 py-1 text-right"
-                                        required
-                                    />
-                                </div>
-
-                                <div className="col-span-2 text-right font-medium text-indigo-600">
-                                    {row.total.toFixed(2)}
-                                </div>
-
-                                <div className="col-span-1 flex justify-end">
-                                    <button
-                                        type="button"
-                                        onClick={() => removeRow(idx)}
-                                        className="text-danger hover:text-danger"
-                                    >
-                                        <TrashIcon className="h-5 w-5" />
-                                    </button>
-                                </div>
+                        <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
+                            <div>
+                                <label className="text-sm font-medium text-gray-700">Working Order</label>
+                                <Select
+                                    options={workingOrderOptions}
+                                    onChange={(opt) => setSelectedWOId(opt?.value || null)}
+                                    value={workingOrderOptions.find((opt) => opt.value === selectedWOId) || null}
+                                    isClearable
+                                />
                             </div>
-                        ))}
-                    </div>
 
-                    <div className="pt-4">
-                        <label className="text-sm font-medium text-gray-700">Note</label>
-                        <textarea
-                            value={note}
-                            onChange={(e) => setNote(e.target.value)}
-                            className="w-full rounded border px-3 py-2"
-                            rows={3}
-                        ></textarea>
-                    </div>
+                            <div>
+                                <label className="text-sm font-medium text-gray-700">Date</label>
+                                <input
+                                    type="date"
+                                    value={date}
+                                    onChange={(e) => setDate(e.target.value)}
+                                    className="w-full rounded border px-2 py-2"
+                                    required
+                                />
+                            </div>
 
-                    {/* <div className="flex justify-end">
-                        <button
-                            type="submit"
-                            className="rounded bg-indigo-600 px-6 py-3 font-medium text-white hover:bg-indigo-700"
-                        >
-                            Update Finished Product
-                        </button>
-                    </div> */}
-                    <ActionFooter
-                        className="justify-end"
-                        onSubmit={handleSubmit}
-                        cancelHref="/finished-products"
-                        processing={false}
-                        submitText="Update Finished Product"
-                        cancelText="Cancel"
-                    />
-                </form>
+                            <div>
+                                <label className="text-sm font-medium text-gray-700">Voucher No</label>
+                                <input
+                                    type="text"
+                                    value={voucherNo}
+                                    readOnly
+                                    className="w-full cursor-not-allowed rounded border bg-gray-100 px-2 py-2"
+                                />
+                            </div>
+
+                            <div>
+                                <label className="text-sm font-medium text-gray-700">Reference No</label>
+                                <input
+                                    type="text"
+                                    value={referenceNo}
+                                    onChange={(e) => setReferenceNo(e.target.value)}
+                                    className="w-full rounded border px-2 py-2"
+                                />
+                            </div>
+                        </div>
+
+                        {/* Output Product Rows */}
+                        <div className="space-y-2">
+                            <div className="flex items-center justify-between">
+                                <h3 className="font-semibold text-gray-800">Product Output</h3>
+                                <button
+                                    type="button"
+                                    onClick={addRow}
+                                    className="flex items-center gap-1 text-sm text-indigo-600 hover:underline"
+                                >
+                                    <PlusCircleIcon className="h-5 w-5" />
+                                    Add Row
+                                </button>
+                            </div>
+
+                            {rows.map((row, idx) => (
+                                <div key={idx} className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 xl:grid-cols-12 items-center gap-2 rounded bg-gray-50 p-2">
+                                    <div className="col-span-2">
+                                        <label className="text-sm font-medium text-gray-700">Item</label>
+                                        <select
+                                            name="product_id"
+                                            value={row.product_id}
+                                            onChange={(e) => handleRowChange(e, idx)}
+                                            className="w-full rounded border px-2 py-1"
+                                            required
+                                        >
+                                            <option value="">Select Product</option>
+                                            {products.map((p) => (
+                                                <option key={p.id} value={p.id}>
+                                                    {p.item_name}
+                                                </option>
+                                            ))}
+                                        </select>
+                                    </div>
+
+                                    <div className="col-span-2">
+                                        <label className="text-sm font-medium text-gray-700">Godown</label>
+                                        <select
+                                            name="godown_id"
+                                            value={row.godown_id}
+                                            onChange={(e) => handleRowChange(e, idx)}
+                                            className="w-full rounded border px-2 py-1"
+                                            required
+                                        >
+                                            <option value="">Select Godown</option>
+                                            {godowns.map((g) => (
+                                                <option key={g.id} value={g.id}>
+                                                    {g.name}
+                                                </option>
+                                            ))}
+                                        </select>
+                                    </div>
+
+                                    <div className="col-span-2">
+                                        <label className="text-sm font-medium text-gray-700">Price</label>
+                                        <input
+                                            type="number"
+                                            name="quantity"
+                                            value={row.quantity}
+                                            onChange={(e) => handleRowChange(e, idx)}
+                                            className="w-full rounded border px-2 py-1 text-right"
+                                            required
+                                        />
+                                    </div>
+
+                                    <div className="col-span-2">
+                                        <label className="text-sm font-medium text-gray-700">Qty</label>
+                                        <input
+                                            type="number"
+                                            name="unit_price"
+                                            value={row.unit_price}
+                                            onChange={(e) => handleRowChange(e, idx)}
+                                            className="w-full rounded border px-2 py-1 text-right"
+                                            required
+                                        />
+                                    </div>
+
+                                    <div className="col-span-2 font-medium text-indigo-600 flex flex-col lg:items-center">
+                                        <label className="text-sm font-medium text-gray-700">Total</label>
+                                        <span>
+                                            {row.total.toFixed(2)}
+                                        </span>
+                                    </div>
+
+                                    <div className="col-span-2 flex flex-col lg:items-center">
+                                        <label className="text-sm font-medium text-gray-700">Action</label>
+                                        <button
+                                            type="button"
+                                            onClick={() => removeRow(idx)}
+                                            className="text-danger hover:text-danger"
+                                        >
+                                            <TrashIcon className="h-5 w-5" />
+                                        </button>
+                                    </div>
+                                </div>
+                            ))}
+                        </div>
+
+                        <div className="pt-4">
+                            <label className="text-sm font-medium text-gray-700">Note</label>
+                            <textarea
+                                value={note}
+                                onChange={(e) => setNote(e.target.value)}
+                                className="w-full rounded border px-3 py-2"
+                                rows={3}
+                            ></textarea>
+                        </div>
+
+                        <ActionFooter
+                            className="justify-end"
+                            onSubmit={handleSubmit}
+                            cancelHref="/finished-products"
+                            processing={false}
+                            submitText="Update Finished Product"
+                            cancelText="Cancel"
+                        />
+                    </form>
+                </div>
             </div>
         </AppLayout>
     );

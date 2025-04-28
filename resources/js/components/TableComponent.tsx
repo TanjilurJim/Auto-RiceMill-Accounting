@@ -1,5 +1,3 @@
-import React from 'react';
-
 interface TableColumn<T> {
     header: string;
     accessor: string | ((row: T, index?: number) => React.ReactNode);
@@ -15,7 +13,7 @@ interface TableProps<T> {
 
 const TableComponent = <T,>({ columns, data, actions, noDataMessage = 'No data found.' }: TableProps<T>) => {
     return (
-      <div className="overflow-x-auto">
+      <div className="overflow-x-auto rounded">
         <table className="table-auto w-full border-collapse border border-gray-300 shadow-md">
           <thead className="bg-gray-200">
             <tr>

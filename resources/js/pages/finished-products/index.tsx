@@ -2,10 +2,10 @@ import ActionButtons from '@/components/ActionButtons';
 import { confirmDialog } from '@/components/confirmDialog';
 import PageHeader from '@/components/PageHeader';
 import Pagination from '@/components/Pagination';
+import TableComponent from '@/components/TableComponent';
 import AppLayout from '@/layouts/app-layout';
-import { Head, Link, router } from '@inertiajs/react';
+import { Head, router } from '@inertiajs/react';
 import { FiEdit, FiEye, FiTrash } from 'react-icons/fi';
-import Swal from 'sweetalert2';
 
 /* ─────────── Types ─────────── */
 interface Item {
@@ -50,89 +50,85 @@ export default function Index({ finishedProducts }: Props) {
 
     const handleDelete = (id: number) => {
         confirmDialog(
-            {},() => {
+            {}, () => {
                 router.delete(`/finished-products/${id}`);
             }
         )
-
-
     };
+
+
+    const columns = [
+        { header: 'Voucher No', accessor: 'production_voucher_no', className: 'font-semibold text-indigo-700' },
+        { header: 'Production Date', accessor: 'production_date' },
+        {
+            header: 'Working Order',
+            accessor: (fp: FinishedProduct) => (
+                <>
+                    {fp.working_order?.voucher_no} <br />
+                    <span className="text-xs text-gray-500">{fp.working_order?.date}</span>
+                </>
+            ),
+        },
+        {
+            header: 'Items',
+            accessor: (fp: FinishedProduct) => {
+                const itemLines = fp.items.map(
+                    (r) => `${r.product.item_name} (${r.quantity}) from ${r.godown.name}`
+                );
+                return <span className="whitespace-pre-line text-xs">{itemLines.join('\n')}</span>;
+            },
+        },
+        {
+            header: 'Total Qty',
+            accessor: (fp: FinishedProduct) =>
+                fp.items.reduce((t, r) => t + Number(r.quantity), 0).toFixed(2),
+            className: 'text-right',
+        },
+        {
+            header: 'Total Amount',
+            accessor: (fp: FinishedProduct) =>
+                fp.items.reduce((t, r) => t + Number(r.total), 0).toFixed(2),
+            className: 'text-right',
+        },
+        { header: 'Note', accessor: 'remarks', className: 'text-sm text-gray-700' },
+    ];
+
 
     return (
         <AppLayout>
             <Head title="Finished Products" />
 
-            <div className="mx-auto max-w-6xl px-6 py-8 bg-gray-100 shadow-xl rounded-xl space-y-6">
+            <div className="mx-auto h-full w-screen lg:w-full p-6 bg-gray-100 space-y-6 border">
 
-                <PageHeader title='Finished Products' addLinkHref='/finished-products/create' addLinkText='+ Add Finished Product' />
+                <div className='h-full bg-white rounded-lg p-6'>
+                    <PageHeader title='Finished Products' addLinkHref='/finished-products/create' addLinkText='+ Add Finished Product' />
 
-                {/* Table */}
-                <div className="overflow-x-auto rounded-xl border border-gray-300 bg-white shadow">
-                    <table className="min-w-full text-sm text-gray-800">
-                        <thead className="bg-gray-200 text-left text-gray-700">
-                            <tr>
-                                <th className="px-4 py-3">Voucher No</th>
-                                <th className="px-4 py-3">Production Date</th>
-                                <th className="px-4 py-3">Working Order</th>
-                                <th className="px-4 py-3">Items</th>
-                                <th className="px-4 py-3 text-right">Total Qty</th>
-                                <th className="px-4 py-3 text-right">Total Amount</th>
-                                <th className="px-4 py-3">Note</th>
-                                <th className="px-4 py-3 text-center">Actions</th>
-                            </tr>
-                        </thead>
-                        <tbody className="divide-y divide-gray-100">
-                            {products.length ? (
-                                products.map((fp) => {
-                                    const totalQty = fp.items.reduce((t, r) => t + Number(r.quantity), 0);
-                                    const totalAmount = fp.items.reduce((t, r) => t + Number(r.total), 0);
-                                    const itemLines = fp.items.map((r) => `${r.product.item_name} (${r.quantity}) from ${r.godown.name}`);
+                    {/* Table */}
+                    <TableComponent
+                        columns={columns}
+                        data={products}
+                        actions={(fp: FinishedProduct) => (
+                            <ActionButtons
+                                editHref={`/finished-products/${fp.id}/edit`}
+                                onDelete={() => handleDelete(fp.id)}
+                                printHref={`/finished-products/${fp.id}`}
+                                editText={<FiEdit />}
+                                deleteText={<FiTrash />}
+                                printText={<FiEye />}
+                            />
+                        )}
+                        noDataMessage="No finished products yet."
+                    />
 
-                                    return (
-                                        <tr key={fp.id} className="hover:bg-gray-50">
-                                            <td className="px-4 py-3 font-semibold text-indigo-700">{fp.production_voucher_no}</td>
-                                            <td className="px-4 py-3">{fp.production_date}</td>
-                                            <td className="px-4 py-3 text-sm">
-                                                {fp.working_order?.voucher_no} <br />
-                                                <span className="text-xs text-gray-500">{fp.working_order?.date}</span>
-                                            </td>
-                                            <td className="px-4 py-3 whitespace-pre-line text-gray-800 text-xs">
-                                                {itemLines.join('\n')}
-                                            </td>
-                                            <td className="px-4 py-3 text-right">{totalQty.toFixed(2)}</td>
-                                            <td className="px-4 py-3 text-right">{totalAmount.toFixed(2)}</td>
-                                            <td className="px-4 py-3 text-sm text-gray-700">{fp.remarks || '—'}</td>
-                                            
-                                            <ActionButtons
-                                                editHref={`/finished-products/${fp.id}/edit`}
-                                                onDelete={() => handleDelete(fp.id)}
-                                                printHref={`/finished-products/${fp.id}`}
-                                                editText={<FiEdit />}
-                                                deleteText={<FiTrash />}
-                                                printText={<FiEye />}
-                                            />
-                                        </tr>
-                                    );
-                                })
-                            ) : (
-                                <tr>
-                                    <td colSpan={8} className="px-4 py-6 text-center text-gray-500">
-                                        No finished products yet.
-                                    </td>
-                                </tr>
-                            )}
-                        </tbody>
-                    </table>
+                    {/* Pagination */}
+                    <Pagination
+                        links={finishedProducts.links}
+                        currentPage={finishedProducts.current_page}
+                        lastPage={finishedProducts.last_page}
+                        total={finishedProducts.total}
+                    />
                 </div>
 
-                {/* Pagination */}
-                <div className="mt-4 text-sm text-gray-600 flex justify-between items-center">
-                    <span>
-                        Page {finishedProducts.current_page} of {finishedProducts.last_page}
-                    </span>
-                    <span>Total: {finishedProducts.total}</span>
-                </div>
-                <Pagination links={finishedProducts.links} />
             </div>
         </AppLayout>
     );
