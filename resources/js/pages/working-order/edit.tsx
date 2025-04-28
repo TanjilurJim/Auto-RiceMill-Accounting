@@ -121,8 +121,8 @@ const WorkingOrderEdit: React.FC<Props> = ({ workingOrder, products, godowns }) 
       <Head title="Edit Working Order" />
 
       <div className="mx-auto w-full ">
-        <div className="border border-gray-200 bg-white/80 shadow-lg">
-          <div className="w-full bg-gray-100 p-6 shadow-sm sm:p-8">
+        <div className="h-full border border-gray-200 bg-gray-100 p-6 shadow-lg">
+          <div className="w-full h-full bg-white rounded-md p-6 ">
             <PageHeader title="Edit Working Order" addLinkText="Back to Orders" addLinkHref="/working-orders" />
 
             <form onSubmit={handleSubmit} className="space-y-8 px-6 py-5">

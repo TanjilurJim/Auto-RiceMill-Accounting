@@ -102,9 +102,9 @@ const WorkingOrderCreate: React.FC<Props> = ({ autoVoucherNo, products, godowns 
         <AppLayout>
             <Head title="Create Working Order" />
 
-            <div className="mx-auto w-full ">
-                <div className="border border-gray-200 bg-white/80 shadow-lg">
-                    <div className="w-full bg-gray-100 p-6 shadow-sm sm:p-8">
+            <div className="mx-auto w-full h-full ">
+                <div className="h-full border border-gray-200 bg-gray-100 p-6 shadow-lg">
+                    <div className="w-full h-full bg-white rounded-md p-6 ">
                         {/* Header bar */}
 
                         <PageHeader
@@ -191,13 +191,13 @@ const WorkingOrderCreate: React.FC<Props> = ({ autoVoucherNo, products, godowns 
                                         className="grid grid-cols-1 gap-4 rounded border border-gray-100 bg-gray-50 p-4 shadow-md sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-6 xl:grid-cols-12"
                                     >
                                         {/* Product */}
-                                        <div className="col-span-1 lg:col-span-3">
+                                        <div className="col-span-1 lg:col-span-2">
                                             <label className="mb-2 block text-sm font-medium text-gray-700">Product</label>
                                             <select
                                                 name="product_id"
                                                 value={row.product_id}
                                                 onChange={(e) => handleInputChange(e, idx)}
-                                                className="rounded border-2 border-black px-2 py-1 text-xs"
+                                                className="w-full rounded border px-2 py-1 text-xs"
                                                 required
                                             >
                                                 <option value="">Select Product</option>
@@ -216,7 +216,7 @@ const WorkingOrderCreate: React.FC<Props> = ({ autoVoucherNo, products, godowns 
                                                 name="godown_id"
                                                 value={row.godown_id}
                                                 onChange={(e) => handleInputChange(e, idx)}
-                                                className="w-full rounded border-2 border-black px-2 py-1 text-xs"
+                                                className="w-full rounded border px-2 py-1 text-xs"
                                                 required
                                             >
                                                 <option value="">Select Godown</option>
@@ -236,7 +236,7 @@ const WorkingOrderCreate: React.FC<Props> = ({ autoVoucherNo, products, godowns 
                                                 name="quantity"
                                                 value={row.quantity}
                                                 onChange={(e) => handleInputChange(e, idx)}
-                                                className="w-full rounded border-2 border-black px-2 py-1 text-right text-xs"
+                                                className="w-full rounded border px-2 py-1 text-right text-xs"
                                                 min="1"
                                                 required
                                             />
@@ -250,23 +250,23 @@ const WorkingOrderCreate: React.FC<Props> = ({ autoVoucherNo, products, godowns 
                                                 name="purchase_price"
                                                 value={row.purchase_price}
                                                 onChange={(e) => handleInputChange(e, idx)}
-                                                className="w-full rounded border-2 border-black px-2 py-1 text-right text-xs"
+                                                className="w-full rounded border px-2 py-1 text-right text-xs"
                                                 step="0.01"
                                                 required
                                             />
                                         </div>
 
                                         {/* Subtotal */}
-                                        <div className="col-span-1 lg:col-span-2 flex items-center justify-end">
+                                        <div className="col-span-1 lg:col-span-2 flex items-center ">
                                             <span className="text-sm font-medium text-indigo-600">{row.subtotal.toFixed(2)}</span>
                                         </div>
 
                                         {/* Remove Button */}
-                                        <div className="col-span-1 flex items-center justify-end">
+                                        <div className="col-span-1 flex items-center ">
                                             <button
                                                 type="button"
                                                 onClick={() => removeRow(idx)}
-                                                className="text-danger hover:text-danger-hover"
+                                                className="text-red-500 hover:text-red-700 disabled:opacity-50"
                                                 disabled={rows.length === 1}
                                             >
                                                 <TrashIcon className="h-6 w-6" />
@@ -277,7 +277,7 @@ const WorkingOrderCreate: React.FC<Props> = ({ autoVoucherNo, products, godowns 
                             </div>
 
                             {/* ───── Extra expenses grid ───── */}
-                            <div className="space-y-1">
+                            {/* <div className="space-y-1">
                                 <div className="flex items-center justify-between">
                                     <h3 className="text-sm font-medium text-gray-900">Additional Expenses</h3>
                                     <button
@@ -295,7 +295,7 @@ const WorkingOrderCreate: React.FC<Props> = ({ autoVoucherNo, products, godowns 
                                         key={idx}
                                         className="grid grid-cols-1 gap-4 rounded border border-gray-100 bg-gray-50 p-4 shadow-md sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-6 xl:grid-cols-12"
                                     >
-                                        {/* Title */}
+                                        
                                         <div className="col-span-1 lg:col-span-5">
                                             <label className="mb-2 block text-sm font-medium text-gray-700">Title</label>
                                             <input
@@ -308,8 +308,7 @@ const WorkingOrderCreate: React.FC<Props> = ({ autoVoucherNo, products, godowns 
                                                 required
                                             />
                                         </div>
-
-                                        {/* Quantity */}
+                                        
                                         <div className="col-span-1 lg:col-span-2">
                                             <label className="mb-2 block text-sm font-medium text-gray-700">Qty</label>
                                             <input
@@ -321,8 +320,7 @@ const WorkingOrderCreate: React.FC<Props> = ({ autoVoucherNo, products, godowns 
                                                 min="1"
                                             />
                                         </div>
-
-                                        {/* Price */}
+                                        
                                         <div className="col-span-1 lg:col-span-2">
                                             <label className="mb-2 block text-sm font-medium text-gray-700">Price</label>
                                             <input
@@ -334,13 +332,11 @@ const WorkingOrderCreate: React.FC<Props> = ({ autoVoucherNo, products, godowns 
                                                 step="0.01"
                                             />
                                         </div>
-
-                                        {/* Total */}
+                                        
                                         <div className="col-span-1 lg:col-span-2 flex items-center justify-end">
                                             <span className="text-sm font-medium text-indigo-600">{row.total.toFixed(2)}</span>
                                         </div>
-
-                                        {/* Remove Button */}
+                                        
                                         <div className="col-span-1 flex items-center justify-end">
                                             <button
                                                 type="button"
@@ -353,7 +349,7 @@ const WorkingOrderCreate: React.FC<Props> = ({ autoVoucherNo, products, godowns 
                                         </div>
                                     </div>
                                 ))}
-                            </div>
+                            </div> */}
 
                             {/* ───── Grand total card ───── */}
                             <div className="mt-4 rounded border border-indigo-100 bg-indigo-50 px-4 py-3 shadow">

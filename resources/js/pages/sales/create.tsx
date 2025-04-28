@@ -403,7 +403,7 @@ export default function SaleCreate({
                                 </div>
 
                                 {/* Add/Remove Buttons */}
-                                <div className="w-full flex items-start justify-s gap-2 md:mt-6">
+                                <div className="w-full flex items-start justify-s gap-2 md:pt-6">
                                     {data.sale_items.length > 1 && (
                                         <button
                                             type="button"

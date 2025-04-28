@@ -118,7 +118,7 @@ const mainNavItems: NavItem[] = [
                 icon: RotateCcw,
             },
             {
-                title: 'Sales Add and List',
+                title: 'Sales Add List',
                 href: '/sales',
                 icon: ReceiptText,
             },
