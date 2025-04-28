@@ -248,9 +248,15 @@ class PurchaseReportController extends Controller
     private function validateFilters(Request $r, string $tab): array
     {
         $rules = [
-            'from_date' => 'required|date',
-            'to_date'   => 'required|date',
+            'year'      => 'nullable|integer|min:2000|max:2100',
         ];
+
+        if (!$r->filled('year')) {
+            // Only require dates if no year is selected
+            $rules['from_date'] = 'required|date';
+            $rules['to_date']   = 'required|date';
+        }
+
         if ($tab === 'category') $rules['category_id'] = 'nullable|exists:categories,id';
         if ($tab === 'item')     $rules['item_id']     = 'nullable|exists:items,id';
         if ($tab === 'party')    $rules['supplier_id'] = 'nullable|exists:account_ledgers,id';
@@ -486,26 +492,45 @@ class PurchaseReportController extends Controller
     /* 5-E  All-purchases list */
     private function getAllData(array $f): Collection
     {
-        return DB::table('purchases')
+        $query = DB::table('purchases')
             ->join('account_ledgers', 'account_ledgers.id', '=', 'purchases.account_ledger_id')
-            ->select(
-                'purchases.date',
-                'purchases.voucher_no',
-                'account_ledgers.account_ledger_name as supplier',
-                'purchases.total_qty as qty',         // <-- ✅ correct
-                'purchases.grand_total as net_amount', // <-- ✅ correct
-                'purchases.amount_paid'
-            )
-            ->whereBetween('purchases.date', [$f['from_date'], $f['to_date']])
             ->when(
                 $this->allowedUserIds(),
                 fn($q, $ids) => $q->whereIn('purchases.created_by', $ids)
-            )
-            ->orderBy('purchases.date')
-            ->get()
-            ->map(function ($r) {
-                $r->due = ($r->net_amount ?? 0) - ($r->amount_paid ?? 0);
-                return $r;
-            });
+            );
+
+            if (!empty($f['year'])) {
+                return DB::table('purchases')
+                    ->selectRaw('
+                        MONTH(date) as month,
+                        SUM(grand_total) as amount
+                    ')
+                    ->whereYear('date', $f['year'])
+                    ->when(
+                        $this->allowedUserIds(),
+                        fn($q, $ids) => $q->whereIn('created_by', $ids)
+                    )
+                    ->groupBy(DB::raw('MONTH(date)'))
+                    ->orderBy('month')
+                    ->get();
+            } else {
+            // 🔎 Normal voucher-wise list if no year
+            return $query
+                ->select(
+                    'purchases.date',
+                    'purchases.voucher_no',
+                    'account_ledgers.account_ledger_name as supplier',
+                    'purchases.total_qty as qty',
+                    'purchases.grand_total as net_amount',
+                    'purchases.amount_paid'
+                )
+                ->whereBetween('purchases.date', [$f['from_date'], $f['to_date']])
+                ->orderBy('purchases.date')
+                ->get()
+                ->map(function ($r) {
+                    $r->due = ($r->net_amount ?? 0) - ($r->amount_paid ?? 0);
+                    return $r;
+                });
+        }
     }
 }

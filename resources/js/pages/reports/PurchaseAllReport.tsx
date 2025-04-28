@@ -27,7 +27,7 @@ export default function PurchaseAllReport({
     company,
 }: {
     entries: Row[];
-    filters: { from_date: string; to_date: string };
+    filters: { from_date: string; to_date: string; year?: string };
     company: Company;
 }) {
     // totals
@@ -51,9 +51,16 @@ export default function PurchaseAllReport({
 
                         <div className="mt-4">
                             <h2 className="text-xl font-semibold underline">All Purchases</h2>
-                            <p className="text-sm">
-                                From <strong>{filters.from_date}</strong> to <strong>{filters.to_date}</strong>
-                            </p>
+
+                            {filters.year ? (
+                                <p className="text-sm">
+                                    Showing for Year <strong>{filters.year}</strong>
+                                </p>
+                            ) : (
+                                <p className="text-sm">
+                                    From <strong>{filters.from_date}</strong> to <strong>{filters.to_date}</strong>
+                                </p>
+                            )}
                         </div>
 
                         <div className="absolute top-4 right-4 print:hidden">
@@ -68,47 +75,81 @@ export default function PurchaseAllReport({
                         <div className="overflow-x-auto">
                             <table className="min-w-full border border-gray-300 text-sm print:text-xs">
                                 <thead className="bg-gray-100 print:bg-white">
-                                    <tr>
-                                        <th className="border px-2 py-1">#</th>
-                                        <th className="border px-2 py-1">Date</th>
-                                        <th className="border px-2 py-1">Vch No</th>
-                                        <th className="border px-2 py-1">Supplier</th>
-                                        <th className="border px-2 py-1 text-right">Qty</th>
-                                        <th className="border px-2 py-1 text-right">Net (Tk)</th>
-                                        <th className="border px-2 py-1 text-right">Paid (Tk)</th>
-                                        <th className="border px-2 py-1 text-right">Due (Tk)</th>
-                                    </tr>
+                                    {filters.year ? (
+                                        <tr>
+                                            <th className="border px-2 py-1">#</th>
+                                            <th className="border px-2 py-1">Month</th>
+                                            <th className="border px-2 py-1 text-right">Amount (Tk)</th>
+                                        </tr>
+                                    ) : (
+                                        <tr>
+                                            <th className="border px-2 py-1">#</th>
+                                            <th className="border px-2 py-1">Date</th>
+                                            <th className="border px-2 py-1">Vch No</th>
+                                            <th className="border px-2 py-1">Supplier</th>
+                                            <th className="border px-2 py-1 text-right">Qty</th>
+                                            <th className="border px-2 py-1 text-right">Net (Tk)</th>
+                                            <th className="border px-2 py-1 text-right">Paid (Tk)</th>
+                                            <th className="border px-2 py-1 text-right">Due (Tk)</th>
+                                        </tr>
+                                    )}
                                 </thead>
                                 <tbody>
                                     {entries.length ? (
                                         <>
-                                            {entries.map((r, i) => (
-                                                <tr key={i} className="print:bg-white">
-                                                    <td className="border px-2 py-1">{i + 1}</td>
-                                                    <td className="border px-2 py-1">{new Date(r.date).toLocaleDateString()}</td>
-                                                    <td className="border px-2 py-1">{r.voucher_no}</td>
-                                                    <td className="border px-2 py-1">{r.supplier}</td>
-                                                    <td className="border px-2 py-1 text-right">{Number(r.qty ?? 0).toFixed(2)}</td>
-                                                    <td className="border px-2 py-1 text-right">{Number(r.qty ?? 0).toFixed(2)}</td>
-                                                    <td className="border px-2 py-1 text-right">{Number(r.qty ?? 0).toFixed(2)}</td>
-                                                    <td className="border px-2 py-1 text-right">{Number(r.qty ?? 0).toFixed(2)}</td>
-                                                </tr>
-                                            ))}
+                                            {filters.year ? (
+                                                <>
+                                                    {entries.map((r, i) => (
+                                                        <tr key={i} className="print:bg-white">
+                                                            <td className="border px-2 py-1">{i + 1}</td>
+                                                            <td className="border px-2 py-1">
+                                                                {new Date(2025, (r.month ?? 0) - 1).toLocaleString('default', { month: 'long' })}
+                                                            </td>
+                                                            <td className="border px-2 py-1 text-right">{Number(r.amount ?? 0).toFixed(2)}</td>
+                                                        </tr>
+                                                    ))}
 
-                                            {/* totals row */}
-                                            <tr className="bg-gray-100 font-semibold print:bg-white">
-                                                <td colSpan={4} className="border px-2 py-1 text-right">
-                                                    Grand Total
-                                                </td>
-                                                <td className="border px-2 py-1 text-right">{totalQty.toFixed(2)}</td>
-                                                <td className="border px-2 py-1 text-right">{totalNet.toFixed(2)}</td>
-                                                <td className="border px-2 py-1 text-right">{totalPaid.toFixed(2)}</td>
-                                                <td className="border px-2 py-1 text-right">{totalDue.toFixed(2)}</td>
-                                            </tr>
+                                                    {/* Grand Total row */}
+                                                    <tr className="bg-gray-100 font-semibold print:bg-white">
+                                                        <td colSpan={2} className="border px-2 py-1 text-right">
+                                                            Grand Total
+                                                        </td>
+                                                        <td className="border px-2 py-1 text-right">
+                                                            {entries.reduce((s, r) => s + Number(r.amount ?? 0), 0).toFixed(2)}
+                                                        </td>
+                                                    </tr>
+                                                </>
+                                            ) : (
+                                                <>
+                                                    {entries.map((r, i) => (
+                                                        <tr key={i} className="print:bg-white">
+                                                            <td className="border px-2 py-1">{i + 1}</td>
+                                                            <td className="border px-2 py-1">{new Date(r.date).toLocaleDateString()}</td>
+                                                            <td className="border px-2 py-1">{r.voucher_no}</td>
+                                                            <td className="border px-2 py-1">{r.supplier}</td>
+                                                            <td className="border px-2 py-1 text-right">{Number(r.qty ?? 0).toFixed(2)}</td>
+                                                            <td className="border px-2 py-1 text-right">{Number(r.net_amount ?? 0).toFixed(2)}</td>
+                                                            <td className="border px-2 py-1 text-right">{Number(r.amount_paid ?? 0).toFixed(2)}</td>
+                                                            <td className="border px-2 py-1 text-right">{Number(r.due ?? 0).toFixed(2)}</td>
+                                                        </tr>
+                                                    ))}
+
+                                                    {/* totals row */}
+                                                    <tr className="bg-gray-100 font-semibold print:bg-white">
+                                                        <td colSpan={4} className="border px-2 py-1 text-right">
+                                                            Grand Total
+                                                        </td>
+                                                        <td className="border px-2 py-1 text-right">{totalQty.toFixed(2)}</td>
+                                                        <td className="border px-2 py-1 text-right">{totalNet.toFixed(2)}</td>
+                                                        <td className="border px-2 py-1 text-right">{totalPaid.toFixed(2)}</td>
+                                                        <td className="border px-2 py-1 text-right">{totalDue.toFixed(2)}</td>
+                                                    </tr>
+                                                </>
+                                            )}
                                         </>
                                     ) : (
                                         <tr>
-                                            <td colSpan={8} className="border px-4 py-4 text-center text-gray-500">
+                                            <td colSpan={filters.year ? 3 : 8} className="border px-4 py-4 text-center text-gray-500">
                                                 No data found.
                                             </td>
                                         </tr>

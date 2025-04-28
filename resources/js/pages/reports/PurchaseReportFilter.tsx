@@ -28,6 +28,7 @@ export default function PurchaseReportFilter({ tab, categories, items, suppliers
         category_id: '',
         item_id: '',
         supplier_id: '',
+        year: '',
     });
 
     /* ——— submit -> /reports/purchase/<tab> ——— */
@@ -79,10 +80,14 @@ export default function PurchaseReportFilter({ tab, categories, items, suppliers
                                     <label className="block text-sm font-medium">From Date *</label>
                                     <input
                                         type="date"
-                                        required
+                                        required={!data.year} // 👈 Only required if year is NOT selected
+                                        disabled={!!data.year} // 👈 Disable if year is selected
                                         className="mt-1 block w-full rounded-md border-gray-300"
                                         value={data.from_date}
-                                        onChange={(e) => setData('from_date', e.target.value)}
+                                        onChange={(e) => {
+                                            setData('from_date', e.target.value);
+                                            setData('year', ''); // Clear year if date changed
+                                        }}
                                     />
                                     {errors.from_date && <p className="text-sm text-red-500">{errors.from_date}</p>}
                                 </div>
@@ -92,13 +97,48 @@ export default function PurchaseReportFilter({ tab, categories, items, suppliers
                                     <label className="block text-sm font-medium">To Date *</label>
                                     <input
                                         type="date"
-                                        required
+                                        required={!data.year}
+                                        disabled={!!data.year}
                                         className="mt-1 block w-full rounded-md border-gray-300"
                                         value={data.to_date}
-                                        onChange={(e) => setData('to_date', e.target.value)}
+                                        onChange={(e) => {
+                                            setData('to_date', e.target.value);
+                                            setData('year', '');
+                                        }}
                                     />
                                     {errors.to_date && <p className="text-sm text-red-500">{errors.to_date}</p>}
                                 </div>
+                                {/* Year Filter (Only for All Purchases Tab) */}
+                                {is('all') && (
+                                    <div>
+                                        <label className="block text-sm font-medium">
+                                            Year <span className="text-gray-400">(optional)</span>
+                                        </label>
+                                        <select
+                                            className="mt-1 block w-full rounded-md border-gray-300"
+                                            value={data.year ?? ''}
+                                            onChange={(e) => {
+                                                const selectedYear = e.target.value;
+                                                setData('year', selectedYear);
+
+                                                if (selectedYear) {
+                                                    setData('from_date', '');
+                                                    setData('to_date', '');
+                                                }
+                                            }}
+                                        >
+                                            <option value="">— All Years —</option>
+                                            {Array.from({ length: 6 }, (_, i) => {
+                                                const year = new Date().getFullYear() + i;
+                                                return (
+                                                    <option key={year} value={year}>
+                                                        {year}
+                                                    </option>
+                                                );
+                                            })}
+                                        </select>
+                                    </div>
+                                )}
 
                                 {/* Conditional extra dropdowns */}
                                 {is('category') && (
