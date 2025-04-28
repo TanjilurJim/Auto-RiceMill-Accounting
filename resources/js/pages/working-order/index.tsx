@@ -110,7 +110,7 @@ export default function Index({ workingOrders }: Props) {
             <Head title="Working Orders" />
 
             <div className="mx-auto p-6 h-full w-screen lg:w-full bg-gray-100">
-                <div className="h-full bg-white shadow-md rounded-lg p-6">
+                <div className="h-full bg-white rounded-lg p-6">
                     {/* Header Bar */}
                     <PageHeader title="Working Orders" addLinkHref="/working-orders/create" addLinkText="+ New Working Order" />
 
