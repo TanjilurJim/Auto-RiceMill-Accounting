@@ -103,8 +103,8 @@ const WorkingOrderCreate: React.FC<Props> = ({ autoVoucherNo, products, godowns 
             <Head title="Create Working Order" />
 
             <div className="mx-auto w-full h-full ">
-                <div className="h-full border border-gray-200 bg-gray-100 p-6 shadow-lg">
-                    <div className="w-full h-full bg-white rounded-md p-6 ">
+                <div className="h-full border border-gray-200 bg-gray-100 p-6">
+                    <div className="w-full h-full bg-white rounded-lg p-6 ">
                         {/* Header bar */}
 
                         <PageHeader
@@ -188,10 +188,10 @@ const WorkingOrderCreate: React.FC<Props> = ({ autoVoucherNo, products, godowns 
                                 {rows.map((row, idx) => (
                                     <div
                                         key={idx}
-                                        className="grid grid-cols-1 gap-4 rounded border border-gray-100 bg-gray-50 p-4 shadow-md sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-6 xl:grid-cols-12"
+                                        className="grid grid-cols-1 md:grid-cols-4 lg:grid-cols-6 xl:grid-cols-12  gap-4 rounded border border-gray-100 bg-gray-50 p-4 shadow-md"
                                     >
                                         {/* Product */}
-                                        <div className="col-span-1 lg:col-span-2">
+                                        <div className="col-span-1 md:col-span-2">
                                             <label className="mb-2 block text-sm font-medium text-gray-700">Product</label>
                                             <select
                                                 name="product_id"
@@ -210,7 +210,7 @@ const WorkingOrderCreate: React.FC<Props> = ({ autoVoucherNo, products, godowns 
                                         </div>
 
                                         {/* Godown */}
-                                        <div className="col-span-1 lg:col-span-2">
+                                        <div className="col-span-1 md:col-span-2">
                                             <label className="mb-2 block text-sm font-medium text-gray-700">Godown</label>
                                             <select
                                                 name="godown_id"
@@ -229,7 +229,7 @@ const WorkingOrderCreate: React.FC<Props> = ({ autoVoucherNo, products, godowns 
                                         </div>
 
                                         {/* Quantity */}
-                                        <div className="col-span-1 lg:col-span-2">
+                                        <div className="col-span-1 md:col-span-2">
                                             <label className="mb-2 block text-sm font-medium text-gray-700">Qty</label>
                                             <input
                                                 type="number"
@@ -243,7 +243,7 @@ const WorkingOrderCreate: React.FC<Props> = ({ autoVoucherNo, products, godowns 
                                         </div>
 
                                         {/* Unit Price */}
-                                        <div className="col-span-1 lg:col-span-2">
+                                        <div className="col-span-1 md:col-span-2">
                                             <label className="mb-2 block text-sm font-medium text-gray-700">Unit Price</label>
                                             <input
                                                 type="number"
@@ -257,12 +257,14 @@ const WorkingOrderCreate: React.FC<Props> = ({ autoVoucherNo, products, godowns 
                                         </div>
 
                                         {/* Subtotal */}
-                                        <div className="col-span-1 lg:col-span-2 flex items-center ">
+                                        <div className="col-span-1 md:col-span-2">
+                                            <label className="mb-2 block text-sm font-medium text-gray-700">Subtotal</label>
                                             <span className="text-sm font-medium text-indigo-600">{row.subtotal.toFixed(2)}</span>
                                         </div>
 
                                         {/* Remove Button */}
-                                        <div className="col-span-1 flex items-center ">
+                                        <div className="col-span-1 md:col-span-2">
+                                            <label className="mb-2 block text-sm font-medium text-gray-700">Action</label>
                                             <button
                                                 type="button"
                                                 onClick={() => removeRow(idx)}

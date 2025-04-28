@@ -45,8 +45,8 @@ export default function Show({ workingOrder }: Props) {
         <AppLayout>
             <Head title={`WO ${workingOrder.voucher_no}`} />
 
-            <div className="mx-auto w-full p-6 shadow-xl">
-                <div className=" border-gray-200 bg-white">
+            <div className="mx-auto h-full w-full p-6 shadow-xl bg-gray-100">
+                <div className="h-full rounded-xl border-gray-200 bg-white p-6">
                     {/* Header */}
                     <PageHeader
                         title={
@@ -78,11 +78,24 @@ export default function Show({ workingOrder }: Props) {
                                 key={row.id}
                                 className="grid grid-cols-1 gap-4 rounded border border-gray-100 bg-gray-50 p-4 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-6 xl:grid-cols-12"
                             >
-                                <div className="col-span-4 lg:col-span-4 text-xs">{row.item?.item_name ?? '—'}</div>
-                                <div className="col-span-2 lg:col-span-2 text-xs">{row.godown?.name ?? '—'}</div>
-                                <div className="col-span-2 lg:col-span-2 text-right text-xs">{Number(row.quantity).toFixed(2)}</div>
-                                <div className="col-span-2 lg:col-span-2 text-right text-xs">{Number(row.purchase_price).toFixed(2)}</div>
+                                <div className="col-span-4 lg:col-span-4 text-xs">
+                                    <label className="mb-2 block text-sm font-medium text-gray-700">Product</label>
+                                    {row.item?.item_name ?? '—'}
+                                </div>
+                                <div className="col-span-2 lg:col-span-2 text-xs">
+                                    <label className="mb-2 block text-sm font-medium text-gray-700">Godown</label>
+                                    {row.godown?.name ?? '—'}
+                                </div>
+                                <div className="col-span-2 lg:col-span-2 text-right text-xs">
+                                    <label className="mb-2 block text-sm font-medium text-gray-700">Qty</label>
+                                    {Number(row.quantity).toFixed(2)}
+                                </div>
+                                <div className="col-span-2 lg:col-span-2 text-right text-xs">
+                                    <label className="mb-2 block text-sm font-medium text-gray-700">Unit Price</label>
+                                    {Number(row.purchase_price).toFixed(2)}
+                                </div>
                                 <div className="col-span-2 lg:col-span-2 text-right text-xs font-medium text-indigo-600">
+                                    <label className="mb-2 block text-sm font-medium text-gray-700">Subtotal</label>
                                     {Number(row.subtotal).toFixed(2)}
                                 </div>
                             </div>
@@ -90,7 +103,7 @@ export default function Show({ workingOrder }: Props) {
                     </div>
 
                     {/* Extras */}
-                    {workingOrder.extras.length > 0 && (
+                    {/* {workingOrder.extras.length > 0 && (
                         <>
                             <h2 className="mt-4 mb-2 text-sm font-semibold text-gray-800">Additional Expenses</h2>
                             <div className="space-y-1">
@@ -109,7 +122,7 @@ export default function Show({ workingOrder }: Props) {
                                 ))}
                             </div>
                         </>
-                    )}
+                    )} */}
 
                     {/* Totals */}
                     <div className="mt-4 rounded border border-indigo-100 bg-indigo-50 px-4 py-3">
@@ -117,10 +130,10 @@ export default function Show({ workingOrder }: Props) {
                             <span>Materials Total</span>
                             <span>{Number(materialTotal).toFixed(2)}</span>
                         </div>
-                        <div className="flex items-center justify-between text-sm">
+                        {/* <div className="flex items-center justify-between text-sm">
                             <span>Expenses Total</span>
                             <span>{Number(expenseTotal).toFixed(2)}</span>
-                        </div>
+                        </div> */}
                         <div className="mt-1 flex items-center justify-between text-base font-semibold">
                             <span className="text-indigo-700">{Number(workingOrder.total_amount).toFixed(2)}</span>
                         </div>

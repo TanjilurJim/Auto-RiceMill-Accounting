@@ -96,11 +96,11 @@ export default function Index({ workingOrders }: Props) {
         },
         { header: 'Quantity', accessor: 'total_quantity', },
         { header: 'SubTotal', accessor: 'subtotal', },
-        {
-            header: 'Extras',
-            accessor: (row: any) =>
-                (row.extras ?? []).map((e: any) => `${e.title} (${Number(e.total).toFixed(2)})`).join('\n') || '—',
-        },
+        // {
+        //     header: 'Extras',
+        //     accessor: (row: any) =>
+        //         (row.extras ?? []).map((e: any) => `${e.title} (${Number(e.total).toFixed(2)})`).join('\n') || '—',
+        // },
         { header: 'Total Amount', accessor: 'total_amount', },
         { header: 'Date', accessor: 'date', },
     ];
@@ -109,7 +109,7 @@ export default function Index({ workingOrders }: Props) {
         <AppLayout>
             <Head title="Working Orders" />
 
-            <div className="mx-auto p-6 h-full w-screen lg:w-full bg-gray-100">
+            <div className="mx-auto p-6 h-full w-screen lg:w-full bg-gray-100 border ">
                 <div className="h-full bg-white rounded-lg p-6">
                     {/* Header Bar */}
                     <PageHeader title="Working Orders" addLinkHref="/working-orders/create" addLinkText="+ New Working Order" />
