@@ -252,31 +252,33 @@ export default function PurchaseCreate({
                                 ))}
                             </select>
 
-                            {/* Party Ledger */}
-                            <select
-                                className="border p-2"
-                                value={data.account_ledger_id}
-                                onChange={(e) => {
-                                    const val = e.target.value;
-                                    setData('account_ledger_id', val);
-                                    fetchBalance(val, 'party'); // ☑ now hits the new route
-                                }}
-                            >
-                                <option value="">Select Party Ledger</option>
-                                {ledgers.map((l) => (
-                                    <option key={l.id} value={l.id}>
-                                        {l.account_ledger_name}
-                                    </option>
-                                ))}
-                            </select>
+                            <div>
+                                {/* Party Ledger */}
+                                <select
+                                    className="border p-2 w-full h-fit"
+                                    value={data.account_ledger_id}
+                                    onChange={(e) => {
+                                        const val = e.target.value;
+                                        setData('account_ledger_id', val);
+                                        fetchBalance(val, 'party'); // ☑ now hits the new route
+                                    }}
+                                >
+                                    <option value="">Select Party Ledger</option>
+                                    {ledgers.map((l) => (
+                                        <option key={l.id} value={l.id}>
+                                            {l.account_ledger_name}
+                                        </option>
+                                    ))}
+                                </select>
 
-                            {/* Party balance label – put directly after the select */}
-                            {partyBalance !== null && (
-                                <div className="col-span-2 text-xs text-gray-600">Party Balance: {Number(partyBalance).toFixed(2)}</div>
-                            )}
+                                {/* Party balance label – put directly after the select */}
+                                {partyBalance !== null && (
+                                    <div className="col-span-2 text-xs text-gray-600 py-0.5">Party Balance: {Number(partyBalance).toFixed(2)}</div>
+                                )}
+                            </div>
 
                             {/* Inventory Ledger */}
-                            <div className="flex w-full flex-col items-center gap-2 md:flex-row">
+                            <div className="flex h-fit w-full flex-col items-center gap-2 md:flex-row">
                                 <select
                                     className={`${errors.godown_id ? 'border-red-500' : 'border-gray-300'} h-full w-full border p-2`}
                                     value={data.inventory_ledger_id}
@@ -436,35 +438,37 @@ export default function PurchaseCreate({
                         <h2 className="text-lg font-semibold">Payment Info</h2>
 
                         <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-                            <select
-                                className="border p-2"
-                                value={data.received_mode_id}
-                                onChange={(e) => {
-                                    const modeId = e.target.value;
-                                    setData('received_mode_id', modeId);
+                            <div>
+                                <select
+                                    className="border p-2 w-full h-fit"
+                                    value={data.received_mode_id}
+                                    onChange={(e) => {
+                                        const modeId = e.target.value;
+                                        setData('received_mode_id', modeId);
 
-                                    const selectedMode = receivedModes.find((m) => m.id == Number(modeId));
-                                    if (selectedMode?.ledger_id) {
-                                        fetchBalance(selectedMode.ledger_id.toString(), 'payment');
-                                    } else {
-                                        setPaymentLedgerBalance(null);
-                                    }
-                                }}
-                            >
-                                <option value="">Select Payment Mode</option>
-                                {receivedModes.map((mode) => (
-                                    <option key={mode.id} value={mode.id}>
-                                        {mode.mode_name}
-                                    </option>
-                                ))}
-                            </select>
-                            {paymentLedgerBalance !== null && (
-                                <div className="mt-1 text-xs text-gray-600">Payment Ledger Balance: {Number(paymentLedgerBalance).toFixed(2)}</div>
-                            )}
+                                        const selectedMode = receivedModes.find((m) => m.id == Number(modeId));
+                                        if (selectedMode?.ledger_id) {
+                                            fetchBalance(selectedMode.ledger_id.toString(), 'payment');
+                                        } else {
+                                            setPaymentLedgerBalance(null);
+                                        }
+                                    }}
+                                >
+                                    <option value="">Select Payment Mode</option>
+                                    {receivedModes.map((mode) => (
+                                        <option key={mode.id} value={mode.id}>
+                                            {mode.mode_name}
+                                        </option>
+                                    ))}
+                                </select>
+                                {paymentLedgerBalance !== null && (
+                                    <div className="mt-1 text-xs text-gray-600 w-full">Payment Ledger Balance: {Number(paymentLedgerBalance).toFixed(2)}</div>
+                                )}
+                            </div>
 
                             <input
                                 type="number"
-                                className="border p-2"
+                                className="border p-2 h-fit"
                                 placeholder="Amount Paid"
                                 value={data.amount_paid}
                                 onChange={(e) => {
@@ -480,7 +484,7 @@ export default function PurchaseCreate({
 
                             {/* NEW: Remaining Due label, full row */}
                             <div className="col-span-2 text-xs text-red-600">
-                                 Remaining Due:&nbsp;
+                                Remaining Due:&nbsp;
                                 {remainingDue.toFixed(2)}
                             </div>
                         </div>

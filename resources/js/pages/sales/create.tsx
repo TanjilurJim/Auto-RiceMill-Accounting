@@ -203,12 +203,6 @@ export default function SaleCreate({
             <Head title="Add Sale" />
             <div className="bg-gray-100 p-6">
                 {/* Header */}
-                {/* <div className="mb-6 flex items-center justify-between">
-                    <h1 className="text-2xl font-semibold text-gray-800">Create Sale</h1>
-                    <Link href="/sales" className="rounded bg-gray-300 px-4 py-2 hover:bg-neutral-100">
-                        Back
-                    </Link>
-                </div> */}
 
                 <PageHeader title='Create Sale' addLinkHref='/sales' addLinkText='Back' />
 
@@ -328,12 +322,13 @@ export default function SaleCreate({
                         <h2 className="mb-3 border-b pb-1 text-lg font-semibold text-gray-700">Products</h2>
 
                         {data.sale_items.map((item, index) => (
-                            <div key={index} className="mb-3 grid grid-cols-12 items-end gap-2">
+                            // <div key={index} className="mb-3 grid grid-cols-12 items-end gap-2">
+                            <div key={index} className="mb-3 flex flex-col md:flex-row gap-2 h-full w-full">
                                 {/* Product */}
-                                <div className="col-span-3">
+                                <div className="w-full h-full">
                                     <label className="mb-1 block text-sm font-medium text-gray-700">Product</label>
                                     <select
-                                        className="w-full rounded border p-2"
+                                        className="w-full rounded border p-2 h-fit"
                                         value={item.product_id}
                                         onChange={(e) => handleItemChange(index, 'product_id', e.target.value)}
                                     >
@@ -350,21 +345,21 @@ export default function SaleCreate({
                                 </div>
 
                                 {/* Qty */}
-                                <div className="col-span-1">
+                                <div className="w-full h-full">
                                     <label className="mb-1 block text-sm font-medium text-gray-700">Qty</label>
                                     <input
                                         type="number"
-                                        className="w-full rounded border p-2"
+                                        className="w-full rounded border p-2 h-fit"
                                         value={item.qty}
                                         onChange={(e) => handleItemChange(index, 'qty', e.target.value)}
                                     />
                                     {errors[`sale_items.${index}.qty`] && (
-                                        <div className="mt-1 text-sm text-red-500">{errors[`sale_items.${index}.qty`]}</div>
+                                        <div className="mt-1 text-sm text-red-500 h-fit">{errors[`sale_items.${index}.qty`]}</div>
                                     )}
                                 </div>
 
                                 {/* Main Price */}
-                                <div className="col-span-2">
+                                <div className="w-full h-full">
                                     <label className="mb-1 block text-sm font-medium text-gray-700">Main Price</label>
                                     <input
                                         type="number"
@@ -378,7 +373,7 @@ export default function SaleCreate({
                                 </div>
 
                                 {/* Discount */}
-                                <div className="col-span-1">
+                                <div className="w-full h-full">
                                     <label className="mb-1 block text-sm font-medium text-gray-700">Disc</label>
                                     <input
                                         type="number"
@@ -389,7 +384,7 @@ export default function SaleCreate({
                                 </div>
 
                                 {/* Discount Type */}
-                                <div className="col-span-1">
+                                <div className="w-full h-full">
                                     <label className="mb-1 block text-sm font-medium text-gray-700">Type</label>
                                     <select
                                         className="w-full rounded border p-2"
@@ -402,24 +397,24 @@ export default function SaleCreate({
                                 </div>
 
                                 {/* Subtotal */}
-                                <div className="col-span-2">
+                                <div className="w-full h-full">
                                     <label className="mb-1 block text-sm font-medium text-gray-700">Subtotal</label>
                                     <input type="number" className="w-full rounded border bg-gray-100 p-2" value={item.subtotal} readOnly />
                                 </div>
 
                                 {/* Add/Remove Buttons */}
-                                <div className="col-span-1 flex items-end gap-2">
+                                <div className="w-full flex items-start justify-s gap-2 md:mt-6">
                                     {data.sale_items.length > 1 && (
                                         <button
                                             type="button"
-                                            className="rounded bg-danger hover:bg-danger-hover px-3 py-2 text-white"
+                                            className="rounded bg-danger hover:bg-danger-hover px-3 py-2 text-white w-full md:w-fit"
                                             onClick={() => removeProductRow(index)}
                                         >
                                             &minus;
                                         </button>
                                     )}
                                     {index === data.sale_items.length - 1 && (
-                                        <button type="button" className="rounded bg-primary hover:bg-primary-hover px-3 py-2 text-white" onClick={addProductRow}>
+                                        <button type="button" className="rounded bg-primary hover:bg-primary-hover px-3 py-2 text-white w-full md:w-fit" onClick={addProductRow}>
                                             +
                                         </button>
                                     )}
@@ -737,32 +732,23 @@ export default function SaleCreate({
                 </div>  */}
 
                     {/* Section 4: Submit */}
-                    {/* <div className="flex justify-end gap-3 pt-4">
-                        <button
-                            type="submit"
-                            disabled={processing}
-                            className="rounded bg-green-600 px-5 py-2 font-semibold text-white hover:bg-green-700"
-                        >
-                            {processing ? 'Saving...' : 'Save'}
-                        </button>
-                        <Link href="/sales" className="rounded border border-gray-400 px-5 py-2 font-semibold text-gray-700 hover:bg-gray-100">
-                            Cancel
-                        </Link>
-                    </div> */}
                     <ActionFooter
                         className='w-full justify-end'
-                        onSubmit={handleSubmit} // Function to handle form submission
-                        cancelHref="/sales" // URL for the cancel action
-                        processing={processing} // Indicates whether the form is processing
-                        submitText={processing ? 'Saving...' : 'Save'} // Text for the submit button
-                        cancelText="Cancel" // Text for the cancel button
+                        onSubmit={handleSubmit}
+                        cancelHref="/sales" 
+                        processing={processing} 
+                        submitText={processing ? 'Saving...' : 'Save'}
+                        cancelText="Cancel"
                     />
                 </form>
             </div>
 
             {/* Inventory Ledger Modal */}
             {showInventoryLedgerModal && (
-                <div className="bg-opacity-50 fixed inset-0 z-50 flex items-center justify-center bg-black">
+                <div className="bg-opacity-50 fixed inset-0 z-50 flex items-center justify-center " style={{
+                    backdropFilter: 'blur(5px)',
+                    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+                }} >
                     <div className="w-full max-w-md rounded bg-white p-6 shadow-lg">
                         <h2 className="mb-4 text-lg font-semibold text-gray-700">Create Inventory Ledger</h2>
 
@@ -826,7 +812,10 @@ export default function SaleCreate({
 
             {/* COGS Ledger Modal */}
             {showCogsLedgerModal && (
-                <div className="bg-opacity-50 fixed inset-0 z-50 flex items-center justify-center bg-black">
+                <div className="bg-opacity-50 fixed inset-0 z-50 flex items-center justify-center" style={{
+                    backdropFilter: 'blur(5px)',
+                    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+                }} >
                     <div className="w-full max-w-md rounded bg-white p-6 shadow-lg">
                         <h2 className="mb-4 text-lg font-semibold text-gray-700">Create COGS Ledger</h2>
 
