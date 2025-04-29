@@ -31,78 +31,81 @@ export default function DayBookFilter({ users, isAdmin }: { users: any[]; isAdmi
     return (
         <AppLayout>
             <Head title="Day Book Filter" />
-            <div className="mx-auto max-w-4xl p-6">
-                <PageHeader title="Day Book Report Filter" />
+            <div className="bg-gray-100 p-6 h-full w-screen lg:w-full">
+                <div className="bg-white h-full rounded-lg p-6">
 
-                <form onSubmit={handleSubmit} className="space-y-6 rounded-lg border bg-white p-6 shadow">
-                    <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
-                        <div>
-                            <label className="mb-1 block font-medium text-gray-700">
-                                From Date<span className="text-red-500">*</span>
-                            </label>
-                            <input
-                                type="date"
-                                name="from_date"
-                                value={filters.from_date}
-                                onChange={handleChange}
-                                className="w-full rounded border px-3 py-2"
-                                required
-                            />
-                        </div>
-                        <div>
-                            <label className="mb-1 block font-medium text-gray-700">
-                                To Date<span className="text-red-500">*</span>
-                            </label>
-                            <input
-                                type="date"
-                                name="to_date"
-                                value={filters.to_date}
-                                onChange={handleChange}
-                                className="w-full rounded border px-3 py-2"
-                                required
-                            />
-                        </div>
-                        <div>
-                            <label className="mb-1 block font-medium text-gray-700">Transaction Type</label>
-                            <select
-                                name="transaction_type"
-                                value={filters.transaction_type}
-                                onChange={handleChange}
-                                className="w-full rounded border px-3 py-2"
-                            >
-                                <option value="">All</option>
-                                {transactionTypes.map((type) => (
-                                    <option key={type} value={type}>
-                                        {type}
-                                    </option>
-                                ))}
-                            </select>
-                        </div>
-                        {isAdmin && (
+                    <PageHeader title="Day Book Report Filter" />
+
+                    <form onSubmit={handleSubmit} className="space-y-6 rounded-lg border bg-white p-6 shadow">
+                        <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
                             <div>
-                                <label className="mb-1 block font-medium text-gray-700">Created By</label>
+                                <label className="mb-1 block font-medium text-gray-700">
+                                    From Date<span className="text-red-500">*</span>
+                                </label>
+                                <input
+                                    type="date"
+                                    name="from_date"
+                                    value={filters.from_date}
+                                    onChange={handleChange}
+                                    className="w-full rounded border px-3 py-2"
+                                    required
+                                />
+                            </div>
+                            <div>
+                                <label className="mb-1 block font-medium text-gray-700">
+                                    To Date<span className="text-red-500">*</span>
+                                </label>
+                                <input
+                                    type="date"
+                                    name="to_date"
+                                    value={filters.to_date}
+                                    onChange={handleChange}
+                                    className="w-full rounded border px-3 py-2"
+                                    required
+                                />
+                            </div>
+                            <div>
+                                <label className="mb-1 block font-medium text-gray-700">Transaction Type</label>
                                 <select
-                                    name="created_by"
-                                    value={filters.created_by}
+                                    name="transaction_type"
+                                    value={filters.transaction_type}
                                     onChange={handleChange}
                                     className="w-full rounded border px-3 py-2"
                                 >
                                     <option value="">All</option>
-                                    {users.map((user) => (
-                                        <option key={user.id} value={user.id}>
-                                            {user.name}
+                                    {transactionTypes.map((type) => (
+                                        <option key={type} value={type}>
+                                            {type}
                                         </option>
                                     ))}
                                 </select>
                             </div>
-                        )}
-                        
-                    </div>
+                            {isAdmin && (
+                                <div>
+                                    <label className="mb-1 block font-medium text-gray-700">Created By</label>
+                                    <select
+                                        name="created_by"
+                                        value={filters.created_by}
+                                        onChange={handleChange}
+                                        className="w-full rounded border px-3 py-2"
+                                    >
+                                        <option value="">All</option>
+                                        {users.map((user) => (
+                                            <option key={user.id} value={user.id}>
+                                                {user.name}
+                                            </option>
+                                        ))}
+                                    </select>
+                                </div>
+                            )}
 
-                    <div className="flex justify-end">
-                        <Button type="submit">View Day Book</Button>
-                    </div>
-                </form>
+                        </div>
+
+                        <div className="flex justify-end">
+                            <Button type="submit">View Day Book</Button>
+                        </div>
+                    </form>
+                </div>
             </div>
         </AppLayout>
     );

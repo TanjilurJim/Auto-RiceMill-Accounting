@@ -2,6 +2,7 @@ import React from 'react';
 import { router, usePage } from '@inertiajs/react';
 import AppLayout from '@/layouts/app-layout';
 import { Button } from '@/components/ui/button';
+import PageHeader from '@/components/PageHeader';
 
 interface GroupUnder {
     id: number;
@@ -37,58 +38,64 @@ export default function LedgerGroupSummaryFilter() {
 
     return (
         <AppLayout title="Ledger Group Summary Filter">
-            <div className="max-w-2xl mx-auto mt-10 bg-white p-6 rounded shadow">
-                <h1 className="text-xl font-semibold mb-4 text-gray-700">Ledger Group Summary</h1>
+            <div className="bg-gray-100 p-6 h-full w-screen lg:w-full">
+                <div className="bg-white h-full rounded-lg p-6">
+                    {/* <h1 className="text-xl font-semibold mb-4 text-gray-700">Ledger Group Summary</h1> */}
+                    <PageHeader title="Ledger Group Summary" />
 
-                <form onSubmit={handleSubmit}>
-                    <div className="grid grid-cols-1 gap-4 md:grid-cols-2 mb-4">
-                        <div>
-                            <label className="text-sm font-medium text-gray-700">From Date</label>
-                            <input
-                                type="date"
-                                name="from_date"
-                                value={form.from_date}
-                                onChange={handleChange}
-                                className="mt-1 w-full rounded border px-3 py-2 text-sm shadow-sm"
-                                required
-                                
-                            />
+
+                    <form onSubmit={handleSubmit} className=' rounded-lg border p-6'>
+                        <div className="grid grid-cols-1 gap-4 md:grid-cols-2 mb-4">
+                            <div>
+                                <label className="text-sm font-medium text-gray-700">From Date</label>
+                                <input
+                                    type="date"
+                                    name="from_date"
+                                    value={form.from_date}
+                                    onChange={handleChange}
+                                    className="mt-1 w-full rounded border px-3 py-2 text-sm shadow-sm"
+                                    required
+
+                                />
+                            </div>
+                            <div>
+                                <label className="text-sm font-medium text-gray-700">To Date</label>
+                                <input
+                                    type="date"
+                                    name="to_date"
+                                    value={form.to_date}
+                                    onChange={handleChange}
+                                    className="mt-1 w-full rounded border px-3 py-2 text-sm shadow-sm"
+                                    required
+                                />
+                            </div>
                         </div>
-                        <div>
-                            <label className="text-sm font-medium text-gray-700">To Date</label>
-                            <input
-                                type="date"
-                                name="to_date"
-                                value={form.to_date}
+
+                        <div className="mb-4">
+                            <label className="text-sm font-medium text-gray-700">Group Under </label>
+                            <select
+                                name="group_under_id"
+                                value={form.group_under_id}
                                 onChange={handleChange}
+
                                 className="mt-1 w-full rounded border px-3 py-2 text-sm shadow-sm"
-                                required
-                            />
+                            >
+                                <option value="">All Groups</option>
+                                {group_unders.map(group => (
+                                    <option key={group.id} value={group.id}>
+                                        {group.name}
+                                    </option>
+                                ))}
+                            </select>
                         </div>
-                    </div>
 
-                    <div className="mb-4">
-                        <label className="text-sm font-medium text-gray-700">Group Under </label>
-                        <select
-                            name="group_under_id"
-                            value={form.group_under_id}
-                            onChange={handleChange}
-                           
-                            className="mt-1 w-full rounded border px-3 py-2 text-sm shadow-sm"
-                        >
-                            <option value="">All Groups</option>
-                            {group_unders.map(group => (
-                                <option key={group.id} value={group.id}>
-                                    {group.name}
-                                </option>
-                            ))}
-                        </select>
-                    </div>
-
-                    <Button type="submit" disabled={submitting} className="bg-blue-600 hover:bg-blue-700">
-                        {submitting ? 'Loading...' : 'Generate Report'}
-                    </Button>
-                </form>
+                        <div className="flex justify-end pt-2">
+                            <Button type="submit" disabled={submitting} className="bg-blue-600 hover:bg-blue-700 text-right">
+                                {submitting ? 'Loading...' : 'Generate Report'}
+                            </Button>
+                        </div>
+                    </form>
+                </div>
             </div>
         </AppLayout>
     );

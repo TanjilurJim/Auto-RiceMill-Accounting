@@ -132,13 +132,13 @@ export default function SalarySlipCreate({ employees }: { employees: Employee[] 
                             <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
                                 <input
                                     type="date"
-                                    className="border p-2"
+                                    className="border p-2 focus:*:outline-none"
                                     placeholder="Date"
                                     value={data.date}
                                     onChange={(e) => {
                                         const selectedDate = new Date(e.target.value);
                                         setData('date', e.target.value);
-                                        setData('month', selectedDate.getMonth() + 1); // JS months are 0-based
+                                        setData('month', selectedDate.getMonth() + 1);
                                         setData('year', selectedDate.getFullYear());
                                     }}
                                     required
