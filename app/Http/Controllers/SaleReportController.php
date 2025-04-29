@@ -254,13 +254,15 @@ class SaleReportController extends Controller
     private function getPartyData(array $f): Collection
     {
         return DB::table('sales')
+            ->join('sale_items', 'sale_items.sale_id', '=', 'sales.id') // ✅ join sale_items to access qty
             ->join('account_ledgers', 'account_ledgers.id', '=', 'sales.account_ledger_id')
             ->selectRaw('
             account_ledgers.account_ledger_name AS party_name,
-            SUM(sales.grand_total) AS total_amount
+            SUM(sale_items.qty) AS total_qty,
+            SUM(sale_items.subtotal) AS total_amount
         ')
             ->where(function ($q) use ($f) {
-                if ($f['year']) {
+                if (!empty($f['year'])) {
                     $q->whereYear('sales.date', $f['year']);
                 } else {
                     $q->whereBetween('sales.date', [$f['from_date'], $f['to_date']]);
@@ -276,79 +278,152 @@ class SaleReportController extends Controller
 
     private function getGodownData(array $f): Collection
     {
+        $allowedUserIds = $this->allowedUserIds();
+
+        // If year filter given → Month-wise summary
+        if (!empty($f['year'])) {
+            return DB::table('sales')
+                ->join('sale_items', 'sale_items.sale_id', '=', 'sales.id')
+                ->join('items', 'items.id', '=', 'sale_items.product_id')
+                ->join('godowns', 'godowns.id', '=', 'sales.godown_id')
+                ->selectRaw('
+                MONTH(sales.date) as month,
+                SUM(sale_items.subtotal) as amount
+            ')
+                ->whereYear('sales.date', $f['year'])
+                ->when($allowedUserIds, fn($q, $ids) => $q->whereIn('sales.created_by', $ids))
+                ->groupBy(DB::raw('MONTH(sales.date)'))
+                ->orderBy('month')
+                ->get();
+        }
+
+        // Detailed voucher-level breakdown
         return DB::table('sales')
+            ->join('sale_items', 'sale_items.sale_id', '=', 'sales.id')
+            ->join('items', 'items.id', '=', 'sale_items.product_id')
+            ->join('units', 'units.id', '=', 'items.unit_id')
             ->join('godowns', 'godowns.id', '=', 'sales.godown_id')
+            ->join('account_ledgers', 'account_ledgers.id', '=', 'sales.account_ledger_id')
             ->selectRaw('
-            godowns.name AS godown_name,
-            SUM(sales.grand_total) AS total_amount
+            sales.date,
+            sales.voucher_no,
+            godowns.name as godown_name,
+            account_ledgers.account_ledger_name as party,
+            items.item_name,
+            units.name as unit_name,
+            sale_items.qty,
+            sale_items.main_price as rate,
+            sale_items.subtotal as amount
         ')
-            ->where(function ($q) use ($f) {
-                if ($f['year']) {
-                    $q->whereYear('sales.date', $f['year']);
-                } else {
-                    $q->whereBetween('sales.date', [$f['from_date'], $f['to_date']]);
-                }
-            })
+            ->whereBetween('sales.date', [$f['from_date'], $f['to_date']])
             ->when($f['godown_id'] ?? null, fn($q, $id) => $q->where('godowns.id', $id))
-            ->when($this->allowedUserIds(), fn($q, $ids) => $q->whereIn('sales.created_by', $ids))
-            ->groupBy('godowns.name')
-            ->orderBy('godowns.name')
+            ->when($allowedUserIds, fn($q, $ids) => $q->whereIn('sales.created_by', $ids))
+            ->orderBy('sales.date')
+            ->orderBy('sales.voucher_no')
             ->get();
     }
 
 
+
+
+
     private function getSalesmanData(array $f): Collection
     {
+        $allowedUserIds = $this->allowedUserIds();
+
+        // 📆 If year is selected → Month summary
+        if (!empty($f['year'])) {
+            return DB::table('sales')
+                ->join('sale_items', 'sale_items.sale_id', '=', 'sales.id')
+                ->join('salesmen', 'salesmen.id', '=', 'sales.salesman_id')
+                ->selectRaw('
+                MONTH(sales.date) as month,
+                SUM(sale_items.subtotal) as amount
+            ')
+                ->whereYear('sales.date', $f['year'])
+                ->when($allowedUserIds, fn($q, $ids) => $q->whereIn('sales.created_by', $ids))
+                ->groupBy(DB::raw('MONTH(sales.date)'))
+                ->orderBy('month')
+                ->get();
+        }
+
+        // 🧾 Otherwise, show full detail
         return DB::table('sales')
+            ->join('sale_items', 'sale_items.sale_id', '=', 'sales.id')
             ->join('salesmen', 'salesmen.id', '=', 'sales.salesman_id')
+            ->join('items', 'items.id', '=', 'sale_items.product_id')
+            ->join('account_ledgers', 'account_ledgers.id', '=', 'sales.account_ledger_id')
+            ->join('units', 'units.id', '=', 'items.unit_id')
             ->selectRaw('
+            sales.date,
+            sales.voucher_no,
             salesmen.name AS salesman_name,
-            SUM(sales.grand_total) AS total_amount
+            account_ledgers.account_ledger_name AS party,
+            items.item_name,
+            units.name AS unit_name,
+            sale_items.qty,
+            sale_items.main_price AS rate,
+            sale_items.subtotal AS amount
         ')
-            ->where(function ($q) use ($f) {
-                if ($f['year']) {
-                    $q->whereYear('sales.date', $f['year']);
-                } else {
-                    $q->whereBetween('sales.date', [$f['from_date'], $f['to_date']]);
-                }
-            })
-            ->when($f['salesman_id'] ?? null, fn($q, $id) => $q->where('salesmen.id', $id))
-            ->when($this->allowedUserIds(), fn($q, $ids) => $q->whereIn('sales.created_by', $ids))
-            ->groupBy('salesmen.name')
-            ->orderBy('salesmen.name')
+            ->whereBetween('sales.date', [$f['from_date'], $f['to_date']])
+            ->when($f['salesman_id'] ?? null, fn($q, $id) => $q->where('sales.salesman_id', $id))
+            ->when($allowedUserIds, fn($q, $ids) => $q->whereIn('sales.created_by', $ids))
+            ->orderBy('sales.date')
+            ->orderBy('sales.voucher_no')
             ->get();
     }
 
 
     private function getAllProfitLossData(array $f): Collection
     {
+        $allowedUserIds = $this->allowedUserIds();
+
         $latestPurchases = DB::table('purchase_items')
             ->select('product_id', DB::raw('MAX(id) as latest_id'))
             ->groupBy('product_id');
 
-        return DB::table('sale_items')
-            ->join('sales', 'sales.id', '=', 'sale_items.sale_id')
+        if (!empty($f['year'])) {
+            // Year-based summary
+            return DB::table('sales')
+                ->join('sale_items', 'sale_items.sale_id', '=', 'sales.id')
+                ->join('items', 'items.id', '=', 'sale_items.product_id')
+                ->leftJoinSub($latestPurchases, 'lp', 'lp.product_id', '=', 'sale_items.product_id')
+                ->leftJoin('purchase_items', 'purchase_items.id', '=', 'lp.latest_id')
+                ->selectRaw('
+                MONTH(sales.date) as month,
+                SUM((sale_items.main_price - COALESCE(purchase_items.price,0)) * sale_items.qty) AS profit
+            ')
+                ->whereYear('sales.date', $f['year'])
+                ->when($allowedUserIds, fn($q, $ids) => $q->whereIn('sales.created_by', $ids))
+                ->groupBy(DB::raw('MONTH(sales.date)'))
+                ->orderBy('month')
+                ->get();
+        }
+
+        // Full detailed report
+        return DB::table('sales')
+            ->join('sale_items', 'sale_items.sale_id', '=', 'sales.id')
             ->join('items', 'items.id', '=', 'sale_items.product_id')
             ->leftJoinSub($latestPurchases, 'lp', 'lp.product_id', '=', 'sale_items.product_id')
             ->leftJoin('purchase_items', 'purchase_items.id', '=', 'lp.latest_id')
             ->selectRaw('
+            sales.date,
+            sales.voucher_no,
             items.item_name,
             sale_items.qty,
-            sale_items.main_price AS sale_price,
-            COALESCE(purchase_items.price, 0) AS purchase_price,
-            (sale_items.main_price - COALESCE(purchase_items.price,0)) * sale_items.qty AS profit
+            units.name as unit_name,
+            sale_items.main_price as sale_price,
+            COALESCE(purchase_items.price, 0) as purchase_price,
+            (sale_items.main_price - COALESCE(purchase_items.price, 0)) * sale_items.qty as profit
         ')
-            ->where(function ($q) use ($f) {
-                if ($f['year']) {
-                    $q->whereYear('sales.date', $f['year']);
-                } else {
-                    $q->whereBetween('sales.date', [$f['from_date'], $f['to_date']]);
-                }
-            })
-            ->when($this->allowedUserIds(), fn($q, $ids) => $q->whereIn('sales.created_by', $ids))
-            ->orderBy('items.item_name')
+            ->join('units', 'units.id', '=', 'items.unit_id')
+            ->whereBetween('sales.date', [$f['from_date'], $f['to_date']])
+            ->when($allowedUserIds, fn($q, $ids) => $q->whereIn('sales.created_by', $ids))
+            ->orderBy('sales.date')
+            ->orderBy('sales.voucher_no')
             ->get();
     }
+
 
     public function export(Request $req, string $tab)
     {
@@ -356,29 +431,40 @@ class SaleReportController extends Controller
 
         $entries = match ($tab) {
             'category' => $this->getCategoryData($filters),
-            'item' => $this->getItemData($filters),
-            default => collect(),
+            'party'    => $this->getPartyData($filters),
+            'godown'   => $this->getGodownData($filters),
+            'salesman' => $this->getSalesmanData($filters),
+            'all'      => $this->getAllProfitLossData($filters),
+            default    => collect(),
         };
 
         $isYearSelected = $filters['year'] ?? null;
 
+        // ── Excel Export ──
         if ($req->query('type') === 'xlsx') {
             $headings = match ($tab) {
                 'category' => $isYearSelected
                     ? ['Month', 'Amount (Tk)']
                     : ['Date', 'Voucher No', 'Party', 'Category', 'Item', 'Qty', 'Unit', 'Rate', 'Amount'],
 
-                'item' => $isYearSelected
-                    ? ['Month', 'Amount (Tk)']
-                    : ['Date', 'Voucher No', 'Party', 'Item', 'Qty', 'Unit', 'Rate', 'Amount'],
+                'party' => ['Party', 'Qty', 'Amount'],
 
-                default => [],
+                'godown' => ['Date', 'Voucher No', 'Party', 'Godown', 'Item', 'Qty', 'Unit', 'Rate', 'Amount'],
+
+                'salesman' => ['Date', 'Voucher No', 'Salesman', 'Item', 'Qty', 'Unit', 'Rate', 'Amount'],
+
+                'all' => $isYearSelected
+                    ? ['Month', 'Profit (Tk)']
+                    : ['Date', 'Voucher No', 'Item', 'Qty', 'Unit', 'Sale Price', 'Cost Price', 'Profit', 'Profit %'],
             };
 
             $rows = collect($entries)->map(function ($r) use ($tab, $isYearSelected) {
-                if ($tab === 'category') {
-                    return $isYearSelected
-                        ? [date('F', mktime(0, 0, 0, $r->month ?? 1, 1)), number_format($r->amount ?? 0, 2)]
+                return match ($tab) {
+                    'category' => $isYearSelected
+                        ? [
+                            date('F', mktime(0, 0, 0, $r->month ?? 1, 1)),
+                            number_format($r->amount ?? 0, 2),
+                        ]
                         : [
                             $r->date,
                             $r->voucher_no,
@@ -389,46 +475,109 @@ class SaleReportController extends Controller
                             $r->unit_name,
                             number_format($r->rate ?? 0, 2),
                             number_format($r->amount ?? 0, 2),
-                        ];
-                }
+                        ],
 
-                if ($tab === 'item') {
-                    return $isYearSelected
-                        ? [date('F', mktime(0, 0, 0, $r->month ?? 1, 1)), number_format($r->amount ?? 0, 2)]
+                    'party' => [
+                        $r->party_name,
+                        number_format($r->total_qty ?? 0, 2),
+                        number_format($r->total_amount ?? 0, 2),
+                    ],
+
+                    'godown' => [
+                        $r->date,
+                        $r->voucher_no,
+                        $r->party,
+                        $r->godown_name,
+                        $r->item_name,
+                        number_format($r->qty ?? 0, 2),
+                        $r->unit_name,
+                        number_format($r->rate ?? 0, 2),
+                        number_format($r->amount ?? 0, 2),
+                    ],
+
+                    'salesman' => [
+                        $r->date,
+                        $r->voucher_no,
+                        $r->salesman_name,
+                        $r->item_name,
+                        number_format($r->qty ?? 0, 2),
+                        $r->unit_name,
+                        number_format($r->rate ?? 0, 2),
+                        number_format($r->amount ?? 0, 2),
+                    ],
+
+                    'all' => $isYearSelected
+                        ? [
+                            date('F', mktime(0, 0, 0, $r->month ?? 1, 1)),
+                            number_format($r->profit ?? 0, 2),
+                        ]
                         : [
                             $r->date,
                             $r->voucher_no,
-                            $r->party,
                             $r->item_name,
                             number_format($r->qty ?? 0, 2),
                             $r->unit_name,
-                            number_format($r->rate ?? 0, 2),
-                            number_format($r->amount ?? 0, 2),
-                        ];
-                }
-
-                return [];
+                            number_format($r->sale_price ?? 0, 2),
+                            number_format($r->purchase_price ?? 0, 2),
+                            number_format($r->profit ?? 0, 2),
+                            $r->sale_price > 0
+                                ? number_format(($r->profit / $r->sale_price) * 100, 2) . '%'
+                                : '0.00%',
+                        ],
+                };
             });
+
+            // ➡️ Push Grand Total for specific reports
+            if (in_array($tab, ['party', 'godown', 'salesman'])) {
+                $rows->push([
+                    '',
+                    '',
+                    '',
+                    '',
+                    'Grand Total',
+                    number_format($entries->sum('qty'), 2),
+                    '',
+                    '',
+                    number_format($entries->sum('amount'), 2),
+                ]);
+            }
+
+            if ($tab === 'all' && !$isYearSelected) {
+                $rows->push([
+                    '',
+                    '',
+                    '',
+                    '',
+                    '',
+                    '',
+                    '',
+                    'Grand Total',
+                    number_format($entries->sum('profit'), 2),
+                ]);
+            }
 
             return \Maatwebsite\Excel\Facades\Excel::download(
                 new \App\Exports\SimpleArrayExport([$headings, ...$rows]),
-                $tab . '-sale-report.xlsx'
+                "sale-{$tab}-report.xlsx"
             );
         }
 
-        // ─── Export to PDF ───
-        $view = match ($tab) {
+        // ── PDF Export ──
+        $pdfView = match ($tab) {
             'category' => 'pdf.sale-category-report',
-            'item' => 'pdf.sale-item-report',
+            'party' => 'pdf.sale-party-report',
+            'godown' => 'pdf.sale-godown-report',
+            'salesman' => 'pdf.sale-salesman-report',
+            'all' => 'pdf.sale-all-profit-loss-report',
             default => abort(404),
         };
 
-        $pdf = \Barryvdh\DomPDF\Facade\Pdf::loadView($view, [
+        $pdf = \Barryvdh\DomPDF\Facade\Pdf::loadView($pdfView, [
             'entries' => $entries,
             'filters' => $filters,
             'company' => company_info(),
         ]);
 
-        return $pdf->download($tab . '-sale-report.pdf');
+        return $pdf->download("sale-{$tab}-report.pdf");
     }
 }
