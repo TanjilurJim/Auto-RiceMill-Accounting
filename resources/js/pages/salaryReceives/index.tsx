@@ -80,24 +80,26 @@ export default function SalaryReceiveIndex({ salaryReceives }: { salaryReceives:
     return (
         <AppLayout>
             <Head title="Salary Receives" />
-            <div className="bg-gray-100 p-6 w-screen lg:w-full">
+            <div className="bg-gray-100 p-6 h-full w-screen lg:w-full">
+                <div className="bg-white h-full rounded-lg p-6">
 
-                <PageHeader title="Salary Receives" addLinkHref='/salary-receives/create' addLinkText='+ Add New' />
+                    <PageHeader title="Salary Receives" addLinkHref='/salary-receives/create' addLinkText='+ Add New' />
 
-                {/* Table */}
-                <TableComponent
-                    columns={columns}
-                    data={salaryReceives.data}
-                    noDataMessage="No salary receives found."
-                />
+                    {/* Table */}
+                    <TableComponent
+                        columns={columns}
+                        data={salaryReceives.data}
+                        noDataMessage="No salary receives found."
+                    />
 
-                {/* Pagination */}
-                <Pagination
-                    links={salaryReceives.links}
-                    currentPage={salaryReceives.current_page}
-                    lastPage={salaryReceives.last_page}
-                    total={salaryReceives.total}
-                />
+                    {/* Pagination */}
+                    <Pagination
+                        links={salaryReceives.links}
+                        currentPage={salaryReceives.current_page}
+                        lastPage={salaryReceives.last_page}
+                        total={salaryReceives.total}
+                    />
+                </div>
             </div>
         </AppLayout>
     );

@@ -4,8 +4,7 @@ import PageHeader from '@/components/PageHeader';
 import Pagination from '@/components/Pagination';
 import TableComponent from '@/components/TableComponent';
 import AppLayout from '@/layouts/app-layout';
-import { Head, Link, router } from '@inertiajs/react';
-import Swal from 'sweetalert2';
+import { Head, router } from '@inertiajs/react';
 
 interface ReceivedMode {
     id: number;
@@ -58,28 +57,30 @@ export default function Index({
     return (
         <AppLayout>
             <Head title="Received Modes" />
-            <div className="bg-gray-100 p-4 w-screen md:w-full">
+            <div className="bg-gray-100 p-6 h-full w-screen lg:w-full">
+                <div className="bg-white h-full rounded-lg p-6">
 
-                <PageHeader title="Received Modes" addLinkHref="/received-modes/create" addLinkText="+ Add New" />
+                    <PageHeader title="Received Modes" addLinkHref="/received-modes/create" addLinkText="+ Add New" />
 
-                <TableComponent
-                    columns={columns}
-                    data={safeReceivedModes.data}
-                    actions={(row: ReceivedMode) => (
-                        <ActionButtons
-                            editHref={`/received-modes/${row.id}/edit`}
-                            onDelete={() => handleDelete(row.id)}
-                        />
-                    )}
-                />
+                    <TableComponent
+                        columns={columns}
+                        data={safeReceivedModes.data}
+                        actions={(row: ReceivedMode) => (
+                            <ActionButtons
+                                editHref={`/received-modes/${row.id}/edit`}
+                                onDelete={() => handleDelete(row.id)}
+                            />
+                        )}
+                    />
 
-                {/* Pagination */}
-                <Pagination
-                    links={safeReceivedModes.links}
-                    currentPage={safeReceivedModes.current_page}
-                    lastPage={safeReceivedModes.last_page}
-                    total={safeReceivedModes.total}
-                />
+                    {/* Pagination */}
+                    <Pagination
+                        links={safeReceivedModes.links}
+                        currentPage={safeReceivedModes.current_page}
+                        lastPage={safeReceivedModes.last_page}
+                        total={safeReceivedModes.total}
+                    />
+                </div>
             </div>
         </AppLayout>
     );

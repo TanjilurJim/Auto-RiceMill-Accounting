@@ -17,7 +17,7 @@ interface Shift {
 export default function ShiftIndex({ shifts }: { shifts: Shift[] }) {
 
     const handleDelete = (id: number) => {
-        
+
         confirmDialog(
             {}, () => {
                 router.delete(`/shifts/${id}`);
@@ -38,23 +38,25 @@ export default function ShiftIndex({ shifts }: { shifts: Shift[] }) {
     return (
         <AppLayout>
             <Head title="Shifts" />
-            <div className="p-6 w-screen lg:w-full bg-gray-100">
+            <div className="bg-gray-100 p-6 h-full w-screen lg:w-full">
+                <div className="bg-white h-full rounded-lg p-6">
 
-                <PageHeader title="Shifts" addLinkHref='/shifts/create' addLinkText="+ Add New" />
+                    <PageHeader title="Shifts" addLinkHref='/shifts/create' addLinkText="+ Add New" />
 
-                <TableComponent
-                    columns={columns}
-                    data={shifts}
-                    actions={(row: Shift) => (
-                        <ActionButtons
-                            editHref={`/shifts/${row.id}/edit`}
-                            onDelete={() => handleDelete(row.id)}
-                            editText="Edit"
-                            deleteText="Delete"
-                        />
-                    )}
-                    noDataMessage="No shifts found."
-                />
+                    <TableComponent
+                        columns={columns}
+                        data={shifts}
+                        actions={(row: Shift) => (
+                            <ActionButtons
+                                editHref={`/shifts/${row.id}/edit`}
+                                onDelete={() => handleDelete(row.id)}
+                                editText="Edit"
+                                deleteText="Delete"
+                            />
+                        )}
+                        noDataMessage="No shifts found."
+                    />
+                </div>
             </div>
         </AppLayout>
     );

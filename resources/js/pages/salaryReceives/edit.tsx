@@ -26,124 +26,126 @@ export default function Edit({ salaryReceive, employees, receivedModes, salarySl
         <AppLayout>
             <Head title="Edit Salary Receive" />
 
-            <div className="w-full mx-auto mt-10 bg-gray-50 p-6 rounded shadow">
-                <PageHeader title="Edit Salary Receive" addLinkHref='/salary-receives' addLinkText="Back" />
+            <div className="bg-gray-100 p-6 h-full w-screen lg:w-full">
+                <div className="bg-white h-full rounded-lg p-6">
+                    <PageHeader title="Edit Salary Receive" addLinkHref='/salary-receives' addLinkText="Back" />
 
-                <form onSubmit={handleSubmit} className="space-y-4">
-                    <div className='grid grid-cols-1 md:grid-cols-2 gap-4'>
-                        {/* Voucher No (read-only) */}
-                        <div>
-                            <label className="block mb-1 font-medium">Voucher No</label>
-                            <input
-                                type="text"
-                                value={data.vch_no}
-                                readOnly
-                                className="w-full border px-3 py-2 rounded bg-gray-100 text-gray-600 cursor-not-allowed"
-                            />
-                            {errors.vch_no && <div className="text-red-500 text-sm">{errors.vch_no}</div>}
+                    <form onSubmit={handleSubmit} className="space-y-6 rounded-lg bg-white p-6 border">
+                        <div className='grid grid-cols-1 md:grid-cols-2 gap-4'>
+                            {/* Voucher No (read-only) */}
+                            <div>
+                                <label className="block mb-1 font-medium">Voucher No</label>
+                                <input
+                                    type="text"
+                                    value={data.vch_no}
+                                    readOnly
+                                    className="w-full border px-3 py-2 rounded bg-gray-100 text-gray-600 cursor-not-allowed"
+                                />
+                                {errors.vch_no && <div className="text-red-500 text-sm">{errors.vch_no}</div>}
+                            </div>
+
+                            {/* Date */}
+                            <div>
+                                <label className="block mb-1 font-medium">Date</label>
+                                <input
+                                    type="date"
+                                    value={data.date}
+                                    onChange={(e) => setData('date', e.target.value)}
+                                    className="w-full border px-3 py-2 rounded"
+                                />
+                                {errors.date && <div className="text-red-500 text-sm">{errors.date}</div>}
+                            </div>
+
+                            {/* Employee */}
+                            <div>
+                                <label className="block mb-1 font-medium">Employee</label>
+                                <select
+                                    value={data.employee_id}
+                                    onChange={(e) => setData('employee_id', e.target.value)}
+                                    className="w-full border px-3 py-2 rounded"
+                                >
+                                    <option value="">Select employee</option>
+                                    {employees.map((emp: any) => (
+                                        <option key={emp.id} value={emp.id}>
+                                            {emp.name}
+                                        </option>
+                                    ))}
+                                </select>
+                                {errors.employee_id && <div className="text-red-500 text-sm">{errors.employee_id}</div>}
+                            </div>
+
+                            {/* Received Mode */}
+                            <div>
+                                <label className="block mb-1 font-medium">Received By</label>
+                                <select
+                                    value={data.received_by}
+                                    onChange={(e) => setData('received_by', e.target.value)}
+                                    className="w-full border px-3 py-2 rounded"
+                                >
+                                    <option value="">Select mode</option>
+                                    {receivedModes.map((mode: any) => (
+                                        <option key={mode.id} value={mode.id}>
+                                            {mode.mode_name}
+                                        </option>
+                                    ))}
+                                </select>
+                                {errors.received_by && <div className="text-red-500 text-sm">{errors.received_by}</div>}
+                            </div>
+
+                            {/* Amount */}
+                            <div>
+                                <label className="block mb-1 font-medium">Amount</label>
+                                <input
+                                    type="number"
+                                    value={data.amount}
+                                    onChange={(e) => setData('amount', e.target.value)}
+                                    className="w-full border px-3 py-2 rounded"
+                                />
+                                {errors.amount && <div className="text-red-500 text-sm">{errors.amount}</div>}
+                            </div>
+
+                            {/* Salary Slip Reference */}
+                            <div>
+                                <label className="block mb-1 font-medium">Salary Slip Reference (optional)</label>
+                                <select
+                                    value={data.salary_slip_employee_id}
+                                    onChange={(e) => setData('salary_slip_employee_id', e.target.value)}
+                                    className="w-full border px-3 py-2 rounded"
+                                >
+                                    <option value="">None</option>
+                                    {salarySlipEmployees.map((sse: any) => (
+                                        <option key={sse.id} value={sse.id}>
+                                            {`${sse.salary_slip.voucher_no} - ${sse.employee.name} (${sse.status})`}
+                                        </option>
+                                    ))}
+                                </select>
+                                {errors.salary_slip_employee_id && (
+                                    <div className="text-red-500 text-sm">{errors.salary_slip_employee_id}</div>
+                                )}
+                            </div>
+
+                            {/* Description */}
+                            <div>
+                                <label className="block mb-1 font-medium">Description</label>
+                                <textarea
+                                    value={data.description}
+                                    onChange={(e) => setData('description', e.target.value)}
+                                    className="w-full border px-3 py-2 rounded"
+                                />
+                                {errors.description && <div className="text-red-500 text-sm">{errors.description}</div>}
+                            </div>
                         </div>
 
-                        {/* Date */}
-                        <div>
-                            <label className="block mb-1 font-medium">Date</label>
-                            <input
-                                type="date"
-                                value={data.date}
-                                onChange={(e) => setData('date', e.target.value)}
-                                className="w-full border px-3 py-2 rounded"
-                            />
-                            {errors.date && <div className="text-red-500 text-sm">{errors.date}</div>}
-                        </div>
-
-                        {/* Employee */}
-                        <div>
-                            <label className="block mb-1 font-medium">Employee</label>
-                            <select
-                                value={data.employee_id}
-                                onChange={(e) => setData('employee_id', e.target.value)}
-                                className="w-full border px-3 py-2 rounded"
-                            >
-                                <option value="">Select employee</option>
-                                {employees.map((emp: any) => (
-                                    <option key={emp.id} value={emp.id}>
-                                        {emp.name}
-                                    </option>
-                                ))}
-                            </select>
-                            {errors.employee_id && <div className="text-red-500 text-sm">{errors.employee_id}</div>}
-                        </div>
-
-                        {/* Received Mode */}
-                        <div>
-                            <label className="block mb-1 font-medium">Received By</label>
-                            <select
-                                value={data.received_by}
-                                onChange={(e) => setData('received_by', e.target.value)}
-                                className="w-full border px-3 py-2 rounded"
-                            >
-                                <option value="">Select mode</option>
-                                {receivedModes.map((mode: any) => (
-                                    <option key={mode.id} value={mode.id}>
-                                        {mode.mode_name}
-                                    </option>
-                                ))}
-                            </select>
-                            {errors.received_by && <div className="text-red-500 text-sm">{errors.received_by}</div>}
-                        </div>
-
-                        {/* Amount */}
-                        <div>
-                            <label className="block mb-1 font-medium">Amount</label>
-                            <input
-                                type="number"
-                                value={data.amount}
-                                onChange={(e) => setData('amount', e.target.value)}
-                                className="w-full border px-3 py-2 rounded"
-                            />
-                            {errors.amount && <div className="text-red-500 text-sm">{errors.amount}</div>}
-                        </div>
-
-                        {/* Salary Slip Reference */}
-                        <div>
-                            <label className="block mb-1 font-medium">Salary Slip Reference (optional)</label>
-                            <select
-                                value={data.salary_slip_employee_id}
-                                onChange={(e) => setData('salary_slip_employee_id', e.target.value)}
-                                className="w-full border px-3 py-2 rounded"
-                            >
-                                <option value="">None</option>
-                                {salarySlipEmployees.map((sse: any) => (
-                                    <option key={sse.id} value={sse.id}>
-                                        {`${sse.salary_slip.voucher_no} - ${sse.employee.name} (${sse.status})`}
-                                    </option>
-                                ))}
-                            </select>
-                            {errors.salary_slip_employee_id && (
-                                <div className="text-red-500 text-sm">{errors.salary_slip_employee_id}</div>
-                            )}
-                        </div>
-
-                        {/* Description */}
-                        <div>
-                            <label className="block mb-1 font-medium">Description</label>
-                            <textarea
-                                value={data.description}
-                                onChange={(e) => setData('description', e.target.value)}
-                                className="w-full border px-3 py-2 rounded"
-                            />
-                            {errors.description && <div className="text-red-500 text-sm">{errors.description}</div>}
-                        </div>
-                    </div>
-
-                    {/* Action Buttons */}
-                    <ActionFooter
-                        processing={processing}
-                        cancelHref='/salary-receives'
-                        submitText='Update'
-                        onSubmit={handleSubmit}
-                        className='justify-end'
-                    />
-                </form>
+                        {/* Action Buttons */}
+                        <ActionFooter
+                            processing={processing}
+                            cancelHref='/salary-receives'
+                            submitText='Update'
+                            onSubmit={handleSubmit}
+                            className='justify-end'
+                        />
+                    </form>
+                </div>
             </div>
         </AppLayout>
     );

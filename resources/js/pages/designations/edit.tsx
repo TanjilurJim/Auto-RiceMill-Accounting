@@ -21,11 +21,11 @@ export default function EditDesignation({
     return (
         <AppLayout>
             <Head title={`Edit Designation - ${designation.name}`} />
-            <div className="flex h-full items-center justify-center bg-gray-100">
-                <div className="w-full max-w-xl p-6">
-                    <PageHeader title="Edit Designation" addLinkHref='/designations' addLinkText="Back" /> 
+            <div className="bg-gray-100 p-6 h-full w-screen lg:w-full">
+                <div className="bg-white h-full rounded-lg p-6">
+                    <PageHeader title="Edit Designation" addLinkHref='/designations' addLinkText="Back" />
 
-                    <form onSubmit={handleSubmit} className="space-y-4 rounded bg-white p-4 shadow dark:bg-neutral-900">
+                    <form onSubmit={handleSubmit} className="space-y-4 rounded-lg bg-white p-4 border dark:bg-neutral-900">
 
                         {/* Name */}
                         <div>
@@ -50,7 +50,7 @@ export default function EditDesignation({
                         </div>
 
                         <ActionFooter
-                            onSubmit={handleSubmit} 
+                            onSubmit={handleSubmit}
                             cancelHref="/designations"
                             processing={processing}
                             submitText="Update"

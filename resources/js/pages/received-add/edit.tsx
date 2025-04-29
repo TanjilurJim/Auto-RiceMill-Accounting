@@ -71,10 +71,9 @@ export default function Edit({ receivedAdd, receivedModes, accountLedgers }: Pro
 
     return (
         <AppLayout>
-            <div className='bg-gray-100'>
-                <Head title="Edit Received Voucher" />
-
-                <div className="space-y-6 p-6 bg-gray-100">
+            <Head title="Edit Received Voucher" />
+            <div className="bg-gray-100 p-6 h-full w-screen lg:w-full">
+                <div className="bg-white h-full rounded-lg p-6">
 
                     <PageHeader title='Edit Received Voucher' addLinkText='Back' addLinkHref='/received-add' />
 
@@ -182,10 +181,10 @@ export default function Edit({ receivedAdd, receivedModes, accountLedgers }: Pro
                                     rows={3}
                                 />
                             </div>
-                            <div className="flex items-center gap-2">
+                            {/* <div className="flex items-center gap-2">
                                 <input type="checkbox" checked={data.send_sms} onChange={(e) => setData('send_sms', e.target.checked)} />
                                 <label className="text-sm text-gray-700">Send SMS</label>
-                            </div>
+                            </div> */}
                         </div>
 
                         {/* Buttons */}

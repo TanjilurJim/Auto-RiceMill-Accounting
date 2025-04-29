@@ -44,24 +44,26 @@ export default function EmployeeIndex({ employees }: { employees: Employee[] }) 
     return (
         <AppLayout>
             <Head title="Employees" />
-            <div className="p-6 w-screen lg:w-full bg-gray-100">
-                {/* Header */}
-                <PageHeader title="Employees" addLinkHref='/employees/create' addLinkText="+ Add Employee" />
+            <div className="bg-gray-100 p-6 h-full w-screen lg:w-full">
+                <div className="bg-white h-full rounded-lg p-6">
+                    {/* Header */}
+                    <PageHeader title="Employees" addLinkHref='/employees/create' addLinkText="+ Add Employee" />
 
-                {/* Table */}
-                <TableComponent
-                    columns={columns}
-                    data={employees}
-                    actions={(row: Employee) => (
-                        <ActionButtons
-                            editHref={`/employees/${row.id}/edit`}
-                            onDelete={() => handleDelete(row.id)}
-                            editText="Edit"
-                            deleteText="Delete"
-                        />
-                    )}
-                    noDataMessage="No employees found."
-                />
+                    {/* Table */}
+                    <TableComponent
+                        columns={columns}
+                        data={employees}
+                        actions={(row: Employee) => (
+                            <ActionButtons
+                                editHref={`/employees/${row.id}/edit`}
+                                onDelete={() => handleDelete(row.id)}
+                                editText="Edit"
+                                deleteText="Delete"
+                            />
+                        )}
+                        noDataMessage="No employees found."
+                    />
+                </div>
             </div>
         </AppLayout>
     );

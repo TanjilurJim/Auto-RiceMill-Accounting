@@ -17,11 +17,11 @@ export default function CreateDesignation() {
     return (
         <AppLayout>
             <Head title="Create Designation" />
-            <div className="flex h-full items-center justify-center bg-gray-100">
-                <div className="w-full max-w-xl p-6">
-                    <PageHeader title="Create Designation" addLinkHref='/designations' addLinkText="Back" /> 
+            <div className="bg-gray-100 p-6 h-full w-screen lg:w-full">
+                <div className="bg-white h-full rounded-lg p-6">
+                    <PageHeader title="Create Designation" addLinkHref='/designations' addLinkText="Back" />
 
-                    <form onSubmit={handleSubmit} className="space-y-5 rounded bg-white p-6 shadow dark:bg-neutral-900">
+                    <form onSubmit={handleSubmit} className="space-y-5 rounded-lg bg-white p-6 border dark:bg-neutral-900">
                         {/* Designation Name */}
                         <div>
                             <label htmlFor="name" className="mb-1 block font-medium">Designation Name</label>
@@ -71,6 +71,7 @@ export default function CreateDesignation() {
                             className="justify-end"
                         />
                     </form>
+
                 </div>
             </div>
         </AppLayout>

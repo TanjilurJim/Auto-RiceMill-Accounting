@@ -108,172 +108,174 @@ export default function SalarySlipCreate({ employees }: { employees: Employee[] 
     return (
         <AppLayout>
             <Head title="Create Salary Slip" />
-            <div className="bg-gray-100 p-6 w-screen lg:w-full">
-                <PageHeader title="Create New Salary Slip" addLinkHref='/salary-slips' addLinkText="Back" />
+            <div className="bg-gray-100 p-6 h-full w-screen lg:w-full">
+                <div className="bg-white h-full rounded-lg p-6">
+                    <PageHeader title="Create New Salary Slip" addLinkHref='/salary-slips' addLinkText="Back" />
 
-                <form onSubmit={handleSubmit} className="space-y-6 rounded bg-white p-6 shadow-md">
-                    {/* Salary Slip Info */}
-                    {/* Salary Slip Info */}
-                    <div className="space-y-4">
-                        <h2 className="border-b pb-1 text-lg font-semibold">Salary Slip Information</h2>
+                    <form onSubmit={handleSubmit} className="space-y-6 rounded-lg bg-white p-6 border">
+                        {/* Salary Slip Info */}
+                        {/* Salary Slip Info */}
+                        <div className="space-y-4">
+                            <h2 className="border-b pb-1 text-lg font-semibold">Salary Slip Information</h2>
 
-                        {/* Salary for: March 2025 */}
-                        {data.month && data.year && (
-                            <div className="text-sm font-medium text-gray-700 italic">
-                                Salary for:{' '}
-                                {new Date(data.year, data.month - 1).toLocaleString('default', {
-                                    month: 'long',
-                                    year: 'numeric',
-                                })}
-                            </div>
-                        )}
+                            {/* Salary for: March 2025 */}
+                            {data.month && data.year && (
+                                <div className="text-sm font-medium text-gray-700 italic">
+                                    Salary for:{' '}
+                                    {new Date(data.year, data.month - 1).toLocaleString('default', {
+                                        month: 'long',
+                                        year: 'numeric',
+                                    })}
+                                </div>
+                            )}
 
-                        <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-                            <input
-                                type="date"
-                                className="border p-2"
-                                placeholder="Date"
-                                value={data.date}
-                                onChange={(e) => {
-                                    const selectedDate = new Date(e.target.value);
-                                    setData('date', e.target.value);
-                                    setData('month', selectedDate.getMonth() + 1); // JS months are 0-based
-                                    setData('year', selectedDate.getFullYear());
-                                }}
-                                required
-                            />
+                            <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+                                <input
+                                    type="date"
+                                    className="border p-2"
+                                    placeholder="Date"
+                                    value={data.date}
+                                    onChange={(e) => {
+                                        const selectedDate = new Date(e.target.value);
+                                        setData('date', e.target.value);
+                                        setData('month', selectedDate.getMonth() + 1); // JS months are 0-based
+                                        setData('year', selectedDate.getFullYear());
+                                    }}
+                                    required
+                                />
 
-                            <select
-                                className="border p-2"
-                                value={data.month || ''}
-                                onChange={(e) => setData('month', parseInt(e.target.value))}
-                                required
-                            >
-                                <option value="">Select Month</option>
-                                {Array.from({ length: 12 }, (_, i) => (
-                                    <option key={i + 1} value={i + 1}>
-                                        {new Date(0, i).toLocaleString('default', { month: 'long' })}
-                                    </option>
-                                ))}
-                            </select>
-
-                            <select
-                                className="border p-2"
-                                value={data.year || ''}
-                                onChange={(e) => setData('year', parseInt(e.target.value))}
-                                required
-                            >
-                                <option value="">Select Year</option>
-                                {Array.from({ length: 5 }, (_, i) => {
-                                    const y = new Date().getFullYear() - 2 + i;
-                                    return (
-                                        <option key={y} value={y}>
-                                            {y}
+                                <select
+                                    className="border p-2"
+                                    value={data.month || ''}
+                                    onChange={(e) => setData('month', parseInt(e.target.value))}
+                                    required
+                                >
+                                    <option value="">Select Month</option>
+                                    {Array.from({ length: 12 }, (_, i) => (
+                                        <option key={i + 1} value={i + 1}>
+                                            {new Date(0, i).toLocaleString('default', { month: 'long' })}
                                         </option>
-                                    );
-                                })}
-                            </select>
+                                    ))}
+                                </select>
 
-                            <input type="text" className="w-full rounded border p-2" value={data.voucher_number} readOnly />
+                                <select
+                                    className="border p-2"
+                                    value={data.year || ''}
+                                    onChange={(e) => setData('year', parseInt(e.target.value))}
+                                    required
+                                >
+                                    <option value="">Select Year</option>
+                                    {Array.from({ length: 5 }, (_, i) => {
+                                        const y = new Date().getFullYear() - 2 + i;
+                                        return (
+                                            <option key={y} value={y}>
+                                                {y}
+                                            </option>
+                                        );
+                                    })}
+                                </select>
+
+                                <input type="text" className="w-full rounded border p-2" value={data.voucher_number} readOnly />
+                            </div>
                         </div>
-                    </div>
 
-                    {/* Employee Table */}
-                    <div>
-                        <h2 className="mb-3 border-b bg-gray-100 pb-1 text-lg font-semibold">Employees</h2>
-                        <div className="overflow-x-auto rounded border">
-                            <table className="min-w-full text-left text-sm">
-                                <thead className="bg-gray-50">
-                                    <tr>
-                                        <th className="border px-2 py-1">Employee</th>
-                                        <th className="border px-2 py-1">Basic Salary</th>
-                                        <th className="border px-2 py-1">Additional Amount</th>
-                                        <th className="border px-2 py-1">Total Amount</th>
-                                        <th className="border px-2 py-1 text-center">Action</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    {data.salary_slip_employees.map((employee, index) => (
-                                        <tr key={index} className="hover:bg-gray-50">
-                                            <td className="min-w-[250px] border px-2 py-1">
-                                                <Select
-                                                    className="w-full"
-                                                    menuPortalTarget={document.body}
-                                                    styles={{
-                                                        menuPortal: (base) => ({ ...base, zIndex: 9999 }),
-                                                    }}
-                                                    options={employees.map((emp) => ({
-                                                        value: emp.id,
-                                                        label: `${emp.name} (${emp.designation?.name ?? 'N/A'})`,
-                                                    }))}
-                                                    value={
-                                                        employee.employee_id
-                                                            ? {
-                                                                value: employee.employee_id,
-                                                                label: `${employees.find((e) => e.id === employee.employee_id)?.name} (${employees.find((e) => e.id === employee.employee_id)?.designation?.name ?? 'N/A'
-                                                                    })`,
-                                                            }
-                                                            : null
-                                                    }
-                                                    onChange={(option) => handleEmployeeChange(index, 'employee_id', option?.value)}
-                                                />
-                                            </td>
-                                            <td className="border px-2 py-1">
-                                                <input
-                                                    type="number"
-                                                    className="w-full rounded border px-2 py-1"
-                                                    value={employee.basic_salary}
-                                                    onChange={(e) => handleEmployeeChange(index, 'basic_salary', e.target.value)}
-                                                    required
-                                                />
-                                            </td>
-                                            <td className="border px-2 py-1">
-                                                <input
-                                                    type="number"
-                                                    className="w-full rounded border px-2 py-1"
-                                                    value={employee.additional_amount}
-                                                    onChange={(e) => handleEmployeeChange(index, 'additional_amount', e.target.value)}
-                                                />
-                                            </td>
-                                            <td className="border px-2 py-1">{employee.total_amount}</td>
-                                            <td className="space-x-2 border px-2 py-1 text-center flex items-center justify-center">
-                                                <button
-                                                    type="button"
-                                                    onClick={() => removeEmployeeRow(index)}
-                                                    className="rounded bg-danger px-2 py-1 text-white hover:bg-danger-hover"
-                                                >
-                                                    &minus;
-                                                </button>
-                                                {index === data.salary_slip_employees.length - 1 && (
+                        {/* Employee Table */}
+                        <div>
+                            <h2 className="mb-3 border-b bg-gray-100 pb-1 text-lg font-semibold">Employees</h2>
+                            <div className="overflow-x-auto rounded border">
+                                <table className="min-w-full text-left text-sm">
+                                    <thead className="bg-gray-50">
+                                        <tr>
+                                            <th className="border px-2 py-1">Employee</th>
+                                            <th className="border px-2 py-1">Basic Salary</th>
+                                            <th className="border px-2 py-1">Additional Amount</th>
+                                            <th className="border px-2 py-1">Total Amount</th>
+                                            <th className="border px-2 py-1 text-center">Action</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {data.salary_slip_employees.map((employee, index) => (
+                                            <tr key={index} className="hover:bg-gray-50">
+                                                <td className="min-w-[250px] border px-2 py-1">
+                                                    <Select
+                                                        className="w-full"
+                                                        menuPortalTarget={document.body}
+                                                        styles={{
+                                                            menuPortal: (base) => ({ ...base, zIndex: 9999 }),
+                                                        }}
+                                                        options={employees.map((emp) => ({
+                                                            value: emp.id,
+                                                            label: `${emp.name} (${emp.designation?.name ?? 'N/A'})`,
+                                                        }))}
+                                                        value={
+                                                            employee.employee_id
+                                                                ? {
+                                                                    value: employee.employee_id,
+                                                                    label: `${employees.find((e) => e.id === employee.employee_id)?.name} (${employees.find((e) => e.id === employee.employee_id)?.designation?.name ?? 'N/A'
+                                                                        })`,
+                                                                }
+                                                                : null
+                                                        }
+                                                        onChange={(option) => handleEmployeeChange(index, 'employee_id', option?.value)}
+                                                    />
+                                                </td>
+                                                <td className="border px-2 py-1">
+                                                    <input
+                                                        type="number"
+                                                        className="w-full rounded border px-2 py-1"
+                                                        value={employee.basic_salary}
+                                                        onChange={(e) => handleEmployeeChange(index, 'basic_salary', e.target.value)}
+                                                        required
+                                                    />
+                                                </td>
+                                                <td className="border px-2 py-1">
+                                                    <input
+                                                        type="number"
+                                                        className="w-full rounded border px-2 py-1"
+                                                        value={employee.additional_amount}
+                                                        onChange={(e) => handleEmployeeChange(index, 'additional_amount', e.target.value)}
+                                                    />
+                                                </td>
+                                                <td className="border px-2 py-1">{employee.total_amount}</td>
+                                                <td className="space-x-2 border px-2 py-1 text-center flex items-center justify-center">
                                                     <button
                                                         type="button"
-                                                        onClick={addEmployeeRow}
-                                                        className="rounded bg-primary px-2 py-1 text-white hover:bg-primary-hover"
+                                                        onClick={() => removeEmployeeRow(index)}
+                                                        className="rounded bg-danger px-2 py-1 text-white hover:bg-danger-hover"
                                                     >
-                                                        +
+                                                        &minus;
                                                     </button>
-                                                )}
-                                            </td>
-                                        </tr>
-                                    ))}
-                                </tbody>
-                            </table>
+                                                    {index === data.salary_slip_employees.length - 1 && (
+                                                        <button
+                                                            type="button"
+                                                            onClick={addEmployeeRow}
+                                                            className="rounded bg-primary px-2 py-1 text-white hover:bg-primary-hover"
+                                                        >
+                                                            +
+                                                        </button>
+                                                    )}
+                                                </td>
+                                            </tr>
+                                        ))}
+                                    </tbody>
+                                </table>
+                            </div>
                         </div>
-                    </div>
 
-                    {/* Buttons */}
+                        {/* Buttons */}
 
-                    <ActionFooter
-                        onSubmit={handleSubmit}
-                        cancelHref="/salary-slips"
-                        processing={processing}
-                        submitText={processing ? 'Saving...' : 'Save'}
-                        cancelText="Cancel" 
-                        className="justify-end"
-                    />
+                        <ActionFooter
+                            onSubmit={handleSubmit}
+                            cancelHref="/salary-slips"
+                            processing={processing}
+                            submitText={processing ? 'Saving...' : 'Save'}
+                            cancelText="Cancel"
+                            className="justify-end"
+                        />
 
 
-                </form>
+                    </form>
+                </div>
             </div>
         </AppLayout>
     );

@@ -92,135 +92,131 @@ export default function Edit({ voucher_no, date: initDate, description: initDesc
         <AppLayout>
             <Head title="Edit Payment" />
 
-            <div className="p-6">
-                {/* <h1 className="mb-4 text-xl font-bold">Edit Payment</h1> */}
-                <PageHeader title="Edit Payment" addLinkHref="/payment-add" addLinkText="Back" />
+            <div className="bg-gray-100 p-6 h-full w-screen lg:w-full">
+                <div className="bg-white h-full rounded-lg p-6">
 
-                <form onSubmit={handleSubmit} className="space-y-4">
-                    <div className="grid grid-cols-3 gap-4">
-                        <div>
-                            <label className="mb-1 block font-medium">Date</label>
-                            <input type="date" value={date} onChange={(e) => setDate(e.target.value)} className="w-full rounded border px-3 py-2" />
-                        </div>
-                        <div>
-                            <label className="mb-1 block font-medium">Voucher No</label>
-                            <input type="text" value={voucherNo} readOnly className="w-full rounded border bg-gray-100 px-3 py-2" />
-                        </div>
-                    </div>
+                    <PageHeader title="Edit Payment" addLinkHref="/payment-add" addLinkText="Back" />
 
-                    <div>
-                        <label className="mb-1 block font-medium">Payments</label>
-
-                        <div className="mb-4 rounded border bg-gray-50 p-3">
-                            <div className="mb-1 grid grid-cols-6 gap-2 text-xs font-semibold text-gray-600">
-                                <div>Payment Mode</div>
-                                <div>Account Ledger</div>
-                                <div>Amount</div>
-                                <div>New Ledger Balance</div>
-                                <div>Remove</div>
+                    <form onSubmit={handleSubmit} className="space-y-4">
+                        <div className="grid grid-cols-3 gap-4">
+                            <div>
+                                <label className="mb-1 block font-medium">Date</label>
+                                <input type="date" value={date} onChange={(e) => setDate(e.target.value)} className="w-full rounded border px-3 py-2" />
                             </div>
-
-                            {rows.map((row, index) => (
-                                <div key={index} className="mb-2 grid grid-cols-6 items-center gap-2">
-                                    <div>
-                                        <select
-                                            className="w-full rounded border px-2 py-1 text-sm"
-                                            value={row.payment_mode_id}
-                                            onChange={(e) => handleChange(index, 'payment_mode_id', e.target.value)}
-                                        >
-                                            <option value="">Select</option>
-                                            {paymentModes.map((mode: any) => (
-                                                <option key={mode.id} value={mode.id}>
-                                                    {mode.mode_name}
-                                                </option>
-                                            ))}
-                                        </select>
-                                    </div>
-
-                                    <div>
-                                        <select
-                                            className="w-full rounded border px-2 py-1 text-sm"
-                                            value={row.account_ledger_id}
-                                            onChange={(e) => handleChange(index, 'account_ledger_id', e.target.value)}
-                                        >
-                                            <option value="">Select</option>
-                                            {accountLedgers.map((ledger: any) => (
-                                                <option key={ledger.id} value={ledger.id}>
-                                                    {ledger.account_ledger_name}
-                                                </option>
-                                            ))}
-                                        </select>
-                                    </div>
-
-                                    <div>
-                                        <input
-                                            type="number"
-                                            value={row.amount}
-                                            onChange={(e) => handleChange(index, 'amount', e.target.value)}
-                                            className="w-full rounded border px-2 py-1 text-sm"
-                                        />
-                                    </div>
-
-                                    <div>
-                                        <input
-                                            type="text"
-                                            readOnly
-                                            value={row.ledger_balance.toFixed(2)}
-                                            className="w-full rounded border bg-gray-100 px-2 py-1 text-right text-sm"
-                                        />
-                                    </div>
-
-                                    <div className="text-center">
-                                        <button
-                                            type="button"
-                                            onClick={() => {
-                                                if (rows.length > 1) {
-                                                    setRows(rows.filter((_, i) => i !== index));
-                                                }
-                                            }}
-                                            disabled={rows.length === 1}
-                                            className={`text-lg font-bold ${rows.length === 1 ? 'cursor-not-allowed text-gray-300' : 'text-red-600'}`}
-                                            title={rows.length === 1 ? 'Cannot remove the last row' : 'Remove this row'}
-                                        >
-                                            ×
-                                        </button>
-                                    </div>
-                                </div>
-                            ))}
+                            <div>
+                                <label className="mb-1 block font-medium">Voucher No</label>
+                                <input type="text" value={voucherNo} readOnly className="w-full rounded border bg-gray-100 px-3 py-2" />
+                            </div>
                         </div>
-                    </div>
 
-                    <div>
-                        <label className="mb-1 block font-medium">Description</label>
-                        <textarea value={description} onChange={(e) => setDescription(e.target.value)} className="w-full rounded border px-3 py-2" />
-                    </div>
+                        <div>
+                            <label className="mb-1 block font-medium">Payments</label>
 
-                    <div className="flex items-center gap-2">
-                        <input type="checkbox" checked={sendSms} onChange={(e) => setSendSms(e.target.checked)} />
-                        <label className="text-sm">Send SMS</label>
-                    </div>
+                            <div className="mb-4 rounded border p-3">
+                                <div className="mb-1 grid grid-cols-6 gap-2 text-xs font-semibold text-gray-600">
+                                    <div>Payment Mode</div>
+                                    <div>Account Ledger</div>
+                                    <div>Amount</div>
+                                    <div>New Ledger Balance</div>
+                                    <div>Remove</div>
+                                </div>
 
-                    <div className="text-right font-bold">Total: {totalAmount.toFixed(2)}</div>
+                                {rows.map((row, index) => (
+                                    <div key={index} className="mb-2 grid grid-cols-6 items-center gap-2">
+                                        <div>
+                                            <select
+                                                className="w-full rounded border px-2 py-1 text-sm"
+                                                value={row.payment_mode_id}
+                                                onChange={(e) => handleChange(index, 'payment_mode_id', e.target.value)}
+                                            >
+                                                <option value="">Select</option>
+                                                {paymentModes.map((mode: any) => (
+                                                    <option key={mode.id} value={mode.id}>
+                                                        {mode.mode_name}
+                                                    </option>
+                                                ))}
+                                            </select>
+                                        </div>
 
-                    {/* <div className="flex gap-4">
-                        <button type="submit" className="rounded bg-green-600 px-4 py-2 text-white hover:bg-green-700">
-                            Update
-                        </button>
-                        <button type="button" onClick={() => window.history.back()} className="rounded bg-gray-300 px-4 py-2">
-                            Cancel
-                        </button>
-                    </div> */}
+                                        <div>
+                                            <select
+                                                className="w-full rounded border px-2 py-1 text-sm"
+                                                value={row.account_ledger_id}
+                                                onChange={(e) => handleChange(index, 'account_ledger_id', e.target.value)}
+                                            >
+                                                <option value="">Select</option>
+                                                {accountLedgers.map((ledger: any) => (
+                                                    <option key={ledger.id} value={ledger.id}>
+                                                        {ledger.account_ledger_name}
+                                                    </option>
+                                                ))}
+                                            </select>
+                                        </div>
 
-                    <ActionFooter
-                        className="justify-end"
-                        onSubmit={handleSubmit} // Function to handle form submission
-                        submitText="Update Payment" // Text for the submit button
-                        processing={false} // Indicates whether the form is processing
-                        cancelHref="/payment-add" // URL for the cancel action
-                        cancelText="Cancel" // Text for the cancel button
-                    />
-                </form>
+                                        <div>
+                                            <input
+                                                type="number"
+                                                value={row.amount}
+                                                onChange={(e) => handleChange(index, 'amount', e.target.value)}
+                                                className="w-full rounded border px-2 py-1 text-sm"
+                                            />
+                                        </div>
+
+                                        <div>
+                                            <input
+                                                type="text"
+                                                readOnly
+                                                value={row.ledger_balance.toFixed(2)}
+                                                className="w-full rounded border bg-gray-100 px-2 py-1 text-right text-sm"
+                                            />
+                                        </div>
+
+                                        <div className="text-center">
+                                            <button
+                                                type="button"
+                                                onClick={() => {
+                                                    if (rows.length > 1) {
+                                                        setRows(rows.filter((_, i) => i !== index));
+                                                    }
+                                                }}
+                                                disabled={rows.length === 1}
+                                                className={`text-lg font-bold ${rows.length === 1 ? 'cursor-not-allowed text-gray-300' : 'text-red-600'}`}
+                                                title={rows.length === 1 ? 'Cannot remove the last row' : 'Remove this row'}
+                                            >
+                                                ×
+                                            </button>
+                                        </div>
+                                    </div>
+                                ))}
+                            </div>
+                        </div>
+
+                        <div>
+                            <label className="mb-1 block font-medium">Description</label>
+                            <textarea value={description} onChange={(e) => setDescription(e.target.value)} className="w-full rounded border px-3 py-2" />
+                        </div>
+
+                        {/* <div className="flex items-center gap-2">
+                            <input type="checkbox" checked={sendSms} onChange={(e) => setSendSms(e.target.checked)} />
+                            <label className="text-sm">Send SMS</label>
+                        </div> */}
+
+                        <div className="text-right font-bold">Total: {totalAmount.toFixed(2)}</div>
+                        
+
+
+                        <ActionFooter
+                            className="justify-end"
+                            onSubmit={handleSubmit}
+                            submitText="Update Payment"
+                            processing={false}
+                            cancelHref="/payment-add"
+                            cancelText="Cancel"
+                        />
+                    </form>
+                </div>
             </div>
+
         </AppLayout>
     );
 }

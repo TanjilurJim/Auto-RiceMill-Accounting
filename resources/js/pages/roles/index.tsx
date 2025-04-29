@@ -65,18 +65,20 @@ export default function RoleIndex({ roles }: { roles: Role[] }) {
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
             <Head title="Roles" />
-            <div className="p-6 w-screen lg:w-full mx-auto space-y-6">
+            <div className="bg-gray-100 p-6 h-full w-screen lg:w-full">
+                <div className="bg-white h-full rounded-lg p-6">
 
-                <PageHeader title="Roles" addLinkHref='/roles/create' addLinkText="+ Create Role" />
+                    <PageHeader title="Roles" addLinkHref='/roles/create' addLinkText="+ Create Role" />
 
-                {/* Table */}
-                <TableComponent
-                    columns={columns}
-                    data={roles}
-                    noDataMessage="No roles found."
-                    className="rounded bg-white p-4 shadow dark:bg-neutral-900"
-                />
+                    {/* Table */}
+                    <TableComponent
+                        columns={columns}
+                        data={roles}
+                        noDataMessage="No roles found."
+                        className="rounded bg-white p-4 shadow dark:bg-neutral-900"
+                    />
 
+                </div>
             </div>
         </AppLayout>
     );

@@ -34,31 +34,33 @@ export default function Index({ journals }: any) {
     return (
         <AppLayout>
             <Head title="Journal Entries" />
-            <div className="p-6 w-screen lg:w-full">
+            <div className="bg-gray-100 p-6 h-full w-screen lg:w-full">
+                <div className="bg-white h-full rounded-lg p-6">
 
-                <PageHeader title='Journal Entries' addLinkHref='/journal-add/create' addLinkText="+ Add New" />
-                
-                <TableComponent
-                    columns={columns}
-                    data={journals.data}
-                    actions={(row: any) => (
-                        <ActionButtons
-                            editHref={`/journal-add/${row.id}/edit`}
-                            onDelete={() => handleDelete(row.id)}
-                            printHref={`/journal-add/${row.voucher_no}/print`}
-                            printText="Print"
-                        />
-                    )}
-                    noDataMessage="No journal entries found."
-                />
+                    <PageHeader title='Journal Entries' addLinkHref='/journal-add/create' addLinkText="+ Add New" />
 
-                {/* Pagination */}
-                <Pagination
-                    links={journals.links}
-                    currentPage={journals.current_page}
-                    lastPage={journals.last_page}
-                    total={journals.total}
-                />
+                    <TableComponent
+                        columns={columns}
+                        data={journals.data}
+                        actions={(row: any) => (
+                            <ActionButtons
+                                editHref={`/journal-add/${row.id}/edit`}
+                                onDelete={() => handleDelete(row.id)}
+                                printHref={`/journal-add/${row.voucher_no}/print`}
+                                printText="Print"
+                            />
+                        )}
+                        noDataMessage="No journal entries found."
+                    />
+
+                    {/* Pagination */}
+                    <Pagination
+                        links={journals.links}
+                        currentPage={journals.current_page}
+                        lastPage={journals.last_page}
+                        total={journals.total}
+                    />
+                </div>
             </div>
         </AppLayout>
     );

@@ -95,15 +95,6 @@ export default function SalesReturnEdit({
       <Head title="Edit Sales Return" />
       <div className="bg-gray-100 p-6 h-full w-screen lg:w-full">
         <div className="bg-white h-full rounded-lg p-6">
-          {/* <div className="mb-6 flex items-center justify-between">
-          <h1 className="text-2xl font-semibold text-gray-800">Edit Sales Return</h1>
-          <Link
-            href="/sales-returns"
-            className="rounded bg-gray-300 px-5 py-2 text-sm font-medium text-gray-700 hover:bg-gray-400"
-          >
-            Back
-          </Link>
-        </div> */}
 
           <PageHeader title='Edit Sales Return' addLinkHref='/sales-returns' addLinkText='Back' />
 

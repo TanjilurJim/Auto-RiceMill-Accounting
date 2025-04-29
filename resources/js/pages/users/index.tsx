@@ -126,55 +126,57 @@ export default function UserIndex({ users, filter, search }: { users: Pagination
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
             <Head title="Users" />
-            <div className="p-6 w-screen lg:w-full mx-auto space-y-6">
+            <div className="bg-gray-100 p-6 h-full w-screen lg:w-full">
+                <div className="bg-white h-full rounded-lg p-6">
 
-                <PageHeader title="Users" addLinkHref='users/create' addLinkText="+ Create User" />
+                    <PageHeader title="Users" addLinkHref='users/create' addLinkText="+ Create User" />
 
-                <div className="mb-6 flex space-x-2">
-                    {['all', 'active', 'inactive', 'trashed'].map((type) => (
-                        <Link
-                            key={type}
-                            href={`?filter=${type}`}
-                            className={`rounded px-3 py-1 text-sm ${filter === type ? 'bg-blue-600 text-white' : 'border hover:bg-neutral-100 dark:hover:bg-neutral-800'
-                                }`}
-                        >
-                            {type === 'all' ? 'All' : type === 'active' ? 'Active' : type === 'inactive' ? 'Inactive' : 'Trashed'}
-                        </Link>
-                    ))}
-                </div>
+                    <div className="mb-6 flex space-x-2">
+                        {['all', 'active', 'inactive', 'trashed'].map((type) => (
+                            <Link
+                                key={type}
+                                href={`?filter=${type}`}
+                                className={`rounded px-3 py-1 text-sm ${filter === type ? 'bg-blue-600 text-white' : 'border hover:bg-neutral-100 dark:hover:bg-neutral-800'
+                                    }`}
+                            >
+                                {type === 'all' ? 'All' : type === 'active' ? 'Active' : type === 'inactive' ? 'Inactive' : 'Trashed'}
+                            </Link>
+                        ))}
+                    </div>
 
-                {/* 🔍 Live Search */}
-                <div className="mb-4 flex items-center gap-2">
-                    <input
-                        type="text"
-                        value={query}
-                        onChange={(e) => setQuery(e.target.value)}
-                        placeholder="Search users..."
-                        className="w-64 rounded border px-3 py-1 dark:border-neutral-700 dark:bg-neutral-800"
+                    {/* 🔍 Live Search */}
+                    <div className="mb-4 flex items-center gap-2">
+                        <input
+                            type="text"
+                            value={query}
+                            onChange={(e) => setQuery(e.target.value)}
+                            placeholder="Search users..."
+                            className="w-64 rounded border px-3 py-1 dark:border-neutral-700 dark:bg-neutral-800"
+                        />
+                        {query && (
+                            <button type="button" onClick={() => setQuery('')} className="text-sm text-red-600 hover:underline">
+                                Clear
+                            </button>
+                        )}
+                    </div>
+
+                    {/* Table */}
+                    <TableComponent
+                        columns={columns}
+                        data={users.data}
+                        noDataMessage="No users found."
+                        className="rounded bg-white p-4 shadow dark:bg-neutral-900"
                     />
-                    {query && (
-                        <button type="button" onClick={() => setQuery('')} className="text-sm text-red-600 hover:underline">
-                            Clear
-                        </button>
-                    )}
+
+
+                    {/* Pagination */}
+                    <Pagination
+                        links={users.links}
+                        currentPage={users.current_page}
+                        lastPage={users.last_page}
+                        total={users.total}
+                    />
                 </div>
-
-                {/* Table */}
-                <TableComponent
-                    columns={columns}
-                    data={users.data}
-                    noDataMessage="No users found."
-                    className="rounded bg-white p-4 shadow dark:bg-neutral-900"
-                />
-
-
-                {/* Pagination */}
-                <Pagination
-                    links={users.links}
-                    currentPage={users.current_page}
-                    lastPage={users.last_page}
-                    total={users.total}
-                />
             </div>
         </AppLayout>
     );

@@ -92,24 +92,26 @@ export default function Index({ stockTransfers }: Props) {
     return (
         <AppLayout>
             <Head title="Stock Transfers" />
-            <div className="mx-auto w-screen lg:w-full bg-gray-100 p-6 shadow-xl">
+            <div className="bg-gray-100 p-6 h-full w-screen lg:w-full">
+                <div className="bg-white h-full rounded-lg p-6">
 
-                <PageHeader title='Stock Transfers' addLinkHref='/stock-transfers/create' addLinkText='+ New Transfer' />
+                    <PageHeader title='Stock Transfers' addLinkHref='/stock-transfers/create' addLinkText='+ New Transfer' />
 
-                <TableComponent
-                    columns={columns}
-                    data={transfers}
-                    noDataMessage="No stock transfers found."
-                />
-                
+                    <TableComponent
+                        columns={columns}
+                        data={transfers}
+                        noDataMessage="No stock transfers found."
+                    />
 
-                {/* Pagination */}
-                <Pagination
-                    links={stockTransfers.links}
-                    currentPage={stockTransfers.current_page}
-                    lastPage={stockTransfers.last_page}
-                    total={stockTransfers.total}
-                />
+
+                    {/* Pagination */}
+                    <Pagination
+                        links={stockTransfers.links}
+                        currentPage={stockTransfers.current_page}
+                        lastPage={stockTransfers.last_page}
+                        total={stockTransfers.total}
+                    />
+                </div>
             </div>
         </AppLayout>
     );

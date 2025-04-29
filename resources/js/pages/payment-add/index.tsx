@@ -1,7 +1,6 @@
 import ActionButtons from '@/components/ActionButtons';
 import { confirmDialog } from '@/components/confirmDialog';
 import PageHeader from '@/components/PageHeader';
-import Pagination from '@/components/Pagination';
 import TableComponent from '@/components/TableComponent';
 import AppLayout from '@/layouts/app-layout';
 import { Head, router } from '@inertiajs/react';
@@ -66,59 +65,62 @@ export default function Index({ paymentAdds, filters, paymentModes }: Props) {
         <AppLayout>
             <Head title="Payment List" />
 
-            <div className="p-6 w-screen md:w-full bg-gray-100">
+            <div className="bg-gray-100 p-6 h-full w-screen lg:w-full">
+                <div className="bg-white h-full rounded-lg p-6">
 
-                <PageHeader title='All List of Payments' addLinkHref='/payment-add/create' addLinkText="+ Add New" />
+                    <PageHeader title='All List of Payments' addLinkHref='/payment-add/create' addLinkText="+ Add New" />
 
-                {/* ✅ Filters */}
-                <div className="mb-4 grid grid-cols-1 md:grid-cols-4 gap-3">
-                    <input
-                        type="text"
-                        value={search}
-                        onChange={(e) => setSearch(e.target.value)}
-                        placeholder="Search voucher or ledger..."
-                        className="rounded border px-3 py-2 text-sm"
-                    />
-                    <select
-                        value={paymentModeId}
-                        onChange={(e) => setPaymentModeId(e.target.value)}
-                        className="rounded border px-3 py-2 text-sm"
-                    >
-                        <option value="">All Payment Modes</option>
-                        {paymentModes.map((mode) => (
-                            <option key={mode.id} value={mode.id}>
-                                {mode.mode_name}
-                            </option>
-                        ))}
-                    </select>
-                    <input
-                        type="date"
-                        value={fromDate}
-                        onChange={(e) => setFromDate(e.target.value)}
-                        className="rounded border px-3 py-2 text-sm"
-                    />
-                    <input
-                        type="date"
-                        value={toDate}
-                        onChange={(e) => setToDate(e.target.value)}
-                        className="rounded border px-3 py-2 text-sm"
-                    />
-                </div>
-
-                <TableComponent
-                    columns={columns}
-                    data={paymentAdds.data}
-                    actions={(row: any) => (
-                        <ActionButtons
-                            editHref={`/payment-add/${row.id}/edit`}
-                            onDelete={() => handleDelete(row.id)}
-                            printHref={`/payment-add/${row.voucher_no}/print`}
-                            printText="Print"
+                    {/* ✅ Filters */}
+                    <div className="mb-4 grid grid-cols-1 md:grid-cols-4 gap-3">
+                        <input
+                            type="text"
+                            value={search}
+                            onChange={(e) => setSearch(e.target.value)}
+                            placeholder="Search voucher or ledger..."
+                            className="rounded border px-3 py-2 text-sm"
                         />
-                    )}
-                />
+                        <select
+                            value={paymentModeId}
+                            onChange={(e) => setPaymentModeId(e.target.value)}
+                            className="rounded border px-3 py-2 text-sm"
+                        >
+                            <option value="">All Payment Modes</option>
+                            {paymentModes.map((mode) => (
+                                <option key={mode.id} value={mode.id}>
+                                    {mode.mode_name}
+                                </option>
+                            ))}
+                        </select>
+                        <input
+                            type="date"
+                            value={fromDate}
+                            onChange={(e) => setFromDate(e.target.value)}
+                            className="rounded border px-3 py-2 text-sm"
+                        />
+                        <input
+                            type="date"
+                            value={toDate}
+                            onChange={(e) => setToDate(e.target.value)}
+                            className="rounded border px-3 py-2 text-sm"
+                        />
+                    </div>
 
+                    <TableComponent
+                        columns={columns}
+                        data={paymentAdds.data}
+                        actions={(row: any) => (
+                            <ActionButtons
+                                editHref={`/payment-add/${row.id}/edit`}
+                                onDelete={() => handleDelete(row.id)}
+                                printHref={`/payment-add/${row.voucher_no}/print`}
+                                printText="Print"
+                            />
+                        )}
+                    />
+
+                </div>
             </div>
+
         </AppLayout>
     );
 }

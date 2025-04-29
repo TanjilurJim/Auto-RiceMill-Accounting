@@ -3,8 +3,7 @@ import { confirmDialog } from '@/components/confirmDialog';
 import PageHeader from '@/components/PageHeader';
 import TableComponent from '@/components/TableComponent';
 import AppLayout from '@/layouts/app-layout';
-import { Head, Link, router } from '@inertiajs/react';
-import Swal from 'sweetalert2';
+import { Head, router } from '@inertiajs/react';
 
 interface Designation {
     id: number;
@@ -35,24 +34,26 @@ export default function DesignationIndex({ designations }: { designations: Desig
     return (
         <AppLayout>
             <Head title="Designations" />
-            <div className="p-6 w-screen lg:w-full bg-gray-100">
+            <div className="bg-gray-100 p-6 h-full w-screen lg:w-full">
+                <div className="bg-white h-full rounded-lg p-6">
 
-                <PageHeader title='Designations' addLinkHref='/designations/create' addLinkText="+ Add New" />
+                    <PageHeader title='Designations' addLinkHref='/designations/create' addLinkText="+ Add New" />
 
-                <TableComponent
-                    columns={columns}
-                    data={designations}
-                    actions={(row: Designation) => (
-                        <ActionButtons
-                            editHref={`/designations/${row.id}/edit`}
-                            onDelete={() => handleDelete(row.id)}
-                            editText="Edit"
-                            deleteText="Delete"
-                        />
-                    )}
-                    noDataMessage="No designations found."
-                />
+                    <TableComponent
+                        columns={columns}
+                        data={designations}
+                        actions={(row: Designation) => (
+                            <ActionButtons
+                                editHref={`/designations/${row.id}/edit`}
+                                onDelete={() => handleDelete(row.id)}
+                                editText="Edit"
+                                deleteText="Delete"
+                            />
+                        )}
+                        noDataMessage="No designations found."
+                    />
 
+                </div>
             </div>
         </AppLayout>
     );

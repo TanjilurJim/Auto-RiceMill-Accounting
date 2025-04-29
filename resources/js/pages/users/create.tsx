@@ -36,11 +36,11 @@ export default function CreateUser({ roles }: { roles: Role[] }) {
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
             <Head title="Create User" />
-            <div className="flex justify-center bg-gray-100 dark:bg-neutral-950">
-                <div className="w-full p-6">
+            <div className="bg-gray-100 p-6 h-full w-screen lg:w-full">
+                <div className="bg-white h-full rounded-lg p-6">
                     <PageHeader title='Create User' addLinkHref='/users' addLinkText='Back' />
 
-                    <form onSubmit={submit} className="space-y-4 rounded bg-white p-4 shadow-2xl dark:bg-neutral-900">
+                    <form onSubmit={submit} className="space-y-4 bg-white p-4 dark:bg-neutral-900 border rounded-lg">
                         <div>
                             <label className="mb-1 block font-medium">Name</label>
                             <input

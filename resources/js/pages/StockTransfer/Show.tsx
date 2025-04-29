@@ -7,8 +7,8 @@ export default function Show({ stockTransfer }: any) {
     <AppLayout>
       <Head title={`View Stock Transfer #${stockTransfer.voucher_no || stockTransfer.id}`} />
 
-      <div className="flex min-h-screen bg-white ">
-        <div className="w-screen lg:w-full p-6">
+      <div className="bg-gray-100 p-6 h-full w-screen lg:w-full">
+                <div className="bg-white h-full rounded-lg p-6">
 
           <PageHeader title='Stock Transfer Details' addLinkHref='/stock-transfers' addLinkText='Back' />
 

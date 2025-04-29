@@ -46,29 +46,32 @@ export default function Index({ receivedAdds }: { receivedAdds: PaginatedReceive
         <AppLayout>
             <Head title="Received Vouchers" />
 
-            <div className="p-6 w-screen md:w-full bg-gray-100">
-                <PageHeader title="All List of Received" addLinkHref="/received-add/create" addLinkText="+ Add New" />
+            <div className="bg-gray-100 p-6 h-full w-screen lg:w-full">
+                <div className="bg-white h-full rounded-lg p-6">
+                    <PageHeader title="All List of Received" addLinkHref="/received-add/create" addLinkText="+ Add New" />
 
-                <TableComponent
-                    columns={columns}
-                    data={receivedAdds.data}
-                    actions={(row: ReceivedAdd) => (
-                        <ActionButtons
-                            editHref={`/received-add/${row.id}/edit`}
-                            onDelete={() => handleDelete(row.id)}
-                            printHref={`/received-add/${row.id}/print`}
-                            printText="Print"
-                        />
-                    )}
-                />
+                    <TableComponent
+                        columns={columns}
+                        data={receivedAdds.data}
+                        actions={(row: ReceivedAdd) => (
+                            <ActionButtons
+                                editHref={`/received-add/${row.id}/edit`}
+                                onDelete={() => handleDelete(row.id)}
+                                printHref={`/received-add/${row.id}/print`}
+                                printText="Print"
+                            />
+                        )}
+                    />
 
-                <Pagination
-                    links={receivedAdds.links}
-                    currentPage={receivedAdds.current_page}
-                    lastPage={receivedAdds.last_page}
-                    total={receivedAdds.total}
-                />
+                    <Pagination
+                        links={receivedAdds.links}
+                        currentPage={receivedAdds.current_page}
+                        lastPage={receivedAdds.last_page}
+                        total={receivedAdds.total}
+                    />
+                </div>
             </div>
+
         </AppLayout>
     );
 }

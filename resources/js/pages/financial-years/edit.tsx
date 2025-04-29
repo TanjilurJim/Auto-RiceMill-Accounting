@@ -28,78 +28,79 @@ export default function Edit({ financialYear }: { financialYear: FinancialYear }
   return (
     <AppLayout>
       <Head title="Edit Financial Year" />
+      <div className="bg-gray-100 p-6 h-full w-screen lg:w-full">
+        <div className="bg-white h-full rounded-lg p-6">
+          <PageHeader title="Edit Financial Year" addLinkHref="/financial-years" addLinkText="Back" />
 
-      <div className="p-6 w-full mx-auto">
-        <PageHeader title="Edit Financial Year" addLinkHref="/financial-years" addLinkText="Back" />
+          <form onSubmit={handleSubmit} className="space-y-6 bg-white rounded-lg shadow p-6 border">
+            {/* Title */}
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Title <span className="text-red-500">*</span>
+              </label>
+              <input
+                type="text"
+                className="w-full rounded-md border border-gray-300 px-4 py-2 text-sm font-semibold shadow focus:border-blue-500 focus:ring-blue-500"
+                value={data.title}
+                onChange={(e) => setData('title', e.target.value)}
+              />
+              {errors.title && <p className="text-sm text-red-600 mt-1">{errors.title}</p>}
+            </div>
 
-        <form onSubmit={handleSubmit} className="space-y-6 bg-white rounded-lg shadow p-6 border">
-          {/* Title */}
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              Title <span className="text-red-500">*</span>
-            </label>
-            <input
-              type="text"
-              className="w-full rounded-md border border-gray-300 px-4 py-2 text-sm font-semibold shadow focus:border-blue-500 focus:ring-blue-500"
-              value={data.title}
-              onChange={(e) => setData('title', e.target.value)}
+            {/* Start Date */}
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Start Date <span className="text-red-500">*</span>
+              </label>
+              <input
+                type="date"
+                className="w-full rounded-md border border-gray-300 px-4 py-2 text-sm font-semibold shadow focus:border-blue-500 focus:ring-blue-500"
+                value={data.start_date}
+                onChange={(e) => setData('start_date', e.target.value)}
+                disabled={data.is_closed}
+              />
+              {errors.start_date && <p className="text-sm text-red-600 mt-1">{errors.start_date}</p>}
+            </div>
+
+            {/* End Date */}
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                End Date <span className="text-red-500">*</span>
+              </label>
+              <input
+                type="date"
+                className="w-full rounded-md border border-gray-300 px-4 py-2 text-sm font-semibold shadow focus:border-blue-500 focus:ring-blue-500"
+                value={data.end_date}
+                onChange={(e) => setData('end_date', e.target.value)}
+                disabled={data.is_closed}
+              />
+              {errors.end_date && <p className="text-sm text-red-600 mt-1">{errors.end_date}</p>}
+            </div>
+
+            {/* Status */}
+            <div className="flex items-center gap-2">
+              <input
+                type="checkbox"
+                id="is_closed"
+                checked={data.is_closed}
+                onChange={(e) => setData('is_closed', e.target.checked)}
+              />
+              <label htmlFor="is_closed" className="text-sm text-gray-700">
+                Mark as Closed
+              </label>
+            </div>
+
+            {/* Action Footer */}
+            <ActionFooter
+              processing={processing}
+              submitText={processing ? 'Saving...' : 'Update'}
+              onSubmit={handleSubmit}
+              onCancel={() => window.history.back()}
+              cancelText="Cancel"
+              className="justify-end"
             />
-            {errors.title && <p className="text-sm text-red-600 mt-1">{errors.title}</p>}
-          </div>
-
-          {/* Start Date */}
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              Start Date <span className="text-red-500">*</span>
-            </label>
-            <input
-              type="date"
-              className="w-full rounded-md border border-gray-300 px-4 py-2 text-sm font-semibold shadow focus:border-blue-500 focus:ring-blue-500"
-              value={data.start_date}
-              onChange={(e) => setData('start_date', e.target.value)}
-              disabled={data.is_closed}
-            />
-            {errors.start_date && <p className="text-sm text-red-600 mt-1">{errors.start_date}</p>}
-          </div>
-
-          {/* End Date */}
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              End Date <span className="text-red-500">*</span>
-            </label>
-            <input
-              type="date"
-              className="w-full rounded-md border border-gray-300 px-4 py-2 text-sm font-semibold shadow focus:border-blue-500 focus:ring-blue-500"
-              value={data.end_date}
-              onChange={(e) => setData('end_date', e.target.value)}
-              disabled={data.is_closed}
-            />
-            {errors.end_date && <p className="text-sm text-red-600 mt-1">{errors.end_date}</p>}
-          </div>
-
-          {/* Status */}
-          <div className="flex items-center gap-2">
-            <input
-              type="checkbox"
-              id="is_closed"
-              checked={data.is_closed}
-              onChange={(e) => setData('is_closed', e.target.checked)}
-            />
-            <label htmlFor="is_closed" className="text-sm text-gray-700">
-              Mark as Closed
-            </label>
-          </div>
-
-          {/* Action Footer */}
-          <ActionFooter
-            processing={processing}
-            submitText={processing ? 'Saving...' : 'Update'}
-            onSubmit={handleSubmit}
-            onCancel={() => window.history.back()}
-            cancelText="Cancel"
-            className="justify-end"
-          />
-        </form>
+          </form>
+        </div>
       </div>
     </AppLayout>
   );
