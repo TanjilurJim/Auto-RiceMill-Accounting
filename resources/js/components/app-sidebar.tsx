@@ -7,6 +7,7 @@ import { Link, usePage } from '@inertiajs/react';
 import {
     Banknote,
     BarChartBig,
+    BarChart2,
     Warehouse,
     ScrollText,
     BanknoteIcon,
@@ -257,6 +258,12 @@ const mainNavItems: NavItem[] = [
                 title: 'Purchase Report',
                 href: '/reports/purchase/filter',
                 icon: FolderKanban, // 🗂 or use Icon that represents grouping/categories
+            },
+
+            {
+                title: 'Sale Report',
+                href: '/reports/sale/filter',
+                icon: BarChart2, // 🗂 same or pick a new icon like BarChart2 📊 if you want
             },
 
             // Later you can add more inventory-related items here (e.g., Products, Stock Transfers, etc.)

@@ -28,8 +28,8 @@ use App\Http\Controllers\FinishedProductController;
 use App\Http\Controllers\JournalAddController;
 use App\Http\Controllers\ProductionController;
 use App\Http\Controllers\StockTransferController;
-use App\Http\Controllers\WorkingOrderController;  
-use App\Http\Controllers\PurchaseReportController;  
+use App\Http\Controllers\WorkingOrderController;
+use App\Http\Controllers\PurchaseReportController;
 
 
 use App\Http\Controllers\ReportController;
@@ -175,18 +175,32 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::redirect('/reports/purchase', '/reports/purchase/filter');
     Route::prefix('reports/purchase')->name('reports.purchase.')->group(function () {
         Route::get('filter/{tab?}', [PurchaseReportController::class, 'filter'])
-             ->where('tab', 'category|item|party|return|all')
-             ->name('filter');              // default hits “category”
+            ->where('tab', 'category|item|party|return|all')
+            ->name('filter');              // default hits “category”
         Route::get('{tab}',        [PurchaseReportController::class, 'index'])
-             ->where('tab', 'category|item|party|return|all')
-             ->name('index');
+            ->where('tab', 'category|item|party|return|all')
+            ->name('index');
         Route::get('{tab}/export', [PurchaseReportController::class, 'export'])
-             ->where('tab', 'category|item|party|return|all')
-             ->name('export');
+            ->where('tab', 'category|item|party|return|all')
+            ->name('export');
     });
 
+    // Sales Report
 
+    Route::redirect('/reports/sale', '/reports/sale/filter');
+    Route::prefix('reports/sale')->name('reports.sale.')->group(function () {
+        Route::get('filter/{tab?}', [\App\Http\Controllers\SaleReportController::class, 'filter'])
+            ->where('tab', 'category|item|party|godown|salesman|all')
+            ->name('filter'); // default hit "category"
 
+        Route::get('{tab}', [\App\Http\Controllers\SaleReportController::class, 'index'])
+            ->where('tab', 'category|item|party|godown|salesman|all')
+            ->name('index');
+
+        Route::get('{tab}/export', [\App\Http\Controllers\SaleReportController::class, 'export'])
+            ->where('tab', 'category|item|party|godown|salesman|all')
+            ->name('export');
+    });
 });
 //stock report pdf and excel
 Route::get('/reports/stock-summary/pdf', [ReportController::class, 'stockSummaryPDF'])
