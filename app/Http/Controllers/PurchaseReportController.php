@@ -182,7 +182,7 @@ class PurchaseReportController extends Controller
                     $r->voucher_no,
                     $r->supplier,
                     $r->item,
-                    $r->qty,
+                    $r->total_qty,
                     $r->unit_name,
                     $r->price_each,
                     $r->net_amount,

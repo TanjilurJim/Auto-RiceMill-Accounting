@@ -20,6 +20,7 @@ const tabs = [
   { key: 'godown', label: 'Godown-wise' },
   { key: 'salesman', label: 'Salesman-wise' },
   { key: 'all', label: 'All Sales Profit & Loss' },
+  { key: 'sales_return', label: 'Sales Return' },
 ];
 
 export default function SaleReportFilter({ tab, categories, items, parties, godowns, salesmen }: Props) {
@@ -88,7 +89,7 @@ export default function SaleReportFilter({ tab, categories, items, parties, godo
                     type="date"
                     required={!data.year}
                     disabled={!!data.year}
-                    className="mt-1 block w-full rounded-md border-gray-300"
+                    className="mt-1 block w-full rounded-md border-black border-b-2 "
                     value={data.from_date}
                     onChange={(e) => {
                       setData('from_date', e.target.value);
@@ -105,7 +106,7 @@ export default function SaleReportFilter({ tab, categories, items, parties, godo
                     type="date"
                     required={!data.year}
                     disabled={!!data.year}
-                    className="mt-1 block w-full rounded-md border-gray-300"
+                    className="mt-1 block w-full rounded-md border-black border-b-2 "
                     value={data.to_date}
                     onChange={(e) => {
                       setData('to_date', e.target.value);
