@@ -3,6 +3,8 @@
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
 use App\Http\Controllers\PermissionController;
+use App\Http\Controllers\AllReceivablePayableReportController;
+
 use App\Http\Controllers\RoleController;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\AccountGroupController;
@@ -206,6 +208,16 @@ Route::middleware(['auth', 'verified'])->group(function () {
             ->where('tab', 'category|item|party|godown|salesman|all|return')
             ->name('export');
     });
+
+    // All Receivable Payable Report
+    // Filter Page (Step 1)
+    Route::get('/reports/receivable-payable/filter', function () {
+        return Inertia::render('reports/AllReceivablePayableFilter');
+    })->name('reports.receivable-payable.filter');
+
+    // Final Report Page (Step 2)
+    Route::get('/reports/receivable-payable', [AllReceivablePayableReportController::class, 'index'])
+        ->name('reports.receivable-payable');
 });
 //stock report pdf and excel
 Route::get('/reports/stock-summary/pdf', [ReportController::class, 'stockSummaryPDF'])
@@ -231,6 +243,11 @@ Route::get('/reports/account-book/export/pdf', [ReportController::class, 'export
 // Account Group Summary Report pdf and excel
 Route::get('/reports/ledger-group-summary/excel', [LedgerGroupReportController::class, 'exportExcel'])->name('reports.ledger-group-summary.excel');
 Route::get('/reports/ledger-group-summary/pdf', [LedgerGroupReportController::class, 'exportPDF'])->name('reports.ledger-group-summary.pdf');
+
+// All Receivable Payable Report pdf and excel
+Route::get('/reports/receivable-payable/export/pdf', [AllReceivablePayableReportController::class, 'exportPdf'])->name('reports.receivable-payable.pdf');
+Route::get('/reports/receivable-payable/export/excel', [AllReceivablePayableReportController::class, 'excel'])->name('reports.receivable-payable.excel');
+
 
 require __DIR__ . '/settings.php';
 require __DIR__ . '/auth.php';

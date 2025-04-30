@@ -10,6 +10,7 @@ import {
     BarChart2,
     Warehouse,
     ScrollText,
+    Scale,
     BanknoteIcon,
     BookOpen,
     Boxes,
@@ -266,6 +267,12 @@ const mainNavItems: NavItem[] = [
                 icon: BarChart2, // 🗂 same or pick a new icon like BarChart2 📊 if you want
             },
 
+            {
+                title: 'Receivable & Payable',
+                href: '/reports/receivable-payable/filter',
+                icon: Scale, // ⚖️ Choose icon like Scale or DollarSign
+            },
+
             // Later you can add more inventory-related items here (e.g., Products, Stock Transfers, etc.)
         ],
     },
@@ -285,6 +292,8 @@ const mainNavItems: NavItem[] = [
                 href: '/company-settings',
                 icon: Building2, // 👈 This icon works well for users
             },
+
+            
             // Later you can add more inventory-related items here (e.g., Products, Stock Transfers, etc.)
         ],
     },
