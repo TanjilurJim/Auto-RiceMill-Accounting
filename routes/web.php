@@ -45,8 +45,12 @@ use App\Http\Controllers\SalarySlipController;
 use App\Models\Purchase;
 use App\Models\SalesReturn;
 
+// Route::get('/', function () {
+//     return Inertia::render('welcome');
+// })->name('home');
+
 Route::get('/', function () {
-    return Inertia::render('welcome');
+    return view('welcome');
 })->name('home');
 
 // Route::get('/', function () {

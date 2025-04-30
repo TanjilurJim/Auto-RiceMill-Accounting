@@ -71,6 +71,9 @@
     --color-danger: var(--danger);
     --color-danger-hover: var(--danger-hover);
 
+    --color-rafu-flamingo: var(--rafu-orenge);
+    --color-rafu-black: var(--rafu-black);
+
 
 
 
@@ -139,6 +142,9 @@
     --warning-hover: #e25555;
     --danger: #B84D69;
     --danger-hover: #9c344e;
+
+    --rafu-flamingo: #F15A29;
+    --rafu-black: #1D1C1E;
 
     
 
