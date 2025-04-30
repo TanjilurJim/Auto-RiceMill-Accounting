@@ -140,7 +140,8 @@ export default function SalarySlipIndex({ salarySlips, employees }: Props) {
 
                     {/* Filters */}
                     <div className="mb-4 flex flex-wrap items-center gap-3 rounded-lg bg-white p-4 border">
-                        <select
+                    <div className="min-w-[150px] w-full sm:w-auto">
+                        {/* <select
                             className="rounded border p-2 text-sm w-full sm:w-auto"
                             value={filters.month}
                             onChange={(e) => setFilters({ ...filters, month: e.target.value })}
@@ -151,7 +152,19 @@ export default function SalarySlipIndex({ salarySlips, employees }: Props) {
                                     {new Date(0, i).toLocaleString('default', { month: 'long' })}
                                 </option>
                             ))}
-                        </select>
+                        </select> */}
+                        <Select
+                            placeholder="Month"
+                            options={Array.from({ length: 12 }, (_, i) => ({
+                                value: i + 1,
+                                label: new Date(0, i).toLocaleString('default', { month: 'long' }),
+                            }))}
+                            isClearable
+                            isSearchable
+                            value={filters.month ? { value: filters.month, label: new Date(0, filters.month - 1).toLocaleString('default', { month: 'long' }) } : null}
+                            onChange={(option) => setFilters({ ...filters, month: option?.value || '' })}
+                        />
+                    </div>
 
                         <div className="min-w-[150px] w-full sm:w-auto">
                             <CreatableSelect

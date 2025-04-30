@@ -1,4 +1,4 @@
-import { Card, CardContent, CardHeader } from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import AppLayout from '@/layouts/app-layout';
 import { Head, Link } from '@inertiajs/react';
 import dayjs from 'dayjs';
@@ -43,7 +43,7 @@ export default function DayBook({ entries, filters, company }: Props) {
                 </Link>
             </div>
             <div className="space-y-6 p-6">
-               
+
 
                 <Card>
                     <CardHeader className="relative bg-gray-50 py-6 text-center">
@@ -122,7 +122,7 @@ export default function DayBook({ entries, filters, company }: Props) {
                     </CardContent>
                 </Card>
                 <div className="mt-4 flex justify-end gap-2 print:hidden">
-                    <Button variant="outline" onClick={() => window.print()}> <Printer className="mr-2 h-4 w-4"/>
+                    <Button variant="outline" onClick={() => window.print()}> <Printer className="mr-2 h-4 w-4" />
                         Print
                     </Button>
                     <a
@@ -147,7 +147,7 @@ export default function DayBook({ entries, filters, company }: Props) {
                         })}
                         className="inline-flex items-center gap-1 rounded-md border px-4 py-2 text-sm hover:bg-gray-100"
                     ><FileSpreadsheet className="h-4 w-4" />
-                         Export Excel
+                        Export Excel
                     </a>
                 </div>
             </div>
