@@ -190,15 +190,15 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::redirect('/reports/sale', '/reports/sale/filter');
     Route::prefix('reports/sale')->name('reports.sale.')->group(function () {
         Route::get('filter/{tab?}', [\App\Http\Controllers\SaleReportController::class, 'filter'])
-            ->where('tab', 'category|item|party|godown|salesman|all')
+            ->where('tab', 'category|item|party|godown|salesman|all|return')
             ->name('filter'); // default hit "category"
 
         Route::get('{tab}', [\App\Http\Controllers\SaleReportController::class, 'index'])
-            ->where('tab', 'category|item|party|godown|salesman|all')
+            ->where('tab', 'category|item|party|godown|salesman|all|return')
             ->name('index');
 
         Route::get('{tab}/export', [\App\Http\Controllers\SaleReportController::class, 'export'])
-            ->where('tab', 'category|item|party|godown|salesman|all')
+            ->where('tab', 'category|item|party|godown|salesman|all|return')
             ->name('export');
     });
 });

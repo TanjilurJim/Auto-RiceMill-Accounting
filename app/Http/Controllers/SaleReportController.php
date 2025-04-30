@@ -108,6 +108,7 @@ class SaleReportController extends Controller
             'godown' => $this->getGodownData($filters),
             'salesman' => $this->getSalesmanData($filters),
             'all' => $this->getAllProfitLossData($filters),
+            'return' => $this->getSaleReturnData($filters), // ✅ newly added
             default => collect(),
         };
 
@@ -118,6 +119,7 @@ class SaleReportController extends Controller
             'godown' => 'reports/SaleGodownReport',
             'salesman' => 'reports/SaleSalesmanReport',
             'all' => 'reports/SaleAllProfitLossReport',
+            'return' => 'reports/SaleReturnReport', // ✅ newly added
         ][$tab];
 
         return Inertia::render($page, [
@@ -435,6 +437,7 @@ class SaleReportController extends Controller
             'godown'   => $this->getGodownData($filters),
             'salesman' => $this->getSalesmanData($filters),
             'all'      => $this->getAllProfitLossData($filters),
+            'return' => $this->getSaleReturnData($filters),
             default    => collect(),
         };
 
@@ -456,6 +459,8 @@ class SaleReportController extends Controller
                 'all' => $isYearSelected
                     ? ['Month', 'Profit (Tk)']
                     : ['Date', 'Voucher No', 'Item', 'Qty', 'Unit', 'Sale Price', 'Cost Price', 'Profit', 'Profit %'],
+
+                'return' => ['Date', 'Voucher No', 'Party', 'Item', 'Qty', 'Unit', 'Rate', 'Amount'],
             };
 
             $rows = collect($entries)->map(function ($r) use ($tab, $isYearSelected) {
@@ -524,8 +529,20 @@ class SaleReportController extends Controller
                                 ? number_format(($r->profit / $r->sale_price) * 100, 2) . '%'
                                 : '0.00%',
                         ],
+
+                    'return' => [ // 🆕
+                        $r->return_date,
+                        $r->voucher_no,
+                        $r->party,
+                        $r->item_name,
+                        number_format($r->qty ?? 0, 2),
+                        $r->unit_name,
+                        number_format($r->rate ?? 0, 2),
+                        number_format($r->amount ?? 0, 2),
+                    ],
                 };
             });
+
 
             // ➡️ Push Grand Total for specific reports
             if (in_array($tab, ['party', 'godown', 'salesman'])) {
@@ -569,6 +586,7 @@ class SaleReportController extends Controller
             'godown' => 'pdf.sale-godown-report',
             'salesman' => 'pdf.sale-salesman-report',
             'all' => 'pdf.sale-all-profit-loss-report',
+            'return' => 'pdf.sales-return-report',
             default => abort(404),
         };
 
@@ -579,5 +597,31 @@ class SaleReportController extends Controller
         ]);
 
         return $pdf->download("sale-{$tab}-report.pdf");
+    }
+
+    private function getSaleReturnData(array $f): Collection
+    {
+        $allowedUserIds = $this->allowedUserIds();
+
+        return DB::table('sales_returns')
+            ->join('sales_return_items', 'sales_return_items.sales_return_id', '=', 'sales_returns.id')
+            ->join('items', 'items.id', '=', 'sales_return_items.product_id')
+            ->join('account_ledgers', 'account_ledgers.id', '=', 'sales_returns.account_ledger_id')
+            ->join('units', 'units.id', '=', 'items.unit_id')
+            ->selectRaw('
+            sales_returns.return_date,
+            sales_returns.voucher_no,
+            account_ledgers.account_ledger_name AS party,
+            items.item_name,
+            units.name AS unit_name,
+            sales_return_items.qty AS qty,
+            sales_return_items.main_price AS rate,
+            (sales_return_items.qty * sales_return_items.main_price) AS amount
+        ')
+            ->whereBetween('sales_returns.return_date', [$f['from_date'], $f['to_date']])
+            ->when($this->allowedUserIds(), fn($q, $ids) => $q->whereIn('sales_returns.created_by', $ids))
+            ->orderBy('sales_returns.return_date')
+            ->orderBy('sales_returns.voucher_no')
+            ->get();
     }
 }

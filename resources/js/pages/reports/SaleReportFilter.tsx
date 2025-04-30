@@ -20,7 +20,7 @@ const tabs = [
   { key: 'godown', label: 'Godown-wise' },
   { key: 'salesman', label: 'Salesman-wise' },
   { key: 'all', label: 'All Sales Profit & Loss' },
-  { key: 'sales_return', label: 'Sales Return' },
+  { key: 'return', label: 'Sale Returns' },
 ];
 
 export default function SaleReportFilter({ tab, categories, items, parties, godowns, salesmen }: Props) {
