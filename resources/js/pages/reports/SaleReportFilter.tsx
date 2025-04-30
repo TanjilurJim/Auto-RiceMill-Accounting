@@ -21,7 +21,7 @@ const tabs = [
   { key: 'godown', label: 'Godown-wise' },
   { key: 'salesman', label: 'Salesman-wise' },
   { key: 'all', label: 'All Sales Profit & Loss' },
-  { key: 'sales_return', label: 'Sales Return' },
+  { key: 'return', label: 'Sale Returns' },
 ];
 
 export default function SaleReportFilter({ tab, categories, items, parties, godowns, salesmen }: Props) {
@@ -79,7 +79,6 @@ export default function SaleReportFilter({ tab, categories, items, parties, godo
                 </ul>
               </nav> */}
 
-<<<<<<< HEAD
               <nav className="mt-4 border-b border-gray-200">
                 <ul className="flex flex-wrap gap-2 sm:gap-4 md:gap-6 lg:gap-8 xl:gap-10">
                   {tabs.map((t) => (
@@ -100,41 +99,6 @@ export default function SaleReportFilter({ tab, categories, items, parties, godo
               </nav>
 
             </CardHeader>
-=======
-                {/* From Date */}
-                <div>
-                  <label className="block text-sm font-medium">From Date *</label>
-                  <input
-                    type="date"
-                    required={!data.year}
-                    disabled={!!data.year}
-                    className="mt-1 block w-full rounded-md border-black border-b-2 "
-                    value={data.from_date}
-                    onChange={(e) => {
-                      setData('from_date', e.target.value);
-                      setData('year', '');
-                    }}
-                  />
-                  {errors.from_date && <p className="text-sm text-red-500">{errors.from_date}</p>}
-                </div>
-
-                {/* To Date */}
-                <div>
-                  <label className="block text-sm font-medium">To Date *</label>
-                  <input
-                    type="date"
-                    required={!data.year}
-                    disabled={!!data.year}
-                    className="mt-1 block w-full rounded-md border-black border-b-2 "
-                    value={data.to_date}
-                    onChange={(e) => {
-                      setData('to_date', e.target.value);
-                      setData('year', '');
-                    }}
-                  />
-                  {errors.to_date && <p className="text-sm text-red-500">{errors.to_date}</p>}
-                </div>
->>>>>>> 5a982253d69c28c1527138a59de4d63aaaa0dfce
 
             {/* ── Form ───────────────────────────────── */}
             <CardContent className="p-6">
