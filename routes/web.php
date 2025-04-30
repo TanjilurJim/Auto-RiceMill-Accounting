@@ -47,6 +47,11 @@ Route::get('/', function () {
     return Inertia::render('welcome');
 })->name('home');
 
+// Route::get('/', function () {
+//     return view('welcome'); // Use the Blade view here
+// })->name('home');
+
+
 Route::middleware(['auth', 'verified'])->group(function () {
 
     // Dashboard - open to all verified users
