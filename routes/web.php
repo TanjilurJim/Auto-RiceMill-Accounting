@@ -55,6 +55,14 @@ Route::get('/', function () {
 //     return view('welcome'); // Use the Blade view here
 // })->name('home');
 
+Route::get('/about', function () {
+    return view('about');
+})->name('about');
+
+Route::get('/contacts', function () {
+    return view('contacts');
+})->name('contacts');
+
 
 Route::middleware(['auth', 'verified'])->group(function () {
 
