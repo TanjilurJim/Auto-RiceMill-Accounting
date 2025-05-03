@@ -1,5 +1,6 @@
 <?php
 
+
 if (!function_exists('numberToWords')) {
     function numberToWords($number)
     {
@@ -58,43 +59,37 @@ use App\Models\CompanySetting;
 use Illuminate\Support\Facades\Auth;
 
 if (! function_exists('company_info')) {
-    /**
-     * Returns the “company profile” row that belongs to the
-     * current tenant. Admins get the first record (or you can
-     * customise below).
-     *
-     * @return \App\Models\CompanySetting|null
-     */
     function company_info(): ?CompanySetting
     {
-        /* ----------------------------------------------------------
-         | Cache result for the remainder of THIS request
-         * --------------------------------------------------------*/
+        /* one‑request cache */
         static $cached = null;
         if ($cached !== null) {
             return $cached;
         }
 
-        /* ----------------------------------------------------------
-         | Decide which row to return
-         * --------------------------------------------------------*/
         $user = Auth::user();
 
-        // 1️⃣  Admin  → first record (or change logic if you need)
-        if ($user && $user->hasRole('admin')) {
-            return $cached = CompanySetting::first();
+        /* Which row? */
+        $row = match (true) {
+            // admin – first company in DB
+            $user && $user->hasRole('admin')       => CompanySetting::first(),
+
+            // normal user – record I created
+            $user && CompanySetting::where('created_by', $user->id)->exists()
+                                                => CompanySetting::where('created_by', $user->id)->first(),
+
+            // sub‑user – pick my “parent’s” company
+            $user && $user->creator_id            // 👈 change if you use a different column
+                                                => CompanySetting::where('created_by', $user->creator_id)->first(),
+
+            default                                => null,
+        };
+
+        /* Add URL accessors so they survive JSON serialisation */
+        if ($row) {
+            $row->append(['logo_url', 'logo_thumb_url']);
         }
 
-        // 2️⃣  Normal user  → company created by ME
-        if ($user) {
-            return $cached = CompanySetting::where('created_by', $user->id)->first();
-        }
-
-        if ($cached && $cached->logo_path) {
-            $cached->logo_url = asset('storage/' . $cached->logo_path);
-        }
-
-        // 3️⃣  Fallback (guest / no row found) → null
-        return $cached = null;
+        return $cached = $row;
     }
 }

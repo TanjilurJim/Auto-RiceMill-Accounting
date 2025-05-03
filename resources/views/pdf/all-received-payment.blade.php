@@ -53,11 +53,9 @@
 
 <body>
 
-    <div class="company-info">
-        @if (!empty($company['logo']))
-            <div style="margin-bottom: 5px;">
-                <img src="{{ public_path('storage/' . $company['logo_path']) }}" alt="Logo" style="height: 50px;">
-            </div>
+    <div class="company-info" style="display:flex;align-items:center;gap:10px;">
+        @if ($company->thumb_path)           {{-- local path inside the container --}}
+            <img src="{{ $company->thumb_path }}" style="height:55px;">
         @endif
 
         <h2>{{ $company['company_name'] ?? 'Company Name' }}</h2>

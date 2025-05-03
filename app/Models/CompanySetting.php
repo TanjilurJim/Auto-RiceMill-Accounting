@@ -19,7 +19,28 @@ class CompanySetting extends Model
         'address',
         'description',
         'logo_path',
+        'logo_thumb_path', 
     ];
+
+     /* ──────────── Accessors ──────────── */
+     protected $appends = ['logo_url', 'logo_thumb_url'];
+
+     
+
+     public function getLogoUrlAttribute(): ?string
+     {
+         return $this->logo_path
+             ? asset('storage/' . $this->logo_path)
+             : null;
+     }
+ 
+     public function getLogoThumbUrlAttribute(): ?string
+     {
+         // fall back to full logo if thumb missing
+         return $this->logo_thumb_path
+             ? asset('storage/' . $this->logo_thumb_path)
+             : $this->logo_url;
+     }
 
     public function creator()
     {

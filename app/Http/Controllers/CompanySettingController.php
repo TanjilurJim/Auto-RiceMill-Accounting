@@ -2,6 +2,8 @@
 
 namespace App\Http\Controllers;
 
+use Intervention\Image\ImageManager;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 use App\Models\CompanySetting;
@@ -21,7 +23,7 @@ class CompanySettingController extends Controller
         ]);
     }
 
-    public function update(Request $request)
+    public function update(Request $request, ImageManager $manager)
     {
         $validated = $request->validate([
             'company_name' => 'nullable|string|max:255',
@@ -49,14 +51,35 @@ class CompanySettingController extends Controller
         }
 
         if ($request->hasFile('logo')) {
-            $path = $request->file('logo')->store('logos', 'public');
-            $validated['logo_path'] = $path;
+            $image = $request->file('logo');
 
-            \Log::info('✅ Logo uploaded & stored', ['path' => $path]);
-        } else {
-            \Log::warning('⚠️ No logo file detected in request');
+            // normal web‑size 300 px wide  ───────────────────────
+            $full = $manager->read($image)
+                                   // ← fixes EXIF rotation
+                ->resize(300, 300, function ($c) {
+                    $c->aspectRatio();
+                    $c->upsize();
+                })
+                ->toPng()
+                ->toString();
+            $fullName = 'logos/' . uniqid() . '.png';
+            Storage::disk('public')->put($fullName, $full);
+
+            // **thumbnail 120×120 bounding box**  ───────────────
+            $thumb = $manager->read($image)
+                
+                ->resize(120, 120, function ($c) {
+                    $c->aspectRatio();
+                    $c->upsize();
+                })
+                ->toJpg(60)
+                ->toString();
+            $thumbName = 'logos/pdf_' . uniqid() . '.jpg';
+            Storage::disk('public')->put($thumbName, $thumb);
+
+            $validated['logo_path']       = $fullName;
+            $validated['logo_thumb_path'] = $thumbName;
         }
-
         \Log::info('✅ Final data to save:', $validated);
 
         $setting->fill($validated);

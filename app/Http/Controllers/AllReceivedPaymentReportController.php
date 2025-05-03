@@ -5,6 +5,8 @@ namespace App\Http\Controllers;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
+use App\Exports\AllReceivedPaymentExport;
+use Maatwebsite\Excel\Facades\Excel;
 
 class AllReceivedPaymentReportController extends Controller
 {
@@ -84,22 +86,42 @@ class AllReceivedPaymentReportController extends Controller
     {
         $request->validate([
             'from_date' => 'required|date',
-            'to_date' => 'required|date',
+            'to_date'   => 'required|date',
         ]);
 
-        $from = $request->from_date;
-        $to = $request->to_date;
+        $from     = $request->from_date;
+        $to       = $request->to_date;
+        $entries  = $this->getEntries($from, $to);
 
-        // ✅ Extracted logic reused
-        $entries = $this->getEntries($from, $to);
-        $company = company_info();
-        $company['logo'] = !empty($company['logo_path'])
-            ? public_path('storage/' . $company['logo_path'])  // for DomPDF
+        $company  = company_info();               // Eloquent model
+        $company->thumb_path = $company->logo_thumb_path
+            ? public_path('storage/' . $company->logo_thumb_path)   // ← local file!
             : null;
 
-        return Pdf::loadView('pdf.all-received-payment', compact('entries', 'from', 'to', 'company'))
+        return Pdf::loadView(
+            'pdf.all-received-payment',
+            compact('entries', 'from', 'to', 'company')
+        )
             ->setPaper('A4', 'landscape')
             ->download('all-received-payment-report.pdf');
+    }
+
+    public function exportExcel(Request $request)
+    {
+        $request->validate([
+            'from_date' => 'required|date',
+            'to_date'   => 'required|date',
+        ]);
+
+        $from    = $request->from_date;
+        $to      = $request->to_date;
+        $entries = $this->getEntries($from, $to);
+        $company = company_info();
+
+        return Excel::download(
+            new AllReceivedPaymentExport($entries, $from, $to, $company),
+            'all-received-payment-report.xlsx'
+        );
     }
 
     private function getEntries($from, $to)
