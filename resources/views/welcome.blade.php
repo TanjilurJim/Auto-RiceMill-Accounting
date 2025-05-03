@@ -170,14 +170,68 @@
                     <!-- Right Content -->
                     <div class="flex justify-center">
                         <img decoding="async" width="600" height="428"
-                            src="https://dataman.in/v2/wp-content/uploads/2023/03/rice-cultivation.webp" >
+                            src="{{ asset('assets/tax.png') }}" >
                     </div>
                 </div>
             </div>
         </section>
-
-        <section>
-
+        
+        <!-- Software Modules  -->
+        <section class="py-12 " style="font-family: 'Rubik', sans-serif;">
+            <div class="container mx-auto px-4 md:px-8 lg:px-16">
+                <div class="text-center mb-8">
+                    <h2 class="text-2xl md:text-3xl font-bold text-[#1D1C1E] mb-6 underline">
+                    Auto Rice Mill Software Modules
+                    </h2>
+                    <p class="text-base md:text-lg text-[#1D1C1E]">
+                        Explore the powerful modules of Auto Rice Mill Software designed to streamline your operations.
+                    </p>
+                </div>
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                    <!-- Module 1 -->
+                    <div class="bg-white p-6 rounded-lg shadow-md hover:shadow-lg transition duration-300 ease-in-out">
+                        <h3 class="text-xl font-bold text-[#1D1C1E] mb-4">Inventory Management</h3>
+                        <p class="text-base text-[#1D1C1E]">
+                            Efficiently track and control inventory movements, monitor stock levels, and automate replenishment.
+                        </p>
+                    </div>
+                    <!-- Module 2 -->
+                    <div class="bg-white p-6 rounded-lg shadow-md hover:shadow-lg transition duration-300 ease-in-out">
+                        <h3 class="text-xl font-bold text-[#1D1C1E] mb-4">Production Planning</h3>
+                        <p class="text-base text-[#1D1C1E]">
+                            Plan and optimize production processes to ensure smooth operations and maximize efficiency.
+                        </p>
+                    </div>
+                    <!-- Module 3 -->
+                    <div class="bg-white p-6 rounded-lg shadow-md hover:shadow-lg transition duration-300 ease-in-out">
+                        <h3 class="text-xl font-bold text-[#1D1C1E] mb-4">Sales & Distribution</h3>
+                        <p class="text-base text-[#1D1C1E]">
+                            Manage sales orders, track deliveries, and streamline distribution channels with ease.
+                        </p>
+                    </div>
+                    <!-- Module 4 -->
+                    <div class="bg-white p-6 rounded-lg shadow-md hover:shadow-lg transition duration-300 ease-in-out">
+                        <h3 class="text-xl font-bold text-[#1D1C1E] mb-4">Financial Accounting</h3>
+                        <p class="text-base text-[#1D1C1E]">
+                            Automate financial processes, track expenses, and generate accurate financial reports.
+                        </p>
+                    </div>
+                    <!-- Module 5 -->
+                    <div class="bg-white p-6 rounded-lg shadow-md hover:shadow-lg transition duration-300 ease-in-out">
+                        <h3 class="text-xl font-bold text-[#1D1C1E] mb-4">Quality Control</h3>
+                        <p class="text-base text-[#1D1C1E]">
+                            Ensure product quality with advanced quality control tools and reporting systems.
+                        </p>
+                    </div>
+                    <!-- Module 6 -->
+                    <div class="bg-white p-6 rounded-lg shadow-md hover:shadow-lg transition duration-300 ease-in-out">
+                        <h3 class="text-xl font-bold text-[#1D1C1E] mb-4">Reporting & Analytics</h3>
+                        <p class="text-base text-[#1D1C1E]">
+                            Gain insights into your operations with detailed reports and analytics dashboards.
+                        </p>
+                    </div>
+                </div>
+            </div>
         </section>
 
 
@@ -193,21 +247,21 @@
                             <label for="name" class="block text-[#1D1C1E] font-medium mb-2"
                                 style="font-family: 'Rubik', sans-serif;">Your Name</label>
                             <input type="text" id="name" name="name"
-                                class="w-full border border-gray-300 rounded-lg p-3 focus:outline-none focus:ring-2 focus:ring-[#F15A29]"
+                                class="w-full border border-gray-300 rounded-lg p-3 focus:outline-none focus:ring-2 focus:ring-[#F15A29]  hover:border-[#F15A29] transition duration-300 ease-in-out"
                                 placeholder="Enter your name" required>
                         </div>
                         <div class="mb-4">
                             <label for="email" class="block text-[#1D1C1E] font-medium mb-2"
                                 style="font-family: 'Rubik', sans-serif;">Your Email</label>
                             <input type="email" id="email" name="email"
-                                class="w-full border border-gray-300 rounded-lg p-3 focus:outline-none focus:ring-2 focus:ring-[#F15A29]"
+                                class="w-full border border-gray-300 rounded-lg p-3 focus:outline-none focus:ring-2 focus:ring-[#F15A29]  hover:border-[#F15A29] transition duration-300 ease-in-out"
                                 placeholder="Enter your email" required>
                         </div>
                         <div class="mb-4">
                             <label for="message" class="block text-[#1D1C1E] font-medium mb-2"
                                 style="font-family: 'Rubik', sans-serif;">Your Message</label>
                             <textarea id="message" name="message" rows="4"
-                                class="w-full border border-gray-300 rounded-lg p-3 focus:outline-none focus:ring-2 focus:ring-[#F15A29]"
+                                class="w-full border border-gray-300 rounded-lg p-3 focus:outline-none focus:ring-2 focus:ring-[#F15A29]  hover:border-[#F15A29] transition duration-300 ease-in-out"
                                 placeholder="Enter your message"></textarea>
                         </div>
                         <div class="text-center">
@@ -256,7 +310,7 @@
                                                 <p>A leading software company that specializes in providing flexible business-oriented solutions to our customers around the world.</p>
                                             </div>
                                         </div>
-                                        
+
                                         <div>
                                             <div class="flex gap-4">
                                                 <span>
