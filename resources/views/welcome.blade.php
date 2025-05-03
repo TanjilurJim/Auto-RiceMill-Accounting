@@ -248,7 +248,7 @@
                                         <div>
                                             <div class="mb-5 text-[#1D1C1E] text-lg sm:text-xl font-extrabold"
                                                 style="font-family: 'Rubik', sans-serif;">
-                                                <h4>Contact</h4>
+                                                <h4 class="underline">Contact</h4>
                                             </div>
                                         </div>
                                         <div>
@@ -256,17 +256,17 @@
                                                 <p class="flex gap-2 items-center mb-4.5">
                                                     <img src="https://dataman.in/v2/wp-content/uploads/2023/03/call-icon.png"
                                                         alt="" width="18" height="18">
-                                                    <span>+91 9511117684</span>
+                                                    <span>+880 1700001177</span>
                                                 </p>
                                                 <p class="flex gap-2 items-center mb-4.5">
                                                     <img src="https://dataman.in/v2/wp-content/uploads/2023/03/mail.png"
                                                         alt="" width="18" height="18">
-                                                    <span>shweta@dataman.in</span>
+                                                    <span>autoricemillsoftware@gmial.com</span>
                                                 </p>
                                                 <p class="flex gap-2 items-start mb-4.5">
                                                     <img src="https://dataman.in/v2/wp-content/uploads/2023/03/map-icon.png"
                                                         alt="" width="18" height="18">
-                                                    <span>25/16 Karachi Khana, Kanpur<br>(U.P) 208001, India</span>
+                                                    <span>Pallabi 11.5, House #146, Rd No. 2, Dhaka 1216, 6th Floor</span>
                                                 </p>
                                             </div>
                                         </div>
