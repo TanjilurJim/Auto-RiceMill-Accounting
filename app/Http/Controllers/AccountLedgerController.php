@@ -196,6 +196,8 @@ class AccountLedgerController extends Controller
 
         return response()->json([
             'balance' => $ledger->closing_balance ?? $ledger->opening_balance ?? 0,
+            'closing_balance' => $ledger->closing_balance ?? $ledger->opening_balance ?? 0,
+            'debit_credit' => $ledger->debit_credit ?? 'debit',
         ]);
     }
 }

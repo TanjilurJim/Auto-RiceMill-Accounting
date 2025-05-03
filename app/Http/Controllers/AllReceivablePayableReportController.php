@@ -33,7 +33,7 @@ class AllReceivablePayableReportController extends Controller
 
         $ledgers = $this->applyUserScope(
             AccountLedger::with('groupUnder')
-                ->select('id', 'account_ledger_name', 'opening_balance', 'closing_balance', 'group_under_id')
+                ->select('id', 'account_ledger_name', 'opening_balance', 'closing_balance', 'group_under_id', 'debit_credit')
         )->get();
 
         $report = [];
@@ -41,15 +41,44 @@ class AllReceivablePayableReportController extends Controller
         foreach ($ledgers as $ledger) {
             $ledgerId = $ledger->id;
 
-            $totalReceived = $this->applyUserScope(ReceivedAdd::where('account_ledger_id', $ledgerId))
+            // Received directly (Receive > Ledger)
+            $totalReceivedDirect = $this->applyUserScope(ReceivedAdd::where('account_ledger_id', $ledgerId))
                 ->when($from, fn($q) => $q->whereDate('date', '>=', $from))
                 ->when($to, fn($q) => $q->whereDate('date', '<=', $to))
                 ->sum('amount');
 
+            // Received into bank/cash from sales (via received_modes)
+            $totalReceivedFromSales = \DB::table('received_modes')
+                ->join('sales', 'sales.id', '=', 'received_modes.sale_id')
+                ->where('received_modes.ledger_id', $ledgerId)
+                ->when($from, fn($q) => $q->whereDate('sales.date', '>=', $from))
+                ->when($to, fn($q) => $q->whereDate('sales.date', '<=', $to))
+                ->sum('received_modes.amount_received');
+
+            // Total received into this payment ledger
+            $totalReceived = $totalReceivedDirect + $totalReceivedFromSales;
+
+            // ✅ Received from customer (used to reduce receivables)
+            $salesReceived = $this->applyUserScope(Sale::where('account_ledger_id', $ledgerId))
+                ->when($from, fn($q) => $q->whereDate('date', '>=', $from))
+                ->when($to, fn($q) => $q->whereDate('date', '<=', $to))
+                ->sum('amount_received');
+
+            // Payment directly (Payment > Ledger)
             $totalPayment = $this->applyUserScope(PaymentAdd::where('account_ledger_id', $ledgerId))
                 ->when($from, fn($q) => $q->whereDate('date', '>=', $from))
                 ->when($to, fn($q) => $q->whereDate('date', '<=', $to))
                 ->sum('amount');
+
+            // Payment from bank/cash for purchase returns (via received_modes)
+            $totalPaymentFromReceivedModes = \DB::table('received_modes')
+                ->join('purchase_returns', 'purchase_returns.id', '=', 'received_modes.purchase_return_id')
+                ->where('received_modes.ledger_id', $ledgerId)
+                ->when($from, fn($q) => $q->whereDate('purchase_returns.date', '>=', $from))
+                ->when($to, fn($q) => $q->whereDate('purchase_returns.date', '<=', $to))
+                ->sum('received_modes.amount_paid');
+
+            $totalPayment += $totalPaymentFromReceivedModes;
 
             $totalSale = $this->applyUserScope(Sale::where('account_ledger_id', $ledgerId))
                 ->when($from, fn($q) => $q->whereDate('date', '>=', $from))
@@ -71,8 +100,10 @@ class AllReceivablePayableReportController extends Controller
                 ->when($to, fn($q) => $q->whereDate('date', '<=', $to))
                 ->sum('grand_total');
 
+            // ✅ Final balance logic
             $balance = ($ledger->opening_balance ?? 0)
                 + $totalSale
+                - $salesReceived  // correct receivable
                 - $totalSalesReturn
                 - $totalReceived
                 - $totalPayment
@@ -107,6 +138,7 @@ class AllReceivablePayableReportController extends Controller
         ]);
     }
 
+
     public function exportPdf(Request $request)
     {
         $from = $request->input('from_date');
@@ -139,8 +171,7 @@ class AllReceivablePayableReportController extends Controller
     private function generateReport($from, $to)
     {
         $ledgers = $this->applyUserScope(
-            AccountLedger::with('groupUnder')
-                ->select('id', 'account_ledger_name', 'opening_balance', 'closing_balance', 'group_under_id')
+            AccountLedger::with('groupUnder')->select('id', 'account_ledger_name', 'opening_balance', 'closing_balance', 'group_under_id', 'debit_credit')
         )->get();
 
         $report = [];
@@ -148,20 +179,48 @@ class AllReceivablePayableReportController extends Controller
         foreach ($ledgers as $ledger) {
             $ledgerId = $ledger->id;
 
-            $totalReceived = $this->applyUserScope(ReceivedAdd::where('account_ledger_id', $ledgerId))
+            // Received via Receive Module
+            $totalReceivedDirect = $this->applyUserScope(ReceivedAdd::where('account_ledger_id', $ledgerId))
                 ->when($from, fn($q) => $q->whereDate('date', '>=', $from))
                 ->when($to, fn($q) => $q->whereDate('date', '<=', $to))
                 ->sum('amount');
 
+            // Received via Sales Received Modes (Bank/Cash ledger side)
+            $totalReceivedFromSales = \DB::table('received_modes')
+                ->join('sales', 'sales.id', '=', 'received_modes.sale_id')
+                ->where('received_modes.ledger_id', $ledgerId)
+                ->when($from, fn($q) => $q->whereDate('sales.date', '>=', $from))
+                ->when($to, fn($q) => $q->whereDate('sales.date', '<=', $to))
+                ->sum('received_modes.amount_received');
+
+            $totalReceived = $totalReceivedDirect + $totalReceivedFromSales;
+
+            // Payments via Payment Module
             $totalPayment = $this->applyUserScope(PaymentAdd::where('account_ledger_id', $ledgerId))
                 ->when($from, fn($q) => $q->whereDate('date', '>=', $from))
                 ->when($to, fn($q) => $q->whereDate('date', '<=', $to))
                 ->sum('amount');
 
-            $totalSale = $this->applyUserScope(Sale::where('account_ledger_id', $ledgerId))
+            // Payments via ReceivedModes in Purchase Return (Bank/Cash ledger side)
+            $totalPaymentFromReceivedModes = \DB::table('received_modes')
+                ->join('purchase_returns', 'purchase_returns.id', '=', 'received_modes.purchase_return_id')
+                ->where('received_modes.ledger_id', $ledgerId)
+                ->when($from, fn($q) => $q->whereDate('purchase_returns.date', '>=', $from))
+                ->when($to, fn($q) => $q->whereDate('purchase_returns.date', '<=', $to))
+                ->sum('received_modes.amount_paid');
+
+            $totalPayment += $totalPaymentFromReceivedModes;
+
+            // Sales and Received (Customer-side)
+            $salesGrandTotal = $this->applyUserScope(Sale::where('account_ledger_id', $ledgerId))
                 ->when($from, fn($q) => $q->whereDate('date', '>=', $from))
                 ->when($to, fn($q) => $q->whereDate('date', '<=', $to))
                 ->sum('grand_total');
+
+            $salesReceived = $this->applyUserScope(Sale::where('account_ledger_id', $ledgerId))
+                ->when($from, fn($q) => $q->whereDate('date', '>=', $from))
+                ->when($to, fn($q) => $q->whereDate('date', '<=', $to))
+                ->sum('amount_received');
 
             $totalPurchase = $this->applyUserScope(Purchase::where('account_ledger_id', $ledgerId))
                 ->when($from, fn($q) => $q->whereDate('date', '>=', $from))
@@ -179,10 +238,11 @@ class AllReceivablePayableReportController extends Controller
                 ->sum('grand_total');
 
             $balance = ($ledger->opening_balance ?? 0)
-                + $totalSale
+                + $salesGrandTotal
+                - $salesReceived
                 - $totalSalesReturn
-                - $totalReceived
-                - $totalPayment
+                - $totalReceived     // cash/bank ledger inflow
+                - $totalPayment      // cash/bank ledger outflow
                 + $totalPurchase
                 - $totalPurchaseReturn;
 

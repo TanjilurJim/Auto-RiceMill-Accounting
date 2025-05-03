@@ -24,7 +24,7 @@ class CompanySettingController extends Controller
     public function update(Request $request)
     {
         $validated = $request->validate([
-            'company_name' => 'required|string|max:255',
+            'company_name' => 'nullable|string|max:255',
             'mailing_name' => 'nullable|string|max:255',
             'country' => 'nullable|string|max:100',
             'email' => 'nullable|email',
@@ -35,12 +35,12 @@ class CompanySettingController extends Controller
             'description' => 'nullable|string',
         ]);
 
-        $setting = CompanySetting::firstOrCreate(
-            ['created_by' => auth()->id()],
-            $validated
-        );
-    
-        // 💡 If financial year is selected, also save its title in financial_year
+        $setting = CompanySetting::firstOrNew(['created_by' => auth()->id()]);
+
+        if (!$setting->exists) {
+            $setting->created_by = auth()->id(); // ✅ Ensure this is set for new rows
+        }
+
         if ($request->filled('financial_year_id')) {
             $fy = \App\Models\FinancialYear::find($request->financial_year_id);
             if ($fy) {
@@ -48,9 +48,21 @@ class CompanySettingController extends Controller
             }
         }
 
+        if ($request->hasFile('logo')) {
+            $path = $request->file('logo')->store('logos', 'public');
+            $validated['logo_path'] = $path;
+
+            \Log::info('✅ Logo uploaded & stored', ['path' => $path]);
+        } else {
+            \Log::warning('⚠️ No logo file detected in request');
+        }
+
+        \Log::info('✅ Final data to save:', $validated);
 
         $setting->fill($validated);
         $setting->save();
+
+        \Log::info('✅ Saved CompanySetting ID: ' . $setting->id);
 
         return redirect()->route('company-settings.edit')->with('success', 'Company info updated.');
     }

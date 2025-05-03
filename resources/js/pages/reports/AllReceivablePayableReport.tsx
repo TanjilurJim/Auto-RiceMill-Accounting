@@ -1,7 +1,9 @@
 import { Button } from '@/components/ui/button';
 import AppLayout from '@/layouts/app-layout';
 import { PageProps } from '@/types';
-import { Head } from '@inertiajs/react';
+
+import { Head, router, useForm,Link } from '@inertiajs/react';
+
 import { Info } from 'lucide-react'
 import { FileSpreadsheet, FileText, Printer } from 'lucide-react';
 
@@ -34,6 +36,11 @@ export default function AllReceivablePayableReport({ from_date, to_date, receiva
             <Head title="Receivable & Payable Report" />
 
             <div className="p-6 print:bg-white print:p-0">
+            <div className="absolute top-4 right-4 print:hidden">
+                <Link href={route('reports.receivable-payable.filter')} className="text-sm text-blue-600 hover:underline">
+                    Change Filters
+                </Link>
+            </div>
                 {/* ✅ Company Info (Visible in Print Too) */}
                 <div className="mb-4 text-center print:text-sm">
                     <h1 className="text-xl font-bold">{company.company_name}</h1>

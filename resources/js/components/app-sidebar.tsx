@@ -273,6 +273,12 @@ const mainNavItems: NavItem[] = [
                 icon: Scale, // ⚖️ Choose icon like Scale or DollarSign
             },
 
+            {
+                title: 'Received & Payment',
+                href: '/reports/all-received-payment/filter',
+                icon: Scale, // ⚖️ Choose icon like Scale or DollarSign
+            },
+
             // Later you can add more inventory-related items here (e.g., Products, Stock Transfers, etc.)
         ],
     },

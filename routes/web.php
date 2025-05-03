@@ -32,7 +32,7 @@ use App\Http\Controllers\ProductionController;
 use App\Http\Controllers\StockTransferController;
 use App\Http\Controllers\WorkingOrderController;
 use App\Http\Controllers\PurchaseReportController;
-
+use App\Http\Controllers\AllReceivedPaymentReportController;
 
 use App\Http\Controllers\ReportController;
 use App\Http\Controllers\SalaryReceiveController;
@@ -222,6 +222,14 @@ Route::middleware(['auth', 'verified'])->group(function () {
     // Final Report Page (Step 2)
     Route::get('/reports/receivable-payable', [AllReceivablePayableReportController::class, 'index'])
         ->name('reports.receivable-payable');
+
+    // All Received Payment Report  
+
+    Route::get('/reports/all-received-payment', [App\Http\Controllers\AllReceivedPaymentReportController::class, 'index'])->name('reports.all-received-payment');
+
+    Route::get('/reports/all-received-payment/filter', function () {
+        return Inertia::render('reports/AllReceivedPaymentFilter');
+    })->name('reports.all-received-payment.filter');
 });
 //stock report pdf and excel
 Route::get('/reports/stock-summary/pdf', [ReportController::class, 'stockSummaryPDF'])
@@ -252,6 +260,13 @@ Route::get('/reports/ledger-group-summary/pdf', [LedgerGroupReportController::cl
 Route::get('/reports/receivable-payable/export/pdf', [AllReceivablePayableReportController::class, 'exportPdf'])->name('reports.receivable-payable.pdf');
 Route::get('/reports/receivable-payable/export/excel', [AllReceivablePayableReportController::class, 'excel'])->name('reports.receivable-payable.excel');
 
+// All Received Payment Report pdf and excel
+
+Route::get('/reports/all-received-payment/pdf', [AllReceivedPaymentReportController::class, 'exportPdf'])
+    ->name('reports.all-received-payment.pdf');
+
+Route::get('/reports/all-received-payment/excel', [AllReceivedPaymentReportController::class, 'exportExcel'])
+    ->name('reports.all-received-payment.excel');
 
 require __DIR__ . '/settings.php';
 require __DIR__ . '/auth.php';
