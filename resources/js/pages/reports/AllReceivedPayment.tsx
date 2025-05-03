@@ -56,23 +56,23 @@ const logoSrc = company?.logo_url ?? company?.logo_thumb_url ?? null;
 
         {/* ─────────────────── Company header ─────────────────── */}
         {company && (
-          <div className="mb-2 flex items-center justify-between text-center print:text-xs">
-            {logoSrc && (
-              <img
-                src={logoSrc}
-                alt="Company Logo"
-                className="mr-4 h-28 w-auto object-contain print:mr-2 print:h-16"
-              />
-            )}
+  <div className="mb-2 flex flex-col items-center justify-center text-center print:text-xs">
+    {logoSrc && (
+      <img
+        src={logoSrc}
+        alt="Company Logo"
+        className=" h-28 w-auto object-contain print:mb-2 print:h-16"
+      />
+    )}
 
-            <div className="flex-1">
-              <h1 className="text-2xl font-bold">{company.company_name}</h1>
-              {company.address && <div>{company.address}</div>}
-              {company.phone && <div>Phone: {company.phone}</div>}
-              {company.email && <div>Email: {company.email}</div>}
-            </div>
-          </div>
-        )}
+    <div className="flex-1">
+      <h1 className="text-2xl font-bold">{company.company_name}</h1>
+      {company.address && <div>{company.address}</div>}
+      {company.phone && <div>Phone: {company.phone}</div>}
+      {company.email && <div>Email: {company.email}</div>}
+    </div>
+  </div>
+)}
 
         {/* ─────────────────── Report title ─────────────────── */}
         <div className="mb-4 text-center print:text-sm">

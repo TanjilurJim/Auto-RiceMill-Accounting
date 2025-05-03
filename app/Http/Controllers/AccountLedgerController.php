@@ -45,6 +45,7 @@ class AccountLedgerController extends Controller
         $request->validate([
             'account_ledger_name' => 'required|string|max:255',
             'phone_number' => 'required|string|max:20',
+            'ledger_type' => 'nullable|string',
             'email' => 'nullable|email',
             'opening_balance' => 'required|numeric',
             'debit_credit' => 'required|in:debit,credit',
@@ -71,7 +72,7 @@ class AccountLedgerController extends Controller
             'address' => $request->address,
             'for_transition_mode' => $request->has('for_transition_mode'),
             'mark_for_user' => $request->has('mark_for_user'),
-
+            'ledger_type' => $request->ledger_type,
             'created_by' => auth()->id(),
         ];
 
@@ -107,6 +108,7 @@ class AccountLedgerController extends Controller
             'account_ledger_name' => 'required|string|max:255',
             'phone_number' => 'required|string|max:20',
             'email' => 'nullable|email',
+            'ledger_type' => 'nullable|string',
             'opening_balance' => 'required|numeric',
             'debit_credit' => 'required|in:debit,credit',
             'status' => 'required|in:active,inactive',
@@ -130,6 +132,7 @@ class AccountLedgerController extends Controller
             'debit_credit' => $request->debit_credit,
             'status' => $request->status,
             'address' => $request->address,
+            'ledger_type' => $request->ledger_type,
             'for_transition_mode' => $request->has('for_transition_mode'),
             'mark_for_user' => $request->has('mark_for_user'),
             'reference_number' => $request->reference_number, // Ensure reference number is updated if changed
@@ -170,6 +173,7 @@ class AccountLedgerController extends Controller
         $request->validate([
             'account_ledger_name' => 'required|string|max:255',
             'account_group_id' => 'required|exists:account_groups,id',
+            'ledger_type'         => 'nullable|string',
         ]);
 
         $ledger = \App\Models\AccountLedger::create([
@@ -183,6 +187,7 @@ class AccountLedgerController extends Controller
             'status' => $request->status ?? 'active',
             'for_transition_mode' => $request->for_transition_mode ?? 0,
             'mark_for_user' => $request->mark_for_user ?? 0,
+            'ledger_type'         => $request->ledger_type,
             'created_by' => auth()->id(),
         ]);
 

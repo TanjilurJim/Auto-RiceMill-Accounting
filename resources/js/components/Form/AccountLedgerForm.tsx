@@ -1,6 +1,6 @@
 import React from 'react';
-import InputCheckbox from '../Btn&Link/InputCheckbox';
 import ActionFooter from '../ActionFooter';
+import InputCheckbox from '../Btn&Link/InputCheckbox';
 
 interface AccountLedgerFormProps {
     accountGroups: { id: number; name: string; nature?: { name: string } | null }[]; // Allow null for nature
@@ -30,7 +30,7 @@ const AccountLedgerForm: React.FC<AccountLedgerFormProps> = ({
     return (
         <form
             onSubmit={handleSubmit}
-            className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-4 rounded bg-white p-4 border shadow dark:bg-neutral-900"
+            className="grid grid-cols-1 gap-4 rounded border bg-white p-4 shadow md:grid-cols-2 lg:grid-cols-2 dark:bg-neutral-900"
         >
             {/* Reference Number (Readonly for Non-admins) */}
             {isAdmin && (
@@ -57,6 +57,36 @@ const AccountLedgerForm: React.FC<AccountLedgerFormProps> = ({
                     className="w-full rounded border p-2 dark:border-neutral-700 dark:bg-neutral-800"
                 />
                 {errors.account_ledger_name && <p className="text-sm text-red-500">{errors.account_ledger_name}</p>}
+            </div>
+
+            {/* Ledger Type */}
+            <div className="col-span-1">
+                <label className="mb-1 block font-medium">Ledger Type</label>
+                <select
+                    value={data.ledger_type || ''}
+                    onChange={(e) => setData('ledger_type', e.target.value)}
+                    className="w-full rounded border p-2 dark:border-neutral-700 dark:bg-neutral-800"
+                >
+                    <optgroup label="Business Operations">
+                        <option value="inventory">Inventory – Tracks goods in stock</option>
+                        <option value="cogs">COGS – Cost of goods sold</option>
+                    </optgroup>
+                    <optgroup label="Accounts">
+                        <option value="sales">Sales Income – From customer sales</option>
+                        <option value="purchase">Purchase Payable – Amounts owed to suppliers</option>
+                    </optgroup>
+                    <optgroup label="Finance">
+                        <option value="cash_bank">Cash / Bank – Your physical or bank balance</option>
+                        <option value="received_mode">Receive Mode – Where money is received</option>
+                        <option value="payment_mode">Payment Mode – Where money is paid from</option>
+                    </optgroup>
+                    <optgroup label="Others">
+                        <option value="expense">Expense – Regular operational expenses</option>
+                        <option value="income">Other Income – Miscellaneous earnings</option>
+                        <option value="liability">Liability – Loans or obligations</option>
+                    </optgroup>
+                </select>
+                {errors.ledger_type && <p className="text-sm text-red-500">{errors.ledger_type}</p>}
             </div>
 
             {/* Account Group */}
@@ -162,28 +192,18 @@ const AccountLedgerForm: React.FC<AccountLedgerFormProps> = ({
             </div>
 
             {/* Checkboxes */}
-            <div className="col-span-1 md:col-span-2 lg:col-span-3 flex flex-col gap-2">
+            <div className="col-span-1 flex flex-col gap-2 md:col-span-2 lg:col-span-3">
                 {/* <InputCheckbox
                     label="For Transition Mode"
                     checked={data.for_transition_mode}
                     onChange={(checked) => setData('for_transition_mode', checked)}
                 /> */}
-                <InputCheckbox
-                    label="Mark for User"
-                    checked={data.mark_for_user}
-                    onChange={(checked) => setData('mark_for_user', checked)}
-                />
+                <InputCheckbox label="Mark for User" checked={data.mark_for_user} onChange={(checked) => setData('mark_for_user', checked)} />
             </div>
 
             {/* Action Footer */}
             <div className="col-span-1 md:col-span-2 lg:col-span-3">
-                <ActionFooter
-                    onSubmit={handleSubmit}
-                    cancelHref={cancelHref}
-                    processing={processing}
-                    submitText={submitText}
-                    cancelText="Cancel"
-                />
+                <ActionFooter onSubmit={handleSubmit} cancelHref={cancelHref} processing={processing} submitText={submitText} cancelText="Cancel" />
             </div>
         </form>
     );

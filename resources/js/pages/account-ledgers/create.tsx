@@ -20,6 +20,7 @@ export default function CreateAccountLedger({
         phone_number: '',
         email: '',
         opening_balance: '',
+        ledger_type: 'inventory',
         debit_credit: 'debit',
         status: 'active',
         account_group_id: '',
@@ -31,6 +32,11 @@ export default function CreateAccountLedger({
 
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
+
+        if (!data.ledger_type) {
+            setData('ledger_type', 'inventory'); // Or show an error
+        }
+
         post('/account-ledgers');
     };
 

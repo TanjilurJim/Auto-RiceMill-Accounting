@@ -26,6 +26,7 @@ class AccountLedger extends Model
         'mark_for_user',
         'created_by',
         'reference_number',
+        'ledger_type',
     ];
 
     protected static function boot()

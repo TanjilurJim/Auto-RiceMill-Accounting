@@ -189,16 +189,17 @@ export default function PurchaseCreate({
     const [showLedgerModal, setShowLedgerModal] = useState(false);
     const [newLedgerName, setNewLedgerName] = useState('');
     const [newGroupId, setNewGroupId] = useState('');
+    const [inventoryLedgerOptions, setInventoryLedgerOptions] = useState<Ledger[]>(inventoryLedgers);
     const godownItems: StockRow[] = data.godown_id && stockItemsByGodown[data.godown_id] ? stockItemsByGodown[data.godown_id] : [];
     return (
         <AppLayout>
             <Head title="Add Purchase" />
-            <div className="bg-gray-100 p-6 h-full w-screen lg:w-full">
-                <div className="bg-white h-full rounded-lg p-6">
+            <div className="h-full w-screen bg-gray-100 p-6 lg:w-full">
+                <div className="h-full rounded-lg bg-white p-6">
                     <PageHeader title="Purchase Information" addLinkHref="/purchases" addLinkText="Back" />
 
                     {/* Form Card */}
-                    <form onSubmit={handleSubmit} className="space-y-6 rounded-lg bg-white p-6 shadow-md border">
+                    <form onSubmit={handleSubmit} className="space-y-6 rounded-lg border bg-white p-6 shadow-md">
                         {/* Section 1 - Purchase Info */}
                         <div className="space-y-4">
                             <h2 className="border-b pb-1 text-lg font-semibold">Purchase Information</h2>
@@ -256,7 +257,7 @@ export default function PurchaseCreate({
                                 <div>
                                     {/* Party Ledger */}
                                     <select
-                                        className="border p-2 w-full h-fit"
+                                        className="h-fit w-full border p-2"
                                         value={data.account_ledger_id}
                                         onChange={(e) => {
                                             const val = e.target.value;
@@ -274,7 +275,9 @@ export default function PurchaseCreate({
 
                                     {/* Party balance label – put directly after the select */}
                                     {partyBalance !== null && (
-                                        <div className="col-span-2 text-xs text-gray-600 py-0.5">Party Balance: {Number(partyBalance).toFixed(2)}</div>
+                                        <div className="col-span-2 py-0.5 text-xs text-gray-600">
+                                            Party Balance: {Number(partyBalance).toFixed(2)}
+                                        </div>
                                     )}
                                 </div>
 
@@ -286,7 +289,7 @@ export default function PurchaseCreate({
                                         onChange={(e) => setData('inventory_ledger_id', e.target.value)}
                                     >
                                         <option value="">Select Inventory Ledger</option>
-                                        {ledgers.map((l) => (
+                                        {inventoryLedgerOptions.map((l) => (
                                             <option key={l.id} value={l.id}>
                                                 {l.account_ledger_name}
                                             </option>
@@ -443,7 +446,7 @@ export default function PurchaseCreate({
                                 <div className="col-span-1">
                                     <label className="block text-sm font-medium text-gray-700">Payment Mode</label>
                                     <select
-                                        className="border p-2 w-full rounded"
+                                        className="w-full rounded border p-2"
                                         value={data.received_mode_id}
                                         onChange={(e) => {
                                             const modeId = e.target.value;
@@ -465,7 +468,7 @@ export default function PurchaseCreate({
                                         ))}
                                     </select>
                                     {paymentLedgerBalance !== null && (
-                                        <div className="mt-1 text-xs text-gray-600 w-full">
+                                        <div className="mt-1 w-full text-xs text-gray-600">
                                             Payment Ledger Balance: {Number(paymentLedgerBalance).toFixed(2)}
                                         </div>
                                     )}
@@ -476,7 +479,7 @@ export default function PurchaseCreate({
                                     <label className="block text-sm font-medium text-gray-700">Amount Paid</label>
                                     <input
                                         type="number"
-                                        className="border p-2 w-full rounded"
+                                        className="w-full rounded border p-2"
                                         placeholder="Amount Paid"
                                         value={data.amount_paid}
                                         onChange={(e) => {
@@ -491,18 +494,17 @@ export default function PurchaseCreate({
                                 </div>
 
                                 {/* Remaining Due */}
-                                <div className="col-span-1 sm:col-span-2 lg:col-span-3 text-xs text-red-600">
+                                <div className="col-span-1 text-xs text-red-600 sm:col-span-2 lg:col-span-3">
                                     <label className="block text-sm font-medium text-gray-700">Remaining Due</label>
                                     <div>{remainingDue.toFixed(2)}</div>
                                 </div>
                             </div>
-
                         </div>
                         <hr />
 
                         {/* Totals Section */}
                         <div className="mt-6">
-                            <div className="grid grid-cols- gap-6 md:grid-cols-3">
+                            <div className="grid-cols- grid gap-6 md:grid-cols-3">
                                 <div className="flex justify-between rounded border bg-gray-50 p-3 shadow-sm">
                                     <span className="font-semibold text-gray-700">Item Qty Total:</span>
                                     <span className="font-semibold">
@@ -525,8 +527,8 @@ export default function PurchaseCreate({
                         </div>
 
                         {/* Shipping & Delivered To */}
-                        <div className="col-span-2 space-y-4 grid grid-cols-1 gap-4 md:grid-cols-2">
-                            <div className=''>
+                        <div className="col-span-2 grid grid-cols-1 gap-4 space-y-4 md:grid-cols-2">
+                            <div className="">
                                 <label className="mb-1 block font-semibold text-gray-700">Shipping Details</label>
                                 <textarea
                                     className="w-full rounded border bg-white p-2 shadow-sm focus:ring-1 focus:ring-blue-500 focus:outline-none"
@@ -598,11 +600,14 @@ export default function PurchaseCreate({
                                                     opening_balance: 0,
                                                     debit_credit: 'debit', // usually for inventory
                                                     status: 'active',
+                                                    ledger_type: 'inventory',
                                                 });
 
                                                 // Add new ledger to dropdown and select it
                                                 const newLedger = response.data;
                                                 setData('inventory_ledger_id', newLedger.id);
+
+                                                setInventoryLedgerOptions((prev) => [...prev, newLedger]);
                                                 setNewLedgerName('');
                                                 setNewGroupId('');
                                                 setShowLedgerModal(false);

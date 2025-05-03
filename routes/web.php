@@ -4,7 +4,7 @@ use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
 use App\Http\Controllers\PermissionController;
 use App\Http\Controllers\AllReceivablePayableReportController;
-
+use App\Http\Controllers\ProfitLossController;
 use App\Http\Controllers\RoleController;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\AccountGroupController;
@@ -230,6 +230,25 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('/reports/all-received-payment/filter', function () {
         return Inertia::render('reports/AllReceivedPaymentFilter');
     })->name('reports.all-received-payment.filter');
+
+    //Profit Loss
+    /* filter form */
+    Route::get(
+        '/reports/profit-loss/filter',
+        [ProfitLossController::class, 'filter']
+    )->name('reports.profit-loss.filter');
+
+    /* main report */
+    Route::get(
+        '/reports/profit-loss',
+        [ProfitLossController::class, 'index']
+    )->name('reports.profit-loss');
+
+    /* (optional) stub routes for PDF / Excel */
+    Route::get('/reports/profit-loss/pdf', fn() => abort(501))
+        ->name('reports.profit-loss.pdf');
+    Route::get('/reports/profit-loss/excel', fn() => abort(501))
+        ->name('reports.profit-loss.excel');
 });
 //stock report pdf and excel
 Route::get('/reports/stock-summary/pdf', [ReportController::class, 'stockSummaryPDF'])

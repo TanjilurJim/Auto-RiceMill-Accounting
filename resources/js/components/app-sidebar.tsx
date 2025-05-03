@@ -278,6 +278,12 @@ const mainNavItems: NavItem[] = [
                 href: '/reports/all-received-payment/filter',
                 icon: Scale, // ⚖️ Choose icon like Scale or DollarSign
             },
+            {
+                title: 'Profit & Loss',
+                href: '/reports/profit-loss/filter',
+
+                icon: Scale, // ⚖️ Choose icon like Scale or DollarSign
+            },
 
             // Later you can add more inventory-related items here (e.g., Products, Stock Transfers, etc.)
         ],

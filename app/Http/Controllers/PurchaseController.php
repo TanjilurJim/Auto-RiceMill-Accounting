@@ -77,9 +77,10 @@ class PurchaseController extends Controller
                 ->toArray(),
             'items' => [],
 
-            'inventoryLedgers' => AccountLedger::whereIn('account_group_id', $inventoryGroupIds)
+            'inventoryLedgers' => AccountLedger::where('ledger_type', 'inventory')
                 ->where('created_by', $userId)
-                ->get(['id', 'account_ledger_name']),
+                ->get(['id', 'account_ledger_name', 'ledger_type']),
+
 
             'accountGroups' => \App\Models\AccountGroup::get(['id', 'name']),
 
@@ -260,7 +261,8 @@ class PurchaseController extends Controller
             'ledgers'  => AccountLedger::where('created_by', $userId)->get(['id', 'account_ledger_name']),
 
             /* inventory ledgers (same filter you used on create) */
-            'inventoryLedgers' => AccountLedger::where('created_by', $userId)
+            'inventoryLedgers' => AccountLedger::where('ledger_type', 'inventory')
+                ->where('created_by', $userId)
                 ->get(['id', 'account_ledger_name']),
 
             /* payment modes */
