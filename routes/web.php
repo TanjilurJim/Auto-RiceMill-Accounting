@@ -33,7 +33,7 @@ use App\Http\Controllers\StockTransferController;
 use App\Http\Controllers\WorkingOrderController;
 use App\Http\Controllers\PurchaseReportController;
 use App\Http\Controllers\AllReceivedPaymentReportController;
-
+use App\Http\Controllers\BalanceSheetController;
 use App\Http\Controllers\ReportController;
 use App\Http\Controllers\SalaryReceiveController;
 use App\Http\Controllers\DepartmentController;
@@ -245,10 +245,13 @@ Route::middleware(['auth', 'verified'])->group(function () {
     )->name('reports.profit-loss');
 
     /* (optional) stub routes for PDF / Excel */
-    Route::get('/reports/profit-loss/pdf', fn() => abort(501))
-        ->name('reports.profit-loss.pdf');
-    Route::get('/reports/profit-loss/excel', fn() => abort(501))
-        ->name('reports.profit-loss.excel');
+    Route::get('reports/profit-loss/pdf', [ProfitLossController::class, 'pdf'])->name('reports.profit-loss.pdf');
+    Route::get('reports/profit-loss/excel', [ProfitLossController::class, 'excel'])->name('reports.profit-loss.excel');
+
+    // Balance Sheet report
+    Route::get('reports/balance-sheet', [BalanceSheetController::class, 'index'])
+     ->name('reports.balance-sheet');
+
 });
 //stock report pdf and excel
 Route::get('/reports/stock-summary/pdf', [ReportController::class, 'stockSummaryPDF'])

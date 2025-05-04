@@ -45,23 +45,24 @@ class FinishedProductController extends Controller
 
     /* ───────────── STORE ───────────── */
     public function store(Request $request)
-    {
-        $data = $request->validate([
-            'working_order_id'       => 'required|exists:working_orders,id',
-            'production_date'        => 'required|date',
-            'production_voucher_no'  => 'required|string|unique:finished_products,production_voucher_no,NULL,id,created_by,' . auth()->id(),
-            'reference_no'           => 'nullable|string',
-            'remarks'                => 'nullable|string',
-            'productRows'            => 'required|array|min:1',
-            'productRows.*.product_id'   => 'required|exists:items,id',
-            'productRows.*.godown_id'    => 'required|exists:godowns,id',
-            'productRows.*.quantity'     => 'required|numeric|min:0.01',
-            'productRows.*.unit_price'   => 'nullable|numeric|min:0',
-            'productRows.*.total'        => 'nullable|numeric|min:0',
-        ]);
-        
+{
+    $data = $request->validate([
+        'working_order_id'           => 'required|exists:working_orders,id',
+        'production_date'            => 'required|date',
+        'production_voucher_no'      => 'required|string|unique:finished_products,production_voucher_no,NULL,id,created_by,' . auth()->id(),
+        'reference_no'               => 'nullable|string',
+        'remarks'                    => 'nullable|string',
+        'productRows'                => 'required|array|min:1',
+        'productRows.*.product_id'   => 'required|exists:items,id',
+        'productRows.*.godown_id'    => 'required|exists:godowns,id',
+        'productRows.*.quantity'     => 'required|numeric|min:0.01',
+        'productRows.*.unit_price'   => 'required|numeric|min:0',   // cost is mandatory for stock value
+        'productRows.*.total'        => 'nullable|numeric|min:0',
+    ]);
 
-        // Header
+    \DB::transaction(function () use ($data) {
+
+        /* 1️⃣  Header row -------------------------------------------------- */
         $fp = FinishedProduct::create([
             'working_order_id'      => $data['working_order_id'],
             'production_date'       => $data['production_date'],
@@ -71,20 +72,44 @@ class FinishedProductController extends Controller
             'created_by'            => auth()->id(),
         ]);
 
-        // Items
+        /* 2️⃣  Line items + STOCK update ---------------------------------- */
         foreach ($data['productRows'] as $row) {
+
+            // save finished_product_items
             $fp->items()->create($row);
+
+            // sync stocks table (running qty + weighted‑average cost)
+            $stock = \App\Models\Stock::firstOrNew([
+                'item_id'    => $row['product_id'],
+                'godown_id'  => $row['godown_id'],
+                'created_by' => auth()->id(),
+            ]);
+
+            $oldQty   = $stock->qty ?? 0;
+            $oldCost  = $stock->avg_cost ?? 0;
+
+            $newQty   = $oldQty + $row['quantity'];
+
+            // weighted average cost  = (old value + new value) / new qty
+            $stock->avg_cost = $newQty
+                ? (($oldQty * $oldCost) + ($row['quantity'] * $row['unit_price'])) / $newQty
+                : $row['unit_price'];
+
+            $stock->qty = $newQty;
+            $stock->save();
         }
 
-        // Update working order status
+        /* 3️⃣  Mark working‑order completed -------------------------------- */
         $fp->workingOrder->update([
             'production_status'     => 'completed',
             'production_voucher_no' => $data['production_voucher_no'],
         ]);
+    });
 
-        return redirect()->route('finished-products.index')
-            ->with('success', 'Finished Product saved successfully!');
-    }
+    return redirect()
+        ->route('finished-products.index')
+        ->with('success', 'Finished Product saved successfully!');
+}
 
     /* ───────────── SHOW ───────────── */
     public function show($id)

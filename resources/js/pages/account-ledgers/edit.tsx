@@ -29,7 +29,9 @@ export default function EditAccountLedger({
         address: ledger.address || '',
         for_transition_mode: ledger.for_transition_mode ? true : false,
         mark_for_user: ledger.mark_for_user ? true : false,
-        reference_number: ledger.reference_number || '', // Include reference_number field
+        reference_number: ledger.reference_number || '', 
+        // Include reference_number field.
+        ledger_type: ledger.ledger_type || '',
     });
 
     const handleSubmit = (e: React.FormEvent) => {

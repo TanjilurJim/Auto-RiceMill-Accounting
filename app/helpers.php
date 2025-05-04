@@ -92,4 +92,15 @@ if (! function_exists('company_info')) {
 
         return $cached = $row;
     }
+
+    
+}
+
+use App\Services\InventoryService;
+
+if (!function_exists('inventory_service')) {
+    function inventory_service(): InventoryService
+    {
+        return new InventoryService();
+    }
 }
