@@ -41,6 +41,8 @@ use App\Http\Controllers\DesignationController;
 use App\Http\Controllers\ShiftController;
 use App\Http\Controllers\EmployeeController;
 use App\Http\Controllers\SalarySlipController;
+use App\Http\Controllers\PartyStockMoveController;
+
 
 use App\Models\Purchase;
 use App\Models\SalesReturn;
@@ -249,9 +251,27 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('reports/profit-loss/excel', [ProfitLossController::class, 'excel'])->name('reports.profit-loss.excel');
 
     // Balance Sheet report
-    Route::get('reports/balance-sheet', [BalanceSheetController::class, 'index'])
-     ->name('reports.balance-sheet');
+    Route::get('reports/balance-sheet/filter', [BalanceSheetController::class, 'filter'])
+        ->name('reports.balance-sheet.filter');
 
+    Route::get('reports/balance-sheet', [BalanceSheetController::class, 'index'])
+        ->name('reports.balance-sheet');
+
+    Route::get('reports/balance-sheet/pdf', [BalanceSheetController::class, 'pdf'])
+        ->name('reports.balance-sheet.pdf');
+
+    Route::get('reports/balance-sheet/excel', [BalanceSheetController::class, 'excel'])
+        ->name('reports.balance-sheet.excel');
+
+    // Party Stock
+    Route::prefix('party-stock')->group(function () {
+        Route::get('deposit', [PartyStockMoveController::class, 'create'])->name('party-stock.deposit.create');
+        Route::post('deposit', [PartyStockMoveController::class, 'store'])->name('party-stock.deposit.store');
+        Route::get('deposit-list', [PartyStockMoveController::class, 'index'])->name('party-stock.deposit.index');
+
+        Route::get('transfer', [PartyStockMoveController::class, 'createTransfer'])->name('party-stock.transfer');
+        Route::post('transfer', [PartyStockMoveController::class, 'transfer'])->name('party-stock.transfer.store');
+    });
 });
 //stock report pdf and excel
 Route::get('/reports/stock-summary/pdf', [ReportController::class, 'stockSummaryPDF'])

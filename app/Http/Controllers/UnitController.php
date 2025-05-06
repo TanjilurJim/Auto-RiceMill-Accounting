@@ -12,7 +12,7 @@ class UnitController extends Controller
 
     public function index(Request $request)
     {
-        $units = Unit::query()
+        $units = Unit::where('created_by', auth()->id())
             ->orderBy('id', 'desc')
             ->paginate(10); // You can change "10" to any number you want per page
 

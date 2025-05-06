@@ -1,5 +1,30 @@
 <?php
 
+// auth helper
+if (!function_exists('createdByMeOnly')) {
+    function createdByMeOnly(): array
+    {
+        return ['created_by' => auth()->id()];
+    }
+}
+
+if (!function_exists('createdByMeOr')) {
+    function createdByMeOr(array $extraUserIds)
+    {
+        return function ($query) use ($extraUserIds) {
+            return $query->where('created_by', auth()->id())
+                         ->orWhereIn('created_by', $extraUserIds);
+        };
+    }
+}
+
+if (!function_exists('ownedByMe')) {
+    function ownedByMe(): int
+    {
+        return auth()->id();
+    }
+}
+
 
 if (!function_exists('numberToWords')) {
     function numberToWords($number)
@@ -104,3 +129,4 @@ if (!function_exists('inventory_service')) {
         return new InventoryService();
     }
 }
+

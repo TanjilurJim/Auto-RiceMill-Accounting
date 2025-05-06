@@ -37,6 +37,13 @@ import {
     Wallet,
     Workflow,
     BarChart,
+    UploadCloud,
+    DownloadCloud,
+    Repeat,
+    Layers,
+    Droplets,
+    CalendarDays
+    
 } from 'lucide-react';
 import { FiSettings, FiHome, FiAward, FiClock, FiUsers } from 'react-icons/fi';
 import AppLogo from './app-logo';
@@ -284,8 +291,67 @@ const mainNavItems: NavItem[] = [
 
                 icon: Scale, // ⚖️ Choose icon like Scale or DollarSign
             },
+            {
+                title: 'Balance Sheet',
+                href: '/reports/balance-sheet/filter',
+
+                icon: Scale, // ⚖️ Choose icon like Scale or DollarSign
+            },
 
             // Later you can add more inventory-related items here (e.g., Products, Stock Transfers, etc.)
+        ],
+    },
+
+    {
+        title: 'Crushing / Rent',
+        icon: Warehouse, // or PackagePlus, Boxes, or ScaleIcon for variation
+        children: [
+            {
+                title: 'পার্টি মাল জমা',
+                href: '/party-stock/deposit',
+                icon: UploadCloud,
+            },
+            {
+                title: 'পার্টি মাল জমা তালিকা', // The new link to the index page
+                href: '/party-stock/deposit-list', // Link to the list
+                icon: FileText, // You can choose any suitable icon here
+            },
+            {
+                title: 'মাল উত্তোলন',
+                href: '/party-stock/withdraw',
+                icon: DownloadCloud,
+            },
+            {
+                title: 'মাল স্থানান্তর',
+                href: '/party-stock/transfer',
+                icon: Repeat, // ↔️ transfer arrow icon
+            },
+            {
+                title: 'ক্রাশিং জব তালিকা',
+                href: '/crushing-jobs',
+                icon: FileText,
+            },
+            {
+                title: 'ক্রাশিং রিপোর্টসমূহ',
+                icon: BarChart2,
+                children: [
+                    {
+                        title: 'পার্টি স্টক রিপোর্ট',
+                        href: '/reports/crushing-party-stock',
+                        icon: Layers,
+                    },
+                    {
+                        title: 'Yield রিপোর্ট',
+                        href: '/reports/yield-register',
+                        icon: Droplets,
+                    },
+                    {
+                        title: 'Rent Day Book',
+                        href: '/reports/rent-day-book',
+                        icon: CalendarDays,
+                    },
+                ],
+            },
         ],
     },
 
