@@ -40,6 +40,9 @@ use App\Http\Controllers\ShiftController;
 use App\Http\Controllers\EmployeeController;
 use App\Http\Controllers\SalarySlipController;
 
+use App\Http\Controllers\Auth\AuthenticatedSessionController;
+
+
 use App\Models\Purchase;
 use App\Models\SalesReturn;
 
@@ -62,6 +65,9 @@ Route::get('/about', function () {
 Route::get('/contacts', function () {
     return view('contacts');
 })->name('contacts');
+
+Route::post('/logout', [AuthenticatedSessionController::class, 'destroy'])
+    ->name('logout');
 
 
 Route::middleware(['auth', 'verified'])->group(function () {
