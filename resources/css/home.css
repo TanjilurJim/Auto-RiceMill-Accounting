@@ -54,12 +54,12 @@ body {
 /* testimonialsSwiper */
 .swiper-button-next,
 .swiper-button-prev {
-    color: white;
+    color: black;
 }
 
 .swiper-button-next:hover,
 .swiper-button-prev:hover {
-    color: white;
+    color: black;
 }
 
 .testimonialsSwiper {

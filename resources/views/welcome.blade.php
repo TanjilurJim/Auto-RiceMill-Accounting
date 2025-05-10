@@ -87,17 +87,17 @@
                             <!-- Swiper Slider -->
                             <div class="swiper qualityProductsSwiper rounded-lg">
                                 <div class="swiper-wrapper">
-                                    <!-- <div class="swiper-slide">
+                                    <div class="swiper-slide">
+                                        <img src="{{ asset('assets/pic1.jpg') }}" alt="Quality Products" class="rounded-lg">
+                                    </div>
+                                    <div class="swiper-slide">
+                                        <img src="{{ asset('assets/pic2.jpg') }}" alt="Quality Products" class="rounded-lg">
+                                    </div>
+                                    <div class="swiper-slide">
+                                        <img src="{{ asset('assets/pic3.jpg') }}" alt="Quality Products" class="rounded-lg">
+                                    </div>
+                                    <div class="swiper-slide">
                                         <img src="{{ asset('assets/pic4.jpg') }}" alt="Quality Products" class="rounded-lg">
-                                    </div> -->
-                                    <div class="swiper-slide">
-                                        <img src="https://raipurautoricemills.com/public/assets/images/rarm-Silos-img.jpg" alt="Quality Products" class="rounded-lg">
-                                    </div>
-                                    <div class="swiper-slide">
-                                        <img src="https://raipurautoricemills.com/public/assets/images/rarm-ware-house-img.jpg" alt="Quality Products" class="rounded-lg">
-                                    </div>
-                                    <div class="swiper-slide">
-                                        <img src="https://raipurautoricemills.com/public/assets/images/rarm-open-stack.jpg" alt="Quality Products" class="rounded-lg">
                                     </div>
                                     
                                 </div>
@@ -414,8 +414,8 @@
     </section>
 
     <!-- Testimonials -->
-    <section class="bg-[#6A1A1F]">
-        <div class="container text-white mx-auto px-4 py-8 md:py-14">
+    <section class="bg-white">
+        <div class="container text-black mx-auto px-4 py-8 md:py-14">
             <div  class="p-2.5">
                 <!-- Heading -->
                 <h2 class="leading-[38px] text-2xl sm:text-3xl md:text-[40px] font-bold text-center my-2.5">
