@@ -45,6 +45,9 @@ use App\Http\Controllers\SalarySlipController;
 use App\Http\Controllers\PartyStockMoveController;
 
 
+use App\Http\Controllers\Auth\AuthenticatedSessionController;
+
+
 use App\Models\Purchase;
 use App\Models\SalesReturn;
 
@@ -59,6 +62,17 @@ Route::get('/', function () {
 // Route::get('/', function () {
 //     return view('welcome'); // Use the Blade view here
 // })->name('home');
+
+Route::get('/about', function () {
+    return view('about');
+})->name('about');
+
+Route::get('/contacts', function () {
+    return view('contacts');
+})->name('contacts');
+
+Route::post('/logout', [AuthenticatedSessionController::class, 'destroy'])
+    ->name('logout');
 
 
 Route::middleware(['auth', 'verified'])->group(function () {
