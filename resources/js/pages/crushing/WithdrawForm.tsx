@@ -1,6 +1,7 @@
 import AppLayout from '@/layouts/app-layout';
 import { Head, useForm } from '@inertiajs/react';
-import React from 'react';
+import axios from 'axios';
+import React, { useEffect, useState } from 'react';
 import Select from 'react-select';
 
 interface Props {
@@ -9,10 +10,11 @@ interface Props {
     godowns: { id: number; name: string }[];
     units: { id: number; name: string }[];
     today: string;
-    generated_ref_no: string;
+    generated_ref_no: string; // Reference number passed from backend
+    available_stock: any; // Receive the available stock data
 }
 
-interface DepositRow {
+interface WithdrawRow {
     item_id: string;
     unit_id: string;
     qty: string;
@@ -20,58 +22,122 @@ interface DepositRow {
     total: number;
 }
 
-export default function PartyStockDepositForm({ parties, items, godowns, units, today, generated_ref_no }: Props) {
+export default function WithdrawForm({
+    parties,
+    items,
+    godowns,
+    units,
+    today,
+    generated_ref_no,
+    available_stock, // Receive available_stock here
+}: Props) {
     const { data, setData, post, processing, errors, reset } = useForm({
         date: today,
         party_ledger_id: '',
-        godown_id_to: '',
-        ref_no: generated_ref_no,
+        godown_id_from: '',
+        ref_no: generated_ref_no, // Use the generated reference number from backend
         remarks: '',
-        deposits: [{ item_id: '', unit_id: '', qty: '', rate: '', total: 0 }],
+        withdraws: [{ item_id: '', unit_id: '', qty: '', rate: '', total: 0 }],
     });
 
+    const [partyGodowns, setPartyGodowns] = useState<any[]>([]); // Store godowns for selected party
+
     const itemOptions = items.map((item) => ({ value: item.id, label: item.item_name }));
+    const godownOptions = godowns.map((godown) => ({ value: godown.id, label: godown.name }));
     const unitOptions = units.map((unit) => ({ value: unit.id, label: unit.name }));
 
-    const handleFieldChange = (index: number, field: keyof DepositRow, value: any) => {
-        const updated = [...data.deposits];
+    useEffect(() => {
+        if (data.party_ledger_id) {
+            fetchPartyGodowns(data.party_ledger_id); // Fetch godowns for selected party
+        }
+    }, [data.party_ledger_id]);
+
+    useEffect(() => {
+        console.log('Available stock:', available_stock); // Log available stock passed from backend
+    }, [available_stock]);
+
+    // Fetch the godowns associated with the selected party
+    const fetchPartyGodowns = async (partyId: number) => {
+        // This can be removed as we are not using getAvailableStock route anymore
+        try {
+            const response = await axios.get(`/party-stock/party-godowns/${partyId}`);
+            setPartyGodowns(response.data.godowns); // Set the godowns specific to the selected party
+        } catch (error) {
+            console.error('Error fetching godowns:', error);
+        }
+    };
+
+    const handleFieldChange = (index: number, field: keyof WithdrawRow, value: any) => {
+        const updated = [...data.withdraws];
         updated[index][field] = value;
 
+        // Calculate total based on qty and rate
         const qty = parseFloat(updated[index].qty) || 0;
         const rate = parseFloat(updated[index].rate) || 0;
         updated[index].total = qty * rate;
 
-        setData('deposits', updated);
+        setData('withdraws', updated);
     };
 
     const addRow = () => {
-        setData('deposits', [...data.deposits, { item_id: '', unit_id: '', qty: '', rate: '', total: 0 }]);
+        setData('withdraws', [...data.withdraws, { item_id: '', unit_id: '', qty: '', rate: '', total: 0 }]);
     };
 
     const removeRow = (index: number) => {
-        if (data.deposits.length === 1) return;
-        const updated = [...data.deposits];
+        if (data.withdraws.length === 1) return;
+        const updated = [...data.withdraws];
         updated.splice(index, 1);
-        setData('deposits', updated);
+        setData('withdraws', updated);
     };
 
-    const grandTotal = data.deposits.reduce((sum, row) => sum + (parseFloat(row.total.toString()) || 0), 0);
+    const grandTotal = data.withdraws.reduce((sum, row) => sum + (parseFloat(row.total.toString()) || 0), 0);
 
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
-        post(route('party-stock.deposit.store'), {
+        post(route('party-stock.withdraw.store'), {
             preserveScroll: true,
-            onSuccess: () => reset('party_ledger_id', 'godown_id_to', 'ref_no', 'remarks', 'deposits'),
+            onSuccess: () => reset('party_ledger_id', 'godown_id_from', 'ref_no', 'remarks', 'withdraws'),
         });
     };
 
     return (
         <AppLayout>
-            <Head title="পার্টি মাল জমা ফর্ম" />
+            <Head title="মাল উত্তোলন ফর্ম" />
             <div className="h-full w-screen bg-gray-100 p-6 lg:w-full">
                 <div className="h-full rounded-lg bg-white p-6">
-                    <h1 className="mb-4 text-xl font-bold">পার্টির পণ্য জমা ফর্ম</h1>
+                    <h1 className="mb-4 text-xl font-bold">পণ্য উত্তোলন ফর্ম</h1>
 
+                    {/* Party Stock Information Section */}
+                    <div className="mb-4 rounded-md bg-gray-100 p-4">
+                        {data.party_ledger_id && available_stock[data.party_ledger_id] ? (
+                            <>
+                                <h2 className="text-lg font-semibold">Available Stock for Selected Party:</h2>
+                                <div className="mt-2">
+                                    {/* Iterate over each itemId */}
+                                    {Object.keys(available_stock[data.party_ledger_id]).map((itemId) => (
+                                        <div key={itemId} className="mb-2">
+                                            <h3 className="font-semibold">{available_stock[data.party_ledger_id][itemId].item_name}:</h3>
+                                            <div className="ml-4">
+                                                {/* Render available stock for each godown */}
+                                                {Object.values(available_stock[data.party_ledger_id][itemId]).map((godown) => (
+                                                    <p key={godown.godown_name}>
+                                                        <span className="font-semibold">
+                                                            {godown.qty} {godown.unit_name} of {godown.item_name} in{' '}
+                                                        </span>
+                                                        <span className="italic">{godown.godown_name}</span>
+                                                    </p>
+                                                ))}
+                                            </div>
+                                        </div>
+                                    ))}
+                                </div>
+                            </>
+                        ) : (
+                            <p>Please select a party ledger to see available stock.</p>
+                        )}
+                    </div>
+
+                    {/* Withdraw Form */}
                     <form onSubmit={handleSubmit} className="space-y-6">
                         <div className="grid grid-cols-2 gap-4">
                             <div>
@@ -88,9 +154,15 @@ export default function PartyStockDepositForm({ parties, items, godowns, units, 
                             <div>
                                 <label className="mb-1 block font-medium">পার্টি</label>
                                 <Select
-                                    options={parties.map((p) => ({ value: p.id, label: p.account_ledger_name }))}
+                                    options={parties.map((p) => ({
+                                        value: p.id,
+                                        label: p.account_ledger_name,
+                                    }))}
                                     value={parties
-                                        .map((p) => ({ value: p.id, label: p.account_ledger_name }))
+                                        .map((p) => ({
+                                            value: p.id,
+                                            label: p.account_ledger_name,
+                                        }))
                                         .find((opt) => opt.value === Number(data.party_ledger_id))}
                                     onChange={(selected) => setData('party_ledger_id', selected?.value || '')}
                                     classNamePrefix="react-select"
@@ -102,33 +174,32 @@ export default function PartyStockDepositForm({ parties, items, godowns, units, 
 
                             <div>
                                 <label className="mb-1 block font-medium">গুদাম</label>
-                                <Select
-                                    options={godowns.map((g) => ({ value: g.id, label: g.name }))}
-                                    value={godowns
-                                        .map((g) => ({ value: g.id, label: g.name }))
-                                        .find((opt) => opt.value === Number(data.godown_id_to))}
-                                    onChange={(selected) => setData('godown_id_to', selected?.value || '')}
-                                    classNamePrefix="react-select"
-                                    placeholder="গুদাম খুঁজুন..."
-                                    isClearable
-                                />
-                                {errors.godown_id_to && <p className="text-sm text-red-500">{errors.godown_id_to}</p>}
+                                {partyGodowns.length > 0 && (
+                                    <Select
+                                        options={partyGodowns.map((g) => ({ value: g.id, label: g.name }))}
+                                        value={partyGodowns.find((opt) => opt.value === Number(data.godown_id_from))}
+                                        onChange={(selected) => setData('godown_id_from', selected?.value || '')}
+                                        classNamePrefix="react-select"
+                                        placeholder="গুদাম খুঁজুন..."
+                                        isClearable
+                                    />
+                                )}
+                                {errors.godown_id_from && <p className="text-sm text-red-500">{errors.godown_id_from}</p>}
                             </div>
 
                             <div>
                                 <label className="mb-1 block font-medium">রেফারেন্স নম্বর</label>
                                 <input
                                     type="text"
-                                    value={data.ref_no}
+                                    value={data.ref_no} // Display the generated reference number
                                     readOnly
-                                    onChange={(e) => setData('ref_no', e.target.value)}
                                     className="w-full rounded border p-2"
                                 />
                             </div>
                         </div>
 
                         <div>
-                            <h2 className="mb-2 text-lg font-semibold">পণ্যের জমা তালিকা</h2>
+                            <h2 className="mb-2 text-lg font-semibold"> উত্তোলন তালিকা</h2>
                             <table className="w-full table-auto border text-sm">
                                 <thead className="bg-gray-100">
                                     <tr>
@@ -141,7 +212,7 @@ export default function PartyStockDepositForm({ parties, items, godowns, units, 
                                     </tr>
                                 </thead>
                                 <tbody>
-                                    {data.deposits.map((row, index) => (
+                                    {data.withdraws.map((row, index) => (
                                         <tr key={index}>
                                             <td className="border p-2">
                                                 <Select
@@ -153,18 +224,14 @@ export default function PartyStockDepositForm({ parties, items, godowns, units, 
                                                 />
                                             </td>
                                             <td className="border p-2">
-                                                <select
-                                                    className="w-full rounded border p-1"
-                                                    value={row.unit_name}
-                                                    onChange={(e) => handleFieldChange(index, 'unit_name', e.target.value)}
-                                                >
-                                                    <option value="">-- একক নির্বাচন করুন --</option>
-                                                    {units.map((u) => (
-                                                        <option key={u.id} value={u.name}>
-                                                            {u.name}
-                                                        </option>
-                                                    ))}
-                                                </select>
+                                                <Select
+                                                    options={unitOptions}
+                                                    value={unitOptions.find((opt) => opt.value === Number(row.unit_id))}
+                                                    onChange={(selected) => handleFieldChange(index, 'unit_id', selected?.value || '')}
+                                                    classNamePrefix="react-select"
+                                                    placeholder="একক খুঁজুন..."
+                                                    isClearable
+                                                />
                                             </td>
                                             <td className="border p-2">
                                                 <input
@@ -172,6 +239,7 @@ export default function PartyStockDepositForm({ parties, items, godowns, units, 
                                                     value={row.qty}
                                                     onChange={(e) => handleFieldChange(index, 'qty', e.target.value)}
                                                     className="w-full rounded border p-1"
+                                                    max={available_stock[row.item_id] ? available_stock[row.item_id][data.godown_id_from] : 0} // Limit max to available stock
                                                 />
                                             </td>
                                             <td className="border p-2">
@@ -212,7 +280,7 @@ export default function PartyStockDepositForm({ parties, items, godowns, units, 
 
                         <div className="flex justify-end">
                             <button type="submit" disabled={processing} className="rounded bg-green-600 px-4 py-2 text-white hover:bg-green-700">
-                                {processing ? 'সেভ হচ্ছে...' : 'জমা দিন'}
+                                {processing ? 'সেভ হচ্ছে...' : 'উত্তোলন করুন'}
                             </button>
                         </div>
                     </form>

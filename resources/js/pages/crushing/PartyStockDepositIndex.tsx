@@ -32,10 +32,10 @@ interface Props {
 export default function PartyStockDepositIndex({ deposits, pagination }: Props) {
     return (
         <AppLayout>
-            <Head title="পার্টি মাল জমা তালিকা" />
+            <Head title="পার্টির পণ্য জমা তালিকা" />
             <div className="h-full w-screen bg-gray-100 p-6 lg:w-full">
                 <div className="space-y-6">
-                    <h1 className="text-xl font-bold">পার্টি মাল জমা তালিকা</h1>
+                    <h1 className="text-xl font-bold">পার্টির পন্য জমা তালিকা</h1>
 
                     {deposits.length === 0 && (
                         <div className="rounded bg-yellow-50 p-4 text-center text-sm text-yellow-700 shadow">

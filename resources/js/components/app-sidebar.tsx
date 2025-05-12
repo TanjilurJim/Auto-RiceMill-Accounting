@@ -307,27 +307,32 @@ const mainNavItems: NavItem[] = [
         icon: Warehouse, // or PackagePlus, Boxes, or ScaleIcon for variation
         children: [
             {
-                title: 'পার্টি মাল জমা',
+                title: 'পার্টির পণ্য জমা',
                 href: '/party-stock/deposit',
                 icon: UploadCloud,
             },
             {
-                title: 'পার্টি মাল জমা তালিকা', // The new link to the index page
+                title: 'পার্টির পণ্য জমা তালিকা', // The new link to the index page
                 href: '/party-stock/deposit-list', // Link to the list
                 icon: FileText, // You can choose any suitable icon here
             },
             {
-                title: 'মাল উত্তোলন',
+                title: 'পণ্য উত্তোলন',
                 href: '/party-stock/withdraw',
                 icon: DownloadCloud,
             },
             {
-                title: 'মাল স্থানান্তর',
+                title: 'পণ্য উত্তোলন তালিকা', // The new link to the withdraw list
+                href: '/party-stock/withdraw-list', // Correct the link to the index page
+                icon: FileText,
+            },
+            {
+                title: 'পণ্য স্থানান্তর',
                 href: '/party-stock/transfer',
                 icon: Repeat, // ↔️ transfer arrow icon
             },
             {
-                title: 'ক্রাশিং জব তালিকা',
+                title: 'ক্রাশিং কাজের তালিকা',
                 href: '/crushing-jobs',
                 icon: FileText,
             },

@@ -5,6 +5,7 @@ use Inertia\Inertia;
 use App\Http\Controllers\PermissionController;
 use App\Http\Controllers\AllReceivablePayableReportController;
 use App\Http\Controllers\ProfitLossController;
+use App\Http\Controllers\PartyStockController;
 use App\Http\Controllers\RoleController;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\AccountGroupController;
@@ -268,10 +269,24 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::get('deposit', [PartyStockMoveController::class, 'create'])->name('party-stock.deposit.create');
         Route::post('deposit', [PartyStockMoveController::class, 'store'])->name('party-stock.deposit.store');
         Route::get('deposit-list', [PartyStockMoveController::class, 'index'])->name('party-stock.deposit.index');
+        
 
-        Route::get('transfer', [PartyStockMoveController::class, 'createTransfer'])->name('party-stock.transfer');
-        Route::post('transfer', [PartyStockMoveController::class, 'transfer'])->name('party-stock.transfer.store');
+        // Withdraw Routes
+        Route::get('withdraw-list', [PartyStockMoveController::class, 'indexWithdraw'])->name('party-stock.withdraw.index');
+        Route::get('withdraw', [PartyStockMoveController::class, 'createWithdraw'])->name('party-stock.withdraw.create');  // Change to 'createWithdraw'
+        Route::post('withdraw', [PartyStockMoveController::class, 'withdraw'])->name('party-stock.withdraw.store');  // Change to 'withdraw.store'
+
+        // Transfer Routes
+        Route::get('transfer', [PartyStockMoveController::class, 'createTransfer'])->name('party-stock.transfer.create');  // Change to 'createTransfer'
+        Route::post('transfer', [PartyStockMoveController::class, 'transfer'])->name('party-stock.transfer.store');  // Change to 'transfer.store'
     });
+
+    // Route::prefix('party-stock')->group(function () {
+    //     Route::get('/available-stock/{partyId}', [PartyStockController::class, 'getAvailableStock']);
+    //     Route::get('/party-godowns/{partyId}', [PartyStockController::class, 'getPartyGodowns']);
+    // });
+
+
 });
 //stock report pdf and excel
 Route::get('/reports/stock-summary/pdf', [ReportController::class, 'stockSummaryPDF'])
