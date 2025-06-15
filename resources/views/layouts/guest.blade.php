@@ -77,9 +77,9 @@
                                 </div>
                                 <div>
                                     <h4 class="text-lg font-medium leading-6 mb-[5px]">
-                                        183 Donato Parkways
+                                        Rafusoft
                                     </h4>
-                                    <span class="text-sm text-[#999999]">CA, United State</span>
+                                    <span class="text-sm text-[#999999]">Dhaka, Bangladesh</span>
                                 </div>
                             </li>
                         </ul>

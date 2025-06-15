@@ -18,7 +18,7 @@
                                         <h2 class=" text-black text-xl sm:text-2xl md:text-3xl font-bold leading-9 mb-4 ">
                                             Welcome To Auto Ricemill Accounting Software </h2>
                                         <h1 class="text-[#6A1A1F] text-3xl sm:text-4xl md:text-5xl font-bold leading-tight tracking-wide mb-4"> 
-                                            Our Latest Item <br> Food Industry
+                                            Our Latest Product<br> 
                                         </h1>
                                         <p class="text-black text-sm sm:text-base md:text-lg font-medium leading-7 mb-6">
                                             Lorem Ipsum is simply dummy text of the printing and typesetting industry. Lorem Ipsum has been the...
@@ -37,10 +37,10 @@
                                 <div class="w-full h-auto flex flex-col md:flex-row items-center justify-center px-4">
                                     <div  class="w-full md:w-[660px] bg-white/70 p-6 md:p-8 rounded-lg shadow-lg">
                                         <h2 class=" text-black text-xl sm:text-2xl md:text-3xl font-bold leading-9 mb-4">
-                                            Welcome To Food Industry
+                                            Welcome To Auto Ricemill Accounting Software
                                         </h2>
                                         <h1 class=" text-[#6A1A1F] text-3xl sm:text-4xl md:text-5xl font-bold leading-tight tracking-wide mb-4">
-                                            Our Latest Item <br> Food Industry
+                                            Our Latest Product <br> 
                                         </h1>
                                         <p class="text-black text-sm sm:text-base md:text-lg font-medium leading-7 mb-6">
                                             Lorem Ipsum is simply dummy text of the printing and typesetting industry. Lorem
