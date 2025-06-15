@@ -43,7 +43,7 @@ export default function ActionButtons({
   printClassName,
 }: Props) {
   return (
-    <div className={`flex gap-2 ${className}`}>
+    <div className={`flex justify-center gap-2 ${className}`}>
       {/* Edit */}
       {editHref && (
         <Link

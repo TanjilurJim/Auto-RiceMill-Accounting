@@ -104,34 +104,25 @@ if (! function_exists('company_info')) {
         if ($cached !== null) {
             return $cached;
         }
-
         $user = Auth::user();
-
         /* Which row? */
         $row = match (true) {
             // admin – first company in DB
             $user && $user->hasRole('admin')       => CompanySetting::first(),
-
             // normal user – record I created
             $user && CompanySetting::where('created_by', $user->id)->exists()
                                                 => CompanySetting::where('created_by', $user->id)->first(),
-
             // sub‑user – pick my “parent’s” company
             $user && $user->creator_id            // 👈 change if you use a different column
                                                 => CompanySetting::where('created_by', $user->creator_id)->first(),
-
             default                                => null,
         };
-
         /* Add URL accessors so they survive JSON serialisation */
         if ($row) {
             $row->append(['logo_url', 'logo_thumb_url']);
         }
-
         return $cached = $row;
     }
-
-    
 }
 
 use App\Services\InventoryService;

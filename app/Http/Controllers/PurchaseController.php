@@ -496,6 +496,8 @@ class PurchaseController extends Controller
             'amountWords'   => $amountWords,   // optional – saves JS work
         ]);
     }
+
+
     public function fetchBalance($id)
     {
         $ledger = AccountLedger::findOrFail($id);
