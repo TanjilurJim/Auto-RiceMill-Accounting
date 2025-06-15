@@ -4,14 +4,8 @@ import AppLayout from '@/layouts/app-layout';
 import { cn } from '@/lib/utils';
 import { Head } from '@inertiajs/react';
 import {
-    Banknote,
-    BookOpenCheck,
-    BookText,
     CheckCircle2,
     CircleDollarSign,
-    CreditCard,
-    Layers3,
-    Package,
     ReceiptText,
     RotateCcw,
     ShoppingCart,
@@ -20,15 +14,15 @@ import {
 import { useState } from 'react';
 import { Bar, BarChart, Cell, Legend, Line, LineChart, Pie, PieChart, ResponsiveContainer, Sector, Tooltip, XAxis, YAxis } from 'recharts';
 
-const quickLinks = [
-    { label: 'Received', href: '/received-add', icon: Banknote, color: 'bg-green-600' },
-    { label: 'Payment', href: '/payment-add?from_date=&to_date=', icon: CreditCard, color: 'bg-red-500' },
-    { label: 'Purchases', href: '/purchases', icon: ShoppingCart, color: 'bg-amber-500' },
-    { label: 'Sales', href: '/sales', icon: Package, color: 'bg-blue-600' },
-    { label: 'Day Book', href: '/reports/day-book', icon: BookText, color: 'bg-indigo-500' },
-    { label: 'Account Ledger', href: '/reports/account-ledger', icon: BookOpenCheck, color: 'bg-purple-500' },
-    { label: 'Stock Report', href: '/reports/stock-summary', icon: Layers3, color: 'bg-cyan-600' },
-];
+// const quickLinks = [
+//     { label: 'Received', href: '/received-add', icon: Banknote, color: 'bg-green-600' },
+//     { label: 'Payment', href: '/payment-add?from_date=&to_date=', icon: CreditCard, color: 'bg-red-500' },
+//     { label: 'Purchases', href: '/purchases', icon: ShoppingCart, color: 'bg-amber-500' },
+//     { label: 'Sales', href: '/sales', icon: Package, color: 'bg-blue-600' },
+//     { label: 'Day Book', href: '/reports/day-book', icon: BookText, color: 'bg-indigo-500' },
+//     { label: 'Account Ledger', href: '/reports/account-ledger', icon: BookOpenCheck, color: 'bg-purple-500' },
+//     { label: 'Stock Report', href: '/reports/stock-summary', icon: Layers3, color: 'bg-cyan-600' },
+// ];
 /* ───────────────────────────────── KPIs ─────────────────────────────── */
 const kpis = [
     { title: 'Total Sales', value: 1450000, icon: CircleDollarSign, color: 'text-green-600', bg: 'bg-green-50' },
@@ -86,7 +80,8 @@ export default function Dashboard() {
     return (
         <AppLayout breadcrumbs={[{ title: 'Dashboard', href: '/dashboard' }]}>
             <Head title="Dashboard" />
-            <div className="mb-4 flex flex-wrap items-center gap-2 ml-2">
+
+            {/* <div className="mb-4 flex flex-wrap items-center gap-2 ml-2">
                 {quickLinks.map(({ label, href, icon: Icon, color }) => (
                     <a
                         key={label}
@@ -101,9 +96,10 @@ export default function Dashboard() {
                         <span>{label}</span>
                     </a>
                 ))}
-            </div>
+            </div> */}
+
             {/* KPI cards */}
-            <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4 ml-2">
+            <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4 m-2">
                 {kpis.map(({ title, value, icon: Icon, color, bg }) => (
                     <Card
                         key={title}
