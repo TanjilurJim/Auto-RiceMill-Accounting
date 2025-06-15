@@ -70,8 +70,8 @@ class AccountLedgerController extends Controller
             'debit_credit' => $request->debit_credit,
             'status' => $request->status,
             'address' => $request->address,
-            'for_transition_mode' => $request->has('for_transition_mode'),
-            'mark_for_user' => $request->has('mark_for_user'),
+            'for_transition_mode' => $request->boolean('for_transition_mode'),
+            'mark_for_user'       => $request->boolean('mark_for_user'),
             'ledger_type' => $request->ledger_type,
             'created_by' => auth()->id(),
         ];
@@ -134,7 +134,7 @@ class AccountLedgerController extends Controller
             'address' => $request->address,
             'ledger_type' => $request->ledger_type,
             'for_transition_mode' => $request->has('for_transition_mode'),
-            'mark_for_user' => $request->has('mark_for_user'),
+            'mark_for_user'       => $request->has('mark_for_user'),
             'reference_number' => $request->reference_number, // Ensure reference number is updated if changed
         ];
 

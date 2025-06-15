@@ -28,6 +28,10 @@ class AccountLedger extends Model
         'reference_number',
         'ledger_type',
     ];
+    protected $casts = [
+    'for_transition_mode' => 'boolean',
+    'mark_for_user'       => 'boolean',
+];
 
     protected static function boot()
     {
