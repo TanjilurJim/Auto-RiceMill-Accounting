@@ -359,6 +359,18 @@
                             </div>
                         </div>
                     </div>
+                    <!-- Item 6 -->
+                    <div class="px-3 mb-7.5">
+                        <div data-aos="zoom-in" class="w-full h-full bg-white rounded shadow-lg px-5 sm:px-7.5 py-8 sm:py-12.5 text-center flex flex-col items-center justify-center">
+                            <div class="group w-20 sm:w-24 h-20 sm:h-24 mb-4 bg-[#F7F3F4] flex items-center justify-center rounded-xl overflow-hidden" style="transform: rotate(30deg);">
+                                <i class="fa-solid fa-warehouse text-[#6A1A1F] object-cover group-hover:scale-150 transition-transform duration-500 ease-in-out" style="transform: rotate(-30deg); font-size: 2rem;"></i>
+                            </div>
+                            <div>
+                                <h3 class="text-lg sm:text-xl font-semibold mb-2">Crushing / Rent</h3>
+                                <p class="text-gray-600 text-sm sm:text-base">Party Product Deposit, Party Product Deposit List, Product Withdrawal, Product Withdrawal List, Product Transfer, Crushing Task List, Crushing Reports</p>
+                            </div>
+                        </div>
+                    </div>
                     <!-- Item 7 -->
                     <div class="px-3 mb-7.5">
                         <div data-aos="zoom-in" class="w-full h-full bg-white rounded shadow-lg px-5 sm:px-7.5 py-8 sm:py-12.5 text-center flex flex-col items-center justify-center">
