@@ -36,7 +36,7 @@ const PageHeader: React.FC<PageHeaderProps> = ({
                 {addLinkText && (
                     <Link
                         href={addLinkHref}
-                        className="rounded bg-primary px-4 py-2 text-sm font-medium text-white hover:bg-primary-hover sm:text-base lg:text-lg"
+                        className="rounded bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 sm:text-base lg:text-lg"
                     >
                         {addLinkText}
                     </Link>

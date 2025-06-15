@@ -192,26 +192,29 @@ class ContraAddController extends Controller
 
         return back()->with('success', 'Contra entry deleted successfully!');
     }
-    public function print($voucherNo)
+    // app/Http/Controllers/ContraAddController.php
+    public function print(string $voucherNo)
     {
         $contra = \App\Models\ContraAdd::with(['modeFrom', 'modeTo'])
             ->where('voucher_no', $voucherNo)
             ->where('created_by', auth()->id())
             ->firstOrFail();
 
-        $company = \App\Models\CompanySetting::where('created_by', auth()->id())->first();
-        $amount = $contra->amount;
-        $amountInWords = numberToWords($amount); // ✅ Make sure you have this helper
+        // grab whatever company header the user should see
+        $company = company_info();                      // helper already set up
+
+        $amount          = (float) $contra->amount;
+        $amountInWords   = numberToWords($amount);      // helper now type-safe
 
         return Inertia::render('contra-add/print', [
-            'company' => $company,
-            'voucher_no' => $contra->voucher_no,
-            'date' => $contra->date,
-            'from_mode' => $contra->modeFrom->mode_name ?? '',
-            'to_mode' => $contra->modeTo->mode_name ?? '',
-            'amount' => $amount,
-            'amount_in_words' => $amountInWords,
-            'description' => $contra->description,
+            'company'          => $company,             // has logo_url, company_name, …
+            'voucher_no'       => $contra->voucher_no,
+            'date'             => $contra->date,
+            'from_mode'        => $contra->modeFrom?->mode_name ?? '',
+            'to_mode'          => $contra->modeTo?->mode_name   ?? '',
+            'amount'           => $amount,
+            'amount_in_words'  => $amountInWords,
+            'description'      => $contra->description,
         ]);
     }
 }

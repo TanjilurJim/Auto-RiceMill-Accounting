@@ -22,7 +22,7 @@ export default function Index({ contras }: any) {
         { header: 'To Mode', accessor: (row: any) => row.mode_to?.mode_name || 'N/A' },
         {
             header: 'Amount',
-            accessor: (row: any) => new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(row.amount),
+            accessor: (row: any) => new Intl.NumberFormat('en-US', { style: 'currency', currency: 'BDT' }).format(row.amount),
             className: 'text-right'
         },
         { header: 'Description', accessor: 'description' },

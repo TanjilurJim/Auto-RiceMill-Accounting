@@ -131,7 +131,7 @@ export default function PurchaseEdit({ purchase, godowns, salesmen, ledgers, sto
 
         confirmDialog({}, () => {
             const updated = [...data.purchase_items];
-            updated.splice(index, 1);
+            updated.splice(idx, 1);
             setData('purchase_items', updated);
         });
     };
@@ -158,8 +158,8 @@ export default function PurchaseEdit({ purchase, godowns, salesmen, ledgers, sto
     return (
         <AppLayout>
             <Head title="Update Purchase" />
-            <div className="bg-gray-100 p-6 h-full w-screen lg:w-full">
-                <div className="bg-white h-full rounded-lg p-6">
+            <div className="h-full w-screen bg-gray-100 p-6 lg:w-full">
+                <div className="h-full rounded-lg bg-white p-6">
                     {/* Header */}
                     <PageHeader title="Update Purchase" addLinkHref="/purchases" addLinkText="Back" />
 
@@ -189,7 +189,11 @@ export default function PurchaseEdit({ purchase, godowns, salesmen, ledgers, sto
                                         </option>
                                     ))}
                                 </select>
-                                <select className="border p-2" value={data.salesman_id ?? ''} onChange={(e) => setData('salesman_id', e.target.value)}>
+                                <select
+                                    className="border p-2"
+                                    value={data.salesman_id ?? ''}
+                                    onChange={(e) => setData('salesman_id', e.target.value)}
+                                >
                                     <option value="">Select Salesman</option>
                                     {salesmen.map((s) => (
                                         <option key={s.id} value={s.id}>
@@ -347,7 +351,7 @@ export default function PurchaseEdit({ purchase, godowns, salesmen, ledgers, sto
                                 <div className="col-span-1">
                                     <label className="block text-sm font-medium text-gray-700">Payment Mode</label>
                                     <select
-                                        className={cn('border p-2 w-full rounded', errors.received_mode_id && 'border-red-500')}
+                                        className={cn('w-full rounded border p-2', errors.received_mode_id && 'border-red-500')}
                                         value={data.received_mode_id}
                                         onChange={(e) => setData('received_mode_id', e.target.value)}
                                     >
@@ -365,7 +369,7 @@ export default function PurchaseEdit({ purchase, godowns, salesmen, ledgers, sto
                                     <label className="block text-sm font-medium text-gray-700">Amount Paid</label>
                                     <input
                                         type="number"
-                                        className={cn('border p-2 w-full rounded', errors.amount_paid && 'border-red-500')}
+                                        className={cn('w-full rounded border p-2', errors.amount_paid && 'border-red-500')}
                                         placeholder="Amount Paid"
                                         value={data.amount_paid}
                                         onChange={(e) => setData('amount_paid', e.target.value)}
@@ -397,18 +401,44 @@ export default function PurchaseEdit({ purchase, godowns, salesmen, ledgers, sto
                             </div>
                         </div>
 
+                        {/* Shipping & Delivered To */}
+                        <div className="col-span-2 grid grid-cols-1 gap-4 space-y-4 md:grid-cols-2">
+                            <div>
+                                <div>
+                                    <label className="mb-1 block font-semibold text-gray-700">Supplier Info</label>
+                                    <textarea
+                                        name="delivered_to"
+                                        rows={3}
+                                        className="w-full rounded border bg-white p-2 shadow-sm focus:ring-1 focus:ring-blue-500 focus:outline-none"
+                                        value={data.delivered_to || ''}
+                                        onChange={(e) => setData('delivered_to', e.target.value)}
+                                    />
+                                    .
+                                </div>
+                                <div>
+                                    <label className="mb-1 block font-semibold text-gray-700">Shipping Details</label>
+                                    <textarea
+                                        name="shipping_details"
+                                        rows={3}
+                                        className="w-full rounded border bg-white p-2 shadow-sm focus:ring-1 focus:ring-blue-500 focus:outline-none"
+                                        value={data.shipping_details}
+                                        onChange={(e) => setData('shipping_details', e.target.value)}
+                                    />
+                                </div>
+                            </div>
+                        </div>
+
                         {/* Action Buttons */}
                         <ActionFooter
                             onSubmit={handleSubmit}
                             processing={processing}
-                            saveAndPrintText='Save & Print'
+                            // saveAndPrintText='Save & Print'
                             cancelText="Cancel"
                             cancelHref="/purchases"
                             submitText={processing ? 'Updating...' : 'Update'}
                         />
                     </form>
                 </div>
-
             </div>
         </AppLayout>
     );

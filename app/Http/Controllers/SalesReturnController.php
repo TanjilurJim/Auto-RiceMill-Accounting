@@ -15,6 +15,8 @@ use App\Models\Item; // ✅ add this line
 use App\Models\AccountLedger;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
+use function company_info;
+use function numberToWords;
 
 class SalesReturnController extends Controller
 {
@@ -248,12 +250,27 @@ class SalesReturnController extends Controller
 
     public function invoice(SalesReturn $salesReturn)
     {
-        $salesReturn->load(['items.product.unit', 'accountLedger', 'sale']); // eager load relationships
+        /* tenant-safety */
+        if (
+            ! auth()->user()->hasRole('admin') &&
+            $salesReturn->created_by !== auth()->id()
+        ) {
+            abort(403, 'Unauthorised');
+        }
 
-        // dd($salesReturn->items->first()->product->unit);
+        /* eager-load everything the UI needs */
+        $salesReturn->load([
+            'items.product.unit',
+            'accountLedger',
+            'sale',
+        ]);
 
         return Inertia::render('sales_returns/invoice', [
-            'salesReturn' => $salesReturn,
+            'return'       => $salesReturn,
+            'company'      => company_info(),                                 // logo, name, …
+            'amountWords'  => numberToWords(                                  // e.g. “One thousand …”
+                (int) $salesReturn->items->sum('return_amount')
+            ),
         ]);
     }
 

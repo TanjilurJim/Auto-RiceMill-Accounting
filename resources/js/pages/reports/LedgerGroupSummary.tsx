@@ -66,7 +66,7 @@ export default function LedgerGroupSummary({
       </div>
 
       {/* main card */}
-      <div className="mx-auto mt-6 max-w-6xl rounded bg-white p-4 shadow print:text-xs">
+      <div className="mx-auto mt-6 max-w-6xl rounded bg-white p-4 shadow print:text-xs w-screen lg:w-full">
 
         {/* ── Company header (print-friendly) ───────────────── */}
         <div className="mb-6 text-center">
@@ -96,7 +96,7 @@ export default function LedgerGroupSummary({
         </div>
 
         {/* ── context row: date-range + optional group label ─ */}
-        <div className="mb-4 flex items-center justify-between print:hidden">
+        <div className="mb-4 flex items-center justify-between print:hidden ">
           <span className="inline-block rounded-full bg-gray-100 px-3 py-1 text-xs text-gray-600">
             From&nbsp;{filters.from_date}&nbsp;to&nbsp;{filters.to_date}
           </span>
@@ -109,7 +109,7 @@ export default function LedgerGroupSummary({
           </div>
         </div>
 
-      <div className="mx-auto mt-6 max-w-6xl rounded bg-white p-4 shadow">
+      <div className="mx-auto mt-6 max-w-6xl rounded bg-white p-4 shadow w-screen lg:w-full">
         {/* title + print */}
         <div className="flex items-center justify-between print:hidden">
           <h2 className="text-xl font-semibold text-gray-800">
@@ -121,7 +121,7 @@ export default function LedgerGroupSummary({
           <Button
             size="sm"
             onClick={() => window.print()}
-            className="bg-blue-600 text-white hover:bg-blue-700"
+            className="bg-black text-white hover:bg-gray-700"
           >
             <Printer className="mr-2 h-4 w-4" /> Print
           </Button>

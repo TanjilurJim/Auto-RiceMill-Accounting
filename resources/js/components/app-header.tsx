@@ -11,7 +11,20 @@ import { useInitials } from '@/hooks/use-initials';
 import { cn } from '@/lib/utils';
 import { type BreadcrumbItem, type NavItem, type SharedData } from '@/types';
 import { Link, usePage } from '@inertiajs/react';
-import { BookOpen, Folder, LayoutGrid, Menu, Search } from 'lucide-react';
+import {
+    Banknote,
+    BookOpen,
+    BookOpenCheck,
+    BookText,
+    CreditCard,
+    Folder,
+    Layers3,
+    LayoutGrid,
+    Menu,
+    Package,
+    Search,
+    ShoppingCart,
+} from 'lucide-react';
 import AppLogo from './app-logo';
 import AppLogoIcon from './app-logo-icon';
 
@@ -22,7 +35,15 @@ const mainNavItems: NavItem[] = [
         icon: LayoutGrid,
     },
 ];
-
+const quickLinks = [
+    { label: 'Received', href: '/received-add', icon: Banknote, color: 'bg-green-600' },
+    { label: 'Payment', href: '/payment-add?from_date=&to_date=', icon: CreditCard, color: 'bg-red-500' },
+    { label: 'Purchases', href: '/purchases', icon: ShoppingCart, color: 'bg-amber-500' },
+    { label: 'Sales', href: '/sales', icon: Package, color: 'bg-blue-600' },
+    { label: 'Day Book', href: '/reports/day-book', icon: BookText, color: 'bg-indigo-500' },
+    { label: 'Account Ledger', href: '/reports/account-ledger', icon: BookOpenCheck, color: 'bg-purple-500' },
+    { label: 'Stock Report', href: '/reports/stock-summary', icon: Layers3, color: 'bg-cyan-600' },
+];
 const rightNavItems: NavItem[] = [
     {
         title: 'Repository',
@@ -99,7 +120,7 @@ export function AppHeader({ breadcrumbs = [] }: AppHeaderProps) {
                     </Link>
 
                     {/* Desktop Navigation */}
-                    <div className="ml-6  h-full items-center space-x-6 lg:flex">
+                    <div className="ml-6 h-full items-center space-x-6 lg:flex">
                         <NavigationMenu className="flex h-full items-stretch">
                             <NavigationMenuList className="flex h-full items-stretch space-x-2">
                                 {mainNavItems.map((item, index) => (
@@ -122,6 +143,23 @@ export function AppHeader({ breadcrumbs = [] }: AppHeaderProps) {
                                 ))}
                             </NavigationMenuList>
                         </NavigationMenu>
+                    </div>
+
+                    <div className="ml-4 hidden items-center gap-2 lg:flex">
+                        {quickLinks.map(({ label, href, icon: Icon, color }) => (
+                            <Link
+                                key={label}
+                                href={href}
+                                className={cn(
+                                    'inline-flex items-center gap-1 rounded-md px-3 py-1.5 text-sm font-medium text-white',
+                                    'shadow transition hover:-translate-y-0.5 hover:shadow-md',
+                                    color,
+                                )}
+                            >
+                                <Icon className="h-4 w-4" />
+                                <span>{label}</span>
+                            </Link>
+                        ))}
                     </div>
 
                     <div className="ml-auto flex items-center space-x-2">

@@ -78,7 +78,7 @@
                 </div>
                 <div class="flex flex-col items-center text-center">
                     <span class="text-lg font-medium text-[#1D1C1E]">Send Email:</span>
-                    <div class="text-sm sm:text-base md:text-lg text-gray-600">autoricemillsoftware@gmial.com</div>
+                    <div class="text-sm sm:text-base md:text-lg text-gray-600">autoricemillsoftware@gmail.com</div>
                 </div>
                 <div class="flex flex-col items-center text-center">
                     <span class="text-lg font-medium text-[#1D1C1E]">Address:</span>

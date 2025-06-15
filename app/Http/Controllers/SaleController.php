@@ -11,7 +11,8 @@ use App\Models\Item;
 use App\Models\Stock;
 use App\Models\Journal;
 use App\Models\JournalEntry;
-
+use function company_info;
+use function numberToWords;
 use Illuminate\Support\Facades\DB;
 use App\Models\ReceivedMode;
 use Illuminate\Http\Request;
@@ -420,44 +421,71 @@ class SaleController extends Controller
 
     // Invoice (ERP style print)
     // Invoice (ERP style print)
-    public function invoice(Sale $sale)
-    {
-        $sale->load(['saleItems.item', 'godown', 'salesman', 'accountLedger']);
-        return Inertia::render('sales/print/invoice', [
-            'sale' => $sale,
-            'company' => auth()->user() // Passing company details (User model)
-        ]);
-    }
 
-    // Truck Chalan (ERP style print)
-    public function truckChalan(Sale $sale)
-    {
-        $sale->load(['saleItems.item', 'godown', 'salesman', 'accountLedger']);
-        return Inertia::render('sales/print/truck-chalan', [
-            'sale' => $sale,
-            'company' => auth()->user() // Passing company details (User model)
-        ]);
-    }
 
-    // Load Slip (ERP style print)
-    public function loadSlip(Sale $sale)
-    {
-        $sale->load(['saleItems.item', 'godown', 'salesman', 'accountLedger']);
-        return Inertia::render('sales/print/load-slip', [
-            'sale' => $sale,
-            'company' => auth()->user() // Passing company details (User model)
-        ]);
-    }
+public function invoice(Sale $sale)
+{
+    $sale->load([
+        'saleItems.item.unit',   // unit eager-loaded like purchases
+        'godown',
+        'salesman',
+        'accountLedger',
+    ]);
 
-    // Gate Pass (ERP style print)
-    public function gatePass(Sale $sale)
-    {
-        $sale->load(['saleItems.item', 'godown', 'salesman', 'accountLedger']);
-        return Inertia::render('sales/print/gate-pass', [
-            'sale' => $sale,
-            'company' => auth()->user() // Passing company details (User model)
-        ]);
-    }
+    return Inertia::render('sales/print/invoice', [
+        'sale'        => $sale,
+        'company'     => company_info(),                 // ← same helper
+        'amountWords' => numberToWords((int) $sale->grand_total),
+    ]);
+}
+
+public function truckChalan(Sale $sale)
+{
+    $sale->load([
+        'saleItems.item.unit',
+        'godown',
+        'salesman',
+        'accountLedger',
+    ]);
+
+    return Inertia::render('sales/print/truck-chalan', [
+        'sale'        => $sale,
+        'company'     => company_info(),
+        'amountWords' => numberToWords((int) $sale->grand_total),
+    ]);
+}
+
+public function loadSlip(Sale $sale)
+{
+    $sale->load([
+        'saleItems.item.unit',
+        'godown',
+        'salesman',
+        'accountLedger',
+    ]);
+
+    return Inertia::render('sales/print/load-slip', [
+        'sale'        => $sale,
+        'company'     => company_info(),
+        'amountWords' => numberToWords((int) $sale->grand_total),
+    ]);
+}
+
+public function gatePass(Sale $sale)
+{
+    $sale->load([
+        'saleItems.item.unit',
+        'godown',
+        'salesman',
+        'accountLedger',
+    ]);
+
+    return Inertia::render('sales/print/gate-pass', [
+        'sale'        => $sale,
+        'company'     => company_info(),
+        'amountWords' => numberToWords((int) $sale->grand_total),
+    ]);
+}
 
 
     // Destroy Sale (already present)

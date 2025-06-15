@@ -2,16 +2,22 @@
 
 namespace App\Http\Controllers;
 
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Http\Request;
 use App\Models\SalesOrder;
+
 use App\Models\SalesOrderItem;
 use App\Models\AccountLedger;
 use App\Models\Salesman;
 use App\Models\Item;
 use App\Models\Unit;
 use App\Models\Godown;
-
+use App\Models\CompanySetting;
+use App\Models\Stock;
 use Inertia\Inertia;
+use function company_info;
+use function numberToWords;
+
 
 class SalesOrderController extends Controller
 {
@@ -35,31 +41,43 @@ class SalesOrderController extends Controller
 
     public function create()
     {
-        $userId = auth()->id(); // Get the current user's ID
+        $user  = auth()->user();
+        $me    = $user->id;
+        $owner = $user->creator_id;        // null for owners / admin
 
         return Inertia::render('sales-orders/create', [
-            'ledgers' => AccountLedger::select('id', 'account_ledger_name as name')
-                ->where('created_by', $userId)
-                ->get(),
+            'ledgers'  => AccountLedger::select('id', 'account_ledger_name as name')
+                ->where('created_by', $me)->get(),
 
             'salesmen' => Salesman::select('id', 'name')
-                ->where('created_by', $userId)
-                ->get(),
+                ->where('created_by', $me)->get(),
 
-            'products' => Item::select('id', 'item_name as name', 'previous_stock as stock', 'unit_id')
+            /*  🟢  CHANGE THIS BLOCK  ────────────────────────── */
+            'products' => Item::select('id', 'item_name as name', 'unit_id')
                 ->with('unit')
-                ->where('created_by', $userId)
+                ->withSum(
+                    [
+                        'stocks as stock' => fn($q) =>
+                        $q->where('created_by', $me)        // tenant-safe
+                    ],
+                    'qty'                                   // sum qty column
+                )
+                ->where('created_by', $me)
+                ->get(),
+            /*  ──────────────────────────────────────────────── */
+
+            'units'    => Unit::select('id', 'name')
+                ->when(
+                    ! $user->hasRole('admin'),
+                    fn($q) => $q->whereIn('created_by', $owner ? [$me, $owner] : [$me])
+                )
                 ->get(),
 
-            'units' => Unit::select('id', 'name')
-
-                ->get(),
-
-            'godowns' => Godown::select('id', 'name')
-                ->where('created_by', $userId)
-                ->get(),
+            'godowns'  => Godown::select('id', 'name')
+                ->where('created_by', $me)->get(),
         ]);
     }
+
 
     public function store(Request $request)
     {
@@ -130,16 +148,58 @@ class SalesOrderController extends Controller
                 ->where('created_by', $userId)
                 ->get(),
 
-            'products' => Item::select('id', 'item_name as name', 'previous_stock as stock', 'unit_id')
+            'products' => Item::select('id', 'item_name as name', 'unit_id')
                 ->with('unit')
+                ->withSum(
+                    [
+                        'stocks as stock' => fn($q) =>
+                        $q->where('created_by', $userId)
+                    ],
+                    'qty'
+                )
                 ->where('created_by', $userId)
                 ->get(),
 
-            'units' => Unit::select('id', 'name')->get(),
+
+            'units' => Unit::select('id', 'name')
+                ->when(
+                    ! auth()->user()->hasRole('admin'),
+                    fn($q) => $q->whereIn(
+                        'created_by',
+                        auth()->user()->creator_id
+                            ? [auth()->id(), auth()->user()->creator_id]
+                            : [auth()->id()]
+                    )
+                )
+                ->get(),
 
             'godowns' => Godown::select('id', 'name')
                 ->where('created_by', $userId)
                 ->get(),
+        ]);
+    }
+
+    public function invoice(SalesOrder $salesOrder)
+    {
+        /* tenant safety */
+        if (
+            ! auth()->user()->hasRole('admin') &&
+            $salesOrder->created_by !== auth()->id()
+        ) {
+            abort(403, 'Unauthorised');
+        }
+
+        /* eager-load what the front-end needs */
+        $salesOrder->load([
+            'ledger',                 // supplier / customer ledger
+            'salesman',
+            'items.product.unit',     // product → unit name
+        ]);
+
+        return Inertia::render('sales-orders/invoice', [
+            'order'       => $salesOrder,
+            'company'     => company_info(),                     // helper
+            'amountWords' => numberToWords((int)$salesOrder->total_amount),
         ]);
     }
 }

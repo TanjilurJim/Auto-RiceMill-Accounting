@@ -622,7 +622,7 @@ export default function SaleCreate({
 
                                 {/* Net Rent */}
                                 <div>
-                                    <label className="mb-1 block text-sm font-medium text-gray-700">Net Rent</label>
+                                    <label className="mb-1 block text-sm font-medium text-gray-700">Due Rent</label>
                                     <input
                                         type="text"
                                         className="w-full rounded border p-2"

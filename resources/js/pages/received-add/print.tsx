@@ -1,89 +1,128 @@
-import React, { useEffect } from 'react';
-import { Head } from '@inertiajs/react';
-import { amountToWords } from '@/utils/amountToWords';
+import AppLayout       from '@/layouts/app-layout';
+import ActionFooter    from '@/components/ActionFooter';
+import { Head, Link }  from '@inertiajs/react';
+import { useEffect }   from 'react';
 
-interface Props {
-  receivedAdd: {
-    date: string;
-    voucher_no: string;
-    amount: number;
-    received_mode: { mode_name: string };
-    account_ledger: { account_ledger_name: string };
-    description?: string;
-  };
-  company?: {
-    name: string;
-    address: string;
-    phone: string;
-  };
+interface Mode   { mode_name : string }
+interface Ledger { account_ledger_name : string }
+
+interface Received {
+  date        : string;
+  voucher_no  : string;
+  amount      : number;
+  description ?: string;
+  received_mode : Mode;
+  account_ledger : Ledger;
 }
 
-export default function Print({ receivedAdd, company }: Props) {
+interface Company {
+  company_name ?: string;
+  name         ?: string;
+  address      ?: string;
+  phone        ?: string;
+  logo_url     ?: string;
+}
 
-    useEffect(() => {
-        window.print();
-      }, []);
+export default function ReceivedPrint(
+  { receivedAdd, company, amountWords }:
+  { receivedAdd:Received; company?:Company; amountWords:string }
+){
+  /* auto-print once page is ready (comment line if not desired) */
+  useEffect(()=>window.print(), []);
 
-  const formatDate = (d: string) => new Date(d).toLocaleDateString('en-GB');
+  const fmtDate = (d:string) =>
+     new Date(d).toLocaleDateString('en-GB');
 
   return (
-    <div className="p-6 text-sm font-serif text-black max-w-3xl mx-auto bg-white">
-      <Head title="Print Received Voucher" />
+    <AppLayout>
+      <Head title={`Received #${receivedAdd.voucher_no}`} />
 
-      {/* Header */}
-      <div className="text-center mb-6">
-        <h1 className="text-xl font-bold">{company?.company_name || 'Company Name'}</h1>
-        <p>{company?.company_address || 'Company Address'}</p>
-        <p>Phone: {company?.mobile || '000-000-0000'}</p>
-      </div>
+      <div className="mx-auto max-w-3xl bg-white p-8 print:p-4 text-sm">
 
-      {/* Title */}
-      <h2 className="text-center text-lg font-semibold underline mb-4">Received Voucher</h2>
+        {/* back (hidden on print) */}
+        <Link href="/received-add"
+              className="mb-4 inline-block rounded bg-gray-300 px-4 py-2 hover:bg-neutral-100 print:hidden">
+          Back
+        </Link>
 
-      {/* Voucher Info */}
-      <div className="grid grid-cols-2 gap-4 mb-4 text-sm">
-        <div>
-          <p><strong>Voucher No:</strong> {receivedAdd.voucher_no}</p>
-          <p><strong>Account Mode:</strong> {receivedAdd.received_mode?.mode_name}</p>
+        {/* company header */}
+        <div className="mb-6 text-center print:text-xs">
+          {company?.logo_url &&
+            <img src={company.logo_url}
+                 className="mx-auto h-20 object-contain mb-2 print:h-12" />}
+          <h1 className="text-xl font-bold">
+            {company?.company_name ?? company?.name ?? 'Company Name'}
+          </h1>
+          {company?.address && <div>{company.address}</div>}
+          {company?.phone   && <div>Phone: +88 {company.phone}</div>}
         </div>
-        <div className="text-right">
-          <p><strong>Date:</strong> {formatDate(receivedAdd.date)}</p>
+
+        <h2 className="mb-4 text-center text-lg font-semibold underline">
+          Received Voucher
+        </h2>
+
+        {/* meta */}
+        <div className="mb-4 grid grid-cols-2 gap-4 text-sm">
+          <div>
+            <p><strong>Voucher&nbsp;No :</strong> {receivedAdd.voucher_no}</p>
+            <p><strong>Account&nbsp;Mode :</strong> {receivedAdd.received_mode?.mode_name}</p>
+          </div>
+          <div className="text-right">
+            <p><strong>Date :</strong> {fmtDate(receivedAdd.date)}</p>
+          </div>
         </div>
-      </div>
 
-      {/* Table */}
-      <table className="w-full border border-collapse text-sm mb-6">
-        <thead>
-          <tr className="bg-gray-100">
-            <th className="border px-3 py-1 text-left">Particulars</th>
-            <th className="border px-3 py-1 text-right">Amount</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr>
-            <td className="border px-3 py-1">{receivedAdd.account_ledger?.account_ledger_name}</td>
-            <td className="border px-3 py-1 text-right">{Number(receivedAdd.amount).toFixed(2)}</td>
-          </tr>
-        </tbody>
-      </table>
+        {/* particulars */}
+        <table className="mb-6 w-full border border-collapse text-sm">
+          <thead className="bg-gray-100">
+            <tr>
+              <th className="border px-3 py-1 text-left">Particulars</th>
+              <th className="border px-3 py-1 text-right">Amount</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td className="border px-3 py-1">
+                {receivedAdd.account_ledger?.account_ledger_name}
+              </td>
+              <td className="border px-3 py-1 text-right">
+                {(+receivedAdd.amount).toFixed(2)}
+              </td>
+            </tr>
+          </tbody>
+        </table>
 
-      {/* Note */}
-      <div className="mb-4">
-        <p><strong>Note:</strong> {receivedAdd.description || '—'}</p>
-      </div>
+        {/* note */}
+        <p className="mb-4">
+          <strong>Note :</strong> {receivedAdd.description ?? '—'}
+        </p>
 
-      {/* Totals */}
-      <div className="text-right mb-2">
-        <p className="text-base"><strong>Grand Total:</strong> {Number(receivedAdd.amount).toFixed(2)}</p>
-        <p><strong>Amount in Words:</strong> {amountToWords(receivedAdd.amount)}</p> {/* Replace with dynamic word converter if needed */}
-      </div>
+        {/* totals */}
+        <div className="mb-6 text-right">
+          <p className="text-base">
+            <strong>Grand&nbsp;Total :</strong> {(+receivedAdd.amount).toFixed(2)}
+          </p>
+          <p>
+            <strong>In&nbsp;Words :</strong> {amountWords}
+          </p>
+        </div>
 
-      {/* Signatures */}
-      <div className="grid grid-cols-3 gap-6 text-center pt-8 mt-8 text-sm">
-        <p className="border-t pt-2">Received By</p>
-        <p className="border-t pt-2">Verified By</p>
-        <p className="border-t pt-2">Authorised Signatory</p>
+        {/* signatures */}
+        <div className="mt-10 grid grid-cols-3 gap-6 text-center text-sm">
+          {['Received By','Verified By','Authorised Signatory'].map(t=>(
+            <p key={t} className="border-t pt-2">{t}</p>
+          ))}
+        </div>
+
+        {/* action footer (hidden on print) */}
+        <ActionFooter
+          className="justify-center print:hidden"
+          cancelHref="/received-add"
+          cancelText="Back"
+          onSubmit={()=>window.print()}
+          submitText="Print"
+        />
       </div>
-    </div>
+    </AppLayout>
   );
 }

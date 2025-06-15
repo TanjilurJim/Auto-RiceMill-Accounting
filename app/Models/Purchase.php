@@ -24,7 +24,7 @@ class Purchase extends Model
         'shipping_details',
         'delivered_to',
         'created_by',
-
+        'inventory_ledger_id', 
         // 🆕 Newly added:
         'received_mode_id',
         'amount_paid',

@@ -20,7 +20,7 @@ class AccountLedgerController extends Controller
             $query->where('created_by', auth()->id());
         }
 
-        $accountLedgers = $query->get();
+        $accountLedgers = $query->paginate(10);
 
         return Inertia::render('account-ledgers/index', [
             'accountLedgers' => $accountLedgers,

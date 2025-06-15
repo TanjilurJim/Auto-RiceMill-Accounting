@@ -46,7 +46,7 @@ interface Item {
 interface StockRow {
     id: number;
     qty: number;
-    item: { id: number; item_name: string };
+    item: { id: number; item_name: string;  unit_name?: string; };
 }
 
 export default function PurchaseCreate({
@@ -265,7 +265,7 @@ export default function PurchaseCreate({
                                             fetchBalance(val, 'party'); // ☑ now hits the new route
                                         }}
                                     >
-                                        <option value="">Select Party Ledger</option>
+                                        <option value="">Select Supplier Ledger</option>
                                         {ledgers.map((l) => (
                                             <option key={l.id} value={l.id}>
                                                 {l.account_ledger_name}
@@ -356,7 +356,7 @@ export default function PurchaseCreate({
                                                         <option value="">Select</option>
                                                         {godownItems.map((stock) => (
                                                             <option key={stock.item.id} value={stock.item.id}>
-                                                                {stock.item.item_name} ({stock.qty} in stock)
+                                                                {stock.item.item_name}  ({stock.qty} {stock.item.unit_name} in stock)
                                                             </option>
                                                         ))}
                                                     </select>
@@ -527,7 +527,17 @@ export default function PurchaseCreate({
                         </div>
 
                         {/* Shipping & Delivered To */}
-                        <div className="col-span-2 grid grid-cols-1 gap-4 space-y-4 md:grid-cols-2">
+                        <div className="col-span-2 grid grid-cols-1 gap-4 space-y-4 md:grid-cols-2"> 
+                            {/* using this for supplier info and shipping details */}
+                            <div>
+                                <label className="mb-1 block font-semibold text-gray-700">Supplier Info</label>
+                                <textarea
+                                    className="w-full rounded border bg-white p-2 shadow-sm focus:ring-1 focus:ring-blue-500 focus:outline-none"
+                                    rows={3}
+                                    value={data.delivered_to || ''}
+                                    onChange={(e) => setData('delivered_to', e.target.value)}
+                                ></textarea>
+                            </div>
                             <div className="">
                                 <label className="mb-1 block font-semibold text-gray-700">Shipping Details</label>
                                 <textarea
@@ -537,15 +547,7 @@ export default function PurchaseCreate({
                                     onChange={(e) => setData('shipping_details', e.target.value)}
                                 ></textarea>
                             </div>
-                            <div>
-                                <label className="mb-1 block font-semibold text-gray-700">Delivered To</label>
-                                <textarea
-                                    className="w-full rounded border bg-white p-2 shadow-sm focus:ring-1 focus:ring-blue-500 focus:outline-none"
-                                    rows={3}
-                                    value={data.delivered_to || ''}
-                                    onChange={(e) => setData('delivered_to', e.target.value)}
-                                ></textarea>
-                            </div>
+                            
                         </div>
 
                         {/* Action Buttons */}
@@ -555,7 +557,7 @@ export default function PurchaseCreate({
                             cancelHref="/purchases"
                             processing={processing}
                             submitText={processing ? 'Saving...' : 'Save'}
-                            saveAndPrintText="Save & Print"
+                            // saveAndPrintText="Save & Print"
                             cancelText="Cancel"
                         />
                     </form>

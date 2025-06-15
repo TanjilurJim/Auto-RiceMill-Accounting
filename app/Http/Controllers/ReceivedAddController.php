@@ -2,6 +2,8 @@
 
 namespace App\Http\Controllers;
 
+use function company_info;
+use function numberToWords;
 use App\Models\ReceivedAdd;
 use App\Models\ReceivedMode;
 use App\Models\AccountLedger;
@@ -154,13 +156,21 @@ class ReceivedAddController extends Controller
     }
     public function print(ReceivedAdd $receivedAdd)
     {
+        /* tenant safety */
+        if (
+            ! auth()->user()->hasRole('admin') &&
+            $receivedAdd->created_by !== auth()->id()
+        ) {
+            abort(403, 'Unauthorised');
+        }
+
+        /* what the UI needs */
         $receivedAdd->load(['receivedMode', 'accountLedger']);
 
-        $company = CompanySetting::where('created_by', Auth::id())->first();
-
         return Inertia::render('received-add/print', [
-            'receivedAdd' => $receivedAdd,
-            'company' => $company,
+            'receivedAdd'  => $receivedAdd,
+            'company'      => company_info(),                       // ↞ helper adds logo URLs too
+            'amountWords'  => numberToWords((int) $receivedAdd->amount),
         ]);
     }
 }

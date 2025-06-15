@@ -9,6 +9,11 @@ use App\Models\Salesman;
 use App\Models\AccountLedger;
 use App\Models\Item;
 use App\Models\Journal;
+use App\Models\Unit;
+
+use function company_info;   // helper
+use function numberToWords;
+
 use App\Models\Stock;
 use App\Models\ReceivedMode;
 use App\Models\JournalEntry;
@@ -59,7 +64,7 @@ class PurchaseController extends Controller
             'salesmen' => Salesman::when(!auth()->user()->hasRole('admin'), fn($q) => $q->where('created_by', $userId))->get(),
             'ledgers' => AccountLedger::when(!auth()->user()->hasRole('admin'), fn($q) => $q->where('created_by', $userId))->get(),
             'stockItemsByGodown' =>  //  <-- new
-            Stock::with('item')          // item‑level info
+            Stock::with('item.unit')          // item‑level info
                 ->when(
                     !auth()->user()->hasRole('admin'),
                     fn($q) => $q->where('created_by', $userId)
@@ -72,6 +77,7 @@ class PurchaseController extends Controller
                     'item' => [
                         'id'        => $s->item->id,
                         'item_name' => $s->item->item_name,
+                        'unit_name'  => $s->item->unit->name ?? '',
                     ],
                 ]))
                 ->toArray(),
@@ -271,7 +277,7 @@ class PurchaseController extends Controller
                 ->get(['id', 'mode_name', 'ledger_id']),
 
             /* --- NEW: grouped stock just like the create() page --- */
-            'stockItemsByGodown' => Stock::with('item')
+            'stockItemsByGodown' => Stock::with('item.unit')
                 ->where('created_by', $userId)
                 ->get()                                // each row: item + qty
                 ->groupBy('godown_id')                 // bucket by godown
@@ -281,6 +287,7 @@ class PurchaseController extends Controller
                     'item' => [
                         'id'        => $s->item->id,
                         'item_name' => $s->item->item_name,
+                        'unit_name'  => $s->item->unit->name ?? '',
                     ],
                 ]))
                 ->toArray(),
@@ -468,13 +475,25 @@ class PurchaseController extends Controller
 
     public function invoice(Purchase $purchase)
     {
-        // Load relationships if needed
-        $purchase->load(['purchaseItems.item', 'godown', 'salesman', 'accountLedger']);
+        // eager-load anything you need on the Vue/React side
+        $purchase->load([
+            'purchaseItems.item.unit',   // or ->product  – match your relations
+            'godown',
+            'salesman',
+            'accountLedger',
+        ]);
+        // dd($purchase->purchaseItems);
 
-        // Return an Inertia page for printing
+        // company_info() is the helper you showed
+        $company = company_info();
+
+        // convert grand_total to words once, server-side
+        $amountWords = numberToWords((int) $purchase->grand_total);
+
         return Inertia::render('purchases/invoice', [
-            'purchase' => $purchase,
-            // pass any other data you want to display
+            'purchase'      => $purchase,
+            'company'       => $company,       // 👉 front-end gets {name,address,phone,…}
+            'amountWords'   => $amountWords,   // optional – saves JS work
         ]);
     }
     public function fetchBalance($id)

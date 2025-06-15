@@ -16,7 +16,7 @@
                                 <div class="w-full h-auto flex flex-col md:flex-row items-center justify-center px-4">
                                     <div data-aos="zoom-in" class="w-full md:w-[660px] bg-white/70 p-6 md:p-8 rounded-lg shadow-lg">
                                         <h2 class=" text-black text-xl sm:text-2xl md:text-3xl font-bold leading-9 mb-4 ">
-                                            Welcome To Food Industry </h2>
+                                            Welcome To Auto Ricemill Accounting Software </h2>
                                         <h1 class="text-[#6A1A1F] text-3xl sm:text-4xl md:text-5xl font-bold leading-tight tracking-wide mb-4"> 
                                             Our Latest Item <br> Food Industry
                                         </h1>
@@ -24,7 +24,7 @@
                                             Lorem Ipsum is simply dummy text of the printing and typesetting industry. Lorem Ipsum has been the...
                                         </p>
                                         <a href="{{ auth()->check() ? route('dashboard') : route('login') }}" class="border border-black px-6 py-2 text-sm md:text-base font-medium text-[#6A1A1F] hover:bg-gray-100 hover:scale-105 transition-transform duration-300 ease-in-out">
-                                            View Portfolio
+                                            View Software
                                         </a>
                                     </div>
                                 </div>
@@ -48,7 +48,7 @@
                                         </p>
                                         <a href="{{ auth()->check() ? route('dashboard') : route('login') }}"
                                             class="border border-black px-6 py-2 text-sm md:text-base font-medium text-[#6A1A1F] hover:bg-gray-100 hover:scale-105 transition-transform duration-300 ease-in-out">
-                                            View Portfolio
+                                            View Software
                                         </a>
                                     </div>
                                 </div>
