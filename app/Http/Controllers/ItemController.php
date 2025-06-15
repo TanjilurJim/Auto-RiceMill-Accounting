@@ -10,6 +10,7 @@ use Illuminate\Support\Facades\DB;
 use App\Models\Stock;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
+use App\Models\User;
 
 class ItemController extends Controller
 {
@@ -37,10 +38,44 @@ class ItemController extends Controller
      */
     public function create()
     {
+        /* -------------------------------------------------
+       1️⃣  Figure out which other users are “visible” to me
+           -------------------------------------------------
+           - always myself
+           - my direct children        (users where created_by = me)
+           - my parent (created_by)    ⇢ but NOT if that parent is admin
+    ------------------------------------------------- */
+        $me           = auth()->user();
+        $extraUserIds = [];                        // will feed createdByMeOr()
+
+        // children
+        $extraUserIds = array_merge(
+            $extraUserIds,
+            User::where('created_by', $me->id)->pluck('id')->all()
+        );
+
+        // parent  (only if non-admin)
+        if ($me->created_by) {
+            $parent = User::find($me->created_by);
+            if ($parent && ! $parent->hasRole('admin')) {
+                $extraUserIds[] = $parent->id;
+            }
+        }
+
+        /* remove duplicates just in case */
+        $extraUserIds = array_unique($extraUserIds);
+
+        /* -------------------------------------------------
+       2️⃣  Build the form payload
+    ------------------------------------------------- */
         return Inertia::render('items/create', [
-            'categories' => Category::all(),
-            'units' => Unit::all(),
-            'godowns' => Godown::where('created_by', auth()->id())->get(),
+
+            // master tables: mine OR my family (parent/children)
+            'categories' => Category::where(createdByMeOr($extraUserIds))->get(),
+            'units'      => Unit::where(createdByMeOr($extraUserIds))->get(),
+
+            // godowns: same visibility
+            'godowns'    => Godown::where(createdByMeOr($extraUserIds))->get(),
         ]);
     }
 

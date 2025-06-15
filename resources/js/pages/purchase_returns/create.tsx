@@ -342,7 +342,7 @@ export default function PurchaseReturnCreate({ godowns, ledgers, items, received
                             cancelHref="/purchase-returns"
                             processing={processing}
                             submitText={processing ? 'Saving...' : 'Save'}
-                            saveAndPrintText='Save & Print'
+                            // saveAndPrintText='Save & Print'
                             cancelText="Cancel"
                         />
                     </form>
