@@ -1,18 +1,19 @@
+import ActionFooter from '@/components/ActionFooter';
 import AppLayout from '@/layouts/app-layout';
 import { Head } from '@inertiajs/react';
 import React, { useEffect } from 'react';
 
-export default function Print({ 
-    company, 
-    payments, 
-    voucher_no, 
-    date, 
-    payment_mode, 
-    description, 
-    total_amount, 
-    amount_in_words, 
-    previous_balance, 
-    closing_balance 
+export default function Print({
+    company,
+    payments,
+    voucher_no,
+    date,
+    payment_mode,
+    description,
+    total_amount,
+    amount_in_words,
+    previous_balance,
+    closing_balance
 }: any) {
     useEffect(() => {
         // Auto trigger print dialog
@@ -23,7 +24,7 @@ export default function Print({
         <AppLayout>
             <Head title={`Voucher - ${voucher_no}`} />
 
-            <div className="mx-auto max-w-3xl p-6 text-sm text-gray-800 bg-white print:shadow-none print:p-0 print:text-black">
+            <div className=" max-w-full p-6 text-sm text-gray-800 bg-white print:shadow-none print:p-0 print:text-black">
                 {/* Company Info */}
                 <div className="text-center mb-4">
                     <h1 className="text-lg font-bold uppercase">{company?.company_name}</h1>
@@ -86,6 +87,16 @@ export default function Print({
                     <div className="border-t pt-2">Verified By</div>
                     <div className="border-t pt-2">Authorised Signatory</div>
                 </div>
+
+                {/* action footer (hidden on print) */}
+                <ActionFooter
+                    className="justify-center print:hidden"
+                    cancelHref="/payment-add"
+                    cancelText="Back"
+                    onSubmit={() => window.print()}
+                    submitText="Print"
+                />
+
             </div>
         </AppLayout>
     );

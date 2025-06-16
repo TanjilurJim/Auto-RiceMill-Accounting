@@ -47,13 +47,20 @@ export default function PurchaseCategoryReport({
 
     return (
         <AppLayout title="Category-wise Purchase Report">
-            <div className="mx-auto max-w-7xl space-y-4 p-4">
+            <div className="max-w-full space-y-4 p-4">
                 <Head title="Category-wise Purchase Report" />
                 <Card className="shadow-lg">
                     {/* ── Header ───────────────────────────────────────────── */}
                     <CardHeader className="bg-gray-50 py-6 text-center">
                         {/* company block */}
                         <div className="space-y-1">
+                            {company?.logo_path && (
+                                <img
+                                    src={company.logo_path}
+                                    alt="Company Logo"
+                                    className="mx-auto h-16 w-16 object-cover print:hidden"
+                                />
+                            )}
                             <h1 className="text-3xl font-bold uppercase">{company?.company_name ?? 'Company Name'}</h1>
                             {company?.address && <p className="text-sm text-gray-700">{company.address}</p>}
                             {company?.mobile && <p className="text-sm text-gray-700">Phone: {company.mobile}</p>}

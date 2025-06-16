@@ -66,7 +66,7 @@ export default function LedgerGroupSummary({
       </div>
 
       {/* main card */}
-      <div className="mx-auto mt-6 max-w-6xl rounded bg-white p-4 shadow print:text-xs w-screen lg:w-full">
+      <div className="mt-6 max-w-full rounded bg-white p-4 shadow print:text-xs w-screen lg:w-full">
 
         {/* ── Company header (print-friendly) ───────────────── */}
         <div className="mb-6 text-center">

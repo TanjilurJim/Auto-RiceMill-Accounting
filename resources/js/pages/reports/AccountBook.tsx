@@ -77,11 +77,11 @@ export default function AccountBook({ company, entries, opening_balance, from, t
             </div>
             <Head title="Account Book" />
 
-            <div className="mx-auto mt-6 max-w-6xl rounded bg-white p-4 shadow print:text-xs print:font-normal">
+            <div className="mt-6 max-w-full rounded bg-white p-4 shadow print:text-xs print:font-normal">
                 {/* Header */}
                 {/* Header Layout */}
                 <div className="mb-6 text-center">
-                    {company.logo_path && <img src={company.logo_path} alt="Company Logo" className="mx-auto mb-2 h-16" />}
+                    {company?.logo_path && <img src={company.logo_path} alt="Company Logo" className="mx-auto mb-2 h-16" />}
                     <h2 className="text-2xl font-bold">{company.company_name}</h2>
 
                     {company.address && <p className="text-sm">{company.address}</p>}

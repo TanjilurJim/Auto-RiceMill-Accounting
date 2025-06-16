@@ -52,9 +52,16 @@ export default function ItemWiseStockSummary({ items, filters, company }: Props)
 
     return (
         <AppLayout title="Item Wise Stock Summary">
-            <div className="mx-auto max-w-6xl space-y-6 p-4">
+            <div className="max-w-full space-y-6 p-4">
                 <Card className="shadow">
                     <CardHeader className="space-y-1 border-b bg-gray-50 py-6 text-center">
+                        {company?.logo_path && (
+                            <img
+                                src={company.logo_path}
+                                alt="Company Logo"
+                                className="mx-auto mb-4 h-16 w-16 object-cover"
+                            />
+                        )}
                         <h1 className="text-3xl font-bold uppercase">{company?.company_name ?? 'Company Name'}</h1>
                         {company?.address && <p className="text-sm text-gray-700">{company.address}</p>}
                         {company?.mobile && <p className="text-sm text-gray-700">Phone: {company.mobile}</p>}

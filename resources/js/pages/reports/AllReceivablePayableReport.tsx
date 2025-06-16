@@ -24,6 +24,7 @@ interface Props extends PageProps {
         company_name: string;
         phone: string;
         address: string;
+        logo_path?: string;
     };
 }
 
@@ -43,6 +44,14 @@ export default function AllReceivablePayableReport({ from_date, to_date, receiva
             </div>
                 {/* ✅ Company Info (Visible in Print Too) */}
                 <div className="mb-4 text-center print:text-sm">
+                    {/* image add  */}
+                    {company.logo_path && (
+                        <img
+                            src={company.logo_path}
+                            alt="Company Logo"
+                            className="mx-auto mb-2 h-16 w-16 object-cover"
+                        />
+                    )}
                     <h1 className="text-xl font-bold">{company.company_name}</h1>
                     <p className="text-sm text-gray-600">{company.address}</p>
                     <p className="text-sm text-gray-600">Phone: {company.phone}</p>

@@ -86,7 +86,7 @@ export default function ContraPrint(props: any) {
       {/* Action buttons (screen-only) */}
       <ActionFooter
         className="justify-center print:hidden"
-        cancelHref="#"
+        cancelHref="/contra-add"
         cancelText="Back"
         onSubmit={() => window.print()}
         submitText="Print"

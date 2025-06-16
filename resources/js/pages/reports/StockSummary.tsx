@@ -43,10 +43,19 @@ export default function StockSummary({ stocks, filters, company }: Props) {
 
     return (
         <AppLayout title="Stock Summary Report">
-            <div className="mx-auto max-w-7xl space-y-4 p-4">
+            <div className="max-w-full space-y-4 p-4">
                 <Card className="shadow-lg">
                     <CardHeader className="bg-gray-50 py-6 text-center">
                         <div className="space-y-1">
+
+                            {company?.logo_path && (
+                                <img
+                                    src={company.logo_path}
+                                    alt="Company Logo"
+                                    className="mx-auto mb-2 h-16 w-16 object-cover"
+                                />
+                            )}
+
                             <h1 className="text-3xl font-bold uppercase">{company?.company_name ?? 'Company Name'}</h1>
                             {company?.address && <p className="text-sm text-gray-700">{company.address}</p>}
                             {company?.mobile && <p className="text-sm text-gray-700">Phone: {company.mobile}</p>}
