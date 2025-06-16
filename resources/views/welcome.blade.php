@@ -21,7 +21,7 @@
                                             Our Latest Product<br> 
                                         </h1>
                                         <p class="text-black text-sm sm:text-base md:text-lg font-medium leading-7 mb-6">
-                                            Lorem Ipsum is simply dummy text of the printing and typesetting industry. Lorem Ipsum has been the...
+                                            Built for Bangladeshi ricemills but flexible for other regions, our system ensures accuracy, speed, and peace of mind — helping you focus on growing your business.
                                         </p>
                                         <a href="{{ auth()->check() ? route('dashboard') : route('login') }}" class="border border-black px-6 py-2 text-sm md:text-base font-medium text-[#6A1A1F] hover:bg-gray-100 hover:scale-105 transition-transform duration-300 ease-in-out">
                                             View Software
@@ -43,8 +43,7 @@
                                             Our Latest Product <br> 
                                         </h1>
                                         <p class="text-black text-sm sm:text-base md:text-lg font-medium leading-7 mb-6">
-                                            Lorem Ipsum is simply dummy text of the printing and typesetting industry. Lorem
-                                            Ipsum has been the...
+                                            Built for Bangladeshi ricemills but flexible for other regions, our system ensures accuracy, speed, and peace of mind — helping you focus on growing your business.
                                         </p>
                                         <a href="{{ auth()->check() ? route('dashboard') : route('login') }}"
                                             class="border border-black px-6 py-2 text-sm md:text-base font-medium text-[#6A1A1F] hover:bg-gray-100 hover:scale-105 transition-transform duration-300 ease-in-out">
@@ -63,8 +62,8 @@
                     <div class="flex flex-col md:flex-row items-center gap-5 md:gap-0 text-white">
                         <!-- Left Content -->
                         <div class="px-3 md:w-3/4">
-                            <h2 class="text-xl md:text-2xl lg:text-3xl font-semibold leading-7 md:leading-11 m-1.5 text-center md:text-left">Amazing things happen to your business </h2>
-                            <p class="leading-7 text-sm lg:text-base text-center md:text-left">Lorem Ipsum is simply dummy text of the printing and typesetting industry.</p>
+                            <h2 class="text-xl md:text-2xl lg:text-3xl font-semibold leading-7 md:leading-11 m-1.5 text-center md:text-left">Empower Your Ricemill with Smarter Accounting </h2>
+                            <p class="leading-7 text-sm lg:text-base text-center md:text-left">Streamline operations, reduce manual errors, and get complete financial clarity — all in one powerful software solution.</p>
                         </div>
                         <!-- Right Content -->
                         <div class="px-3 md:w-1/4 flex items-center justify-end">
@@ -88,7 +87,7 @@
                             <div class="swiper qualityProductsSwiper rounded-lg">
                                 <div class="swiper-wrapper">
                                     <div class="swiper-slide">
-                                        <img src="{{ asset('assets/pic1.jpg') }}" alt="Quality Products" class="rounded-lg">
+                                        <img src="{{ asset('assets/farmer.jpg') }}" alt="Quality Products" class="rounded-lg">
                                     </div>
                                     <div class="swiper-slide">
                                         <img src="{{ asset('assets/pic2.jpg') }}" alt="Quality Products" class="rounded-lg">
@@ -110,10 +109,10 @@
                     <div class="md:pl-4.5 lg:pl-7.5 h-full">
                         <div class="mb-3.5 lg:mb-7.5">
                             <h2 class="text-2xl md:text-3xl lg:text-6xl leading-tight font-semibold mb-2 lg:mb-4 text-center md:text-left">
-                                Quality Products With Sweet Eggs & Breads
+                                Smarter Operations. Smoother Accounting.
                             </h2>
                             <p class="lg:pt-2.5 text-sm sm:text-base lg:text-lg text-[#494949] leading-7 mb-3 lg:mb-6 text-center md:text-left">
-                                Lorem ipsum dolor sit amet, consectetur adipiscing elit. Praesent molestie nec nisl eget scelerisque. Quisque placerat suscipit eros, eu tincidunt tellus blandit vel. Donec pellentesque dapibus interdum. Mauris et tellus congue, rutrum neque a, varius felis.
+                                From paddy arrival to rice delivery, manage every part of your ricemill business with ease. Our software ensures you never lose track of stock, suppliers, payments, or production data.
                             </p>
                         </div>
                         <div class="flex flex-row gap-3 justify-center ">

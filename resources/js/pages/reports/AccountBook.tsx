@@ -20,7 +20,8 @@ interface Props {
         company_name: string;
         address?: string;
         mobile?: string;
-        logo_path?: string;
+        logo_url?: string;
+        logo_thumb_url?: string;
         website?: string;
         email?: string;
         financial_year?: string; // <-- string, not varChar
@@ -77,11 +78,11 @@ export default function AccountBook({ company, entries, opening_balance, from, t
             </div>
             <Head title="Account Book" />
 
-            <div className="mx-auto mt-6 max-w-6xl rounded bg-white p-4 shadow print:text-xs print:font-normal">
+            <div className="mx-auto mt-6 w-full rounded bg-white p-4 shadow print:text-xs print:font-normal">
                 {/* Header */}
                 {/* Header Layout */}
                 <div className="mb-6 text-center">
-                    {company.logo_path && <img src={company.logo_path} alt="Company Logo" className="mx-auto mb-2 h-16" />}
+                    {company?.logo_url && <img src={company.logo_url} alt="Company Logo" className="mx-auto mb-2 h-20 object-contain print:h-12" />}
                     <h2 className="text-2xl font-bold">{company.company_name}</h2>
 
                     {company.address && <p className="text-sm">{company.address}</p>}

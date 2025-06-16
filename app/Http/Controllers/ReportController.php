@@ -15,6 +15,8 @@ use Maatwebsite\Excel\Facades\Excel;
 use Barryvdh\DomPDF\Facade\Pdf;
 use App\Models\Stock;
 use App\Models\Item;
+use function company_info;   // helper
+use function numberToWords;
 use App\Exports\ArrayExport;
 use App\Models\Godown;
 use App\Models\Category;
@@ -988,7 +990,7 @@ class ReportController extends Controller
         };
 
         // ── 7.  Company info ────────────────────────────────────────────────────────
-        $company = CompanySetting::firstWhere('created_by', auth()->id());
+        $company = company_info();
 
         // ── 8.  Send data to React page ─────────────────────────────────────────────
         return Inertia::render('reports/AccountBook', [

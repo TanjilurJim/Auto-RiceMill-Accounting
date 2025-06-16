@@ -8,6 +8,9 @@ use App\Models\CompanySetting;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 
+use function company_info;   // helper
+use function numberToWords;
+
 class LedgerGroupReportController extends Controller
 {
     // 1️⃣ Filter page
@@ -68,7 +71,7 @@ class LedgerGroupReportController extends Controller
             ];
         });
 
-        $company = CompanySetting::firstWhere('created_by', auth()->id());
+        $company = company_info();
         
 
         return Inertia::render('reports/LedgerGroupSummary', [
