@@ -21,6 +21,7 @@ interface Company {
   email?: string;
   mobile?: string;
   address?: string;
+  logo_path?: string;
 }
 
 export default function SaleAllProfitLossReport({
@@ -44,11 +45,18 @@ export default function SaleAllProfitLossReport({
 
   return (
     <AppLayout title="All Sales Profit & Loss">
-      <div className="mx-auto max-w-7xl space-y-4 p-4">
+      <div className=" max-w-full space-y-4 p-4">
         <Card className="shadow-lg">
 
           {/* Header */}
           <CardHeader className="bg-gray-50 py-6 text-center relative">
+            {company?.logo_path && (
+              <img
+                src={company.logo_path}
+                alt="Company Logo"
+                className="mx-auto mb-2 h-16 w-16 object-cover"
+              />
+            )}
             <h1 className="text-3xl font-bold uppercase">{company.company_name}</h1>
             {company.address && <p className="text-sm">{company.address}</p>}
             {company.mobile && <p className="text-sm">Phone: {company.mobile}</p>}

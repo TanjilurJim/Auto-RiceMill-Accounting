@@ -42,11 +42,18 @@ export default function PurchaseItemReport({
 
   return (
     <AppLayout title="Item-wise Purchase Report">
-      <div className="mx-auto max-w-7xl space-y-4 p-4">
+      <div className="max-w-full space-y-4 p-4">
         <Card className="shadow-lg">
           {/* ── Header ───────────────────────────────────────── */}
           <CardHeader className="bg-gray-50 py-6 text-center">
             <div className="space-y-1">
+              {company?.logo_path && (
+                <img
+                  src={company.logo_path}
+                  alt="Company Logo"
+                  className="mx-auto mb-2 h-16 w-16 object-cover"
+                />
+              )}
               <h1 className="text-3xl font-bold uppercase">
                 {company?.company_name ?? 'Company Name'}
               </h1>

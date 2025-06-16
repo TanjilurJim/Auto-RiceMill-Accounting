@@ -134,10 +134,14 @@
 
 
     /* custom properties */
-    --primary: #8FB1E9;
-    --primary-hover: #639cec;
-    --info: #A9D7F6;
-    --info-hover: #59bdeb;
+    /* --primary: #8FB1E9; */
+    --primary: #2563EB;
+    /* --primary-hover: #639cec; */
+    --primary-hover: #1D4ED8;
+    /* --info: #A9D7F6; */
+    --info: #59bdeb;
+    /* --info-hover: #59bdeb; */
+    --info-hover: #A9D7F6;
     --warning: #F96D6D;
     --warning-hover: #e25555;
     --danger: #B84D69;

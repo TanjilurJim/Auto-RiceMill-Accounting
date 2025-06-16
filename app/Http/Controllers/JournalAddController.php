@@ -2,11 +2,12 @@
 
 namespace App\Http\Controllers;
 
+use Inertia\Inertia;
 use App\Models\Journal;
 use App\Models\JournalEntry;
-use App\Models\AccountLedger;
 use Illuminate\Http\Request;
-use Inertia\Inertia;
+use App\Models\AccountLedger;
+use App\Models\CompanySetting;
 
 class JournalAddController extends Controller
 {
@@ -178,19 +179,31 @@ class JournalAddController extends Controller
 
 
     // Print method remains the same
-    public function print($voucherNo)
+    // public function print($voucherNo)
+    public function print($voucher_no)
     {
-        $journal = Journal::with('rows.ledger')
-            ->where('voucher_no', $voucherNo)
-            ->where('created_by', auth()->id())
-            ->firstOrFail();
+        // $journal = Journal::with('rows.ledger')
+        //     ->where('voucher_no', $voucherNo)
+        //     ->where('created_by', auth()->id())
+        //     ->firstOrFail();
+        $journal = Journal::with(['entries.ledger'])
+        ->where('voucher_no', $voucher_no)
+        ->firstOrFail();
 
-        $company = \App\Models\CompanySetting::where('created_by', auth()->id())->first();
+        $company =  CompanySetting::where('created_by', auth()->id())->first();
 
         return Inertia::render('journal-add/print', [
+        // return Inertia::render('journal-add.print', [
             'company' => $company,
             'journal' => $journal,
-            'amount_in_words' => numberToWords($journal->total_debit),
+            // 'amount_in_words' => numberToWords($journal->total_debit),
+
+            // 'amount_in_words' => numberToWords($journal->total_debit->where('type', 'debit')->sum('amount')),
+
+            'amount_in_words' => numberToWords(
+                ($journal->entries ? $journal->entries->where('type', 'debit')->sum('amount') : 0)
+            ),
+
         ]);
     }
     public function destroy($id)

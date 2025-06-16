@@ -15,6 +15,9 @@ use App\Models\Item;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 
+use function company_info;   // helper
+use function numberToWords;
+
 class PurchaseReturnController extends Controller
 {
     // 🟢 Index: List all returns
@@ -356,8 +359,17 @@ class PurchaseReturnController extends Controller
     public function invoice(PurchaseReturn $purchase_return)
     {
         $purchase_return->load(['returnItems.item', 'godown', 'accountLedger']);
+
+        $company = company_info();
+        $amountWords = numberToWords((int) $purchase_return->grand_total);
+
+        // return Inertia::render('purchase_returns/invoice', [
+        //     'purchase_return' => $purchase_return
+        // ]);
         return Inertia::render('purchase_returns/invoice', [
-            'purchase_return' => $purchase_return
+            'purchase_return' => $purchase_return,
+            'company' => $company,
+            'amountWords' => $amountWords,
         ]);
     }
 

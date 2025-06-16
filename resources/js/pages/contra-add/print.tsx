@@ -22,7 +22,7 @@ export default function ContraPrint(props: any) {
   const logo = company?.logo_url ?? company?.logo_thumb_url;
 
   return (
-    <div className="mx-auto max-w-3xl bg-white p-6 print:p-0">
+    <div className="max-w-full bg-white p-6 print:p-0">
       <Head title={`Contra Voucher ${voucher_no}`} />
 
       {/* Back button (screen-only) */}
@@ -86,7 +86,7 @@ export default function ContraPrint(props: any) {
       {/* Action buttons (screen-only) */}
       <ActionFooter
         className="justify-center print:hidden"
-        cancelHref="#"
+        cancelHref="/contra-add"
         cancelText="Back"
         onSubmit={() => window.print()}
         submitText="Print"

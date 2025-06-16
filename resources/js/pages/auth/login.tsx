@@ -1,11 +1,9 @@
 import { Head, useForm } from '@inertiajs/react';
-import { Link, LoaderCircle } from 'lucide-react';
+import { LoaderCircle } from 'lucide-react';
 import { FormEventHandler } from 'react';
 
 import InputError from '@/components/input-error';
 import TextLink from '@/components/text-link';
-import { Button } from '@/components/ui/button';
-import { Checkbox } from '@/components/ui/checkbox';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import AuthLayout from '@/layouts/auth-layout';
@@ -42,8 +40,8 @@ export default function Login({ status, canResetPassword }: LoginProps) {
         <AuthLayout title="Log in to your account" description="Enter your email and password below to log in">
             <Head title="Log in" />
 
-            <div className='flex flex-col md:flex-row items-center justify-evenly gap-8'>
-                <div className="md:w-1/3">
+            <div className='flex flex-col md:flex-row items-center justify-center gap-8 md:gap-20'>
+                <div className="md:w-1/3 xl:w-[25%]">
                     <div className="flex flex-col gap-8 p-5 rounded-xl border" >
                         <div className="flex flex-col items-center gap-4">
                             <div className="space-y-2 text-center">

@@ -62,11 +62,14 @@ export default function LedgerGroupSummary({
                 </Link>
             </div>
 
-            {/* main card */}
-            <div className="mx-auto mt-6 w-screen max-w-6xl rounded bg-white p-4 shadow lg:w-full print:text-xs">
-                {/* ── Company header (print-friendly) ───────────────── */}
-                <div className="mb-6 text-center">
-                    {company?.logo_url && <img src={company.logo_url} alt="Company Logo" className="mx-auto mb-2 h-20 object-contain print:h-12" />}
+      {/* main card */}
+      <div className="mt-6 max-w-full rounded bg-white p-4 shadow print:text-xs w-screen lg:w-full">
+
+        {/* ── Company header (print-friendly) ───────────────── */}
+        <div className="mb-6 text-center">
+          {company.logo_path && (
+            <img src={company.logo_path} alt="Logo" className="mx-auto mb-2 h-16" />
+          )}
 
                     <h2 className="text-2xl font-bold">{company.company_name}</h2>
 

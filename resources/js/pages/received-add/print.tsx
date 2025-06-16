@@ -37,7 +37,7 @@ export default function ReceivedPrint(
     <AppLayout>
       <Head title={`Received #${receivedAdd.voucher_no}`} />
 
-      <div className="mx-auto max-w-3xl bg-white p-8 print:p-4 text-sm">
+      <div className=" max-w-full bg-white p-8 print:p-4 text-sm">
 
         {/* back (hidden on print) */}
         <Link href="/received-add"
