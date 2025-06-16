@@ -36,8 +36,8 @@ export default function Register() {
     return (
         <AuthLayout title="Create an account" description="Enter your details below to create your account">
             <Head title="Register" />
-            <div className='flex flex-col md:flex-row items-center justify-evenly gap-8'>
-                <div className="md:w-1/3">
+            <div className='flex flex-col md:flex-row items-center justify-center gap-8 md:gap-20'>
+                <div className="md:w-1/3 xl:w-[25%]">
                     <div className="flex flex-col gap-8 p-5 rounded-xl border" >
                         <div className="flex flex-col items-center gap-4">
                             <div className="space-y-2 text-center">
