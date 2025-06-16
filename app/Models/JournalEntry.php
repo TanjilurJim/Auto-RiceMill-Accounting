@@ -10,8 +10,8 @@ class JournalEntry extends Model
 
     public function ledger()
     {
-        // return $this->belongsTo(AccountLedger::class, 'account_ledger_id');
-        return $this->belongsTo(AccountLedger::class, 'ledger_id');
+        return $this->belongsTo(AccountLedger::class, 'account_ledger_id');
+        // return $this->belongsTo(AccountLedger::class, 'ledger_id');
     }
 
     public function journal()
