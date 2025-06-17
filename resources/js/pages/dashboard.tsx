@@ -2,7 +2,7 @@
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import AppLayout from '@/layouts/app-layout';
 import { cn } from '@/lib/utils';
-import { Head } from '@inertiajs/react';
+import { Head, usePage } from '@inertiajs/react';
 import {
     CheckCircle2,
     CircleDollarSign,
@@ -23,19 +23,8 @@ import { Bar, BarChart, Cell, Legend, Line, LineChart, Pie, PieChart, Responsive
 //     { label: 'Account Ledger', href: '/reports/account-ledger', icon: BookOpenCheck, color: 'bg-purple-500' },
 //     { label: 'Stock Report', href: '/reports/stock-summary', icon: Layers3, color: 'bg-cyan-600' },
 // ];
-/* ───────────────────────────────── KPIs ─────────────────────────────── */
-const kpis = [
-    { title: 'Total Sales', value: 1450000, icon: CircleDollarSign, color: 'text-green-600', bg: 'bg-green-50' },
-    { title: 'Total Purchases', value: 980000, icon: ShoppingCart, color: 'text-orange-600', bg: 'bg-orange-50' },
-    { title: 'Cash Received', value: 1120000, icon: Wallet, color: 'text-blue-600', bg: 'bg-blue-50' },
-    { title: 'Cash Paid', value: 760000, icon: Wallet, color: 'text-red-600', bg: 'bg-red-50' },
-    { title: 'Net Income', value: 275000, icon: CircleDollarSign, color: 'text-emerald-600', bg: 'bg-emerald-50' },
-    { title: 'Total Expenses', value: 210000, icon: ReceiptText, color: 'text-gray-700', bg: 'bg-gray-50' },
-    { title: 'Sales Returns', value: 15000, icon: RotateCcw, color: 'text-fuchsia-600', bg: 'bg-fuchsia-50' },
-    { title: 'Purchase Returns', value: 8000, icon: RotateCcw, color: 'text-cyan-600', bg: 'bg-cyan-50' },
-    { title: 'Open Sales Orders', value: 22, icon: ShoppingCart, color: 'text-orange-600', bg: 'bg-orange-50' },
-    { title: 'Work Orders Done', value: '34 / 50', icon: CheckCircle2, color: 'text-indigo-600', bg: 'bg-indigo-50' },
-];
+
+
 
 /* ─────────────────────────────── Charts data ────────────────────────── */
 const monthly = [
@@ -76,6 +65,31 @@ const COLORS = [
 /* ─────────────────────────────── Component ──────────────────────────── */
 export default function Dashboard() {
     const [activeIndex, setActiveIndex] = useState<number | null>(null);
+
+    // const { totalSales } = usePage().props as { totalSales: number };
+    const totalSales = (usePage().props as any).totalSales ?? 0;
+    const totalPurchases = (usePage().props as any).totalPurchases ?? 0;
+    const totalPurchaseReturns = (usePage().props as any).totalPurchaseReturns ?? 0;
+    const totalSalesReturns = (usePage().props as any).totalSalesReturns ?? 0;
+    const totalSalesOrders = (usePage().props as any).totalSalesOrders ?? 0;
+    const totalReceived = (usePage().props as any).totalReceived ?? 0;
+    const totalPayment = (usePage().props as any).totalPayment ?? 0;
+
+
+
+    /* ───────────────────────────────── KPIs ─────────────────────────────── */
+    const kpis = [
+        { title: 'Total Sales', value: totalSales, icon: CircleDollarSign, color: 'text-green-600', bg: 'bg-green-50' },
+        { title: 'Total Purchases', value: totalPurchases, icon: ShoppingCart, color: 'text-orange-600', bg: 'bg-orange-50' },
+        { title: 'Cash Received', value: totalReceived, icon: Wallet, color: 'text-blue-600', bg: 'bg-blue-50' },
+        { title: 'Cash Paid', value: totalPayment, icon: Wallet, color: 'text-red-600', bg: 'bg-red-50' },
+        { title: 'Net Income', value: 275000, icon: CircleDollarSign, color: 'text-emerald-600', bg: 'bg-emerald-50' },
+        { title: 'Total Expenses', value: 210000, icon: ReceiptText, color: 'text-gray-700', bg: 'bg-gray-50' },
+        { title: 'Sales Returns', value: totalSalesReturns, icon: RotateCcw, color: 'text-fuchsia-600', bg: 'bg-fuchsia-50' },
+        { title: 'Purchase Returns', value: totalPurchaseReturns, icon: RotateCcw, color: 'text-cyan-600', bg: 'bg-cyan-50' },
+        { title: 'Open Sales Orders', value: totalSalesOrders, icon: ShoppingCart, color: 'text-orange-600', bg: 'bg-orange-50' },
+        { title: 'Work Orders Done', value: '34 / 50', icon: CheckCircle2, color: 'text-indigo-600', bg: 'bg-indigo-50' },
+    ];
 
     return (
         <AppLayout breadcrumbs={[{ title: 'Dashboard', href: '/dashboard' }]}>

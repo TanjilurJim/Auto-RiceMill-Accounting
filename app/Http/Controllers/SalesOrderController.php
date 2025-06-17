@@ -118,16 +118,6 @@ class SalesOrderController extends Controller
 
         return redirect()->route('sales-orders.index')->with('success', 'Sales Order Created Successfully!');
     }
-    public function destroy(SalesOrder $salesOrder)
-    {
-        // Optional: delete related items first (if you want to clear them manually)
-        $salesOrder->items()->delete();
-
-        // Delete the main sales order
-        $salesOrder->delete();
-
-        return redirect()->back()->with('success', 'Sales Order deleted successfully!');
-    }
 
     public function edit(SalesOrder $salesOrder)
     {
@@ -177,6 +167,63 @@ class SalesOrderController extends Controller
                 ->where('created_by', $userId)
                 ->get(),
         ]);
+    }
+
+    public function update(Request $request, $id)
+    {
+        // Validate the request
+        $validated = $request->validate([
+            'date' => 'required|date',
+            'voucher_no' => 'required|string',
+            'ledger_id' => 'required|exists:account_ledgers,id',
+            'salesman_id' => 'nullable|exists:salesmen,id',
+            'godown_id' => 'nullable|integer',
+            'shipping_details' => 'nullable|string',
+            'delivered_to' => 'nullable|string',
+            'items' => 'required|array|min:1',
+            'items.*.product_id' => 'required|exists:items,id',
+            'items.*.quantity' => 'required|numeric|min:0.01',
+            'items.*.unit_id' => 'required|exists:units,id',
+            'items.*.rate' => 'required|numeric|min:0',
+            'items.*.discount_type' => 'nullable|in:flat,percentage',
+            'items.*.discount_value' => 'nullable|numeric|min:0',
+            'items.*.subtotal' => 'required|numeric|min:0',
+        ]);
+
+        // Find the sales order
+        $order = SalesOrder::findOrFail($id);
+
+        // Update the sales order
+        $order->update([
+            'date' => $validated['date'],
+            'voucher_no' => $validated['voucher_no'],
+            'account_ledger_id' => $validated['ledger_id'],
+            'salesman_id' => $validated['salesman_id'],
+            'godown_id' => $validated['godown_id'],
+            'shipping_details' => $validated['shipping_details'],
+            'delivered_to' => $validated['delivered_to'],
+            'total_qty' => collect($validated['items'])->sum('quantity'),
+            'total_amount' => collect($validated['items'])->sum('subtotal'),
+        ]);
+
+        // Update items: simplest way is to delete old and insert new
+        $order->items()->delete();
+        foreach ($validated['items'] as $item) {
+            $order->items()->create($item);
+        }
+
+        return redirect()->route('sales-orders.index')->with('success', 'Sales order updated successfully.');
+    }
+
+    public function destroy(SalesOrder $salesOrder)
+    {
+        // Optional: delete related items first (if you want to clear them manually)
+        $salesOrder->items()->delete();
+
+        // Delete the main sales order
+        $salesOrder->delete();
+
+        return redirect()->back()->with('success', 'Sales Order deleted successfully!');
     }
 
     public function invoice(SalesOrder $salesOrder)

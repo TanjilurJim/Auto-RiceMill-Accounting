@@ -6,8 +6,10 @@ import ActionFooter from '@/components/ActionFooter';
 
 interface Company {
     name: string;
+    company_name: string;
     address: string;
     phone: string;
+    logo_path: string;
 }
 
 interface Employee {
@@ -65,11 +67,18 @@ const EmployeeLedger: React.FC = () => {
         <AppLayout>
             <Head title="Employee Ledger Report" />
             <div
-                className="mx-auto max-w-6xl bg-white p-4 sm:p-6 md:p-8 lg:p-10 xl:p-12"
+                className="max-w-full bg-white p-4 sm:p-6 md:p-8 lg:p-10 xl:p-12"
                 ref={reportRef}
             >
                 {/* Company Info */}
                 <div className="mb-4 text-center">
+                    {company?.logo_path && (
+                        <img
+                            src={company.logo_path}
+                            alt="Company Logo"
+                            className="mx-auto mb-2 h-16 w-16 object-cover"
+                        />
+                    )}
                     <h2 className="text-xl sm:text-2xl lg:text-3xl font-bold">
                         {company.company_name}
                     </h2>
@@ -114,15 +123,7 @@ const EmployeeLedger: React.FC = () => {
                     </button>
                 </div> */}
 
-                {/* Action Footer */}
-                <ActionFooter
-                    onSubmit={() => window.print()}
-                    onSaveAndPrint={handleExportPDF}
-                    submitText="🖨 Print"
-                    saveAndPrintText="📄 Export as PDF"
-                    cancelHref="/employee-ledger"
-                    className="justify-end py-4"
-                />
+
 
                 {/* Ledger Table */}
                 <div className="overflow-x-auto">
@@ -194,6 +195,18 @@ const EmployeeLedger: React.FC = () => {
                 <div className="mt-6 text-right text-xs sm:text-sm text-gray-500">
                     Printed on {moment().format('DD-MM-YYYY, h:mm a')} | User: {props.user.name}
                 </div>
+
+                {/* Action Footer */}
+                <ActionFooter
+                    onSubmit={() => window.print()}
+                    onSaveAndPrint={handleExportPDF}
+                    submitText="🖨 Print"
+                    saveAndPrintText="📄 Export as PDF"
+                    cancelHref="/employee-ledger"
+                    className="justify-end py-4"
+                />
+
+
             </div>
         </AppLayout>
     );

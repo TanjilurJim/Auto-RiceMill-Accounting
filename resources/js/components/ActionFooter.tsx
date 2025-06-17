@@ -36,7 +36,7 @@ const ActionFooter: React.FC<ActionFooterProps> = ({
                     type="button"
                     onClick={onSubmit}
                     disabled={processing}
-                    className="rounded bg-primary px-1.5 py-1 md:px-4 md:py-2 text-white hover:bg-primary-hover disabled:opacity-50"
+                    className="rounded bg-primary px-1.5 py-1 md:px-4 md:py-2 text-white hover:cursor-pointer hover:bg-primary-hover disabled:opacity-50"
                 >
                     {submitText}
                 </button>

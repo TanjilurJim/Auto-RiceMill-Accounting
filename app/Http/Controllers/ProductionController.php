@@ -188,7 +188,7 @@ class ProductionController extends Controller
 
         $workingOrder->update(['total_amount' => $grandTotal]);
 
-        return back()->with('success', 'Working Order updated successfully!');
+        return redirect()->route('working-orders.index')->with('success', 'Working Order updated successfully!');
     }
 
 
