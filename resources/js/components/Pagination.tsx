@@ -61,3 +61,4 @@ const Pagination: React.FC<PaginationProps> = ({ links = [], currentPage, lastPa
 };
 
 export default Pagination;
+

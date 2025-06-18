@@ -11,6 +11,7 @@ use App\Models\PaymentAdd;
 use App\Models\SalesOrder;
 use App\Models\ReceivedAdd;
 use App\Models\SalesReturn;
+use App\Models\WorkingOrder;
 use Illuminate\Http\Request;
 use App\Models\PurchaseReturn;
 use Illuminate\Support\Facades\Auth;
@@ -69,12 +70,11 @@ class DashboardController extends Controller
         $totalSalesOrders = SalesOrder::whereIn('created_by', $userIds)->sum('total_amount');
         $totalReceived = ReceivedAdd::whereIn('created_by', $userIds)->sum('amount');
         $totalPayment = PaymentAdd::whereIn('created_by', $userIds)->sum('amount');
-
-
-
-
-        
-
+        $totalWorkOrders = WorkingOrder::whereIn('created_by', $userIds)->count();
+        // Work orders with production_status = 'completed'
+        $completedWorkOrders = WorkingOrder::whereIn('created_by', $userIds)
+            ->where('production_status', 'completed')
+            ->count();
 
 
         return Inertia::render('dashboard', [
@@ -85,6 +85,8 @@ class DashboardController extends Controller
             'totalSalesOrders' => $totalSalesOrders,
             'totalReceived' => $totalReceived,
             'totalPayment' => $totalPayment,
+            'totalWorkOrders' => $totalWorkOrders,
+            'completedWorkOrders' => $completedWorkOrders,
 
         ]);
     }

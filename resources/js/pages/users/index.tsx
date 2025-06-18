@@ -33,10 +33,19 @@ export default function UserIndex({ users, filter, search }: { users: Pagination
     const { props } = usePage();
     const authUser = props.auth?.user;
 
+    // useEffect(() => {
+    //     const timeout = setTimeout(() => {
+    //         router.get('/users', { search: query, filter }, { preserveState: true, replace: true });
+    //     }, 300);
+    //     return () => clearTimeout(timeout);
+    // }, [query, filter]);
+
     useEffect(() => {
         const timeout = setTimeout(() => {
-            router.get('/users', { search: query, filter }, { preserveState: true, replace: true });
-        }, 300);
+            if (query !== search) {
+                router.get('/users', { search: query, filter }, { preserveState: true, replace: true });
+            }
+        }, 100);
         return () => clearTimeout(timeout);
     }, [query, filter]);
 

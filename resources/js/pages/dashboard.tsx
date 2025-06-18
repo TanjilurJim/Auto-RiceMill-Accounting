@@ -74,6 +74,8 @@ export default function Dashboard() {
     const totalSalesOrders = (usePage().props as any).totalSalesOrders ?? 0;
     const totalReceived = (usePage().props as any).totalReceived ?? 0;
     const totalPayment = (usePage().props as any).totalPayment ?? 0;
+    const totalWorkOrders = (usePage().props as any).totalWorkOrders ?? 0;
+    const completedWorkOrders = (usePage().props as any).completedWorkOrders ?? 0;
 
 
 
@@ -88,7 +90,7 @@ export default function Dashboard() {
         { title: 'Sales Returns', value: totalSalesReturns, icon: RotateCcw, color: 'text-fuchsia-600', bg: 'bg-fuchsia-50' },
         { title: 'Purchase Returns', value: totalPurchaseReturns, icon: RotateCcw, color: 'text-cyan-600', bg: 'bg-cyan-50' },
         { title: 'Open Sales Orders', value: totalSalesOrders, icon: ShoppingCart, color: 'text-orange-600', bg: 'bg-orange-50' },
-        { title: 'Work Orders Done', value: '34 / 50', icon: CheckCircle2, color: 'text-indigo-600', bg: 'bg-indigo-50' },
+        { title: 'Work Orders Done', value: `${completedWorkOrders} / ${totalWorkOrders}`, icon: CheckCircle2, color: 'text-indigo-600', bg: 'bg-indigo-50' },
     ];
 
     return (

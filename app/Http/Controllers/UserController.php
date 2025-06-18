@@ -36,7 +36,8 @@ class UserController extends Controller
             });
         }
 
-        $users = $query->paginate(10)->appends(['filter' => $filter, 'search' => $search]);
+        // $users = $query->paginate(10)->appends(['filter' => $filter, 'search' => $search]);
+        $users = $query->paginate(10)->withQueryString();
 
         return Inertia::render('users/index', [
             'users' => $users,
