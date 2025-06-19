@@ -9,6 +9,8 @@ use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Illuminate\Support\Str;
 
+use function godown_scope_ids;
+
 class AccountLedgerController extends Controller
 {
     public function index()
@@ -16,8 +18,13 @@ class AccountLedgerController extends Controller
         $query = AccountLedger::with(['accountGroup', 'groupUnder', 'creator']);
 
         // Only restrict by created_by if not admin
+        // if (!auth()->user()->hasRole('admin')) {
+        //     $query->where('created_by', auth()->id());
+        // }
+
         if (!auth()->user()->hasRole('admin')) {
-            $query->where('created_by', auth()->id());
+            $ids = godown_scope_ids();
+            $query->whereIn('created_by', $ids);
         }
 
         $accountLedgers = $query->paginate(10);
@@ -89,8 +96,16 @@ class AccountLedgerController extends Controller
 
     public function edit(AccountLedger $accountLedger)
     {
-        if ($accountLedger->created_by !== auth()->id() && !auth()->user()->hasRole('admin')) {
-            abort(403, 'Unauthorized action.');
+        // if ($accountLedger->created_by !== auth()->id() && !auth()->user()->hasRole('admin')) {
+        //     abort(403, 'Unauthorized action.');
+        // }
+
+        $user = auth()->user();
+        if (!$user->hasRole('admin')) {
+            $ids = godown_scope_ids();
+            if (!in_array($accountLedger->created_by, $ids)) {
+                abort(403, 'Unauthorized action.');
+            }
         }
 
         return Inertia::render('account-ledgers/edit', [
@@ -103,6 +118,18 @@ class AccountLedgerController extends Controller
 
     public function update(Request $request, AccountLedger $accountLedger)
     {
+
+        $user = auth()->user();
+
+        // Multi-level access control: only admin or allowed users can update
+        if (!$user->hasRole('admin')) {
+            $ids = godown_scope_ids();
+            if (!in_array($accountLedger->created_by, $ids)) {
+                abort(403, 'Unauthorized action.');
+            }
+        }
+
+
         // Validate incoming data
         $request->validate([
             'account_ledger_name' => 'required|string|max:255',
@@ -157,16 +184,31 @@ class AccountLedgerController extends Controller
 
 
 
+    // public function destroy(AccountLedger $accountLedger)
+    // {
+    //     if ($accountLedger->created_by !== auth()->id() && !auth()->user()->hasRole('admin')) {
+    //         abort(403, 'Unauthorized action.');
+    //     }
+
+    //     $accountLedger->delete();
+
+    //     return redirect()->route('account-ledgers.index')->with('success', 'Account Ledger deleted successfully.');
+    // }
+
     public function destroy(AccountLedger $accountLedger)
     {
-        if ($accountLedger->created_by !== auth()->id() && !auth()->user()->hasRole('admin')) {
-            abort(403, 'Unauthorized action.');
+        $user = auth()->user();
+        if (!$user->hasRole('admin')) {
+            $ids = godown_scope_ids();
+            if (!in_array($accountLedger->created_by, $ids)) {
+                abort(403, 'Unauthorized action.');
+            }
         }
-
         $accountLedger->delete();
-
         return redirect()->route('account-ledgers.index')->with('success', 'Account Ledger deleted successfully.');
     }
+
+    
 
     public function storeFromModal(Request $request)
     {

@@ -3,6 +3,7 @@
 use Inertia\Inertia;
 use App\Models\Purchase;
 use App\Models\SalesReturn;
+use App\Models\AccountLedger;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\ItemController;
 use App\Http\Controllers\RoleController;
@@ -42,12 +43,12 @@ use App\Http\Controllers\CompanySettingController;
 use App\Http\Controllers\PartyStockMoveController;
 use App\Http\Controllers\PurchaseReportController;
 use App\Http\Controllers\PurchaseReturnController;
+
+
 use App\Http\Controllers\FinishedProductController;
 
 
 use App\Http\Controllers\LedgerGroupReportController;
-
-
 use App\Http\Controllers\AllReceivedPaymentReportController;
 use App\Http\Controllers\Auth\AuthenticatedSessionController;
 use App\Http\Controllers\AllReceivablePayableReportController;
@@ -106,7 +107,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
     // Account Ledgers
     Route::resource('account-groups', AccountGroupController::class);
 
-    Route::get('/account-ledgers/{ledger}/balance', function (\App\Models\AccountLedger $ledger) {
+    Route::get('/account-ledgers/{ledger}/balance', function (AccountLedger $ledger) {
         // if closing_balance is null, fall back to opening_balance
         return response()->json([
             'closing_balance' => $ledger->closing_balance ?? $ledger->opening_balance ?? 0,

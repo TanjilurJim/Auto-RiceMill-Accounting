@@ -31,7 +31,7 @@ class AccountLedger extends Model
     protected $casts = [
     'for_transition_mode' => 'boolean',
     'mark_for_user'       => 'boolean',
-];
+    ];
 
     protected static function boot()
     {
