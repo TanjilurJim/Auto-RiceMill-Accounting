@@ -5,14 +5,27 @@ namespace App\Http\Controllers;
 use App\Models\SalesMan;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
+use function godown_scope_ids;
 
 class SalesManController extends Controller
 {
     public function index()
     {
-        $salesmen = SalesMan::with('creator')
-            ->where('created_by', auth()->id())
-            ->get();
+        // $salesmen = SalesMan::with('creator')
+        //     ->where('created_by', auth()->id())
+        //     ->get();
+
+        $user = auth()->user();
+
+        if ($user->hasRole('admin')) {
+            $salesmen = SalesMan::with('creator')->orderBy('id', 'desc')->get();
+        } else {
+            $ids = godown_scope_ids();
+            $salesmen = SalesMan::with('creator')
+                ->whereIn('created_by', $ids)
+                ->orderBy('id', 'desc')
+                ->get();
+        }
 
         return Inertia::render('salesmen/index', [
             'salesmen' => $salesmen,
@@ -55,8 +68,17 @@ class SalesManController extends Controller
 
     public function edit(SalesMan $salesman)
     {
-        if ($salesman->created_by !== auth()->id()) {
-            abort(403, 'Unauthorized action.');
+        // if ($salesman->created_by !== auth()->id()) {
+        //     abort(403, 'Unauthorized action.');
+        // }
+
+        $user = auth()->user();
+
+        if (!$user->hasRole('admin')) {
+            $ids = godown_scope_ids();
+            if (!in_array($salesman->created_by, $ids)) {
+                abort(403, 'Unauthorized action.');
+            }
         }
 
         return Inertia::render('salesmen/edit', [
@@ -66,8 +88,17 @@ class SalesManController extends Controller
 
     public function update(Request $request, SalesMan $salesman)
     {
-        if ($salesman->created_by !== auth()->id()) {
-            abort(403, 'Unauthorized action.');
+        // if ($salesman->created_by !== auth()->id()) {
+        //     abort(403, 'Unauthorized action.');
+        // }
+
+        $user = auth()->user();
+
+        if (!$user->hasRole('admin')) {
+            $ids = godown_scope_ids();
+            if (!in_array($salesman->created_by, $ids)) {
+                abort(403, 'Unauthorized action.');
+            }
         }
 
         $request->validate([
@@ -89,8 +120,17 @@ class SalesManController extends Controller
 
     public function destroy(SalesMan $salesman)
     {
-        if ($salesman->created_by !== auth()->id()) {
-            abort(403, 'Unauthorized action.');
+        // if ($salesman->created_by !== auth()->id()) {
+        //     abort(403, 'Unauthorized action.');
+        // }
+
+        $user = auth()->user();
+
+        if (!$user->hasRole('admin')) {
+            $ids = godown_scope_ids();
+            if (!in_array($salesman->created_by, $ids)) {
+                abort(403, 'Unauthorized action.');
+            }
         }
 
         $salesman->delete();
