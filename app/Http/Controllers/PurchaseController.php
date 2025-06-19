@@ -2,23 +2,26 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Purchase;
-use App\Models\PurchaseItem;
-use App\Models\Godown;
-use App\Models\Salesman;
-use App\Models\AccountLedger;
 use App\Models\Item;
-use App\Models\Journal;
 use App\Models\Unit;
+use App\Models\User;
+use Inertia\Inertia;
+use App\Models\Stock;
+use App\Models\Godown;
+use App\Models\Journal;
+use App\Models\Purchase;
 
-use function company_info;   // helper
+use App\Models\Salesman;
 use function numberToWords;
 
-use App\Models\Stock;
-use App\Models\ReceivedMode;
+use App\Models\AccountGroup;
 use App\Models\JournalEntry;
+use App\Models\PurchaseItem;
+use App\Models\ReceivedMode;
 use Illuminate\Http\Request;
-use Inertia\Inertia;
+use App\Models\AccountLedger;
+use function company_info;   // helper
+use function user_scope_ids;   // helper
 
 
 class PurchaseController extends Controller
@@ -52,47 +55,33 @@ class PurchaseController extends Controller
     // Show create form
     public function create()
     {
-        $userId = auth()->id();
-        $queryScope = auth()->user()->hasRole('admin')
-            ? fn($query) => $query
-            : fn($query) => $query->where('created_by', $userId);
-
-        $inventoryGroupIds = [1, 2, 14, 15]; // adjust as needed
+        $userIds = user_scope_ids();
 
         return Inertia::render('purchases/create', [
-            'godowns' => Godown::when(!auth()->user()->hasRole('admin'), fn($q) => $q->where('created_by', $userId))->get(),
-            'salesmen' => Salesman::when(!auth()->user()->hasRole('admin'), fn($q) => $q->where('created_by', $userId))->get(),
-            'ledgers' => AccountLedger::when(!auth()->user()->hasRole('admin'), fn($q) => $q->where('created_by', $userId))->get(),
-            'stockItemsByGodown' =>  //  <-- new
-            Stock::with('item.unit')          // item‑level info
-                ->when(
-                    !auth()->user()->hasRole('admin'),
-                    fn($q) => $q->where('created_by', $userId)
-                )
-                ->get()                  // [ {id, item_id, godown_id, qty, …, item:{…}} ]
-                ->groupBy('godown_id')   // group into buckets keyed by godown_id
+            'godowns' => Godown::whereIn('created_by', $userIds)->get(),
+            'salesmen' => Salesman::whereIn('created_by', $userIds)->get(),
+            'ledgers' => AccountLedger::whereIn('created_by', $userIds)->get(),
+            'stockItemsByGodown' => Stock::with('item.unit')
+                ->whereIn('created_by', $userIds)
+                ->get()
+                ->groupBy('godown_id')
                 ->map(fn($col) => $col->map(fn($s) => [
                     'id'   => $s->id,
                     'qty'  => $s->qty,
                     'item' => [
                         'id'        => $s->item->id,
                         'item_name' => $s->item->item_name,
-                        'unit_name'  => $s->item->unit->name ?? '',
+                        'unit_name' => $s->item->unit->name ?? '',
                     ],
                 ]))
                 ->toArray(),
             'items' => [],
-
             'inventoryLedgers' => AccountLedger::where('ledger_type', 'inventory')
-                ->where('created_by', $userId)
+                ->whereIn('created_by', $userIds)
                 ->get(['id', 'account_ledger_name', 'ledger_type']),
-
-
-            'accountGroups' => \App\Models\AccountGroup::get(['id', 'name']),
-
-            // ✅ Newly added
+            'accountGroups' => AccountGroup::get(['id', 'name']),
             'receivedModes' => ReceivedMode::with('ledger')
-                ->when(!auth()->user()->hasRole('admin'), fn($q) => $q->where('created_by', $userId))
+                ->whereIn('created_by', $userIds)
                 ->get(['id', 'mode_name', 'ledger_id']),
         ]);
     }
@@ -252,45 +241,80 @@ class PurchaseController extends Controller
             abort(403);
         }
 
-        $userId = auth()->id();
+        // $userId = auth()->id();
+        $userIds = user_scope_ids();
 
         return Inertia::render('purchases/edit', [
             'purchase' => $purchase->load([
                 'purchaseItems.item',
                 'godown',
                 'salesman',
-                'accountLedger'
+                'accountLedger',
             ]),
 
-            'godowns'  => Godown::where('created_by', $userId)->get(['id', 'name']),
-            'salesmen' => Salesman::where('created_by', $userId)->get(['id', 'name']),
-            'ledgers'  => AccountLedger::where('created_by', $userId)->get(['id', 'account_ledger_name']),
+            // 'godowns'  => Godown::where('created_by', $userId)->get(['id', 'name']),
+            // 'salesmen' => Salesman::where('created_by', $userId)->get(['id', 'name']),
+            // 'ledgers'  => AccountLedger::where('created_by', $userId)->get(['id', 'account_ledger_name']),
 
-            /* inventory ledgers (same filter you used on create) */
+            // /* inventory ledgers (same filter you used on create) */
+            // 'inventoryLedgers' => AccountLedger::where('ledger_type', 'inventory')
+            //     ->where('created_by', $userId)
+            //     ->get(['id', 'account_ledger_name']),
+
+            // /* payment modes */
+            // 'receivedModes' => ReceivedMode::with('ledger')
+            //     ->where('created_by', $userId)
+            //     ->get(['id', 'mode_name', 'ledger_id']),
+
+            // /* --- NEW: grouped stock just like the create() page --- */
+            // 'stockItemsByGodown' => Stock::with('item.unit')
+            //     ->where('created_by', $userId)
+            //     ->get()                                // each row: item + qty
+            //     ->groupBy('godown_id')                 // bucket by godown
+            //     ->map(fn($col) => $col->map(fn($s) => [
+            //         'id'   => $s->id,
+            //         'qty'  => $s->qty,
+            //         'item' => [
+            //             'id'        => $s->item->id,
+            //             'item_name' => $s->item->item_name,
+            //             'unit_name'  => $s->item->unit->name ?? '',
+            //         ],
+            //     ]))
+            //     ->toArray(),
+
+
+
+            'godowns'  => Godown::whereIn('created_by', $userIds)->get(['id', 'name']),
+            'salesmen' => Salesman::whereIn('created_by', $userIds)->get(['id', 'name']),
+            'ledgers'  => AccountLedger::whereIn('created_by', $userIds)->get(['id', 'account_ledger_name']),
             'inventoryLedgers' => AccountLedger::where('ledger_type', 'inventory')
-                ->where('created_by', $userId)
+                ->whereIn('created_by', $userIds)
                 ->get(['id', 'account_ledger_name']),
-
-            /* payment modes */
             'receivedModes' => ReceivedMode::with('ledger')
-                ->where('created_by', $userId)
+                ->whereIn('created_by', $userIds)
                 ->get(['id', 'mode_name', 'ledger_id']),
-
-            /* --- NEW: grouped stock just like the create() page --- */
             'stockItemsByGodown' => Stock::with('item.unit')
-                ->where('created_by', $userId)
-                ->get()                                // each row: item + qty
-                ->groupBy('godown_id')                 // bucket by godown
+                ->whereIn('created_by', $userIds)
+                ->get()
+                ->groupBy('godown_id')
                 ->map(fn($col) => $col->map(fn($s) => [
                     'id'   => $s->id,
                     'qty'  => $s->qty,
                     'item' => [
                         'id'        => $s->item->id,
                         'item_name' => $s->item->item_name,
-                        'unit_name'  => $s->item->unit->name ?? '',
+                        'unit_name' => $s->item->unit->name ?? '',
                     ],
                 ]))
                 ->toArray(),
+
+
+            'phone' => $purchase->phone,
+            'address' => $purchase->address,
+            'delivered_to' => $purchase->delivered_to,
+            'shipping_details' => $purchase->shipping_details,
+
+
         ]);
     }
 

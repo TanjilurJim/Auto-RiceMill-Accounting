@@ -22,44 +22,43 @@ class DashboardController extends Controller
     {
         $user = Auth::user();
 
-        // // Exclude admin
-        // if ($user->hasRole('admin')) {
-        //     $userIds = User::pluck('id'); // all users
-        // } else {
-        //     // Get my id
-        //     $myId = $user->id;
+        if ($user->hasRole('admin')) {
+        // Admin: see all users' data
+        $userIds = User::pluck('id')->toArray();
+        } else {
+            $myId = $user->id;
+            $myUsers = User::where('created_by', $myId)->pluck('id')->toArray();
 
-        //     // Users I created
-        //     $myUsers = User::where('created_by', $myId)->pluck('id')->toArray();
-
-        //     // User who created me (parent)
-        //     $parentId = $user->created_by;
-        //     $parentUsers = [];
-        //     if ($parentId) {
-        //         $parentUsers = [$parentId];
-        //     }
-
-        //     // All relevant user IDs
-        //     $userIds = array_unique(array_merge([$myId], $myUsers, $parentUsers));
-        // }
-
-        $myId = $user->id;
-
-        // Users you created
-        $myUsers = User::where('created_by', $myId)->pluck('id')->toArray();
-
-        // Only include your creator if they are NOT admin
-        $parentId = $user->created_by;
-        $parentUsers = [];
-        if ($parentId) {
-            $parent = User::find($parentId);
-            if ($parent && !$parent->hasRole('admin')) {
-                $parentUsers[] = $parentId;
+            // Only include your creator if they are NOT admin
+            $parentId = $user->created_by;
+            $parentUsers = [];
+            if ($parentId) {
+                $parent = User::find($parentId);
+                if ($parent && !$parent->hasRole('admin')) {
+                    $parentUsers[] = $parentId;
+                }
             }
+
+            $userIds = array_unique(array_merge([$myId], $myUsers, $parentUsers));
         }
 
-        // Merge all relevant user IDs
-        $userIds = array_unique(array_merge([$myId], $myUsers, $parentUsers));
+        // $myId = $user->id;
+
+        // // Users you created
+        // $myUsers = User::where('created_by', $myId)->pluck('id')->toArray();
+
+        // // Only include your creator if they are NOT admin
+        // $parentId = $user->created_by;
+        // $parentUsers = [];
+        // if ($parentId) {
+        //     $parent = User::find($parentId);
+        //     if ($parent && !$parent->hasRole('admin')) {
+        //         $parentUsers[] = $parentId;
+        //     }
+        // }
+
+        // // Merge all relevant user IDs
+        // $userIds = array_unique(array_merge([$myId], $myUsers, $parentUsers));
 
 
         // Sum sales for these users

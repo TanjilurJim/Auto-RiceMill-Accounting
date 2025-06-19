@@ -88,7 +88,7 @@ export default function PurchaseIndex({ purchases }: { purchases: PaginatedPurch
             accessor: (purchase: Purchase) => (
                 <ActionButtons
                     editHref={`/purchases/${purchase.id}/edit`}
-                    onDelete={() => handleDelete(purchase.id)}
+                    // onDelete={() => handleDelete(purchase.id)}
                     printHref={`/purchases/${purchase.id}/invoice`}
                     printText="Print"
                 />

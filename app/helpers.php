@@ -1,5 +1,88 @@
 <?php
 
+use App\Models\User;
+use App\Models\CompanySetting;
+use Illuminate\Support\Facades\Auth;
+use App\Services\InventoryService;
+
+
+
+
+// inventory helper
+if (!function_exists('get_all_descendant_user_ids')) {
+    function get_all_descendant_user_ids($userId)
+    {
+        $ids = [];
+        $children = User::where('created_by', $userId)
+            ->whereDoesntHave('roles', function ($q) {
+                $q->where('name', 'admin');
+            })
+            ->pluck('id')
+            ->toArray();
+
+        foreach ($children as $childId) {
+            $ids[] = $childId;
+            $ids = array_merge($ids, get_all_descendant_user_ids($childId));
+        }
+        return $ids;
+    }
+}
+
+// inventory helper
+if (!function_exists('godown_scope_ids')) {
+    function godown_scope_ids(): array
+    {
+        $user = auth()->user();
+        if (!$user) return [];
+
+        // Admin: see all godowns
+        if ($user->hasRole('admin')) {
+            return []; // No filter for admin
+        }
+
+        // My own ID
+        $ids = [$user->id];
+
+        // All descendants (multi-level, no admins)
+        $descendants = get_all_descendant_user_ids($user->id);
+        $ids = array_merge($ids, $descendants);
+
+        // Add parent if parent is not admin
+        $parentId = $user->created_by;
+        if ($parentId) {
+            $parent = User::find($parentId);
+            if ($parent && !$parent->hasRole('admin')) {
+                $ids[] = $parentId;
+            }
+        }
+
+        return array_unique($ids);
+    }
+}
+
+// dashboard helper
+if (!function_exists('user_scope_ids')) {
+    function user_scope_ids($user = null): array
+    {
+        $user = $user ?: auth()->user();
+        if (!$user) return [];
+        $myId = $user->id;
+        $parentId = $user->created_by;
+        $myUsers = User::where('created_by', $myId)->pluck('id')->toArray();
+
+        $userIds = [$myId];
+        if ($parentId) {
+            $parent = User::find($parentId);
+            if ($parent && !$parent->hasRole('admin')) {
+                $userIds[] = $parentId;
+            }
+        }
+        $userIds = array_merge($userIds, $myUsers);
+        return array_unique($userIds);
+    }
+}
+
+
 // auth helper
 if (!function_exists('createdByMeOnly')) {
     function createdByMeOnly(): array
@@ -96,8 +179,6 @@ if (! function_exists('numberToWords')) {
 }
 
 
-use App\Models\CompanySetting;
-use Illuminate\Support\Facades\Auth;
 
 if (! function_exists('company_info')) {
     function company_info(): ?CompanySetting
@@ -137,7 +218,7 @@ if (! function_exists('company_info')) {
     
 }
 
-use App\Services\InventoryService;
+
 
 if (!function_exists('inventory_service')) {
     function inventory_service(): InventoryService
@@ -145,4 +226,7 @@ if (!function_exists('inventory_service')) {
         return new InventoryService();
     }
 }
+
+
+
 

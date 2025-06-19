@@ -11,23 +11,48 @@ use App\Models\Stock;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 use App\Models\User;
+use function godown_scope_ids;
 
 class ItemController extends Controller
 {
     /**
      * Display a listing of the resource.
      */
+    // public function index()
+    // {
+    //     $userId = auth()->id();
+
+    //     $items = Item::with(['category', 'unit', 'godown', 'creator'])
+    //         ->where('created_by', $userId)
+    //         ->withSum(['stocks as current_stock' => function ($q) use ($userId) {
+    //             $q->where('created_by', $userId);
+    //         }], 'qty')
+    //         ->orderBy('id', 'desc')
+    //         ->paginate(10);
+
+    //     return Inertia::render('items/index', [
+    //         'items' => $items,
+    //     ]);
+    // }
     public function index()
     {
-        $userId = auth()->id();
+        $user = auth()->user();
 
-        $items = Item::with(['category', 'unit', 'godown', 'creator'])
-            ->where('created_by', $userId)
-            ->withSum(['stocks as current_stock' => function ($q) use ($userId) {
-                $q->where('created_by', $userId);
-            }], 'qty')
-            ->orderBy('id', 'desc')
-            ->paginate(10);
+        if ($user->hasRole('admin')) {
+            $items = Item::with(['category', 'unit', 'godown', 'creator'])
+                ->withSum('stocks as current_stock', 'qty')
+                ->orderBy('id', 'desc')
+                ->paginate(10);
+        } else {
+            $ids = godown_scope_ids();
+            $items = Item::with(['category', 'unit', 'godown', 'creator'])
+                ->whereIn('created_by', $ids)
+                ->withSum(['stocks as current_stock' => function ($q) use ($ids) {
+                    $q->whereIn('created_by', $ids);
+                }], 'qty')
+                ->orderBy('id', 'desc')
+                ->paginate(10);
+        }
 
         return Inertia::render('items/index', [
             'items' => $items,
@@ -44,7 +69,7 @@ class ItemController extends Controller
            - always myself
            - my direct children        (users where created_by = me)
            - my parent (created_by)    ⇢ but NOT if that parent is admin
-    ------------------------------------------------- */
+        ------------------------------------------------- */
         $me           = auth()->user();
         $extraUserIds = [];                        // will feed createdByMeOr()
 
@@ -67,7 +92,7 @@ class ItemController extends Controller
 
         /* -------------------------------------------------
        2️⃣  Build the form payload
-    ------------------------------------------------- */
+        ------------------------------------------------- */
         return Inertia::render('items/create', [
 
             // master tables: mine OR my family (parent/children)
@@ -143,11 +168,39 @@ class ItemController extends Controller
     /**
      * Show the form for editing the specified resource.
      */
+    // public function edit(Item $item)
+    // {
+    //     $userId = auth()->id();
+
+    //     // 🔁 Get stock quantity from `stocks` table
+    //     $stockQty = Stock::where([
+    //         'item_id' => $item->id,
+    //         'godown_id' => $item->godown_id,
+    //         'created_by' => $userId,
+    //     ])->value('qty') ?? 0;
+
+    //     $item->previous_stock = $stockQty;
+
+    //     return Inertia::render('items/edit', [
+    //         'item' => $item->load(['category', 'unit', 'godown']),
+    //         'categories' => Category::all(),
+    //         'units' => Unit::all(),
+    //         'godowns' => Godown::where('created_by', $userId)->get(),
+    //     ]);
+    // }
+
     public function edit(Item $item)
     {
-        $userId = auth()->id();
+        $user = auth()->user();
 
-        // 🔁 Get stock quantity from `stocks` table
+        if (!$user->hasRole('admin')) {
+            $ids = godown_scope_ids();
+            if (!in_array($item->created_by, $ids)) {
+                abort(403, 'Unauthorized action.');
+            }
+        }
+
+        $userId = auth()->id();
         $stockQty = Stock::where([
             'item_id' => $item->id,
             'godown_id' => $item->godown_id,
@@ -160,15 +213,58 @@ class ItemController extends Controller
             'item' => $item->load(['category', 'unit', 'godown']),
             'categories' => Category::all(),
             'units' => Unit::all(),
-            'godowns' => Godown::where('created_by', $userId)->get(),
+            'godowns' => Godown::all(),
         ]);
     }
 
     /**
      * Update the specified resource in storage.
      */
+    // public function update(Request $request, Item $item)
+    // {
+    //     $validated = $request->validate([
+    //         'item_name' => 'required|string|max:255',
+    //         'unit_id' => 'required|exists:units,id',
+    //         'category_id' => 'required|exists:categories,id',
+    //         'godown_id' => 'required|exists:godowns,id',
+    //         'purchase_price' => 'nullable|numeric',
+    //         'sale_price' => 'nullable|numeric',
+    //         'previous_stock' => 'nullable|numeric',
+    //         'total_previous_stock_value' => 'nullable|numeric',
+    //         'description' => 'nullable|string',
+    //     ]);
+
+    //     $validated['purchase_price'] = $request->purchase_price ?? 0;
+    //     $validated['sale_price'] = $request->sale_price ?? 0;
+    //     $validated['total_previous_stock_value'] = $request->total_previous_stock_value ?? 0;
+
+    //     // 🛠 update item info
+    //     $item->update($validated);
+
+    //     // 🛠 update the stock table
+    //     $stock = \App\Models\Stock::firstOrNew([
+    //         'item_id' => $item->id,
+    //         'godown_id' => $request->godown_id,
+    //         'created_by' => auth()->id(),
+    //     ]);
+
+    //     $stock->qty = $request->previous_stock ?? 0;
+    //     $stock->save();
+
+    //     return redirect()->route('items.index')->with('success', 'Item updated successfully!');
+    // }
+
     public function update(Request $request, Item $item)
     {
+        $user = auth()->user();
+
+        if (!$user->hasRole('admin')) {
+            $ids = godown_scope_ids();
+            if (!in_array($item->created_by, $ids)) {
+                abort(403, 'Unauthorized action.');
+            }
+        }
+
         $validated = $request->validate([
             'item_name' => 'required|string|max:255',
             'unit_id' => 'required|exists:units,id',
@@ -185,10 +281,8 @@ class ItemController extends Controller
         $validated['sale_price'] = $request->sale_price ?? 0;
         $validated['total_previous_stock_value'] = $request->total_previous_stock_value ?? 0;
 
-        // 🛠 update item info
         $item->update($validated);
 
-        // 🛠 update the stock table
         $stock = \App\Models\Stock::firstOrNew([
             'item_id' => $item->id,
             'godown_id' => $request->godown_id,
@@ -228,8 +322,23 @@ class ItemController extends Controller
     /**
      * Remove the specified resource from storage.
      */
+    // public function destroy(Item $item)
+    // {
+    //     $item->delete();
+    //     return redirect()->back()->with('success', 'Item deleted successfully!');
+    // }
+
     public function destroy(Item $item)
     {
+        $user = auth()->user();
+
+        if (!$user->hasRole('admin')) {
+            $ids = godown_scope_ids();
+            if (!in_array($item->created_by, $ids)) {
+                abort(403, 'Unauthorized action.');
+            }
+        }
+
         $item->delete();
         return redirect()->back()->with('success', 'Item deleted successfully!');
     }

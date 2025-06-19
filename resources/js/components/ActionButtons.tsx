@@ -5,7 +5,7 @@ import { ReactNode } from 'react';
 interface Props {
   editHref?: string;
   onEdit?: () => void;
-  onDelete: () => void;
+  onDelete?: () => void;
   editText?: ReactNode;
   deleteText?: ReactNode;
   printHref?: string;
@@ -63,12 +63,12 @@ export default function ActionButtons({
       )}
 
       {/* Delete */}
-      <button
+      {onDelete && <button
         onClick={onDelete}
         className={deleteClassName ?? `${btn(size)} bg-danger hover:bg-danger-hover`}
       >
         {deleteText}
-      </button>
+      </button>}
 
       {/* Print */}
       {printHref && (

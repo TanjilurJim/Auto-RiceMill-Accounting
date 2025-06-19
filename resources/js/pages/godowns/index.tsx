@@ -72,6 +72,13 @@ export default function GodownIndex({ godowns }: { godowns: PaginatedGodowns }) 
                         currentPage={godowns.current_page}
                         lastPage={godowns.last_page}
                         total={godowns.total}
+                        onPageChange={url => {
+                            if (url) {
+                                const urlObj = new URL(url, window.location.origin);
+                                const page = urlObj.searchParams.get('page');
+                                router.get('/godowns', { search: query, page }, { preserveState: true, replace: true });
+                            }
+                        }}
                     />
                 </div>
 

@@ -403,28 +403,25 @@ export default function PurchaseEdit({ purchase, godowns, salesmen, ledgers, sto
 
                         {/* Shipping & Delivered To */}
                         <div className="col-span-2 grid grid-cols-1 gap-4 space-y-4 md:grid-cols-2">
+                            {/* Supplier Info */}
                             <div>
-                                <div>
-                                    <label className="mb-1 block font-semibold text-gray-700">Supplier Info</label>
-                                    <textarea
-                                        name="delivered_to"
-                                        rows={3}
-                                        className="w-full rounded border bg-white p-2 shadow-sm focus:ring-1 focus:ring-blue-500 focus:outline-none"
-                                        value={data.delivered_to || ''}
-                                        onChange={(e) => setData('delivered_to', e.target.value)}
-                                    />
-                                    .
-                                </div>
-                                <div>
-                                    <label className="mb-1 block font-semibold text-gray-700">Shipping Details</label>
-                                    <textarea
-                                        name="shipping_details"
-                                        rows={3}
-                                        className="w-full rounded border bg-white p-2 shadow-sm focus:ring-1 focus:ring-blue-500 focus:outline-none"
-                                        value={data.shipping_details}
-                                        onChange={(e) => setData('shipping_details', e.target.value)}
-                                    />
-                                </div>
+                                <label className="mb-1 block font-semibold text-gray-700">Supplier Info</label>
+                                <textarea
+                                    className="w-full rounded border bg-white p-2 shadow-sm focus:ring-1 focus:ring-blue-500 focus:outline-none"
+                                    rows={3}
+                                    value={data.delivered_to || ''}
+                                    onChange={(e) => setData('delivered_to', e.target.value)}
+                                ></textarea>
+                            </div>
+                            {/* Shipping Details */}
+                            <div>
+                                <label className="mb-1 block font-semibold text-gray-700">Shipping Details</label>
+                                <textarea
+                                    className="w-full rounded border bg-white p-2 shadow-sm focus:ring-1 focus:ring-blue-500 focus:outline-none"
+                                    rows={3}
+                                    value={data.shipping_details || ''}
+                                    onChange={(e) => setData('shipping_details', e.target.value)}
+                                ></textarea>
                             </div>
                         </div>
 
