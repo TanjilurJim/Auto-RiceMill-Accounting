@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\JournalEntry;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
+use function current_financial_year;
 use Carbon\Carbon;
 use Barryvdh\DomPDF\Facade\Pdf;             //  ← NEW
 use Maatwebsite\Excel\Facades\Excel;        //  ← NEW
@@ -16,10 +17,11 @@ class BalanceSheetController extends Controller
 
     public function filter()
     {
+        $fy = current_financial_year();
         return Inertia::render('reports/BalanceSheetFilter', [
             // pre‑fill date pickers with current year‑to‑date
-            'default_from' => Carbon::now()->startOfYear()->toDateString(),
-            'default_to'   => Carbon::now()->toDateString(),
+            'default_from' => $fy?->start_date ?? Carbon::now()->startOfYear()->toDateString(),
+            'default_to'   => $fy?->end_date   ?? Carbon::now()->toDateString(),
         ]);
     }
 
@@ -62,8 +64,12 @@ class BalanceSheetController extends Controller
 
     public function index(Request $request)
     {
-        $from = $request->query('from_date') ?: now()->startOfYear()->toDateString();
-        $to   = $request->query('to_date')   ?: now()->endOfYear()->toDateString();
+        $fy   = current_financial_year();
+        $fyStart = $fy?->start_date ?? Carbon::now()->startOfYear()->toDateString();
+        $fyEnd   = $fy?->end_date   ?? Carbon::now()->endOfYear()->toDateString();
+
+        $from = $request->query('from_date') ?: $fyStart;
+        $to   = $request->query('to_date')   ?: $fyEnd;
 
         /* ───── Journal balances per group_under ───── */
         $raw = JournalEntry::join('account_ledgers',  'journal_entries.account_ledger_id', '=', 'account_ledgers.id')
@@ -214,8 +220,9 @@ class BalanceSheetController extends Controller
 
     public function pdf(Request $request)
     {
-        $from = $request->query('from_date') ?: now()->startOfYear()->toDateString();
-        $to   = $request->query('to_date')   ?: now()->endOfYear()->toDateString();
+        $fy   = current_financial_year();
+        $from = $request->query('from_date') ?: ($fy?->start_date ?? Carbon::now()->startOfYear()->toDateString());
+        $to   = $request->query('to_date')   ?: ($fy?->end_date   ?? Carbon::now()->endOfYear()->toDateString());
 
         $data = $this->buildBalanceSheetData($from, $to);
 
@@ -227,8 +234,9 @@ class BalanceSheetController extends Controller
 
     public function excel(Request $request)
     {
-        $from = $request->query('from_date') ?: now()->startOfYear()->toDateString();
-        $to   = $request->query('to_date')   ?: now()->endOfYear()->toDateString();
+        $fy   = current_financial_year();
+        $from = $request->query('from_date') ?: ($fy?->start_date ?? Carbon::now()->startOfYear()->toDateString());
+        $to   = $request->query('to_date')   ?: ($fy?->end_date   ?? Carbon::now()->endOfYear()->toDateString());
 
         $data = $this->buildBalanceSheetData($from, $to);
 

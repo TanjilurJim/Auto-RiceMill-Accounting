@@ -7,6 +7,10 @@ use App\Models\Employee;
 use App\Models\ReceivedMode;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
+use App\Models\GroupUnder;
+use App\Models\Nature;
+use App\Models\AccountGroup;
+use App\Models\User;
 
 use App\Models\SalarySlip;
 use App\Models\Journal;
@@ -61,13 +65,13 @@ class SalaryReceiveController extends Controller
     {
         // In your validate block:
         $request->validate([
-            'vch_no' => 'required|unique:salary_receives,vch_no',
-            'date' => 'required|date',
-            'employee_id' => 'required|exists:employees,id',
-            'received_by' => 'required|exists:received_modes,id',
-            'amount' => 'required|numeric|min:0',
-            'description' => 'nullable|string',
-            'salary_slip_employee_id' => 'nullable|exists:salary_slip_employees,id', // 👈 add this
+            'vch_no'                  => 'required|unique:salary_receives,vch_no',
+            'date'                    => 'required|date',
+            'employee_id'             => 'required|exists:employees,id',
+            'received_by'             => 'required|exists:received_modes,id',
+            'amount'                  => 'required|numeric|min:0',
+            'description'             => 'nullable|string',
+            'salary_slip_employee_id' => 'nullable|exists:salary_slip_employees,id',
         ]);
 
         if ($request->filled('salary_slip_employee_id')) {
@@ -89,49 +93,54 @@ class SalaryReceiveController extends Controller
 
 
         DB::transaction(function () use ($request) {
-            // Create salary receive
+
+            /* 1️⃣  create SalaryReceive row */
             $salaryReceive = SalaryReceive::create([
-                'vch_no' => $request->vch_no,
-                'date' => $request->date,
-                'employee_id' => $request->employee_id,
-                'received_by' => $request->received_by,
-                'amount' => $request->amount,
-                'description' => $request->description,
-                'created_by' => auth()->id(),
+                'vch_no'                  => $request->vch_no,
+                'date'                    => $request->date,
+                'employee_id'             => $request->employee_id,
+                'received_by'             => $request->received_by,
+                'amount'                  => $request->amount,
+                'description'             => $request->description,
+                'created_by'              => auth()->id(),
                 'salary_slip_employee_id' => $request->salary_slip_employee_id,
             ]);
 
             // Get ledgers
-            $salaryExpenseLedger = $this->getOrCreateSalaryExpenseLedger();
-
-            // ✅ Get employee’s personal ledger
+            /* 2️⃣  fetch ledgers */
             $employeeLedger = AccountLedger::where('employee_id', $request->employee_id)->firstOrFail();
+            $modeLedger     = ReceivedMode::with('ledger')->findOrFail($request->received_by)->ledger;
 
-            // Create journal
+            /* 3️⃣  create settlement journal */
             $journal = Journal::create([
-                'date' => $request->date,
+                'date'       => $request->date,
                 'voucher_no' => 'JRN-' . strtoupper(Str::random(6)),
-                'narration' => 'Salary payment to Employee ID ' . $request->employee_id,
+                'narration'  => 'Salary payment to Employee ID ' . $request->employee_id,
                 'created_by' => auth()->id(),
             ]);
 
+
+
             // ✅ Journal Entry 1: Salary Expense (Debit)
+            // DR Employee Ledger (clears liability)
             JournalEntry::create([
-                'journal_id' => $journal->id,
-                'account_ledger_id' => $salaryExpenseLedger->id,
-                'type' => 'debit',
-                'amount' => $request->amount,
-                'note' => 'Salary Expense',
+                'journal_id'        => $journal->id,
+                'account_ledger_id' => $employeeLedger->id,
+                'type'              => 'debit',
+                'amount'            => $request->amount,
+                'note'              => 'Salary settlement',
             ]);
 
             // ✅ Journal Entry 2: Employee Ledger (Credit)
+            // CR Cash / bKash / Nagad
             JournalEntry::create([
-                'journal_id' => $journal->id,
-                'account_ledger_id' => $employeeLedger->id,
-                'type' => 'credit',
-                'amount' => $request->amount,
-                'note' => 'Payable to employee',
+                'journal_id'        => $journal->id,
+                'account_ledger_id' => $modeLedger->id,
+                'type'              => 'credit',
+                'amount'            => $request->amount,
+                'note'              => 'Paid via ' . $modeLedger->account_ledger_name,
             ]);
+
 
             // Link journal to salary receive
             $salaryReceive->journal_id = $journal->id;
@@ -222,12 +231,12 @@ class SalaryReceiveController extends Controller
     public function update(Request $request, SalaryReceive $salaryReceive)
     {
         $request->validate([
-            'vch_no' => 'required|unique:salary_receives,vch_no,' . $salaryReceive->id,
-            'date' => 'required|date',
-            'employee_id' => 'required|exists:employees,id',
-            'received_by' => 'required|exists:received_modes,id',
-            'amount' => 'required|numeric|min:0',
-            'description' => 'nullable|string',
+            'vch_no'                  => 'required|unique:salary_receives,vch_no,' . $salaryReceive->id,
+            'date'                    => 'required|date',
+            'employee_id'             => 'required|exists:employees,id',
+            'received_by'             => 'required|exists:received_modes,id',
+            'amount'                  => 'required|numeric|min:0',
+            'description'             => 'nullable|string',
             'salary_slip_employee_id' => 'nullable|exists:salary_slip_employees,id',
         ]);
 
@@ -250,84 +259,59 @@ class SalaryReceiveController extends Controller
         }
 
         DB::transaction(function () use ($request, $salaryReceive) {
-            // Update SalaryReceive
+
+            /* 1️⃣  update SalaryReceive row */
             $salaryReceive->update([
-                'vch_no' => $request->vch_no,
-                'date' => $request->date,
-                'employee_id' => $request->employee_id,
-                'received_by' => $request->received_by,
-                'amount' => $request->amount,
-                'description' => $request->description,
+                'vch_no'                  => $request->vch_no,
+                'date'                    => $request->date,
+                'employee_id'             => $request->employee_id,
+                'received_by'             => $request->received_by,
+                'amount'                  => $request->amount,
+                'description'             => $request->description,
                 'salary_slip_employee_id' => $request->salary_slip_employee_id,
             ]);
 
-            // Update Journal
-            $journal = $salaryReceive->journal;
 
-            if ($journal) {
-                $journal->update([
-                    'date' => $request->date,
-                    'narration' => 'Updated salary payment to Employee ID ' . $request->employee_id,
-                ]);
+            /* 2️⃣  fetch ledgers */
+            $employeeLedger = AccountLedger::where('employee_id', $request->employee_id)->firstOrFail();
+            $modeLedger     = ReceivedMode::with('ledger')->findOrFail($request->received_by)->ledger;
 
-                JournalEntry::where('journal_id', $journal->id)->delete();
+            /* 3️⃣  update or recreate journal */
+            $journal = $salaryReceive->journal ?? Journal::create([
+                'date'       => $request->date,
+                'voucher_no' => 'JRN-' . strtoupper(Str::random(6)),
+                'narration'  => 'Salary payment to Employee ID ' . $request->employee_id,
+                'created_by' => auth()->id(),
+            ]);
 
-                $salaryExpenseLedger = $this->getOrCreateSalaryExpenseLedger();
+            $journal->update([
+                'date'      => $request->date,
+                'narration' => 'Salary payment to Employee ID ' . $request->employee_id . ' (updated)',
+            ]);
 
-                // ✅ Get or create employee ledger
-                $employeeLedger = AccountLedger::where('employee_id', $request->employee_id)->first();
+            // wipe old entries
+            JournalEntry::where('journal_id', $journal->id)->delete();
 
-                if (!$employeeLedger) {
-                    // 👇 Add this block to auto-create employee ledger if missing
-                    $groupUnder = \App\Models\GroupUnder::where('name', 'Sundry Creditors')->firstOrFail();
-                    $nature = \App\Models\Nature::where('name', 'Liabilities')->firstOrFail();
+            // DR Employee
+            JournalEntry::create([
+                'journal_id'        => $journal->id,
+                'account_ledger_id' => $employeeLedger->id,
+                'type'              => 'debit',
+                'amount'            => $request->amount,
+                'note'              => 'Salary settlement (updated)',
+            ]);
 
-                    $accountGroup = \App\Models\AccountGroup::firstOrCreate(
-                        ['name' => 'Employee Liability'],
-                        [
-                            'nature_id' => $nature->id,
-                            'group_under_id' => $groupUnder->id,
-                            'description' => 'Employee liability ledger group',
-                            'created_by' => auth()->id(),
-                        ]
-                    );
+            // CR Cash / bKash / Nagad
+            JournalEntry::create([
+                'journal_id'        => $journal->id,
+                'account_ledger_id' => $modeLedger->id,
+                'type'              => 'credit',
+                'amount'            => $request->amount,
+                'note'              => 'Paid via ' . $modeLedger->account_ledger_name . ' (updated)',
+            ]);
 
-                    $employee = Employee::find($request->employee_id);
-
-                    $employeeLedger = AccountLedger::create([
-                        'employee_id' => $employee->id,
-                        'account_ledger_name' => $employee->name,
-                        'phone_number' => $employee->mobile ?? '0000000000',
-                        'email' => $employee->email ?? 'employee@example.com',
-                        'opening_balance' => 0,
-                        'debit_credit' => 'credit',
-                        'status' => 'active',
-                        'account_group_id' => $accountGroup->id,
-                        'group_under_id' => $groupUnder->id,
-                        'address' => $employee->present_address,
-                        'for_transition_mode' => false,
-                        'mark_for_user' => false,
-                        'created_by' => auth()->id(),
-                    ]);
-                }
-
-                // Create journal entries
-                JournalEntry::create([
-                    'journal_id' => $journal->id,
-                    'account_ledger_id' => $salaryExpenseLedger->id,
-                    'type' => 'debit',
-                    'amount' => $request->amount,
-                    'note' => 'Salary Paid (Updated)',
-                ]);
-
-                JournalEntry::create([
-                    'journal_id' => $journal->id,
-                    'account_ledger_id' => $employeeLedger->id,
-                    'type' => 'credit',
-                    'amount' => $request->amount,
-                    'note' => 'Payable to employee (Updated)',
-                ]);
-            }
+            $salaryReceive->journal_id = $journal->id;
+            $salaryReceive->save();
 
             // Update salary slip payment info
             if ($request->filled('salary_slip_employee_id')) {
@@ -390,37 +374,36 @@ class SalaryReceiveController extends Controller
     }
 
 
-    private function getOrCreateSalaryExpenseLedger(): \App\Models\AccountLedger
+    private function getOrCreateSalaryExpenseLedger(): AccountLedger
     {
-        // 1. Make sure the account group exists under Expenses > Indirect Expenses
-        $groupUnder = \App\Models\GroupUnder::where('name', 'Indirect Expenses')->firstOrFail();
-        $expenseNature = \App\Models\Nature::where('name', 'Expenses')->firstOrFail();
+        $groupUnder   = GroupUnder::where('name', 'Indirect Expenses')
+            // ← scoped
+            ->firstOrFail();
 
-        $accountGroup = \App\Models\AccountGroup::firstOrCreate(
-            ['name' => 'Salary Expense'],
+        $expenseNature = Nature::where('name', 'Expenses')->firstOrFail();
+
+        $accountGroup = AccountGroup::firstOrCreate(
+            ['name' => 'Salary Expense', 'created_by' => auth()->id()], // ← scoped key
             [
-                'nature_id' => $expenseNature->id,
+                'nature_id'      => $expenseNature->id,
                 'group_under_id' => $groupUnder->id,
-                'description' => 'Auto-generated group for salary expenses',
-                'created_by' => auth()->id(),
+                'description'    => 'Auto group for salary expense',
+                'created_by'     => auth()->id(),
             ]
         );
 
-        // 2. Create the AccountLedger under that group
-        return \App\Models\AccountLedger::firstOrCreate(
-            ['account_ledger_name' => 'Salary Expense'],
+        return AccountLedger::firstOrCreate(
+            ['account_ledger_name' => 'Salary Expense', 'created_by' => auth()->id()], // ← scoped key
             [
-                'phone_number' => '0000000000',
-                'email' => 'salary@company.com',
+                'ledger_type'     => 'expense',
                 'opening_balance' => 0,
-                'debit_credit' => 'debit',
-                'status' => 'active',
+                'debit_credit'    => 'debit',
+                'status'          => 'active',
+                'phone_number'     => '0000000000',              // ← add
+                'email'            => 'noreply@example.com',     // ← add
                 'account_group_id' => $accountGroup->id,
-                'group_under_id' => $groupUnder->id,
-                'address' => 'Company HR',
-                'for_transition_mode' => false,
-                'mark_for_user' => false,
-                'created_by' => auth()->id(),
+                'group_under_id'  => $groupUnder->id,
+                'created_by'      => auth()->id(),
             ]
         );
     }

@@ -7,6 +7,15 @@ use App\Models\SalarySlipEmployee;
 use App\Models\Employee;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
+use App\Models\Journal;
+use App\Models\JournalEntry;
+use App\Models\AccountLedger;
+use App\Models\AccountGroup;
+use App\Models\GroupUnder;
+use App\Models\Nature;
+use App\Models\User;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Str;
 
 class SalarySlipController extends Controller
 {
@@ -52,40 +61,76 @@ class SalarySlipController extends Controller
     // Store salary slip
     public function store(Request $request)
     {
-        // Validate the request data
         $request->validate([
             'voucher_number' => 'required|unique:salary_slips,voucher_number',
-            'date' => 'required|date',
-            'month' => 'required|integer|min:1|max:12',
-            'year' => 'required|integer|min:2020',
-            'salary_slip_employees' => 'required|array|min:1',
-            'salary_slip_employees.*.employee_id' => 'required|exists:employees,id',
-            'salary_slip_employees.*.basic_salary' => 'required|numeric|min:0',
+            'date'           => 'required|date',
+            'month'          => 'required|integer|min:1|max:12',
+            'year'           => 'required|integer|min:2020',
+            'salary_slip_employees'                     => 'required|array|min:1',
+            'salary_slip_employees.*.employee_id'       => 'required|exists:employees,id',
+            'salary_slip_employees.*.basic_salary'      => 'required|numeric|min:0',
             'salary_slip_employees.*.additional_amount' => 'nullable|numeric|min:0',
         ]);
 
-        // Create the salary slip
-        $salarySlip = SalarySlip::create([
-            'voucher_number' => $request->voucher_number,
-            'date' => $request->date,
-            'month' => $request->month,
-            'year' => $request->year,
-            'created_by' => auth()->id(),
-        ]);
+        DB::transaction(function () use ($request) {
 
-        // Save each employee's salary details
-        foreach ($request->salary_slip_employees as $employeeData) {
-            SalarySlipEmployee::create([
-                'salary_slip_id' => $salarySlip->id,
-                'employee_id' => $employeeData['employee_id'],
-                'basic_salary' => $employeeData['basic_salary'],
-                'additional_amount' => $employeeData['additional_amount'] ?? 0,
-                'total_amount' => floatval($employeeData['basic_salary']) + floatval($employeeData['additional_amount'] ?? 0),
+            /* ───── 1. create SalarySlip + detail rows ───── */
+            $salarySlip = SalarySlip::create([
+                'voucher_number' => $request->voucher_number,
+                'date'           => $request->date,
+                'month'          => $request->month,
+                'year'           => $request->year,
+                'created_by'     => auth()->id(),
             ]);
-        }
 
-        return redirect()->route('salary-slips.index')->with('success', 'Salary slip created successfully!');
+            foreach ($request->salary_slip_employees as $row) {
+                SalarySlipEmployee::create([
+                    'salary_slip_id'    => $salarySlip->id,
+                    'employee_id'       => $row['employee_id'],
+                    'basic_salary'      => $row['basic_salary'],
+                    'additional_amount' => $row['additional_amount'] ?? 0,
+                    'total_amount'      => $row['basic_salary'] + ($row['additional_amount'] ?? 0),
+                ]);
+            }
+
+            /* ───── 2. post accrual journal ───── */
+            $salaryExpenseLedger = $this->getOrCreateSalaryExpenseLedger();
+
+            $journal = Journal::create([
+                'date'       => $request->date,
+                'voucher_no' => 'JRN-' . strtoupper(Str::random(6)),
+                'narration'  => "Accrued salaries for Slip #{$salarySlip->voucher_number}",
+                'created_by' => auth()->id(),
+            ]);
+
+            foreach ($request->salary_slip_employees as $row) {
+                $amount         = $row['basic_salary'] + ($row['additional_amount'] ?? 0);
+                $employeeLedger = AccountLedger::where('employee_id', $row['employee_id'])->firstOrFail();
+
+                // DR Salary Expense
+                JournalEntry::create([
+                    'journal_id'        => $journal->id,
+                    'account_ledger_id' => $salaryExpenseLedger->id,
+                    'type'              => 'debit',
+                    'amount'            => $amount,
+                    'note'              => 'Accrued salary',
+                ]);
+
+                // CR Employee Ledger
+                JournalEntry::create([
+                    'journal_id'        => $journal->id,
+                    'account_ledger_id' => $employeeLedger->id,
+                    'type'              => 'credit',
+                    'amount'            => $amount,
+                    'note'              => 'Salary payable',
+                ]);
+            }
+        });
+
+        return redirect()->route('salary-slips.index')
+            ->with('success', 'Salary slip created and accrued successfully!');
     }
+
 
     // Show salary slip edit form
     public function edit(SalarySlip $salarySlip)
@@ -105,44 +150,128 @@ class SalarySlipController extends Controller
     // Update salary slip
     public function update(Request $request, SalarySlip $salarySlip)
     {
-        // Validate the request data
         $request->validate([
             'voucher_number' => 'required|unique:salary_slips,voucher_number,' . $salarySlip->id,
-            'date' => 'required|date',
-            'month' => 'required|integer|min:1|max:12',
-            'year' => 'required|integer|min:2020',
-            'salary_slip_employees' => 'required|array|min:1',
-            'salary_slip_employees.*.employee_id' => 'required|exists:employees,id',
-            'salary_slip_employees.*.basic_salary' => 'required|numeric|min:0',
+            'date'           => 'required|date',
+            'month'          => 'required|integer|min:1|max:12',
+            'year'           => 'required|integer|min:2020',
+            'salary_slip_employees'                     => 'required|array|min:1',
+            'salary_slip_employees.*.employee_id'       => 'required|exists:employees,id',
+            'salary_slip_employees.*.basic_salary'      => 'required|numeric|min:0',
             'salary_slip_employees.*.additional_amount' => 'nullable|numeric|min:0',
         ]);
 
-        // Update the salary slip
-        $salarySlip->update([
-            'voucher_number' => $request->voucher_number,
-            'date' => $request->date,
-            'month' => $request->month,
-            'year' => $request->year,
-            'created_by' => auth()->id(),
-        ]);
+        DB::transaction(function () use ($request, $salarySlip) {
 
-        // Update each employee's salary details
-        foreach ($request->salary_slip_employees as $employeeData) {
-            $salarySlipEmployee = SalarySlipEmployee::where('salary_slip_id', $salarySlip->id)
-                ->where('employee_id', $employeeData['employee_id'])
-                ->first();
+            /* ───── 1. update master row ───── */
+            $salarySlip->update([
+                'voucher_number' => $request->voucher_number,
+                'date'           => $request->date,
+                'month'          => $request->month,
+                'year'           => $request->year,
+            ]);
 
-            if ($salarySlipEmployee) {
-                $salarySlipEmployee->update([
-                    'basic_salary' => $employeeData['basic_salary'],
-                    'additional_amount' => $employeeData['additional_amount'] ?? 0,
-                    'total_amount' => $employeeData['basic_salary'] + ($employeeData['additional_amount'] ?? 0),
+            /* ───── 2. sync detail rows ───── */
+            $detailRows = collect($request->salary_slip_employees)->keyBy('employee_id');
+
+            foreach ($salarySlip->salarySlipEmployees as $line) {
+                $input = $detailRows->pull($line->employee_id);
+                if ($input) {
+                    $line->update([
+                        'basic_salary'      => $input['basic_salary'],
+                        'additional_amount' => $input['additional_amount'] ?? 0,
+                        'total_amount'      => $input['basic_salary'] + ($input['additional_amount'] ?? 0),
+                    ]);
+                } else {
+                    $line->delete(); // removed from slip
+                }
+            }
+
+            // any new employees added
+            foreach ($detailRows as $input) {
+                SalarySlipEmployee::create([
+                    'salary_slip_id'    => $salarySlip->id,
+                    'employee_id'       => $input['employee_id'],
+                    'basic_salary'      => $input['basic_salary'],
+                    'additional_amount' => $input['additional_amount'] ?? 0,
+                    'total_amount'      => $input['basic_salary'] + ($input['additional_amount'] ?? 0),
                 ]);
             }
-        }
 
-        return redirect()->route('salary-slips.index')->with('success', 'Salary slip updated successfully!');
+            /* ───── 3. rebuild accrual journal ───── */
+            $salaryExpenseLedger = $this->getOrCreateSalaryExpenseLedger();
+
+            // delete old entries; keep journal header
+            $journal = Journal::firstOrCreate(
+                ['voucher_no' => $salarySlip->voucher_number . '-ACCR'],
+                [
+                    'date'       => $request->date,
+                    'narration'  => "Accrued salaries for Slip #{$salarySlip->voucher_number}",
+                    'created_by' => auth()->id(),
+                ]
+            );
+            JournalEntry::where('journal_id', $journal->id)->delete();
+
+            foreach ($salarySlip->salarySlipEmployees as $line) {
+                $amount         = $line->total_amount;
+                $employeeLedger = AccountLedger::where('employee_id', $line->employee_id)->firstOrFail();
+
+                JournalEntry::create([
+                    'journal_id'        => $journal->id,
+                    'account_ledger_id' => $salaryExpenseLedger->id,
+                    'type'              => 'debit',
+                    'amount'            => $amount,
+                    'note'              => 'Accrued salary (updated)',
+                ]);
+
+                JournalEntry::create([
+                    'journal_id'        => $journal->id,
+                    'account_ledger_id' => $employeeLedger->id,
+                    'type'              => 'credit',
+                    'amount'            => $amount,
+                    'note'              => 'Salary payable (updated)',
+                ]);
+            }
+        });
+
+        return redirect()->route('salary-slips.index')
+            ->with('success', 'Salary slip & accrual updated successfully!');
     }
+
+    private function getOrCreateSalaryExpenseLedger(): AccountLedger
+    {
+        $groupUnder   = GroupUnder::where('name', 'Indirect Expenses')
+            // ← scoped
+            ->firstOrFail();
+
+        $expenseNature = Nature::where('name', 'Expenses')->firstOrFail();
+
+        $accountGroup = AccountGroup::firstOrCreate(
+            ['name' => 'Salary Expense', 'created_by' => auth()->id()], // ← scoped key
+            [
+                'nature_id'      => $expenseNature->id,
+                'group_under_id' => $groupUnder->id,
+                'description'    => 'Auto group for salary expense',
+                'created_by'     => auth()->id(),
+            ]
+        );
+
+        return AccountLedger::firstOrCreate(
+            ['account_ledger_name' => 'Salary Expense', 'created_by' => auth()->id()], // ← scoped key
+            [
+                'ledger_type'     => 'expense',
+                'opening_balance' => 0,
+                'debit_credit'    => 'debit',
+                'status'          => 'active',
+                'phone_number'     => '0000000000',              // ← add
+                'email'            => 'noreply@example.com',     // ← add
+                'account_group_id' => $accountGroup->id,
+                'group_under_id'  => $groupUnder->id,
+                'created_by'      => auth()->id(),
+            ]
+        );
+    }
+
 
     public function show(SalarySlip $salarySlip)
     {
