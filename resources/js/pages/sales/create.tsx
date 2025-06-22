@@ -81,6 +81,7 @@ export default function SaleCreate({
         inventory_ledger_id: '',
         total_due: '',
         closing_balance: '',
+        cogs_ledger_id: '',
     });
     useEffect(() => {
         if (data.godown_id) {

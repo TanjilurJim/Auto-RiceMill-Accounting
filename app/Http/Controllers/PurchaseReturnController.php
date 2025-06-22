@@ -14,6 +14,7 @@ use App\Models\JournalEntry;
 use App\Models\Item;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
+use Illuminate\Support\Facades\Log;
 
 use function company_info;   // helper
 use function numberToWords;
@@ -111,6 +112,7 @@ class PurchaseReturnController extends Controller
             'return_voucher_no' => $voucherNo,
             'godown_id' => $request->godown_id,
             'account_ledger_id' => $request->account_ledger_id,
+            'inventory_ledger_id'=> $request->inventory_ledger_id,
             'reason' => $request->reason,
             'total_qty' => collect($request->return_items)->sum('qty'),
             'grand_total' => collect($request->return_items)->sum('subtotal'),
@@ -142,7 +144,7 @@ class PurchaseReturnController extends Controller
                 'note' => 'Reduce supplier payable (return) | রিটার্নের কারণে সরবরাহকারীর বাকি হ্রাস',
             ],
             [
-                'account_ledger_id' => $request->inventory_ledger_id,
+                'account_ledger_id' => $return->inventory_ledger_id, 
                 'type' => 'credit',
                 'amount' => $return->grand_total,
                 'note' => 'Inventory decreased (purchase return)',
@@ -150,7 +152,7 @@ class PurchaseReturnController extends Controller
         ]);
 
         $this->updateLedgerBalance($request->account_ledger_id, 'debit', $return->grand_total);
-        $this->updateLedgerBalance($request->inventory_ledger_id, 'credit', $return->grand_total);
+        $this->updateLedgerBalance($return->inventory_ledger_id, 'credit', $return->grand_total); 
 
         $return->journal_id = $journal->id;
         $return->save();
@@ -260,10 +262,13 @@ class PurchaseReturnController extends Controller
             'date' => 'required|date',
             'godown_id' => 'required|exists:godowns,id',
             'account_ledger_id' => 'required|exists:account_ledgers,id',
+            'inventory_ledger_id' => 'required|exists:account_ledgers,id',
             'return_items' => 'required|array|min:1',
             'return_items.*.product_id' => 'required|exists:items,id',
             'return_items.*.qty' => 'required|numeric|min:0.01',
             'return_items.*.price' => 'required|numeric|min:0',
+            'refund_modes.*.ledger_id' => 'nullable|exists:account_ledgers,id',
+            'refund_modes.*.amount_paid' => 'nullable|numeric|min:0.01',
             'return_items.*.subtotal' => 'required|numeric|min:0',
             'reason' => 'nullable|string|max:1000',
         ]);
@@ -281,6 +286,15 @@ class PurchaseReturnController extends Controller
         if ($purchase_return->journal_id) {
             JournalEntry::where('journal_id', $purchase_return->journal_id)->delete();
         }
+
+        $journal = Journal::firstOrCreate(
+            ['voucher_no' => $purchase_return->return_voucher_no],
+            [
+                'date' => $request->date,
+                'narration' => 'Auto Journal for Purchase Return (updated)',
+                'created_by' => auth()->id(),
+            ]
+        );
         /* -----------------------------------------------------------
         |  🟣  REFUND‑MODE CLEAN‑UP & RECREATE  <<––  INSERT HERE
         |------------------------------------------------------------
@@ -307,26 +321,28 @@ class PurchaseReturnController extends Controller
         if ($request->filled('refund_modes')) {
             foreach ($request->refund_modes as $mode) {
 
+                \Log::info('Refund mode debug', $mode);
+
                 $received = ReceivedMode::firstOrCreate(
                     ['ledger_id' => $mode['ledger_id']],
                     ['mode_name' => $mode['mode_name'], 'created_by' => auth()->id()]
                 );
-            
+
                 $received->update([
                     'phone_number' => $mode['phone_number'] ?? $received->phone_number,
                 ]);
-            
+
                 // single, clear way to get the ledger name
                 $ledName = $received->ledger?->account_ledger_name ?? 'Unknown';
-            
+
                 JournalEntry::create([
                     'journal_id'        => $journal->id,        // header created earlier
-                    'account_ledger_id' => $received->ledger_id,
+                    'account_ledger_id' => (int) $mode['ledger_id'],
                     'type'   => 'credit',
                     'amount' => $mode['amount_paid'],
                     'note'   => 'Refund paid via ' . $ledName,
                 ]);
-            
+
                 JournalEntry::create([
                     'journal_id'        => $journal->id,
                     'account_ledger_id' => $request->account_ledger_id,
@@ -334,7 +350,7 @@ class PurchaseReturnController extends Controller
                     'amount' => $mode['amount_paid'],
                     'note'   => 'Refund adjustment to supplier',
                 ]);
-            
+
                 $this->updateLedgerBalance($received->ledger_id, 'credit', $mode['amount_paid']);
                 $this->updateLedgerBalance($request->account_ledger_id, 'debit',  $mode['amount_paid']);
             }
@@ -348,6 +364,7 @@ class PurchaseReturnController extends Controller
             'date' => $request->date,
             'godown_id' => $request->godown_id,
             'account_ledger_id' => $request->account_ledger_id,
+            'inventory_ledger_id' => $request->inventory_ledger_id,  // ✅ this line
             'reason' => $request->reason,
             'total_qty' => collect($request->return_items)->sum('qty'),
             'grand_total' => collect($request->return_items)->sum('subtotal'),
@@ -367,14 +384,7 @@ class PurchaseReturnController extends Controller
         }
 
         // Recreate journal entries as in store()
-        $journal = Journal::firstOrCreate(
-            ['voucher_no' => $purchase_return->return_voucher_no],
-            [
-                'date' => $request->date,
-                'narration' => 'Auto Journal for Purchase Return (updated)',
-                'created_by' => auth()->id(),
-            ]
-        );
+
 
         $journal->entries()->createMany([
             [
@@ -383,14 +393,14 @@ class PurchaseReturnController extends Controller
                 'amount' => $purchase_return->grand_total,
             ],
             [
-                'account_ledger_id' => $request->inventory_ledger_id,
+                'account_ledger_id' => $purchase_return->inventory_ledger_id,
                 'type' => 'credit',
                 'amount' => $purchase_return->grand_total,
             ],
         ]);
 
         $this->updateLedgerBalance($request->account_ledger_id, 'debit', $purchase_return->grand_total);
-        $this->updateLedgerBalance($request->inventory_ledger_id, 'credit', $purchase_return->grand_total);
+        $this->updateLedgerBalance($purchase_return->inventory_ledger_id, 'credit', $purchase_return->grand_total); // ✅
 
         $purchase_return->journal_id = $journal->id;
         $purchase_return->save();

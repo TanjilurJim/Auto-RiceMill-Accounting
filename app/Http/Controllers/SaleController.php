@@ -170,14 +170,7 @@ class SaleController extends Controller
                     'sale_id' => $sale->id,
                 ]);
             }
-            $salesLedgerId = AccountLedger::where('ledger_type', 'sales')
-                ->where('mark_for_user', 0)  
-                ->where('group_under_id',10)    // exclude customer ledgers
-                ->value('id');
-
-            if (!$salesLedgerId) {
-                throw new \Exception('Sales Income ledger not found! Create one with ledger_type = sales');
-            }
+            $salesLedgerId = $this->getOrCreateSalesLedgerId();
 
             $grandTotal = $sale->grand_total;
             $amountReceived = $request->amount_received ?? 0;
@@ -255,7 +248,7 @@ class SaleController extends Controller
         } catch (\Throwable $e) {
             DB::rollBack();
             report($e);
-            return back()->with('error', 'Failed to save sale.');
+            return back()->with('error', 'Failed to save sale.' . $e->getMessage());
         }
     }
 
@@ -275,16 +268,21 @@ class SaleController extends Controller
                 'salesman',
                 'accountLedger',
                 'receivedMode.ledger',
-            ]),
+            ])->makeVisible(['received_mode_id', 'inventory_ledger_id']),
             'cogs_ledger_id' => $sale->cogs_ledger_id,
             'godowns' => Godown::where('created_by', auth()->id())->get(),
             'salesmen' => Salesman::where('created_by', auth()->id())->get(),
             'ledgers' => AccountLedger::where('created_by', auth()->id())->get(), // includes COGS ledgers
-            'inventoryLedgers' => AccountLedger::whereIn('account_group_id', [1, 2, 14, 15])
+            'inventoryLedgers' => AccountLedger::where('ledger_type', 'inventory')
+                ->where('created_by', auth()->id())
+                ->get(['id', 'account_ledger_name']),
+            'cogsLedgers' => AccountLedger::where('ledger_type', 'cogs')
                 ->where('created_by', auth()->id())
                 ->get(['id', 'account_ledger_name']),
             'items' => Item::where('created_by', auth()->id())->get(),
-            'receivedModes' => ReceivedMode::with('ledger')
+            'receivedModes' => ReceivedMode::with(['ledger' => function ($q) {
+                $q->where('ledger_type', 'received_mode');
+            }])
                 ->where('created_by', auth()->id())
                 ->get(['id', 'mode_name', 'ledger_id']),
             'accountGroups' => \App\Models\AccountGroup::where('created_by', auth()->id())->get(['id', 'name']), // optional for modal
@@ -397,13 +395,8 @@ class SaleController extends Controller
             $sale->update(['journal_id' => $journal->id]);
 
             // automatically find the Sales Income ledger (first match)
-            $salesLedgerId = AccountLedger::where('ledger_type', 'sales')
-                ->where('mark_for_user', 0)  // কাস্টমার লেজার বাদ দিন
-                ->where('group_under_id',10)  // শুধু Direct Income গ্রুপ
-                ->value('id');
-            if (!$salesLedgerId) {
-                throw new \Exception('Sales Income ledger not found! Create one with ledger_type = sales');
-            }
+            $salesLedgerId = $this->getOrCreateSalesLedgerId();
+
 
             /* ---- জরুরি মান ---- */
             $grandTotal     = $sale->grand_total;
@@ -497,6 +490,27 @@ class SaleController extends Controller
 
     // Invoice (ERP style print)
     // Invoice (ERP style print)
+
+    private function getOrCreateSalesLedgerId()
+    {
+        $ledger = AccountLedger::firstOrCreate(
+            [
+                'ledger_type'     => 'sales',
+                'mark_for_user'   => 0,
+                'group_under_id'  => 10,
+                'created_by'      => auth()->id(),
+            ],
+            [
+                'account_ledger_name' => 'Sales Income',
+                'opening_balance'     => 0,
+                'debit_credit'        => 'credit',
+                'status'              => 'active',
+                'phone_number'        => '0000000000',
+            ]
+        );
+
+        return $ledger->id;
+    }
 
 
     public function invoice(Sale $sale)

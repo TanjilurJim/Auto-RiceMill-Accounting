@@ -100,33 +100,34 @@ class EmployeeController extends Controller
             ]);
 
             // 🌟 Auto-create Ledger for Employee
-            $groupUnder = GroupUnder::where('name', 'Indirect Expenses')->firstOrFail();
-            $nature = Nature::where('name', 'Expenses')->firstOrFail();
+            $groupUnder = GroupUnder::where('name', 'Sundry Creditors')->firstOrFail();
+            $nature     = Nature::where('name', 'Liabilities')->firstOrFail();
 
             $accountGroup = AccountGroup::firstOrCreate(
-                ['name' => 'Employee Salary Expense'],
+                ['name' => 'Employee Liability'],
                 [
-                    'nature_id' => $nature->id,
+                    'nature_id'      => $nature->id,
                     'group_under_id' => $groupUnder->id,
-                    'description' => 'Ledger group for employee salary tracking',
-                    'created_by' => auth()->id(),
+                    'description'    => 'Employee salary payable accounts',
+                    'created_by'     => auth()->id(),
                 ]
             );
 
             AccountLedger::create([
-                'employee_id' => $employee->id,
+                'employee_id'         => $employee->id,
                 'account_ledger_name' => $employee->name,
-                'phone_number' => $employee->mobile ?? '0000000000',
-                'email' => $employee->email ?? 'employee@example.com',
-                'opening_balance' => 0,
-                'debit_credit' => 'debit',
-                'status' => 'active',
-                'account_group_id' => $accountGroup->id,
-                'group_under_id' => $groupUnder->id,
-                'address' => $employee->present_address,
+                'phone_number'        => $employee->mobile ?? '0000000000',
+                'email'               => $employee->email  ?? 'employee@example.com',
+                'opening_balance'     => 0,
+                'debit_credit'        => 'credit',          // ← liability nature
+                'status'              => 'active',
+                'account_group_id'    => $accountGroup->id,
+                'group_under_id'      => $groupUnder->id,
+                'address'             => $employee->present_address,
+                'ledger_type'         => 'employee',        // ← key line
                 'for_transition_mode' => false,
-                'mark_for_user' => false,
-                'created_by' => auth()->id(),
+                'mark_for_user'       => false,
+                'created_by'          => auth()->id(),
             ]);
         });
         // Redirect with a success message
@@ -190,6 +191,20 @@ class EmployeeController extends Controller
             'shift_id' => $request->shift_id,
             'reference_by' => $request->reference_by,
         ]);
+        // ─── keep the linked ledger in sync ────────────────────────────
+        if ($employee->ledger) {
+            $employee->ledger->update([
+                'account_ledger_name' => $employee->name,
+                'phone_number'        => $employee->mobile,
+                'email'               => $employee->email,
+                'address'             => $employee->present_address,
+                // DO NOT touch:
+                // 'ledger_type'  => 'employee';
+                // 'debit_credit' => 'credit';
+            ]);
+        }
+
+
 
         // Redirect with a success message
         return redirect()->route('employees.index')->with('success', 'Employee updated successfully.');

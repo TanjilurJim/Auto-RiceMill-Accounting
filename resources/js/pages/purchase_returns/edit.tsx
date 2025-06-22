@@ -55,12 +55,12 @@ export default function PurchaseReturnEdit({
         })),
         refund_modes: purchase_return.refund_modes?.length
             ? purchase_return.refund_modes.map((r: any) => ({
-                id: r.id,
-                mode_name: r.mode_name,
-                phone_number: r.phone_number,
-                ledger_id: r.ledger_id,
-                amount_paid: r.amount_paid,
-            }))
+                  id: r.id,
+                  mode_name: r.mode_name,
+                  phone_number: r.phone_number,
+                  ledger_id: r.ledger_id,
+                  amount_paid: r.amount_paid,
+              }))
             : [{ id: null, mode_name: '', phone_number: '', ledger_id: '', amount_paid: '' }],
     });
 
@@ -79,14 +79,11 @@ export default function PurchaseReturnEdit({
 
     const removeProductRow = (index: number) => {
         if (data.return_items.length === 1) return;
-        confirmDialog(
-            {}, () => {
-                const updated = [...data.return_items];
-                updated.splice(index, 1);
-                setData('return_items', updated);
-            }
-        )
-
+        confirmDialog({}, () => {
+            const updated = [...data.return_items];
+            updated.splice(index, 1);
+            setData('return_items', updated);
+        });
     };
 
     const handleSubmit = (e: React.FormEvent) => {
@@ -97,13 +94,13 @@ export default function PurchaseReturnEdit({
     return (
         <AppLayout>
             <Head title="Edit Purchase Return" />
-            <div className="bg-gray-100 p-6 h-full w-screen lg:w-full">
-                <div className="bg-white h-full rounded-lg p-6">
+            <div className="h-full w-screen bg-gray-100 p-6 lg:w-full">
+                <div className="h-full rounded-lg bg-white p-6">
                     {/* Page Header */}
-                    <PageHeader title='Edit Purchase Return' addLinkHref='/purchase-returns' addLinkText='Back' />
+                    <PageHeader title="Edit Purchase Return" addLinkHref="/purchase-returns" addLinkText="Back" />
 
                     {/* Form */}
-                    <form onSubmit={handleSubmit} className="space-y-6 rounded-lg bg-white p-6 border">
+                    <form onSubmit={handleSubmit} className="space-y-6 rounded-lg border bg-white p-6">
                         {/* Return Info */}
                         <div className="space-y-4">
                             <h2 className="border-b pb-1 text-lg font-semibold">Return Information</h2>
@@ -133,7 +130,8 @@ export default function PurchaseReturnEdit({
                                 <select
                                     className="border p-2"
                                     value={data.inventory_ledger_id}
-                                    onChange={(e) => setData('inventory_ledger_id', e.target.value)}
+                                    onChange={(e) => setData('inventory_ledger_id', Number(e.target.value))}
+                                    required
                                 >
                                     <option value="">Select Inventory Ledger</option>
                                     {inventoryLedgers.map((l) => (
@@ -208,7 +206,7 @@ export default function PurchaseReturnEdit({
                                                             <button
                                                                 type="button"
                                                                 onClick={() => removeProductRow(index)}
-                                                                className="rounded bg-danger hover:bg-danger-hover px-2 py-1 text-white"
+                                                                className="bg-danger hover:bg-danger-hover rounded px-2 py-1 text-white"
                                                             >
                                                                 &minus;
                                                             </button>
@@ -217,7 +215,7 @@ export default function PurchaseReturnEdit({
                                                             <button
                                                                 type="button"
                                                                 onClick={addProductRow}
-                                                                className="rounded bg-primary hover:bg-primary-hover px-2 py-1 text-white"
+                                                                className="bg-primary hover:bg-primary-hover rounded px-2 py-1 text-white"
                                                             >
                                                                 +
                                                             </button>
@@ -233,12 +231,14 @@ export default function PurchaseReturnEdit({
 
                         {/* Totals */}
                         <div className="mt-6 flex justify-between gap-4">
-                            <div className="w-full flex flex-col md:flex-row  gap-2.5">
-                                <div className="w-full flex justify-between rounded border bg-gray-50 p-3 shadow-sm">
+                            <div className="flex w-full flex-col gap-2.5 md:flex-row">
+                                <div className="flex w-full justify-between rounded border bg-gray-50 p-3 shadow-sm">
                                     <span className="font-semibold text-gray-700">Total Qty:</span>
-                                    <span className="font-semibold">{data.return_items.reduce((sum, item) => sum + (parseFloat(item.qty) || 0), 0)}</span>
+                                    <span className="font-semibold">
+                                        {data.return_items.reduce((sum, item) => sum + (parseFloat(item.qty) || 0), 0)}
+                                    </span>
                                 </div>
-                                <div className="w-full flex justify-between rounded border bg-gray-50 p-3 shadow-sm">
+                                <div className="flex w-full justify-between rounded border bg-gray-50 p-3 shadow-sm">
                                     <span className="font-semibold text-gray-700">Total Return Value:</span>
                                     <span className="font-semibold">
                                         {data.return_items.reduce((sum, item) => sum + (parseFloat(item.subtotal) || 0), 0)} Tk
@@ -250,7 +250,7 @@ export default function PurchaseReturnEdit({
                         <div className="mt-6 space-y-4">
                             <h2 className="border-b pb-1 text-lg font-semibold">Refund Mode</h2>
                             {data.refund_modes.map((mode, index) => (
-                                <div key={index} className="w-full grid grid-cols-1 items-center gap-4 md:grid-cols-4">
+                                <div key={index} className="grid w-full grid-cols-1 items-center gap-4 md:grid-cols-4">
                                     <select
                                         className="border p-2"
                                         value={mode.ledger_id}
@@ -299,7 +299,7 @@ export default function PurchaseReturnEdit({
                                         {data.refund_modes.length > 1 && (
                                             <button
                                                 type="button"
-                                                className="rounded bg-danger hover:bg-danger-hover px-3 py-1 text-white w-full md:w-fit"
+                                                className="bg-danger hover:bg-danger-hover w-full rounded px-3 py-1 text-white md:w-fit"
                                                 onClick={() => {
                                                     const u = [...data.refund_modes];
                                                     u.splice(index, 1);
@@ -312,7 +312,7 @@ export default function PurchaseReturnEdit({
                                         {index === data.refund_modes.length - 1 && (
                                             <button
                                                 type="button"
-                                                className="rounded bg-primary hover:bg-primary-hover px-3 py-1 text-white w-full md:w-fit"
+                                                className="bg-primary hover:bg-primary-hover w-full rounded px-3 py-1 text-white md:w-fit"
                                                 onClick={() => {
                                                     setData('refund_modes', [
                                                         ...data.refund_modes,
@@ -336,7 +336,6 @@ export default function PurchaseReturnEdit({
                             submitText={processing ? 'Saving...' : 'Update Return'}
                             cancelText="Cancel"
                         />
-
                     </form>
                 </div>
             </div>

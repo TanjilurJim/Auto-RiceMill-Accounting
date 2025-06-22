@@ -178,6 +178,43 @@ if (! function_exists('numberToWords')) {
     }
 }
 
+use App\Models\FinancialYear;
+use Carbon\Carbon;
+
+if (!function_exists('current_financial_year')) {
+    /**
+     * Return the open FY that covers today's date for the
+     * currently-logged-in tenant.  If none, return the most-recent
+     * FY for the tenant; if still none, null.
+     */
+    function current_financial_year(): ?FinancialYear
+    {
+        $today = Carbon::today()->toDateString();
+
+        // 1️⃣  Primary choice – open & date-range matches today
+        $fy = FinancialYear::where('is_closed', 0)
+            ->where('created_by', auth()->id())
+            ->whereDate('start_date', '<=', $today)
+            ->whereDate('end_date',   '>=', $today)
+            ->first();
+
+        if ($fy) {
+            return $fy;
+        }
+
+        // 2️⃣  Fallback – latest open FY for the tenant
+        $fy = FinancialYear::where('is_closed', 0)
+            ->where('created_by', auth()->id())
+            ->orderByDesc('start_date')
+            ->first();
+
+        // 3️⃣  Ultimate fallback – latest FY of any status for the tenant
+        return $fy ?: FinancialYear::where('created_by', auth()->id())
+                                   ->orderByDesc('start_date')
+                                   ->first();
+    }
+}
+
 
 
 if (! function_exists('company_info')) {
