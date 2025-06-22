@@ -17,21 +17,46 @@ use Inertia\Inertia;
 
 use function company_info;   // helper
 use function numberToWords;
+use function godown_scope_ids; // [multi-level access]
 
 class PurchaseReturnController extends Controller
 {
     // 🟢 Index: List all returns
     public function index()
     {
-        $returns = PurchaseReturn::with([
-            'godown',
-            'accountLedger',
-            'returnItems.item',
-            'creator'
-        ])
-            ->where('created_by', auth()->id())
-            ->orderBy('id', 'desc')
-            ->paginate(10);
+        // $returns = PurchaseReturn::with([
+        //     'godown',
+        //     'accountLedger',
+        //     'returnItems.item',
+        //     'creator'
+        // ])
+        //     ->where('created_by', auth()->id())
+        //     ->orderBy('id', 'desc')
+        //     ->paginate(10);
+
+        $user = auth()->user(); // [multi-level access]
+
+        if ($user->hasRole('admin')) { // [multi-level access]
+            $returns = PurchaseReturn::with([
+                'godown',
+                'accountLedger',
+                'returnItems.item',
+                'creator'
+            ])
+                ->orderBy('id', 'desc')
+                ->paginate(10);
+        } else { // [multi-level access]
+            $ids = godown_scope_ids(); // [multi-level access]
+            $returns = PurchaseReturn::with([
+                'godown',
+                'accountLedger',
+                'returnItems.item',
+                'creator'
+            ])
+                ->whereIn('created_by', $ids) // [multi-level access]
+                ->orderBy('id', 'desc')
+                ->paginate(10);
+        }
 
         return Inertia::render('purchase_returns/index', [
             'returns' => $returns
@@ -41,12 +66,23 @@ class PurchaseReturnController extends Controller
     // 🟢 Create form
     public function create()
     {
+        // return Inertia::render('purchase_returns/create', [
+        //     'godowns' => Godown::where('created_by', auth()->id())->get(),
+        //     'ledgers' => AccountLedger::where('created_by', auth()->id())->get(),
+        //     'items' => Item::where('created_by', auth()->id())->get()->unique('item_name')->values(),
+        //     'receivedModes' => ReceivedMode::with('ledger') // 🆕 add this
+        //         ->where('created_by', auth()->id())
+        //         ->get(),
+        // ]);
+
+        $userIds = godown_scope_ids(); // [multi-level access]
+
         return Inertia::render('purchase_returns/create', [
-            'godowns' => Godown::where('created_by', auth()->id())->get(),
-            'ledgers' => AccountLedger::where('created_by', auth()->id())->get(),
-            'items' => Item::where('created_by', auth()->id())->get()->unique('item_name')->values(),
-            'receivedModes' => ReceivedMode::with('ledger') // 🆕 add this
-                ->where('created_by', auth()->id())
+            'godowns' => Godown::whereIn('created_by', $userIds)->get(), // [multi-level access]
+            'ledgers' => AccountLedger::whereIn('created_by', $userIds)->get(), // [multi-level access]
+            'items' => Item::whereIn('created_by', $userIds)->get()->unique('item_name')->values(), // [multi-level access]
+            'receivedModes' => ReceivedMode::with('ledger')
+                ->whereIn('created_by', $userIds) // [multi-level access]
                 ->get(),
         ]);
     }
@@ -160,11 +196,21 @@ class PurchaseReturnController extends Controller
     public function edit(PurchaseReturn $purchase_return)
     {
         // tenant / owner check
-        if ($purchase_return->created_by !== auth()->id()) {
-            abort(403);
+        // if ($purchase_return->created_by !== auth()->id()) {
+        //     abort(403);
+        // }
+
+        $user = auth()->user(); // [multi-level access]
+        if (!$user->hasRole('admin')) { // [multi-level access]
+            $ids = godown_scope_ids(); // [multi-level access]
+            if (!in_array($purchase_return->created_by, $ids)) { // [multi-level access]
+                abort(403);
+            }
         }
 
-        $userId = auth()->id();                 // shorthand
+
+        // $userId = auth()->id();                 // shorthand
+        $userIds = godown_scope_ids(); // [multi-level access]
         $inventoryGroupIds = [1, 2, 14, 15];    // the groups you treat as “Inventory”
 
         /* 1️⃣ eager‑load everything we need on the header record */
@@ -183,23 +229,31 @@ class PurchaseReturnController extends Controller
                 'accountLedger',
                 'refundModes.ledger',   // 🆕  pre‑fill refund rows
             ]),
-            'godowns'          => Godown::where('created_by', $userId)->get(),
-            'ledgers'          => AccountLedger::where('created_by', $userId)->get(),
+            'godowns'          => Godown::where('created_by', $userIds)->get(),
+            'ledgers'          => AccountLedger::where('created_by', $userIds)->get(),
             'inventoryLedgers' => AccountLedger::whereIn('account_group_id', [1, 2, 14, 15])
-                ->where('created_by', $userId)
+                ->where('created_by', $userIds)
                 ->get(['id', 'account_ledger_name']),         // 🆕
             'receivedModes'    => ReceivedMode::with('ledger')
-                ->where('created_by', $userId)
+                ->where('created_by', $userIds)
                 ->get(['id', 'mode_name', 'ledger_id']),       // 🆕
-            'items'            => Item::where('created_by', $userId)->get(),
+            'items'            => Item::where('created_by', $userIds)->get(),
         ]);
     }
 
     // 🟢 Update
     public function update(Request $request, PurchaseReturn $purchase_return)
     {
-        if ($purchase_return->created_by !== auth()->id()) {
-            abort(403);
+        // if ($purchase_return->created_by !== auth()->id()) {
+        //     abort(403);
+        // }
+
+        $user = auth()->user(); // [multi-level access]
+        if (!$user->hasRole('admin')) { // [multi-level access]
+            $ids = godown_scope_ids(); // [multi-level access]
+            if (!in_array($purchase_return->created_by, $ids)) { // [multi-level access]
+                abort(403);
+            }
         }
 
         $request->validate([
@@ -228,9 +282,9 @@ class PurchaseReturnController extends Controller
             JournalEntry::where('journal_id', $purchase_return->journal_id)->delete();
         }
         /* -----------------------------------------------------------
-|  🟣  REFUND‑MODE CLEAN‑UP & RECREATE  <<––  INSERT HERE
-|------------------------------------------------------------
-*/
+        |  🟣  REFUND‑MODE CLEAN‑UP & RECREATE  <<––  INSERT HERE
+        |------------------------------------------------------------
+        */
         // make sure this import is at top
 
         // A. reverse & delete previous refund‑mode rows
@@ -286,9 +340,9 @@ class PurchaseReturnController extends Controller
             }
         }
         /* -----------------------------------------------------------
-|  🟣  END REFUND BLOCK
-|------------------------------------------------------------
-*/
+        |  🟣  END REFUND BLOCK
+        |------------------------------------------------------------
+        */
 
         $purchase_return->update([
             'date' => $request->date,
@@ -347,8 +401,16 @@ class PurchaseReturnController extends Controller
     // 🟢 Delete
     public function destroy(PurchaseReturn $purchase_return)
     {
-        if ($purchase_return->created_by !== auth()->id()) {
-            abort(403);
+        // if ($purchase_return->created_by !== auth()->id()) {
+        //     abort(403);
+        // }
+
+        $user = auth()->user(); // [multi-level access]
+        if (!$user->hasRole('admin')) { // [multi-level access]
+            $ids = godown_scope_ids(); // [multi-level access]
+            if (!in_array($purchase_return->created_by, $ids)) { // [multi-level access]
+                abort(403);
+            }
         }
 
         $purchase_return->delete();

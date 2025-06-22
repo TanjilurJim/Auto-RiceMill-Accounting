@@ -22,28 +22,68 @@ use Illuminate\Http\Request;
 use App\Models\AccountLedger;
 use function company_info;   // helper
 use function user_scope_ids;   // helper
+use function godown_scope_ids; // [multi-level access]
 
 
 class PurchaseController extends Controller
 {
 
     // Show list of purchases
+    // public function index()
+    // {
+    //     $purchases = Purchase::with([
+    //         'godown',
+    //         'salesman',
+    //         'accountLedger',
+    //         'purchaseItems.item', // 🟢 Eager load item inside purchaseItems!
+    //         'creator'
+    //     ])
+
+    //         ->where('created_by', auth()->id())
+    //         ->orderBy('id', 'desc')
+    //         ->paginate(10);
+
+    //     $purchases->getCollection()->transform(function ($p) {
+    //         $p->due = $p->grand_total - $p->amount_paid;   // 👈 add field
+    //         return $p;
+    //     });
+
+    //     return Inertia::render('purchases/index', [
+    //         'purchases' => $purchases
+    //     ]);
+    // }
+
+    // Show list of purchases
     public function index()
     {
-        $purchases = Purchase::with([
-            'godown',
-            'salesman',
-            'accountLedger',
-            'purchaseItems.item', // 🟢 Eager load item inside purchaseItems!
-            'creator'
-        ])
+        $user = auth()->user(); // [multi-level access]
 
-            ->where('created_by', auth()->id())
-            ->orderBy('id', 'desc')
-            ->paginate(10);
+        if ($user->hasRole('admin')) { // [multi-level access]
+            $purchases = Purchase::with([
+                'godown',
+                'salesman',
+                'accountLedger',
+                'purchaseItems.item',
+                'creator'
+            ])
+                ->orderBy('id', 'desc')
+                ->paginate(10);
+        } else { // [multi-level access]
+            $ids = godown_scope_ids(); // [multi-level access]
+            $purchases = Purchase::with([
+                'godown',
+                'salesman',
+                'accountLedger',
+                'purchaseItems.item',
+                'creator'
+            ])
+                ->whereIn('created_by', $ids) // [multi-level access]
+                ->orderBy('id', 'desc')
+                ->paginate(10);
+        }
 
         $purchases->getCollection()->transform(function ($p) {
-            $p->due = $p->grand_total - $p->amount_paid;   // 👈 add field
+            $p->due = $p->grand_total - $p->amount_paid;
             return $p;
         });
 
@@ -52,10 +92,12 @@ class PurchaseController extends Controller
         ]);
     }
 
+
     // Show create form
     public function create()
     {
-        $userIds = user_scope_ids();
+        // $userIds = user_scope_ids();
+        $userIds = godown_scope_ids(); // [multi-level access]
 
         return Inertia::render('purchases/create', [
             'godowns' => Godown::whereIn('created_by', $userIds)->get(),
@@ -237,12 +279,21 @@ class PurchaseController extends Controller
     public function edit(Purchase $purchase)
     {
         // multi‑tenant guard
-        if ($purchase->created_by !== auth()->id() && ! auth()->user()->hasRole('admin')) {
-            abort(403);
+        // if ($purchase->created_by !== auth()->id() && ! auth()->user()->hasRole('admin')) {
+        //     abort(403);
+        // }
+
+        $user = auth()->user(); // [multi-level access]
+        if (!$user->hasRole('admin')) { // [multi-level access]
+            $ids = godown_scope_ids(); // [multi-level access]
+            if (!in_array($purchase->created_by, $ids)) { // [multi-level access]
+                abort(403, 'Unauthorized action.');
+            }
         }
 
         // $userId = auth()->id();
-        $userIds = user_scope_ids();
+        // $userIds = user_scope_ids();
+        $userIds = godown_scope_ids(); // [multi-level access]
 
         return Inertia::render('purchases/edit', [
             'purchase' => $purchase->load([
@@ -325,8 +376,16 @@ class PurchaseController extends Controller
     public function update(Request $request, Purchase $purchase)
     {
         /* -------------------  Tenant check  ------------------- */
-        if ($purchase->created_by !== auth()->id() && !auth()->user()->hasRole('admin')) {
-            abort(403);
+        // if ($purchase->created_by !== auth()->id() && !auth()->user()->hasRole('admin')) {
+        //     abort(403);
+        // }
+
+        $user = auth()->user(); // [multi-level access]
+        if (!$user->hasRole('admin')) { // [multi-level access]
+            $ids = godown_scope_ids(); // [multi-level access]
+            if (!in_array($purchase->created_by, $ids)) { // [multi-level access]
+                abort(403, 'Unauthorized action.');
+            }
         }
 
         /* -------------------  Validation  --------------------- */
@@ -532,13 +591,17 @@ class PurchaseController extends Controller
     }
 
 
-
-
-
-
     // Delete Purchase
     public function destroy(Purchase $purchase)
     {
+        $user = auth()->user(); // [multi-level access]
+        if (!$user->hasRole('admin')) { // [multi-level access]
+            $ids = godown_scope_ids(); // [multi-level access]
+            if (!in_array($purchase->created_by, $ids)) { // [multi-level access]
+                abort(403, 'Unauthorized action.');
+            }
+        }
+
         $purchase->delete();
         return redirect()->back()->with('success', 'Purchase deleted successfully!');
     }
