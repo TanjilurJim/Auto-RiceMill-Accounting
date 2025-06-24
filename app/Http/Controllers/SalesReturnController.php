@@ -17,14 +17,30 @@ use Illuminate\Http\Request;
 use Inertia\Inertia;
 use function company_info;
 use function numberToWords;
+use function godown_scope_ids;
 
 class SalesReturnController extends Controller
 {
     // Show list of sales returns
+    // public function index()
+    // {
+    //     $salesReturns = SalesReturn::with(['sale', 'accountLedger']) // Ensure accountLedger is eager-loaded
+    //         ->where('created_by', auth()->id())
+    //         ->orderBy('id', 'desc')
+    //         ->paginate(10);
+
+    //     return Inertia::render('sales_returns/index', [
+    //         'salesReturns' => $salesReturns
+    //     ]);
+    // }
     public function index()
     {
-        $salesReturns = SalesReturn::with(['sale', 'accountLedger']) // Ensure accountLedger is eager-loaded
-            ->where('created_by', auth()->id())
+        $ids = godown_scope_ids();
+
+        $salesReturns = SalesReturn::with(['sale', 'accountLedger'])
+            ->when(!empty($ids), function ($q) use ($ids) {
+                $q->whereIn('created_by', $ids);
+            })
             ->orderBy('id', 'desc')
             ->paginate(10);
 
@@ -34,18 +50,36 @@ class SalesReturnController extends Controller
     }
 
     // Show create form
+    // public function create()
+    // {
+    //     $voucher = 'SRL-' . now()->format('Ymd') . '-' . str_pad(SalesReturn::max('id') + 1, 4, '0', STR_PAD_LEFT);
+
+    //     return Inertia::render('sales_returns/create', [
+    //         'voucher' => $voucher,
+    //         'sales' => Sale::where('created_by', auth()->id())->get(),
+    //         'ledgers' => AccountLedger::where('created_by', auth()->id())->get(),
+    //         'products' => Item::where('created_by', auth()->id())->get(),
+    //         'godowns' => Godown::where('created_by', auth()->id())->get(),
+    //         'salesmen' => Salesman::where('created_by', auth()->id())->get(),
+    //         'receivedModes' => ReceivedMode::with('ledger')->where('created_by', auth()->id())->get(), // ✅
+    //     ]);
+    // }
+
     public function create()
     {
+        $ids = godown_scope_ids();
         $voucher = 'SRL-' . now()->format('Ymd') . '-' . str_pad(SalesReturn::max('id') + 1, 4, '0', STR_PAD_LEFT);
 
         return Inertia::render('sales_returns/create', [
             'voucher' => $voucher,
-            'sales' => Sale::where('created_by', auth()->id())->get(),
-            'ledgers' => AccountLedger::where('created_by', auth()->id())->get(),
-            'products' => Item::where('created_by', auth()->id())->get(),
-            'godowns' => Godown::where('created_by', auth()->id())->get(),
-            'salesmen' => Salesman::where('created_by', auth()->id())->get(),
-            'receivedModes' => ReceivedMode::with('ledger')->where('created_by', auth()->id())->get(), // ✅
+            'sales' => empty($ids) ? Sale::all() : Sale::whereIn('created_by', $ids)->get(),
+            'ledgers' => empty($ids) ? AccountLedger::all() : AccountLedger::whereIn('created_by', $ids)->get(),
+            'products' => empty($ids) ? Item::all() : Item::whereIn('created_by', $ids)->get(),
+            'godowns' => empty($ids) ? Godown::all() : Godown::whereIn('created_by', $ids)->get(),
+            'salesmen' => empty($ids) ? Salesman::all() : Salesman::whereIn('created_by', $ids)->get(),
+            'receivedModes' => empty($ids)
+                ? ReceivedMode::with('ledger')->get()
+                : ReceivedMode::with('ledger')->whereIn('created_by', $ids)->get(),
         ]);
     }
 
@@ -196,17 +230,32 @@ class SalesReturnController extends Controller
 
 
     // Show edit form
+    // public function edit(SalesReturn $salesReturn)
+    // {
+    //     $salesReturn->load(['items', 'sale']); // load related sale as well
+
+    //     return Inertia::render('sales_returns/edit', [
+    //         'salesReturn' => $salesReturn,
+    //         'sales' => Sale::where('created_by', auth()->id())->get(),
+    //         'ledgers' => AccountLedger::where('created_by', auth()->id())->get(),
+    //         'products' => Item::where('created_by', auth()->id())->get(),
+    //         'godowns' => Godown::where('created_by', auth()->id())->get(),
+    //         'salesmen' => Salesman::where('created_by', auth()->id())->get(),
+    //     ]);
+    // }
+
     public function edit(SalesReturn $salesReturn)
     {
-        $salesReturn->load(['items', 'sale']); // load related sale as well
+        $ids = godown_scope_ids();
+        $salesReturn->load(['items', 'sale']);
 
         return Inertia::render('sales_returns/edit', [
             'salesReturn' => $salesReturn,
-            'sales' => Sale::where('created_by', auth()->id())->get(),
-            'ledgers' => AccountLedger::where('created_by', auth()->id())->get(),
-            'products' => Item::where('created_by', auth()->id())->get(),
-            'godowns' => Godown::where('created_by', auth()->id())->get(),
-            'salesmen' => Salesman::where('created_by', auth()->id())->get(),
+            'sales' => empty($ids) ? Sale::all() : Sale::whereIn('created_by', $ids)->get(),
+            'ledgers' => empty($ids) ? AccountLedger::all() : AccountLedger::whereIn('created_by', $ids)->get(),
+            'products' => empty($ids) ? Item::all() : Item::whereIn('created_by', $ids)->get(),
+            'godowns' => empty($ids) ? Godown::all() : Godown::whereIn('created_by', $ids)->get(),
+            'salesmen' => empty($ids) ? Salesman::all() : Salesman::whereIn('created_by', $ids)->get(),
         ]);
     }
 
@@ -248,17 +297,39 @@ class SalesReturnController extends Controller
         return redirect()->route('sales-returns.index')->with('success', 'Sales Return updated successfully!');
     }
 
+    // public function invoice(SalesReturn $salesReturn)
+    // {
+    //     /* tenant-safety */
+    //     if (
+    //         ! auth()->user()->hasRole('admin') &&
+    //         $salesReturn->created_by !== auth()->id()
+    //     ) {
+    //         abort(403, 'Unauthorised');
+    //     }
+
+    //     /* eager-load everything the UI needs */
+    //     $salesReturn->load([
+    //         'items.product.unit',
+    //         'accountLedger',
+    //         'sale',
+    //     ]);
+
+    //     return Inertia::render('sales_returns/invoice', [
+    //         'return'       => $salesReturn,
+    //         'company'      => company_info(),                                 // logo, name, …
+    //         'amountWords'  => numberToWords(                                  // e.g. “One thousand …”
+    //             (int) $salesReturn->items->sum('return_amount')
+    //         ),
+    //     ]);
+    // }
+
     public function invoice(SalesReturn $salesReturn)
     {
-        /* tenant-safety */
-        if (
-            ! auth()->user()->hasRole('admin') &&
-            $salesReturn->created_by !== auth()->id()
-        ) {
+        $ids = godown_scope_ids();
+        if (!empty($ids) && !in_array($salesReturn->created_by, $ids)) {
             abort(403, 'Unauthorised');
         }
 
-        /* eager-load everything the UI needs */
         $salesReturn->load([
             'items.product.unit',
             'accountLedger',
@@ -267,17 +338,29 @@ class SalesReturnController extends Controller
 
         return Inertia::render('sales_returns/invoice', [
             'return'       => $salesReturn,
-            'company'      => company_info(),                                 // logo, name, …
-            'amountWords'  => numberToWords(                                  // e.g. “One thousand …”
+            'company'      => company_info(),
+            'amountWords'  => numberToWords(
                 (int) $salesReturn->items->sum('return_amount')
             ),
         ]);
     }
 
 
+
     // Delete sales return
+    // public function destroy(SalesReturn $salesReturn)
+    // {
+    //     $salesReturn->delete();
+    //     return redirect()->back()->with('success', 'Sales Return deleted successfully!');
+    // }
+
     public function destroy(SalesReturn $salesReturn)
     {
+        $ids = godown_scope_ids();
+        if (!empty($ids) && !in_array($salesReturn->created_by, $ids)) {
+            abort(403, 'Unauthorized');
+        }
+
         $salesReturn->delete();
         return redirect()->back()->with('success', 'Sales Return deleted successfully!');
     }

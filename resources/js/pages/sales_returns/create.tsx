@@ -190,6 +190,7 @@ export default function SalesReturnCreate({
                                 </select>
                             </div>
 
+                            {/* Account Ledger  */}
                             <div>
                                 <label className="mb-1 block text-sm font-medium">Account Ledger</label>
                                 <select
@@ -205,59 +206,69 @@ export default function SalesReturnCreate({
                                     ))}
                                 </select>
                             </div>
-                            {/* Inventory Ledger Selection */}
-                            <label className="mb-1 block text-sm font-medium">Inventory Ledger</label>
-                            <select
-                                className="w-full border p-2"
-                                value={data.inventory_ledger_id}
-                                onChange={(e) => setData('inventory_ledger_id', e.target.value)}
-                            >
-                                <option value="">Select Inventory Ledger</option>
-                                {ledgers.map((ledger) => (
-                                    <option key={ledger.id} value={ledger.id}>
-                                        {ledger.account_ledger_name}
-                                    </option>
-                                ))}
-                            </select>
-                            <div className="text-sm text-gray-500">
-                                Don’t see one?{' '}
-                                <button
-                                    type="button"
-                                    className="text-blue-600 underline"
-                                    onClick={() => {
-                                        setModalTargetField('inventory');
-                                        setShowInventoryLedgerModal(true);
-                                    }}
+
+                            {/* Inventory Ledger */}
+                            <div>
+                                <label className="mb-1 block text-sm font-medium">Inventory Ledger</label>
+                                <select
+                                    className="w-full rounded border p-2"
+                                    value={data.inventory_ledger_id}
+                                    onChange={(e) => setData('inventory_ledger_id', e.target.value)}
                                 >
-                                    Create
-                                </button>
+                                    <option value="">Select Inventory Ledger</option>
+                                    {ledgers.map((ledger) => (
+                                        <option key={ledger.id} value={ledger.id}>
+                                            {ledger.account_ledger_name}
+                                        </option>
+                                    ))}
+                                </select>
+                                <div className="text-sm text-gray-500">
+                                    Don’t see one?{' '}
+                                    <button
+                                        type="button"
+                                        className="text-blue-600 underline"
+                                        onClick={() => {
+                                            setModalTargetField('inventory');
+                                            setShowInventoryLedgerModal(true);
+                                        }}
+                                    >
+                                        Create
+                                    </button>
+                                </div>
                             </div>
-                            <label className="mb-1 block text-sm font-medium">COGS Ledger</label>
-                            <select
-                                className="w-full border p-2"
-                                value={data.cogs_ledger_id || ''}
-                                onChange={(e) => setData('cogs_ledger_id', e.target.value)}
-                            >
-                                <option value="">Select COGS Ledger</option>
-                                {ledgers.map((ledger) => (
-                                    <option key={ledger.id} value={ledger.id}>
-                                        {ledger.account_ledger_name}
-                                    </option>
-                                ))}
-                            </select>
-                            <div className="text-sm text-gray-500">
-                                Don’t see one?{' '}
-                                <button
-                                    type="button"
-                                    className="text-blue-600 underline"
-                                    onClick={() => {
-                                        setModalTargetField('cogs');
-                                        setShowInventoryLedgerModal(true); // same modal
-                                    }}
+
+                            {/* COGS Ledger */}
+                            
+                            <div>
+                                <label className="mb-1 block text-sm font-medium">COGS Ledger</label>
+                                <select
+                                    className="w-full rounded border p-2"
+                                    value={data.cogs_ledger_id || ''}
+                                    onChange={(e) => setData('cogs_ledger_id', e.target.value)}
                                 >
-                                    Create
-                                </button>
+                                    <option value="">Select COGS Ledger</option>
+                                    {ledgers.map((ledger) => (
+                                        <option key={ledger.id} value={ledger.id}>
+                                            {ledger.account_ledger_name}
+                                        </option>
+                                    ))}
+                                </select>
+                                <div className="text-sm text-gray-500">
+                                    Don’t see one?{' '}
+                                    <button
+                                        type="button"
+                                        className="text-blue-600 underline"
+                                        onClick={() => {
+                                            setModalTargetField('cogs');
+                                            setShowInventoryLedgerModal(true);
+                                        }}
+                                    >
+                                        Create
+                                    </button>
+                                </div>
                             </div>
+
+                            {/* Refund Mode  */}
                             <div>
                                 <label className="mb-1 block text-sm font-medium">Refund Mode</label>
                                 <select

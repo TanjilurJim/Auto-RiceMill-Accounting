@@ -1,18 +1,22 @@
 import ActionFooter from '@/components/ActionFooter';
 import PageHeader from '@/components/PageHeader';
 import AppLayout from '@/layouts/app-layout';
-import { Head, useForm } from '@inertiajs/react';
+import { Head, Link, useForm } from '@inertiajs/react';
 
-export default function EditShift({
-    shift,
-}: {
-    shift: any;
-}) {
+interface Shift {
+    id: number;
+    name: string;
+    start_time: string;
+    end_time: string;
+    description: string;
+}
+
+export default function EditShift({ shift }: { shift: Shift }) {
     const { data, setData, put, processing, errors } = useForm({
-        name: shift.name || '',
-        start_time: shift.start_time || '',
-        end_time: shift.end_time || '',
-        description: shift.description || '',
+        name: shift.name,
+        start_time: shift.start_time,
+        end_time: shift.end_time,
+        description: shift.description,
     });
 
     const handleSubmit = (e: React.FormEvent) => {
@@ -22,74 +26,71 @@ export default function EditShift({
 
     return (
         <AppLayout>
-            <Head title={`Edit Shift - ${shift.name}`} />
+            <Head title="Edit Shift" />
             <div className="bg-gray-100 p-6 h-full w-screen lg:w-full">
                 <div className="bg-white h-full rounded-lg p-6">
                     <PageHeader title="Edit Shift" addLinkHref='/shifts' addLinkText="Back" />
 
-                    <form onSubmit={handleSubmit} className="space-y-4 rounded-lg bg-white p-4 border dark:bg-neutral-900">
-
-                        {/* Name */}
+                    <form onSubmit={handleSubmit} className="space-y-5 rounded-lg bg-white p-6 border dark:bg-neutral-900">
+                        {/* Shift Name */}
                         <div>
-                            <label className="mb-1 block font-medium">Shift Name</label>
+                            <label htmlFor="name" className="mb-1 block font-medium">Shift Name</label>
                             <input
+                                id="name"
                                 type="text"
                                 value={data.name}
                                 onChange={(e) => setData('name', e.target.value)}
                                 className="w-full rounded border p-2 dark:border-neutral-700 dark:bg-neutral-800"
+                                placeholder="Enter shift name"
                             />
                             {errors.name && <p className="text-sm text-red-500">{errors.name}</p>}
                         </div>
 
                         {/* Start Time */}
                         <div>
-                            <label className="mb-1 block font-medium">Start Time</label>
+                            <label htmlFor="start_time" className="mb-1 block font-medium">Start Time</label>
                             <input
+                                id="start_time"
                                 type="time"
                                 value={data.start_time}
                                 onChange={(e) => setData('start_time', e.target.value)}
                                 className="w-full rounded border p-2 dark:border-neutral-700 dark:bg-neutral-800"
                             />
+                            {errors.start_time && <p className="text-sm text-red-500">{errors.start_time}</p>}
                         </div>
 
                         {/* End Time */}
                         <div>
-                            <label className="mb-1 block font-medium">End Time</label>
+                            <label htmlFor="end_time" className="mb-1 block font-medium">End Time</label>
                             <input
+                                id="end_time"
                                 type="time"
                                 value={data.end_time}
                                 onChange={(e) => setData('end_time', e.target.value)}
                                 className="w-full rounded border p-2 dark:border-neutral-700 dark:bg-neutral-800"
                             />
+                            {errors.end_time && <p className="text-sm text-red-500">{errors.end_time}</p>}
                         </div>
 
                         {/* Description */}
                         <div>
-                            <label className="mb-1 block font-medium">Description</label>
+                            <label htmlFor="description" className="mb-1 block font-medium">Description</label>
                             <textarea
+                                id="description"
                                 value={data.description}
                                 onChange={(e) => setData('description', e.target.value)}
                                 className="w-full rounded border p-2 dark:border-neutral-700 dark:bg-neutral-800"
-                            ></textarea>
+                                placeholder="Optional description"
+                            />
+                            {errors.description && <p className="text-sm text-red-500">{errors.description}</p>}
                         </div>
 
-                        {/* <div className="flex justify-end space-x-2">
-                            <Link href="/shifts" className="rounded border px-4 py-2 hover:bg-neutral-100 dark:hover:bg-neutral-800">
-                                Cancel
-                            </Link>
-                            <button
-                                type="submit"
-                                disabled={processing}
-                                className="rounded bg-blue-600 px-4 py-2 text-white hover:bg-blue-700 disabled:opacity-50"
-                            >
-                                {processing ? 'Saving...' : 'Update'}
-                            </button>
-                        </div> */}
+                        {/* Actions */}
                         <ActionFooter
                             onSubmit={handleSubmit}
-                            cancelHref="/shifts" 
+                            cancelHref="/shifts"
                             processing={processing}
-                            submitText="Update"
+                            submitText="Save"
                             cancelText="Cancel"
                             className="justify-end"
                         />
@@ -99,4 +100,3 @@ export default function EditShift({
         </AppLayout>
     );
 }
-

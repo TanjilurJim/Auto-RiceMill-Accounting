@@ -5,19 +5,38 @@ namespace App\Http\Controllers;
 use App\Models\AccountLedger;
 use App\Models\ReceivedMode;
 use Illuminate\Http\Request;
+use function godown_scope_ids;
 
 class ReceivedModeController extends Controller
 {
     // Display a listing of the received modes
+    // public function index()
+    // {
+    //     // Ensure you're paginating or fetching data properly
+    //     $receivedModes = ReceivedMode::query()
+    //         ->when(!auth()->user()->hasRole('admin'), function ($query) {
+    //             $query->where('created_by', auth()->id());
+    //         })
+    //         ->with('ledger')
+    //         ->paginate(10); // Use pagination for better performance
+    //     return inertia('received-modes/index', [
+    //         'receivedModes' => $receivedModes,
+    //         'currentPage' => $receivedModes->currentPage(),
+    //         'perPage' => $receivedModes->perPage(),
+    //     ]);
+    // }
+
     public function index()
     {
-        // Ensure you're paginating or fetching data properly
+        $ids = godown_scope_ids();
+
         $receivedModes = ReceivedMode::query()
-            ->when(!auth()->user()->hasRole('admin'), function ($query) {
-                $query->where('created_by', auth()->id());
+            ->when(!empty($ids), function ($query) use ($ids) {
+                $query->whereIn('created_by', $ids);
             })
             ->with('ledger')
-            ->paginate(10); // Use pagination for better performance
+            ->paginate(10);
+
         return inertia('received-modes/index', [
             'receivedModes' => $receivedModes,
             'currentPage' => $receivedModes->currentPage(),
@@ -26,11 +45,27 @@ class ReceivedModeController extends Controller
     }
 
     // Show the form for creating a new received mode
+    // public function create()
+    // {
+    //     $ledgers = AccountLedger::query()
+    //         ->when(!auth()->user()->hasRole('admin'), function ($query) {
+    //             $query->where('created_by', auth()->id());
+    //         })
+    //         ->select('id', 'account_ledger_name', 'reference_number')
+    //         ->get();
+
+    //     return inertia('received-modes/create', [
+    //         'ledgers' => $ledgers,
+    //     ]);
+    // }
+
     public function create()
     {
-        $ledgers = \App\Models\AccountLedger::query()
-            ->when(!auth()->user()->hasRole('admin'), function ($query) {
-                $query->where('created_by', auth()->id());
+        $ids = godown_scope_ids();
+
+        $ledgers = AccountLedger::query()
+            ->when(!empty($ids), function ($query) use ($ids) {
+                $query->whereIn('created_by', $ids);
             })
             ->select('id', 'account_ledger_name', 'reference_number')
             ->get();
@@ -60,11 +95,28 @@ class ReceivedModeController extends Controller
     }
 
     // Show the form for editing the specified received mode
+    // public function edit(ReceivedMode $receivedMode)
+    // {
+    //     $ledgers = \App\Models\AccountLedger::query()
+    //         ->when(!auth()->user()->hasRole('admin'), function ($query) {
+    //             $query->where('created_by', auth()->id());
+    //         })
+    //         ->select('id', 'account_ledger_name', 'reference_number')
+    //         ->get();
+
+    //     return inertia('received-modes/edit', [
+    //         'receivedMode' => $receivedMode,
+    //         'ledgers' => $ledgers,
+    //     ]);
+    // }
+
     public function edit(ReceivedMode $receivedMode)
     {
-        $ledgers = \App\Models\AccountLedger::query()
-            ->when(!auth()->user()->hasRole('admin'), function ($query) {
-                $query->where('created_by', auth()->id());
+        $ids = godown_scope_ids();
+
+        $ledgers = AccountLedger::query()
+            ->when(!empty($ids), function ($query) use ($ids) {
+                $query->whereIn('created_by', $ids);
             })
             ->select('id', 'account_ledger_name', 'reference_number')
             ->get();

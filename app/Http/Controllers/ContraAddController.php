@@ -10,12 +10,29 @@ use App\Models\AccountLedger;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 
+use function godown_scope_ids;
+
 class ContraAddController extends Controller
 {
+    // public function index()
+    // {
+    //     $query = \App\Models\ContraAdd::with(['modeFrom', 'modeTo'])
+    //         ->where('created_by', auth()->id())
+    //         ->orderByDesc('date');
+
+    //     $contras = $query->paginate(10)->withQueryString();
+
+    //     return Inertia::render('contra-add/index', [
+    //         'contras' => $contras
+    //     ]);
+    // }
+
     public function index()
     {
-        $query = \App\Models\ContraAdd::with(['modeFrom', 'modeTo'])
-            ->where('created_by', auth()->id())
+        $ids = godown_scope_ids();
+
+        $query = ContraAdd::with(['modeFrom', 'modeTo'])
+            ->when($ids !== null && !empty($ids), fn($q) => $q->whereIn('created_by', $ids))
             ->orderByDesc('date');
 
         $contras = $query->paginate(10)->withQueryString();
@@ -26,11 +43,22 @@ class ContraAddController extends Controller
     }
 
 
+    // public function create()
+    // {
+    //     return Inertia::render('contra-add/create', [
+    //         'paymentModes' => ReceivedMode::with('ledger:id,opening_balance,closing_balance')
+    //             ->when(!auth()->user()->hasRole('admin'), fn($q) => $q->where('created_by', auth()->id()))
+    //             ->get(['id', 'mode_name', 'ledger_id']),
+    //     ]);
+    // }
+
     public function create()
     {
+        $ids = godown_scope_ids();
+
         return Inertia::render('contra-add/create', [
             'paymentModes' => ReceivedMode::with('ledger:id,opening_balance,closing_balance')
-                ->when(!auth()->user()->hasRole('admin'), fn($q) => $q->where('created_by', auth()->id()))
+                ->when($ids !== null && !empty($ids), fn($q) => $q->whereIn('created_by', $ids))
                 ->get(['id', 'mode_name', 'ledger_id']),
         ]);
     }
@@ -105,14 +133,32 @@ class ContraAddController extends Controller
 
         return redirect()->route('contra-add.index')->with('success', 'Contra entry saved and journal posted successfully!');
     }
+    // public function edit($id)
+    // {
+    //     $contra = ContraAdd::where('id', $id)
+    //         ->when(!auth()->user()->hasRole('admin'), fn($q) => $q->where('created_by', auth()->id()))
+    //         ->firstOrFail();
+
+    //     $modes = ReceivedMode::select('id', 'mode_name')
+    //         ->when(!auth()->user()->hasRole('admin'), fn($q) => $q->where('created_by', auth()->id()))
+    //         ->get();
+
+    //     return Inertia::render('contra-add/edit', [
+    //         'contra' => $contra,
+    //         'modes' => $modes,
+    //     ]);
+    // }
+
     public function edit($id)
     {
+        $ids = godown_scope_ids();
+
         $contra = ContraAdd::where('id', $id)
-            ->when(!auth()->user()->hasRole('admin'), fn($q) => $q->where('created_by', auth()->id()))
+            ->when($ids !== null && !empty($ids), fn($q) => $q->whereIn('created_by', $ids))
             ->firstOrFail();
 
         $modes = ReceivedMode::select('id', 'mode_name')
-            ->when(!auth()->user()->hasRole('admin'), fn($q) => $q->where('created_by', auth()->id()))
+            ->when($ids !== null && !empty($ids), fn($q) => $q->whereIn('created_by', $ids))
             ->get();
 
         return Inertia::render('contra-add/edit', [
@@ -120,8 +166,12 @@ class ContraAddController extends Controller
             'modes' => $modes,
         ]);
     }
+
     public function update(Request $request, $id)
     {
+
+        $ids = godown_scope_ids(); // Ensure user has access to the modes
+
         $request->validate([
             'date' => 'required|date',
             'voucher_no' => 'required|string',
@@ -132,11 +182,16 @@ class ContraAddController extends Controller
             'send_sms' => 'boolean',
         ]);
 
-        $contra = ContraAdd::findOrFail($id);
+        // $contra = ContraAdd::findOrFail($id);
 
-        if ($contra->created_by !== auth()->id() && !auth()->user()->hasRole('admin')) {
-            abort(403, 'Unauthorized');
-        }
+        // if ($contra->created_by !== auth()->id() && !auth()->user()->hasRole('admin')) {
+        //     abort(403, 'Unauthorized');
+        // }
+
+        $contra = ContraAdd::where('id', $id)
+            ->when($ids !== null && !empty($ids), fn($q) => $q->whereIn('created_by', $ids))
+            ->firstOrFail();
+
 
         // Revert old balances
         $oldFrom = ReceivedMode::find($contra->mode_from_id);
@@ -168,13 +223,38 @@ class ContraAddController extends Controller
         return redirect()->route('contra-add.index')->with('success', 'Contra entry updated successfully.');
     }
 
+    // public function destroy($id)
+    // {
+    //     $contra = ContraAdd::findOrFail($id);
+
+    //     if ($contra->created_by !== auth()->id() && !auth()->user()->hasRole('admin')) {
+    //         abort(403, 'Unauthorized');
+    //     }
+
+    //     // Revert balances
+    //     $from = ReceivedMode::find($contra->mode_from_id);
+    //     $to = ReceivedMode::find($contra->mode_to_id);
+
+    //     if ($from && $to) {
+    //         $from->closing_balance += $contra->amount;
+    //         $to->closing_balance -= $contra->amount;
+
+    //         $from->save();
+    //         $to->save();
+    //     }
+
+    //     $contra->delete();
+
+    //     return back()->with('success', 'Contra entry deleted successfully!');
+    // }
+
     public function destroy($id)
     {
-        $contra = ContraAdd::findOrFail($id);
+        $ids = godown_scope_ids();
 
-        if ($contra->created_by !== auth()->id() && !auth()->user()->hasRole('admin')) {
-            abort(403, 'Unauthorized');
-        }
+        $contra = ContraAdd::where('id', $id)
+            ->when($ids !== null && !empty($ids), fn($q) => $q->whereIn('created_by', $ids))
+            ->firstOrFail();
 
         // Revert balances
         $from = ReceivedMode::find($contra->mode_from_id);
@@ -192,22 +272,49 @@ class ContraAddController extends Controller
 
         return back()->with('success', 'Contra entry deleted successfully!');
     }
+
     // app/Http/Controllers/ContraAddController.php
+    // public function print(string $voucherNo)
+    // {
+    //     $contra = \App\Models\ContraAdd::with(['modeFrom', 'modeTo'])
+    //         ->where('voucher_no', $voucherNo)
+    //         ->where('created_by', auth()->id())
+    //         ->firstOrFail();
+
+    //     // grab whatever company header the user should see
+    //     $company = company_info();                      // helper already set up
+
+    //     $amount          = (float) $contra->amount;
+    //     $amountInWords   = numberToWords($amount);      // helper now type-safe
+
+    //     return Inertia::render('contra-add/print', [
+    //         'company'          => $company,             // has logo_url, company_name, …
+    //         'voucher_no'       => $contra->voucher_no,
+    //         'date'             => $contra->date,
+    //         'from_mode'        => $contra->modeFrom?->mode_name ?? '',
+    //         'to_mode'          => $contra->modeTo?->mode_name   ?? '',
+    //         'amount'           => $amount,
+    //         'amount_in_words'  => $amountInWords,
+    //         'description'      => $contra->description,
+    //     ]);
+    // }
+
     public function print(string $voucherNo)
     {
-        $contra = \App\Models\ContraAdd::with(['modeFrom', 'modeTo'])
+        $ids = godown_scope_ids();
+
+        $contra = ContraAdd::with(['modeFrom', 'modeTo'])
             ->where('voucher_no', $voucherNo)
-            ->where('created_by', auth()->id())
+            ->when($ids !== null && !empty($ids), fn($q) => $q->whereIn('created_by', $ids))
             ->firstOrFail();
 
-        // grab whatever company header the user should see
-        $company = company_info();                      // helper already set up
+        $company = company_info();
 
         $amount          = (float) $contra->amount;
-        $amountInWords   = numberToWords($amount);      // helper now type-safe
+        $amountInWords   = numberToWords($amount);
 
         return Inertia::render('contra-add/print', [
-            'company'          => $company,             // has logo_url, company_name, …
+            'company'          => $company,
             'voucher_no'       => $contra->voucher_no,
             'date'             => $contra->date,
             'from_mode'        => $contra->modeFrom?->mode_name ?? '',
@@ -217,4 +324,5 @@ class ContraAddController extends Controller
             'description'      => $contra->description,
         ]);
     }
+
 }

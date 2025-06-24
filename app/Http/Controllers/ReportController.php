@@ -15,8 +15,11 @@ use Maatwebsite\Excel\Facades\Excel;
 use Barryvdh\DomPDF\Facade\Pdf;
 use App\Models\Stock;
 use App\Models\Item;
+
 use function company_info;   // helper
 use function numberToWords;
+use function godown_scope_ids;
+
 use App\Exports\ArrayExport;
 use App\Models\Godown;
 use App\Models\Category;

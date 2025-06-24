@@ -23,6 +23,8 @@ use Inertia\Inertia;
 use Barryvdh\DomPDF\Facade\Pdf;
 use App\Exports\SimpleArrayExport;   // implements FromArray
 
+use function godown_scope_ids;
+
 class PurchaseReportController extends Controller
 {
     /* =========================================================
@@ -533,4 +535,7 @@ class PurchaseReportController extends Controller
                 });
         }
     }
+
+
+
 }

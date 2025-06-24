@@ -9,6 +9,8 @@ use App\Models\Journal;
 use App\Models\JournalEntry;
 // use App\Models\ReceivedMode;
 
+use function godown_scope_ids;
+
 
 
 use Inertia\Inertia;
@@ -21,13 +23,20 @@ class PaymentAddController extends Controller
      */
     public function index(Request $request)
     {
+        // $query = PaymentAdd::with(['paymentMode', 'accountLedger'])
+        //     ->orderByDesc('date');
+
+        $ids = godown_scope_ids();
+
         $query = PaymentAdd::with(['paymentMode', 'accountLedger'])
-            ->orderByDesc('date');
+            ->orderByDesc('date')
+            ->when($ids !== null && !empty($ids), fn($q) => $q->whereIn('created_by', $ids));
+
 
         // 🔐 Only show own data unless admin
-        if (!auth()->user()->hasRole('admin')) {
-            $query->where('created_by', auth()->id());
-        }
+        // if (!auth()->user()->hasRole('admin')) {
+        //     $query->where('created_by', auth()->id());
+        // }
 
         // 🔍 Apply filters
         if ($request->filled('search')) {
@@ -76,13 +85,25 @@ class PaymentAddController extends Controller
     /**
      * Show the form for creating a new resource.
      */
+    // public function create()
+    // {
+    //     return Inertia::render('payment-add/create', [
+    //         'paymentModes' => ReceivedMode::with(['ledger:id,account_ledger_name,closing_balance'])
+    //             ->when(!auth()->user()->hasRole('admin'), fn($q) => $q->where('created_by', auth()->id()))
+    //             ->get(),
+    //         'accountLedgers' => AccountLedger::when(!auth()->user()->hasRole('admin'), fn($q) => $q->where('created_by', auth()->id()))->get(),
+    //     ]);
+    // }
+
     public function create()
     {
+        $ids = godown_scope_ids();
+
         return Inertia::render('payment-add/create', [
             'paymentModes' => ReceivedMode::with(['ledger:id,account_ledger_name,closing_balance'])
-                ->when(!auth()->user()->hasRole('admin'), fn($q) => $q->where('created_by', auth()->id()))
+                ->when($ids !== null && !empty($ids), fn($q) => $q->whereIn('created_by', $ids))
                 ->get(),
-            'accountLedgers' => AccountLedger::when(!auth()->user()->hasRole('admin'), fn($q) => $q->where('created_by', auth()->id()))->get(),
+            'accountLedgers' => AccountLedger::when($ids !== null && !empty($ids), fn($q) => $q->whereIn('created_by', $ids))->get(),
         ]);
     }
 
@@ -179,17 +200,48 @@ class PaymentAddController extends Controller
     /**
      * Show the form for editing the specified resource.
      */
+    // public function edit($id)
+    // {
+    //     $payment = PaymentAdd::with(['paymentMode.ledger', 'accountLedger'])
+    //         ->where('id', $id)
+    //         ->when(!auth()->user()->hasRole('admin'), fn($q) => $q->where('created_by', auth()->id()))
+    //         ->firstOrFail();
+
+    //     $voucherNo = $payment->voucher_no;
+
+    //     $paymentRows = PaymentAdd::with(['paymentMode.ledger', 'accountLedger'])
+    //         ->where('voucher_no', $voucherNo)
+    //         ->get();
+
+    //     return Inertia::render('payment-add/edit', [
+    //         'paymentRows' => $paymentRows,
+    //         'voucher_no' => $voucherNo,
+    //         'date' => $payment->date,
+    //         'description' => $payment->description,
+    //         'send_sms' => $payment->send_sms,
+    //         'paymentModes' => ReceivedMode::with(['ledger:id,account_ledger_name,closing_balance'])
+    //             ->when(!auth()->user()->hasRole('admin'), fn($q) => $q->where('created_by', auth()->id()))
+    //             ->get(),
+    //         'accountLedgers' => AccountLedger::select('id', 'account_ledger_name', 'reference_number', 'phone_number', 'opening_balance', 'closing_balance')
+    //             ->when(!auth()->user()->hasRole('admin'), fn($q) => $q->where('created_by', auth()->id()))
+    //             ->get(),
+    //     ]);
+    // }
+
     public function edit($id)
     {
+        $ids = godown_scope_ids();
+
         $payment = PaymentAdd::with(['paymentMode.ledger', 'accountLedger'])
             ->where('id', $id)
-            ->when(!auth()->user()->hasRole('admin'), fn($q) => $q->where('created_by', auth()->id()))
+            ->when($ids !== null && !empty($ids), fn($q) => $q->whereIn('created_by', $ids))
             ->firstOrFail();
 
         $voucherNo = $payment->voucher_no;
 
         $paymentRows = PaymentAdd::with(['paymentMode.ledger', 'accountLedger'])
             ->where('voucher_no', $voucherNo)
+            ->when($ids !== null && !empty($ids), fn($q) => $q->whereIn('created_by', $ids))
             ->get();
 
         return Inertia::render('payment-add/edit', [
@@ -199,10 +251,10 @@ class PaymentAddController extends Controller
             'description' => $payment->description,
             'send_sms' => $payment->send_sms,
             'paymentModes' => ReceivedMode::with(['ledger:id,account_ledger_name,closing_balance'])
-                ->when(!auth()->user()->hasRole('admin'), fn($q) => $q->where('created_by', auth()->id()))
+                ->when($ids !== null && !empty($ids), fn($q) => $q->whereIn('created_by', $ids))
                 ->get(),
             'accountLedgers' => AccountLedger::select('id', 'account_ledger_name', 'reference_number', 'phone_number', 'opening_balance', 'closing_balance')
-                ->when(!auth()->user()->hasRole('admin'), fn($q) => $q->where('created_by', auth()->id()))
+                ->when($ids !== null && !empty($ids), fn($q) => $q->whereIn('created_by', $ids))
                 ->get(),
         ]);
     }
@@ -304,10 +356,47 @@ class PaymentAddController extends Controller
     /**
      * Remove the specified resource from storage.
      */
+    // public function destroy(string $id)
+    // {
+    //     //
+    // }
+
     public function destroy(string $id)
     {
-        //
+        $ids = godown_scope_ids();
+
+        // Find the payment and get the voucher_no
+        $payment = PaymentAdd::where('id', $id)
+            ->when($ids !== null && !empty($ids), fn($q) => $q->whereIn('created_by', $ids))
+            ->firstOrFail();
+
+        $voucherNo = $payment->voucher_no;
+
+        // Get all payments for this voucher
+        $payments = PaymentAdd::where('voucher_no', $voucherNo)
+            ->when($ids !== null && !empty($ids), fn($q) => $q->whereIn('created_by', $ids))
+            ->get();
+
+        // Reverse ledger balances
+        foreach ($payments as $p) {
+            $ledger = $p->accountLedger;
+            if ($ledger) {
+                $ledger->closing_balance -= $p->amount;
+                $ledger->save();
+            }
+        }
+
+        // Delete related journals
+        Journal::where('voucher_no', $voucherNo)->delete();
+
+        // Delete payments
+        PaymentAdd::where('voucher_no', $voucherNo)
+            ->when($ids !== null && !empty($ids), fn($q) => $q->whereIn('created_by', $ids))
+            ->delete();
+
+        return redirect()->route('payment-add.index')->with('success', 'Payment deleted successfully!');
     }
+
     public function print($voucherNo)
     {
         $payments = PaymentAdd::with(['paymentMode', 'accountLedger'])

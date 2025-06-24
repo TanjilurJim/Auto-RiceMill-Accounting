@@ -17,17 +17,38 @@ use App\Models\Stock;
 use Inertia\Inertia;
 use function company_info;
 use function numberToWords;
+use function godown_scope_ids;
+
 
 
 class SalesOrderController extends Controller
 {
     //
+    // public function index()
+    // {
+    //     $salesOrders = SalesOrder::query()
+    //         ->with('ledger', 'salesman', 'items.product')
+    //         ->when(!auth()->user()->hasRole('admin'), function ($query) {
+    //             $query->where('created_by', auth()->id());
+    //         })
+    //         ->latest()
+    //         ->paginate(10);
+
+    //     return Inertia::render('sales-orders/index', [
+    //         'salesOrders' => $salesOrders,
+    //         'currentPage' => $salesOrders->currentPage(),
+    //         'perPage' => $salesOrders->perPage(),
+    //     ]);
+    // }
+
     public function index()
     {
+        $ids = godown_scope_ids();
+
         $salesOrders = SalesOrder::query()
             ->with('ledger', 'salesman', 'items.product')
-            ->when(!auth()->user()->hasRole('admin'), function ($query) {
-                $query->where('created_by', auth()->id());
+            ->when(!empty($ids), function ($query) use ($ids) {
+                $query->whereIn('created_by', $ids);
             })
             ->latest()
             ->paginate(10);
@@ -39,42 +60,77 @@ class SalesOrderController extends Controller
         ]);
     }
 
+    // public function create()
+    // {
+    //     $user  = auth()->user();
+    //     $me    = $user->id;
+    //     $owner = $user->creator_id;        // null for owners / admin
+
+    //     return Inertia::render('sales-orders/create', [
+    //         'ledgers'  => AccountLedger::select('id', 'account_ledger_name as name')
+    //             ->where('created_by', $me)->get(),
+
+    //         'salesmen' => Salesman::select('id', 'name')
+    //             ->where('created_by', $me)->get(),
+
+    //         /*  🟢  CHANGE THIS BLOCK  ────────────────────────── */
+    //         'products' => Item::select('id', 'item_name as name', 'unit_id')
+    //             ->with('unit')
+    //             ->withSum(
+    //                 [
+    //                     'stocks as stock' => fn($q) =>
+    //                     $q->where('created_by', $me)        // tenant-safe
+    //                 ],
+    //                 'qty'                                   // sum qty column
+    //             )
+    //             ->where('created_by', $me)
+    //             ->get(),
+    //         /*  ──────────────────────────────────────────────── */
+
+    //         'units'    => Unit::select('id', 'name')
+    //             ->when(
+    //                 ! $user->hasRole('admin'),
+    //                 fn($q) => $q->whereIn('created_by', $owner ? [$me, $owner] : [$me])
+    //             )
+    //             ->get(),
+
+    //         'godowns'  => Godown::select('id', 'name')
+    //             ->where('created_by', $me)->get(),
+    //     ]);
+    // }
+
     public function create()
     {
-        $user  = auth()->user();
-        $me    = $user->id;
-        $owner = $user->creator_id;        // null for owners / admin
+        $ids = godown_scope_ids();
 
         return Inertia::render('sales-orders/create', [
-            'ledgers'  => AccountLedger::select('id', 'account_ledger_name as name')
-                ->where('created_by', $me)->get(),
+            'ledgers'  => empty($ids)
+                ? AccountLedger::select('id', 'account_ledger_name as name')->get()
+                : AccountLedger::select('id', 'account_ledger_name as name')->whereIn('created_by', $ids)->get(),
 
-            'salesmen' => Salesman::select('id', 'name')
-                ->where('created_by', $me)->get(),
+            'salesmen' => empty($ids)
+                ? Salesman::select('id', 'name')->get()
+                : Salesman::select('id', 'name')->whereIn('created_by', $ids)->get(),
 
-            /*  🟢  CHANGE THIS BLOCK  ────────────────────────── */
             'products' => Item::select('id', 'item_name as name', 'unit_id')
                 ->with('unit')
                 ->withSum(
                     [
                         'stocks as stock' => fn($q) =>
-                        $q->where('created_by', $me)        // tenant-safe
+                        empty($ids) ? $q : $q->whereIn('created_by', $ids)
                     ],
-                    'qty'                                   // sum qty column
+                    'qty'
                 )
-                ->where('created_by', $me)
+                ->when(!empty($ids), fn($q) => $q->whereIn('created_by', $ids))
                 ->get(),
-            /*  ──────────────────────────────────────────────── */
 
             'units'    => Unit::select('id', 'name')
-                ->when(
-                    ! $user->hasRole('admin'),
-                    fn($q) => $q->whereIn('created_by', $owner ? [$me, $owner] : [$me])
-                )
+                ->when(!empty($ids), fn($q) => $q->whereIn('created_by', $ids))
                 ->get(),
 
-            'godowns'  => Godown::select('id', 'name')
-                ->where('created_by', $me)->get(),
+            'godowns'  => empty($ids)
+                ? Godown::select('id', 'name')->get()
+                : Godown::select('id', 'name')->whereIn('created_by', $ids)->get(),
         ]);
     }
 
@@ -119,53 +175,93 @@ class SalesOrderController extends Controller
         return redirect()->route('sales-orders.index')->with('success', 'Sales Order Created Successfully!');
     }
 
+    // public function edit(SalesOrder $salesOrder)
+    // {
+    //     $userId = auth()->id();
+
+    //     // Prevent non-admin users from editing others' orders
+    //     if (!auth()->user()->hasRole('admin') && $salesOrder->created_by !== $userId) {
+    //         abort(403, 'Unauthorized access');
+    //     }
+
+    //     return Inertia::render('sales-orders/edit', [
+    //         'salesOrder' => $salesOrder->load('items.product', 'items.unit'),
+    //         'ledgers' => AccountLedger::select('id', 'account_ledger_name as name')
+    //             ->where('created_by', $userId)
+    //             ->get(),
+
+    //         'salesmen' => Salesman::select('id', 'name')
+    //             ->where('created_by', $userId)
+    //             ->get(),
+
+    //         'products' => Item::select('id', 'item_name as name', 'unit_id')
+    //             ->with('unit')
+    //             ->withSum(
+    //                 [
+    //                     'stocks as stock' => fn($q) =>
+    //                     $q->where('created_by', $userId)
+    //                 ],
+    //                 'qty'
+    //             )
+    //             ->where('created_by', $userId)
+    //             ->get(),
+
+
+    //         'units' => Unit::select('id', 'name')
+    //             ->when(
+    //                 ! auth()->user()->hasRole('admin'),
+    //                 fn($q) => $q->whereIn(
+    //                     'created_by',
+    //                     auth()->user()->creator_id
+    //                         ? [auth()->id(), auth()->user()->creator_id]
+    //                         : [auth()->id()]
+    //                 )
+    //             )
+    //             ->get(),
+
+    //         'godowns' => Godown::select('id', 'name')
+    //             ->where('created_by', $userId)
+    //             ->get(),
+    //     ]);
+    // }
+
     public function edit(SalesOrder $salesOrder)
     {
-        $userId = auth()->id();
+        $ids = godown_scope_ids();
 
-        // Prevent non-admin users from editing others' orders
-        if (!auth()->user()->hasRole('admin') && $salesOrder->created_by !== $userId) {
+        if (!empty($ids) && !in_array($salesOrder->created_by, $ids)) {
             abort(403, 'Unauthorized access');
         }
 
         return Inertia::render('sales-orders/edit', [
             'salesOrder' => $salesOrder->load('items.product', 'items.unit'),
-            'ledgers' => AccountLedger::select('id', 'account_ledger_name as name')
-                ->where('created_by', $userId)
-                ->get(),
+            'ledgers' => empty($ids)
+                ? AccountLedger::select('id', 'account_ledger_name as name')->get()
+                : AccountLedger::select('id', 'account_ledger_name as name')->whereIn('created_by', $ids)->get(),
 
-            'salesmen' => Salesman::select('id', 'name')
-                ->where('created_by', $userId)
-                ->get(),
+            'salesmen' => empty($ids)
+                ? Salesman::select('id', 'name')->get()
+                : Salesman::select('id', 'name')->whereIn('created_by', $ids)->get(),
 
             'products' => Item::select('id', 'item_name as name', 'unit_id')
                 ->with('unit')
                 ->withSum(
                     [
                         'stocks as stock' => fn($q) =>
-                        $q->where('created_by', $userId)
+                        empty($ids) ? $q : $q->whereIn('created_by', $ids)
                     ],
                     'qty'
                 )
-                ->where('created_by', $userId)
+                ->when(!empty($ids), fn($q) => $q->whereIn('created_by', $ids))
                 ->get(),
-
 
             'units' => Unit::select('id', 'name')
-                ->when(
-                    ! auth()->user()->hasRole('admin'),
-                    fn($q) => $q->whereIn(
-                        'created_by',
-                        auth()->user()->creator_id
-                            ? [auth()->id(), auth()->user()->creator_id]
-                            : [auth()->id()]
-                    )
-                )
+                ->when(!empty($ids), fn($q) => $q->whereIn('created_by', $ids))
                 ->get(),
 
-            'godowns' => Godown::select('id', 'name')
-                ->where('created_by', $userId)
-                ->get(),
+            'godowns' => empty($ids)
+                ? Godown::select('id', 'name')->get()
+                : Godown::select('id', 'name')->whereIn('created_by', $ids)->get(),
         ]);
     }
 
@@ -215,38 +311,72 @@ class SalesOrderController extends Controller
         return redirect()->route('sales-orders.index')->with('success', 'Sales order updated successfully.');
     }
 
+    // public function destroy(SalesOrder $salesOrder)
+    // {
+    //     // Optional: delete related items first (if you want to clear them manually)
+    //     $salesOrder->items()->delete();
+
+    //     // Delete the main sales order
+    //     $salesOrder->delete();
+
+    //     return redirect()->back()->with('success', 'Sales Order deleted successfully!');
+    // }
+
     public function destroy(SalesOrder $salesOrder)
     {
-        // Optional: delete related items first (if you want to clear them manually)
-        $salesOrder->items()->delete();
+        $ids = godown_scope_ids();
+        if (!empty($ids) && !in_array($salesOrder->created_by, $ids)) {
+            abort(403, 'Unauthorized access');
+        }
 
-        // Delete the main sales order
+        $salesOrder->items()->delete();
         $salesOrder->delete();
 
         return redirect()->back()->with('success', 'Sales Order deleted successfully!');
     }
 
+    // public function invoice(SalesOrder $salesOrder)
+    // {
+    //     /* tenant safety */
+    //     if (
+    //         ! auth()->user()->hasRole('admin') &&
+    //         $salesOrder->created_by !== auth()->id()
+    //     ) {
+    //         abort(403, 'Unauthorised');
+    //     }
+
+    //     /* eager-load what the front-end needs */
+    //     $salesOrder->load([
+    //         'ledger',                 // supplier / customer ledger
+    //         'salesman',
+    //         'items.product.unit',     // product → unit name
+    //     ]);
+
+    //     return Inertia::render('sales-orders/invoice', [
+    //         'order'       => $salesOrder,
+    //         'company'     => company_info(),                     // helper
+    //         'amountWords' => numberToWords((int)$salesOrder->total_amount),
+    //     ]);
+    // }
+
     public function invoice(SalesOrder $salesOrder)
     {
-        /* tenant safety */
-        if (
-            ! auth()->user()->hasRole('admin') &&
-            $salesOrder->created_by !== auth()->id()
-        ) {
+        $ids = godown_scope_ids();
+        if (!empty($ids) && !in_array($salesOrder->created_by, $ids)) {
             abort(403, 'Unauthorised');
         }
 
-        /* eager-load what the front-end needs */
         $salesOrder->load([
-            'ledger',                 // supplier / customer ledger
+            'ledger',
             'salesman',
-            'items.product.unit',     // product → unit name
+            'items.product.unit',
         ]);
 
         return Inertia::render('sales-orders/invoice', [
             'order'       => $salesOrder,
-            'company'     => company_info(),                     // helper
+            'company'     => company_info(),
             'amountWords' => numberToWords((int)$salesOrder->total_amount),
         ]);
     }
+
 }
