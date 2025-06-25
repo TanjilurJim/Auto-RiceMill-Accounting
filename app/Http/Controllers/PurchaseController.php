@@ -92,18 +92,69 @@ class PurchaseController extends Controller
         ]);
     }
 
-
     // Show create form
+    // public function create()
+    // {
+    //     // $userIds = user_scope_ids();
+    //     $userIds = godown_scope_ids(); // [multi-level access]
+
+    //     return Inertia::render('purchases/create', [
+    //         'godowns' => Godown::whereIn('created_by', $userIds)->get(),
+    //         'salesmen' => Salesman::whereIn('created_by', $userIds)->get(),
+    //         'ledgers' => AccountLedger::whereIn('created_by', $userIds)->get(),
+    //         'stockItemsByGodown' => Stock::with('item.unit')
+    //             ->whereIn('created_by', $userIds)
+    //             ->get()
+    //             ->groupBy('godown_id')
+    //             ->map(fn($col) => $col->map(fn($s) => [
+    //                 'id'   => $s->id,
+    //                 'qty'  => $s->qty,
+    //                 'item' => [
+    //                     'id'        => $s->item->id,
+    //                     'item_name' => $s->item->item_name,
+    //                     'unit_name' => $s->item->unit->name ?? '',
+    //                 ],
+    //             ]))
+    //             ->toArray(),
+    //         'items' => [],
+    //         'inventoryLedgers' => AccountLedger::where('ledger_type', 'inventory')
+    //             ->whereIn('created_by', $userIds)
+    //             ->get(['id', 'account_ledger_name', 'ledger_type']),
+    //         'accountGroups' => AccountGroup::get(['id', 'name']),
+    //         'receivedModes' => ReceivedMode::with('ledger')
+    //             ->whereIn('created_by', $userIds)
+    //             ->get(['id', 'mode_name', 'ledger_id']),
+    //     ]);
+    // }
+
     public function create()
     {
-        // $userIds = user_scope_ids();
-        $userIds = godown_scope_ids(); // [multi-level access]
-
-        return Inertia::render('purchases/create', [
-            'godowns' => Godown::whereIn('created_by', $userIds)->get(),
-            'salesmen' => Salesman::whereIn('created_by', $userIds)->get(),
-            'ledgers' => AccountLedger::whereIn('created_by', $userIds)->get(),
-            'stockItemsByGodown' => Stock::with('item.unit')
+        $user = auth()->user();
+        if ($user->hasRole('admin')) {
+            // Admin: show all
+            $godowns = Godown::all();
+            $salesmen = Salesman::all();
+            $ledgers = AccountLedger::all();
+            $stockItemsByGodown = Stock::with('item.unit')->get()
+                ->groupBy('godown_id')
+                ->map(fn($col) => $col->map(fn($s) => [
+                    'id'   => $s->id,
+                    'qty'  => $s->qty,
+                    'item' => [
+                        'id'        => $s->item->id,
+                        'item_name' => $s->item->item_name,
+                        'unit_name' => $s->item->unit->name ?? '',
+                    ],
+                ]))
+                ->toArray();
+            $inventoryLedgers = AccountLedger::where('ledger_type', 'inventory')->get(['id', 'account_ledger_name', 'ledger_type']);
+            $receivedModes = ReceivedMode::with('ledger')->get(['id', 'mode_name', 'ledger_id']);
+        } else {
+            $userIds = godown_scope_ids();
+            $godowns = Godown::whereIn('created_by', $userIds)->get();
+            $salesmen = Salesman::whereIn('created_by', $userIds)->get();
+            $ledgers = AccountLedger::whereIn('created_by', $userIds)->get();
+            $stockItemsByGodown = Stock::with('item.unit')
                 ->whereIn('created_by', $userIds)
                 ->get()
                 ->groupBy('godown_id')
@@ -116,19 +167,26 @@ class PurchaseController extends Controller
                         'unit_name' => $s->item->unit->name ?? '',
                     ],
                 ]))
-                ->toArray(),
+                ->toArray();
+            $inventoryLedgers = AccountLedger::where('ledger_type', 'inventory')
+                ->whereIn('created_by', $userIds)
+                ->get(['id', 'account_ledger_name', 'ledger_type']);
+            $receivedModes = ReceivedMode::with('ledger')
+                ->whereIn('created_by', $userIds)
+                ->get(['id', 'mode_name', 'ledger_id']);
+        }
+
+        return Inertia::render('purchases/create', [
+            'godowns' => $godowns,
+            'salesmen' => $salesmen,
+            'ledgers' => $ledgers,
+            'stockItemsByGodown' => $stockItemsByGodown,
             'items' => [],
-            'inventoryLedgers' => AccountLedger::where('ledger_type', 'inventory')
-                ->whereIn('created_by', $userIds)
-                ->get(['id', 'account_ledger_name', 'ledger_type']),
+            'inventoryLedgers' => $inventoryLedgers,
             'accountGroups' => AccountGroup::get(['id', 'name']),
-            'receivedModes' => ReceivedMode::with('ledger')
-                ->whereIn('created_by', $userIds)
-                ->get(['id', 'mode_name', 'ledger_id']),
+            'receivedModes' => $receivedModes,
         ]);
     }
-
-
 
     // Store purchase
     public function store(Request $request)
@@ -275,77 +333,119 @@ class PurchaseController extends Controller
         $ledger->save();
     }
 
+    // public function edit(Purchase $purchase)
+    // {
+    //     // multi‑tenant guard
+    //     // if ($purchase->created_by !== auth()->id() && ! auth()->user()->hasRole('admin')) {
+    //     //     abort(403);
+    //     // }
+
+    //     $user = auth()->user(); // [multi-level access]
+    //     if (!$user->hasRole('admin')) { // [multi-level access]
+    //         $ids = godown_scope_ids(); // [multi-level access]
+    //         if (!in_array($purchase->created_by, $ids)) { // [multi-level access]
+    //             abort(403, 'Unauthorized action.');
+    //         }
+    //     }
+
+    //     // $userId = auth()->id();
+    //     // $userIds = user_scope_ids();
+    //     $userIds = godown_scope_ids(); // [multi-level access]
+
+    //     return Inertia::render('purchases/edit', [
+    //         'purchase' => $purchase->load([
+    //             'purchaseItems.item',
+    //             'godown',
+    //             'salesman',
+    //             'accountLedger',
+    //         ]),
+
+    //         // 'godowns'  => Godown::where('created_by', $userId)->get(['id', 'name']),
+    //         // 'salesmen' => Salesman::where('created_by', $userId)->get(['id', 'name']),
+    //         // 'ledgers'  => AccountLedger::where('created_by', $userId)->get(['id', 'account_ledger_name']),
+
+    //         // /* inventory ledgers (same filter you used on create) */
+    //         // 'inventoryLedgers' => AccountLedger::where('ledger_type', 'inventory')
+    //         //     ->where('created_by', $userId)
+    //         //     ->get(['id', 'account_ledger_name']),
+
+    //         // /* payment modes */
+    //         // 'receivedModes' => ReceivedMode::with('ledger')
+    //         //     ->where('created_by', $userId)
+    //         //     ->get(['id', 'mode_name', 'ledger_id']),
+
+    //         // /* --- NEW: grouped stock just like the create() page --- */
+    //         // 'stockItemsByGodown' => Stock::with('item.unit')
+    //         //     ->where('created_by', $userId)
+    //         //     ->get()                                // each row: item + qty
+    //         //     ->groupBy('godown_id')                 // bucket by godown
+    //         //     ->map(fn($col) => $col->map(fn($s) => [
+    //         //         'id'   => $s->id,
+    //         //         'qty'  => $s->qty,
+    //         //         'item' => [
+    //         //             'id'        => $s->item->id,
+    //         //             'item_name' => $s->item->item_name,
+    //         //             'unit_name'  => $s->item->unit->name ?? '',
+    //         //         ],
+    //         //     ]))
+    //         //     ->toArray(),
+
+
+
+    //         'godowns'  => Godown::whereIn('created_by', $userIds)->get(['id', 'name']),
+    //         'salesmen' => Salesman::whereIn('created_by', $userIds)->get(['id', 'name']),
+    //         'ledgers'  => AccountLedger::whereIn('created_by', $userIds)->get(['id', 'account_ledger_name']),
+    //         'inventoryLedgers' => AccountLedger::where('ledger_type', 'inventory')
+    //             ->whereIn('created_by', $userIds)
+    //             ->get(['id', 'account_ledger_name']),
+    //         'receivedModes' => ReceivedMode::with('ledger')
+    //             ->whereIn('created_by', $userIds)
+    //             ->get(['id', 'mode_name', 'ledger_id']),
+    //         'stockItemsByGodown' => Stock::with('item.unit')
+    //             ->whereIn('created_by', $userIds)
+    //             ->get()
+    //             ->groupBy('godown_id')
+    //             ->map(fn($col) => $col->map(fn($s) => [
+    //                 'id'   => $s->id,
+    //                 'qty'  => $s->qty,
+    //                 'item' => [
+    //                     'id'        => $s->item->id,
+    //                     'item_name' => $s->item->item_name,
+    //                     'unit_name' => $s->item->unit->name ?? '',
+    //                 ],
+    //             ]))
+    //             ->toArray(),
+
+
+    //         'phone' => $purchase->phone,
+    //         'address' => $purchase->address,
+    //         'delivered_to' => $purchase->delivered_to,
+    //         'shipping_details' => $purchase->shipping_details,
+
+
+    //     ]);
+    // }
 
     public function edit(Purchase $purchase)
     {
-        // multi‑tenant guard
-        // if ($purchase->created_by !== auth()->id() && ! auth()->user()->hasRole('admin')) {
-        //     abort(403);
-        // }
-
-        $user = auth()->user(); // [multi-level access]
-        if (!$user->hasRole('admin')) { // [multi-level access]
-            $ids = godown_scope_ids(); // [multi-level access]
-            if (!in_array($purchase->created_by, $ids)) { // [multi-level access]
+        $user = auth()->user();
+        if (!$user->hasRole('admin')) {
+            $ids = godown_scope_ids();
+            if (!in_array($purchase->created_by, $ids)) {
                 abort(403, 'Unauthorized action.');
             }
-        }
-
-        // $userId = auth()->id();
-        // $userIds = user_scope_ids();
-        $userIds = godown_scope_ids(); // [multi-level access]
-
-        return Inertia::render('purchases/edit', [
-            'purchase' => $purchase->load([
-                'purchaseItems.item',
-                'godown',
-                'salesman',
-                'accountLedger',
-            ]),
-
-            // 'godowns'  => Godown::where('created_by', $userId)->get(['id', 'name']),
-            // 'salesmen' => Salesman::where('created_by', $userId)->get(['id', 'name']),
-            // 'ledgers'  => AccountLedger::where('created_by', $userId)->get(['id', 'account_ledger_name']),
-
-            // /* inventory ledgers (same filter you used on create) */
-            // 'inventoryLedgers' => AccountLedger::where('ledger_type', 'inventory')
-            //     ->where('created_by', $userId)
-            //     ->get(['id', 'account_ledger_name']),
-
-            // /* payment modes */
-            // 'receivedModes' => ReceivedMode::with('ledger')
-            //     ->where('created_by', $userId)
-            //     ->get(['id', 'mode_name', 'ledger_id']),
-
-            // /* --- NEW: grouped stock just like the create() page --- */
-            // 'stockItemsByGodown' => Stock::with('item.unit')
-            //     ->where('created_by', $userId)
-            //     ->get()                                // each row: item + qty
-            //     ->groupBy('godown_id')                 // bucket by godown
-            //     ->map(fn($col) => $col->map(fn($s) => [
-            //         'id'   => $s->id,
-            //         'qty'  => $s->qty,
-            //         'item' => [
-            //             'id'        => $s->item->id,
-            //             'item_name' => $s->item->item_name,
-            //             'unit_name'  => $s->item->unit->name ?? '',
-            //         ],
-            //     ]))
-            //     ->toArray(),
-
-
-
-            'godowns'  => Godown::whereIn('created_by', $userIds)->get(['id', 'name']),
-            'salesmen' => Salesman::whereIn('created_by', $userIds)->get(['id', 'name']),
-            'ledgers'  => AccountLedger::whereIn('created_by', $userIds)->get(['id', 'account_ledger_name']),
-            'inventoryLedgers' => AccountLedger::where('ledger_type', 'inventory')
-                ->whereIn('created_by', $userIds)
-                ->get(['id', 'account_ledger_name']),
-            'receivedModes' => ReceivedMode::with('ledger')
-                ->whereIn('created_by', $userIds)
-                ->get(['id', 'mode_name', 'ledger_id']),
-            'stockItemsByGodown' => Stock::with('item.unit')
-                ->whereIn('created_by', $userIds)
+            // Non-admin: filter by allowed user IDs
+            $godowns  = Godown::whereIn('created_by', $ids)->get(['id', 'name']);
+            $salesmen = Salesman::whereIn('created_by', $ids)->get(['id', 'name']);
+            $ledgers  = AccountLedger::whereIn('created_by', $ids)->get(['id', 'account_ledger_name']);
+            $inventoryLedgers = AccountLedger::where('ledger_type', 'inventory')
+                ->whereIn('created_by', $ids)
+                ->get(['id', 'account_ledger_name']);
+            $receivedModes = ReceivedMode::with('ledger')
+                ->whereIn('created_by', $ids)
+                ->get(['id', 'mode_name', 'ledger_id']);
+            $stockItemsByGodown = Stock::with('item.unit')
+                ->whereIn('created_by', $ids)
                 ->get()
                 ->groupBy('godown_id')
                 ->map(fn($col) => $col->map(fn($s) => [
@@ -357,20 +457,50 @@ class PurchaseController extends Controller
                         'unit_name' => $s->item->unit->name ?? '',
                     ],
                 ]))
-                ->toArray(),
+                ->toArray();
+        } else {
+            // Admin: show all
+            $godowns  = Godown::all(['id', 'name']);
+            $salesmen = Salesman::all(['id', 'name']);
+            $ledgers  = AccountLedger::all(['id', 'account_ledger_name']);
+            $inventoryLedgers = AccountLedger::where('ledger_type', 'inventory')
+                ->get(['id', 'account_ledger_name']);
+            $receivedModes = ReceivedMode::with('ledger')
+                ->get(['id', 'mode_name', 'ledger_id']);
+            $stockItemsByGodown = Stock::with('item.unit')
+                ->get()
+                ->groupBy('godown_id')
+                ->map(fn($col) => $col->map(fn($s) => [
+                    'id'   => $s->id,
+                    'qty'  => $s->qty,
+                    'item' => [
+                        'id'        => $s->item->id,
+                        'item_name' => $s->item->item_name,
+                        'unit_name' => $s->item->unit->name ?? '',
+                    ],
+                ]))
+                ->toArray();
+        }
 
-
+        return Inertia::render('purchases/edit', [
+            'purchase' => $purchase->load([
+                'purchaseItems.item',
+                'godown',
+                'salesman',
+                'accountLedger',
+            ]),
+            'godowns'  => $godowns,
+            'salesmen' => $salesmen,
+            'ledgers'  => $ledgers,
+            'inventoryLedgers' => $inventoryLedgers,
+            'receivedModes' => $receivedModes,
+            'stockItemsByGodown' => $stockItemsByGodown,
             'phone' => $purchase->phone,
             'address' => $purchase->address,
             'delivered_to' => $purchase->delivered_to,
             'shipping_details' => $purchase->shipping_details,
-
-
         ]);
     }
-
-
-
 
     // Update purchase
     public function update(Request $request, Purchase $purchase)
@@ -554,7 +684,6 @@ class PurchaseController extends Controller
             ->route('purchases.index')
             ->with('success', 'Purchase updated – stock & accounts adjusted!');
     }
-
 
     public function invoice(Purchase $purchase)
     {

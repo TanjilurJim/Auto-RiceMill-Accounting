@@ -18,6 +18,7 @@ use App\Models\Item;
 
 use function company_info;   // helper
 use function numberToWords;
+use function employee_scope_ids; // helper
 use function godown_scope_ids;
 
 use App\Exports\ArrayExport;
@@ -28,19 +29,92 @@ use App\Models\SaleItem;
 use App\Models\User;
 use App\Models\AccountLedger;
 
-
 use App\Models\JournalEntry;
 use Inertia\Inertia;
 
 class ReportController extends Controller
 {
+    // Employee Ledger Report
+
+    // public function employeeLedger(Request $request)
+    // {
+    //     $employees = Employee::select('id', 'name')
+    //         ->when(!auth()->user()->hasRole('admin'), function ($query) {
+    //             $query->where('created_by', auth()->id());
+    //         })
+    //         ->get();
+
+    //     if (!$request->employee_id || !$request->from_date || !$request->to_date) {
+    //         return Inertia::render('reports/EmployeeLedgerFilter', [
+    //             'employees' => $employees,
+    //         ]);
+    //     }
+
+    //     $employee = Employee::with('ledger')->findOrFail($request->employee_id);
+    //     $company = CompanySetting::where('created_by', auth()->id())->first();
+
+    //     if (!$employee->ledger) {
+    //         return back()->with('error', 'No ledger account found for this employee.');
+    //     }
+
+    //     $ledgerId = $employee->ledger->id;
+
+    //     // Get ledger entries
+    //     $from = $request->from_date;
+    //     $to = $request->to_date;
+    //     $entries = JournalEntry::with('journal')
+    //         ->where('account_ledger_id', $ledgerId)
+    //         ->whereHas('journal', function ($q) use ($from, $to) {
+    //             $q->whereBetween('date', [$from, $to]);
+    //         })
+    //         ->get()
+    //         ->sortBy(fn($entry) => $entry->journal->date)
+    //         ->values();
+
+    //     // Calculate opening balance
+    //     $openingBalance = JournalEntry::where('account_ledger_id', $ledgerId)
+    //         ->whereHas('journal', function ($q) use ($from) {
+    //             $q->where('date', '<', $from);
+    //         })
+    //         ->sum(DB::raw("CASE WHEN type = 'credit' THEN amount ELSE -amount END"));
+
+    //     return Inertia::render('reports/EmployeeLedger', [
+    //         'company' => $company,
+    //         'employee' => $employee,
+    //         'user' => auth()->user(),
+    //         'entries' => $entries->map(function ($entry) {
+    //             return [
+    //                 'id' => $entry->id,
+    //                 'type' => $entry->type,
+    //                 'amount' => $entry->amount,
+    //                 'note' => $entry->note,
+    //                 'journal' => [
+    //                     'date' => $entry->journal->date,
+    //                     'voucher_no' => $entry->journal->voucher_no,
+    //                 ],
+    //             ];
+    //         }),
+    //         'from' => $request->from_date,
+    //         'to' => $request->to_date,
+    //         'opening_balance' => $openingBalance,
+    //         'user' => auth()->user(),
+    //     ]);
+    // }
+
     public function employeeLedger(Request $request)
     {
-        $employees = Employee::select('id', 'name')
-            ->when(!auth()->user()->hasRole('admin'), function ($query) {
-                $query->where('created_by', auth()->id());
-            })
-            ->get();
+        $user = auth()->user();
+        $employeeQuery = Employee::select('id', 'name');
+
+        if (!$user->hasRole('admin')) {
+            $ids = employee_scope_ids();
+            // Exclude admin-created employees for normal users
+            $adminIds = User::role('admin')->pluck('id')->toArray();
+            $employeeQuery->whereIn('created_by', $ids)
+                        ->whereNotIn('created_by', $adminIds);
+        }
+
+        $employees = $employeeQuery->get();
 
         if (!$request->employee_id || !$request->from_date || !$request->to_date) {
             return Inertia::render('reports/EmployeeLedgerFilter', [
@@ -49,17 +123,21 @@ class ReportController extends Controller
         }
 
         $employee = Employee::with('ledger')->findOrFail($request->employee_id);
-        $company = CompanySetting::where('created_by', auth()->id())->first();
+        // $company = CompanySetting::where('created_by', auth()->id())->first();
+
+        $company = CompanySetting::where('created_by', auth()->id())->first() ?? (object)[
+            'company_name' => '',
+            // add other fields as needed with default values
+        ];
 
         if (!$employee->ledger) {
             return back()->with('error', 'No ledger account found for this employee.');
         }
 
         $ledgerId = $employee->ledger->id;
-
-        // Get ledger entries
         $from = $request->from_date;
         $to = $request->to_date;
+
         $entries = JournalEntry::with('journal')
             ->where('account_ledger_id', $ledgerId)
             ->whereHas('journal', function ($q) use ($from, $to) {
@@ -69,7 +147,6 @@ class ReportController extends Controller
             ->sortBy(fn($entry) => $entry->journal->date)
             ->values();
 
-        // Calculate opening balance
         $openingBalance = JournalEntry::where('account_ledger_id', $ledgerId)
             ->whereHas('journal', function ($q) use ($from) {
                 $q->where('date', '<', $from);
@@ -99,6 +176,50 @@ class ReportController extends Controller
         ]);
     }
 
+
+    // Stock Summary Report
+
+    // public function stockSummary(Request $request)
+    // {
+    //     $from = $request->input('from');
+    //     $to = $request->input('to');
+
+    //     // If filters are missing, show filter page
+    //     $godowns = Godown::when(!auth()->user()->hasRole('admin'), fn($q) => $q->where('created_by', auth()->id()))
+    //         ->select('id', 'name')->get();
+    //     $categories = Category::when(!auth()->user()->hasRole('admin'), fn($q) => $q->where('created_by', auth()->id()))
+    //         ->get(['id', 'name']); // ✅ FETCH CATEGORIES
+
+    //     $items = Item::when(!auth()->user()->hasRole('admin'), fn($q) => $q->where('created_by', auth()->id()))
+    //         ->get(['id', 'item_name']);
+    //     if (!$from || !$to) {
+    //         return Inertia::render('reports/StockSummaryFilter', [
+    //             'godowns' => $godowns,
+    //             'categories' => $categories,
+    //             'items' => $items, // ✅ Add this line
+    //         ]);
+    //     }
+    //     // dd(auth()->user()->hasRole('admin'), auth()->id());
+    //     $stocks = $this->getStockData($request);
+
+
+
+    //     $company = CompanySetting::where('created_by', auth()->id())->first();
+
+    //     return Inertia::render('reports/StockSummary', [
+    //         'items' => $items, // ✅ use pre-filtered variable here
+    //         'stocks' => $stocks,
+    //         'company' => $company,
+    //         'godowns' => $godowns,
+    //         'categories' => $categories,
+    //         'filters' => [
+    //             'from' => $from,
+    //             'to' => $to,
+    //             'godown_id' => $request->godown_id,
+    //         ]
+    //     ]);
+    // }
+
     public function stockSummary(Request $request)
     {
         $from = $request->input('from');
@@ -108,26 +229,29 @@ class ReportController extends Controller
         $godowns = Godown::when(!auth()->user()->hasRole('admin'), fn($q) => $q->where('created_by', auth()->id()))
             ->select('id', 'name')->get();
         $categories = Category::when(!auth()->user()->hasRole('admin'), fn($q) => $q->where('created_by', auth()->id()))
-            ->get(['id', 'name']); // ✅ FETCH CATEGORIES
+            ->get(['id', 'name']);
 
         $items = Item::when(!auth()->user()->hasRole('admin'), fn($q) => $q->where('created_by', auth()->id()))
             ->get(['id', 'item_name']);
+
         if (!$from || !$to) {
             return Inertia::render('reports/StockSummaryFilter', [
                 'godowns' => $godowns,
                 'categories' => $categories,
-                'items' => $items, // ✅ Add this line
+                'items' => $items,
             ]);
         }
-        // dd(auth()->user()->hasRole('admin'), auth()->id());
-        $stocks = $this->getStockData($request);
 
+        // Use godown_scope_ids helper for multi-level access control
+        $godownIds = godown_scope_ids();
 
+        // Pass godownIds to getStockData for access control
+        $stocks = $this->getStockDataWithScope($request, $godownIds);
 
         $company = CompanySetting::where('created_by', auth()->id())->first();
 
         return Inertia::render('reports/StockSummary', [
-            'items' => $items, // ✅ use pre-filtered variable here
+            'items' => $items,
             'stocks' => $stocks,
             'company' => $company,
             'godowns' => $godowns,
@@ -139,38 +263,12 @@ class ReportController extends Controller
             ]
         ]);
     }
-    public function stockSummaryPDF(Request $request)
-    {
-        $stocks = $this->getStockData($request);
-        $company = CompanySetting::where('created_by', auth()->id())->first();
-
-        $pdf = Pdf::loadView('pdf.stock-summary', [
-            'stocks' => $stocks,
-            'filters' => $request->only('from', 'to'),
-            'company' => $company
-        ]);
-
-        return $pdf->download('stock-summary.pdf');
-    }
-
-    public function stockSummaryExcel(Request $request)
-    {
-        $stocks = $this->getStockData($request);
-        $company = CompanySetting::where('created_by', auth()->id())->first();
-
-        return Excel::download(
-            new StockSummaryExport($stocks, $request->only('from', 'to'), $company),
-            'stock-summary.xlsx'
-        );
-    }
-
-    private function getStockData(Request $request)
+    // Add this new helper-based method:
+    private function getStockDataWithScope(Request $request, $godownIds)
     {
         return Stock::with(['item.unit', 'godown'])
-            ->when(!auth()->user()->hasRole('admin'), function ($q) {
-                $q->whereHas('item', function ($subQuery) {
-                    $subQuery->where('created_by', auth()->id());
-                });
+            ->when(!auth()->user()->hasRole('admin'), function ($q) use ($godownIds) {
+                $q->whereIn('godown_id', $godownIds);
             })
             ->when($request->godown_id, fn($q) => $q->where('godown_id', $request->godown_id))
             ->get()
@@ -182,19 +280,212 @@ class ReportController extends Controller
                     'qty' => (float) $stock->qty ?? 0,
                     'total_purchase' => (float) (PurchaseItem::where('product_id', $stock->item_id)->sum('subtotal') ?? 0),
                     'total_sale' => (float) (SaleItem::where('product_id', $stock->item_id)->sum('subtotal') ?? 0),
-                    'total_sale_qty' => (float) (SaleItem::where('product_id', $stock->item_id)->sum('qty') ?? 0), // ✅ ADD THIS
+                    'total_sale_qty' => (float) (SaleItem::where('product_id', $stock->item_id)->sum('qty') ?? 0),
                     'last_purchase_at' => PurchaseItem::where('product_id', $stock->item_id)->latest()->value('created_at'),
                     'last_sale_at' => SaleItem::where('product_id', $stock->item_id)->latest()->value('created_at'),
                 ];
             });
     }
 
+    // Stock Summary PDF and Excel exports
+
+    // public function stockSummaryPDF(Request $request)
+    // {
+    //     $stocks = $this->getStockData($request);
+    //     $company = CompanySetting::where('created_by', auth()->id())->first();
+
+    //     $pdf = Pdf::loadView('pdf.stock-summary', [
+    //         'stocks' => $stocks,
+    //         'filters' => $request->only('from', 'to'),
+    //         'company' => $company
+    //     ]);
+
+    //     return $pdf->download('stock-summary.pdf');
+    // }
+
+    public function stockSummaryPDF(Request $request)
+    {
+        // Use godown_scope_ids for multi-level access control
+        $godownIds = godown_scope_ids();
+        $stocks = $this->getStockDataWithScope($request, $godownIds);
+        $company = CompanySetting::where('created_by', auth()->id())->first();
+
+        $pdf = Pdf::loadView('pdf.stock-summary', [
+            'stocks' => $stocks,
+            'filters' => $request->only('from', 'to'),
+            'company' => $company
+        ]);
+
+        return $pdf->download('stock-summary.pdf');
+    }
+
+    // Stock Summary Excel export
+
+    // public function stockSummaryExcel(Request $request)
+    // {
+    //     $stocks = $this->getStockData($request);
+    //     $company = CompanySetting::where('created_by', auth()->id())->first();
+
+    //     return Excel::download(
+    //         new StockSummaryExport($stocks, $request->only('from', 'to'), $company),
+    //         'stock-summary.xlsx'
+    //     );
+    // }
+
+    public function stockSummaryExcel(Request $request)
+    {
+        // Use godown_scope_ids for multi-level access control
+        $godownIds = godown_scope_ids();
+        $stocks = $this->getStockDataWithScope($request, $godownIds);
+        $company = CompanySetting::where('created_by', auth()->id())->first();
+
+        return Excel::download(
+            new StockSummaryExport($stocks, $request->only('from', 'to'), $company),
+            'stock-summary.xlsx'
+        );
+    }
+
+    // getStockData
+
+    // private function getStockData(Request $request)
+    // {
+    //     return Stock::with(['item.unit', 'godown'])
+    //         ->when(!auth()->user()->hasRole('admin'), function ($q) {
+    //             $q->whereHas('item', function ($subQuery) {
+    //                 $subQuery->where('created_by', auth()->id());
+    //             });
+    //         })
+    //         ->when($request->godown_id, fn($q) => $q->where('godown_id', $request->godown_id))
+    //         ->get()
+    //         ->map(function ($stock) {
+    //             return [
+    //                 'item_name' => $stock->item->item_name,
+    //                 'godown_name' => $stock->godown->name,
+    //                 'unit' => $stock->item->unit->name,
+    //                 'qty' => (float) $stock->qty ?? 0,
+    //                 'total_purchase' => (float) (PurchaseItem::where('product_id', $stock->item_id)->sum('subtotal') ?? 0),
+    //                 'total_sale' => (float) (SaleItem::where('product_id', $stock->item_id)->sum('subtotal') ?? 0),
+    //                 'total_sale_qty' => (float) (SaleItem::where('product_id', $stock->item_id)->sum('qty') ?? 0), // ✅ ADD THIS
+    //                 'last_purchase_at' => PurchaseItem::where('product_id', $stock->item_id)->latest()->value('created_at'),
+    //                 'last_sale_at' => SaleItem::where('product_id', $stock->item_id)->latest()->value('created_at'),
+    //             ];
+    //         });
+    // }
+
+    private function getStockData(Request $request)
+    {
+        $godownIds = godown_scope_ids(); // Use the helper for multi-level access control
+
+        return Stock::with(['item.unit', 'godown'])
+            ->when(!auth()->user()->hasRole('admin'), function ($q) use ($godownIds) {
+                $q->whereIn('godown_id', $godownIds);
+            })
+            ->when($request->godown_id, fn($q) => $q->where('godown_id', $request->godown_id))
+            ->get()
+            ->map(function ($stock) {
+                return [
+                    'item_name' => $stock->item->item_name,
+                    'godown_name' => $stock->godown->name,
+                    'unit' => $stock->item->unit->name,
+                    'qty' => (float) $stock->qty ?? 0,
+                    'total_purchase' => (float) (PurchaseItem::where('product_id', $stock->item_id)->sum('subtotal') ?? 0),
+                    'total_sale' => (float) (SaleItem::where('product_id', $stock->item_id)->sum('subtotal') ?? 0),
+                    'total_sale_qty' => (float) (SaleItem::where('product_id', $stock->item_id)->sum('qty') ?? 0),
+                    'last_purchase_at' => PurchaseItem::where('product_id', $stock->item_id)->latest()->value('created_at'),
+                    'last_sale_at' => SaleItem::where('product_id', $stock->item_id)->latest()->value('created_at'),
+                ];
+            });
+    }
+
+    // categoryWiseStockSummary
+
+    // public function categoryWiseStockSummary(Request $request)
+    // {
+    //     $from = $request->input('from');
+    //     $to = $request->input('to');
+    //     $categoryId = $request->input('category_id');
+
+    //     $query = Category::with(['items.stocks'])
+    //         ->when(!auth()->user()->hasRole('admin'), function ($q) {
+    //             $q->whereHas('items', fn($qq) => $qq->where('created_by', auth()->id()));
+    //         });
+
+    //     if ($categoryId) {
+    //         $query->where('id', $categoryId);
+    //     }
+
+    //     $categories = $query->get()->map(function ($category) {
+    //         $totalQty = 0;
+    //         $totalPurchase = 0;
+    //         $totalSale = 0;
+    //         $lastPurchase = null;
+    //         $lastSale = null;
+    //         $lastPurchaseQty = 0;
+    //         $lastSaleQty = 0;
+    //         $lastPurchaseUnit = '';
+    //         $lastSaleUnit = '';
+
+    //         $items = $category->items->filter(function ($item) {
+    //             return auth()->user()->hasRole('admin') || $item->created_by === auth()->id();
+    //         });
+
+    //         foreach ($items as $item) {
+    //             $totalQty += $item->stocks->sum('qty');
+    //             $totalPurchase += PurchaseItem::where('product_id', $item->id)->sum('subtotal');
+    //             $totalSale += SaleItem::where('product_id', $item->id)->sum('subtotal');
+
+    //             // Last purchase
+    //             $latestPurchase = PurchaseItem::where('product_id', $item->id)
+    //                 ->latest('created_at')->first();
+    //             if ($latestPurchase && (!$lastPurchase || $latestPurchase->created_at > $lastPurchase)) {
+    //                 $lastPurchase = $latestPurchase->created_at;
+    //                 $lastPurchaseQty = $latestPurchase->qty ?? 0;
+    //                 $lastPurchaseUnit = optional($item->unit)->name ?? '';
+    //             }
+
+    //             // Last sale
+    //             $latestSale = SaleItem::where('product_id', $item->id)
+    //                 ->latest('created_at')->first();
+    //             if ($latestSale && (!$lastSale || $latestSale->created_at > $lastSale)) {
+    //                 $lastSale = $latestSale->created_at;
+    //                 $lastSaleQty = $latestSale->qty ?? 0;
+    //                 $lastSaleUnit = optional($item->unit)->name ?? '';
+    //             }
+    //         }
+
+    //         return [
+    //             'category_name'       => $category->name,
+    //             'total_qty'           => $totalQty,
+    //             'total_purchase'      => $totalPurchase,
+    //             'total_sale'          => $totalSale,
+    //             'last_purchase_at'    => $lastPurchase,
+    //             'last_purchase_qty'   => $lastPurchaseQty,
+    //             'last_purchase_unit'  => $lastPurchaseUnit,
+    //             'last_sale_at'        => $lastSale,
+    //             'last_sale_qty'       => $lastSaleQty,
+    //             'last_sale_unit'      => $lastSaleUnit,
+    //         ];
+    //     });
+
+    //     return Inertia::render('reports/CategoryWiseStockSummary', [
+    //         'categories' => $categories,
+    //         'filters' => [
+    //             'from' => $from,
+    //             'to' => $to,
+    //             'category_id' => $categoryId,
+    //         ],
+    //         'company' => CompanySetting::where('created_by', auth()->id())->first(),
+    //     ]);
+    // }
 
     public function categoryWiseStockSummary(Request $request)
     {
         $from = $request->input('from');
         $to = $request->input('to');
         $categoryId = $request->input('category_id');
+
+        // Use godown_scope_ids for multi-level access control
+        $godownIds = godown_scope_ids();
 
         $query = Category::with(['items.stocks'])
             ->when(!auth()->user()->hasRole('admin'), function ($q) {
@@ -205,7 +496,7 @@ class ReportController extends Controller
             $query->where('id', $categoryId);
         }
 
-        $categories = $query->get()->map(function ($category) {
+        $categories = $query->get()->map(function ($category) use ($godownIds) {
             $totalQty = 0;
             $totalPurchase = 0;
             $totalSale = 0;
@@ -221,13 +512,29 @@ class ReportController extends Controller
             });
 
             foreach ($items as $item) {
-                $totalQty += $item->stocks->sum('qty');
-                $totalPurchase += PurchaseItem::where('product_id', $item->id)->sum('subtotal');
-                $totalSale += SaleItem::where('product_id', $item->id)->sum('subtotal');
+                // Only sum stocks in allowed godowns for non-admins
+                $stocks = $item->stocks;
+                if (!auth()->user()->hasRole('admin')) {
+                    $stocks = $stocks->whereIn('godown_id', $godownIds);
+                }
+                $totalQty += $stocks->sum('qty');
+
+                // Only sum purchases/sales in allowed godowns for non-admins
+                $purchaseQuery = PurchaseItem::where('product_id', $item->id);
+                $saleQuery = SaleItem::where('product_id', $item->id);
+                if (!auth()->user()->hasRole('admin')) {
+                    $purchaseQuery->whereIn('godown_id', $godownIds);
+                    $saleQuery->whereIn('godown_id', $godownIds);
+                }
+                $totalPurchase += $purchaseQuery->sum('subtotal');
+                $totalSale += $saleQuery->sum('subtotal');
 
                 // Last purchase
-                $latestPurchase = PurchaseItem::where('product_id', $item->id)
-                    ->latest('created_at')->first();
+                $latestPurchase = PurchaseItem::where('product_id', $item->id);
+                if (!auth()->user()->hasRole('admin')) {
+                    $latestPurchase->whereIn('godown_id', $godownIds);
+                }
+                $latestPurchase = $latestPurchase->latest('created_at')->first();
                 if ($latestPurchase && (!$lastPurchase || $latestPurchase->created_at > $lastPurchase)) {
                     $lastPurchase = $latestPurchase->created_at;
                     $lastPurchaseQty = $latestPurchase->qty ?? 0;
@@ -235,8 +542,11 @@ class ReportController extends Controller
                 }
 
                 // Last sale
-                $latestSale = SaleItem::where('product_id', $item->id)
-                    ->latest('created_at')->first();
+                $latestSale = SaleItem::where('product_id', $item->id);
+                if (!auth()->user()->hasRole('admin')) {
+                    $latestSale->whereIn('godown_id', $godownIds);
+                }
+                $latestSale = $latestSale->latest('created_at')->first();
                 if ($latestSale && (!$lastSale || $latestSale->created_at > $lastSale)) {
                     $lastSale = $latestSale->created_at;
                     $lastSaleQty = $latestSale->qty ?? 0;
@@ -269,27 +579,220 @@ class ReportController extends Controller
         ]);
     }
 
-
     // category wise stock summary pdf and excel
 
+    // public function categoryWiseStockSummaryPDF(Request $request)
+    // {
+    //     $categories = $this->getCategoryWiseStockData($request);
+    //     $company = CompanySetting::where('created_by', auth()->id())->first();
 
+    //     $pdf = Pdf::loadView('pdf.category-wise-stock-summary', [
+    //         'categories' => $categories,
+    //         'filters' => $request->only('from', 'to'),
+    //         'company' => $company
+    //     ]);
+
+    //     return $pdf->download('category-wise-stock-summary.pdf');
+    // }
+    
     public function categoryWiseStockSummaryPDF(Request $request)
     {
-        $categories = $this->getCategoryWiseStockData($request);
-        $company = CompanySetting::where('created_by', auth()->id())->first();
+        // Use godown_scope_ids for multi-level access control
+        $godownIds = godown_scope_ids();
 
-        $pdf = Pdf::loadView('pdf.category-wise-stock-summary', [
+        // Use the same logic as in the main report for access control
+        $from = $request->input('from');
+        $to = $request->input('to');
+        $categoryId = $request->input('category_id');
+
+        $query = \App\Models\Category::with(['items.stocks'])
+            ->when(!auth()->user()->hasRole('admin'), function ($q) {
+                $q->whereHas('items', fn($qq) => $qq->where('created_by', auth()->id()));
+            });
+
+        if ($categoryId) {
+            $query->where('id', $categoryId);
+        }
+
+        $categories = $query->get()->map(function ($category) use ($godownIds) {
+            $totalQty = 0;
+            $totalPurchase = 0;
+            $totalSale = 0;
+            $lastPurchase = null;
+            $lastSale = null;
+            $lastPurchaseQty = 0;
+            $lastSaleQty = 0;
+            $lastPurchaseUnit = '';
+            $lastSaleUnit = '';
+
+            $items = $category->items->filter(function ($item) {
+                return auth()->user()->hasRole('admin') || $item->created_by === auth()->id();
+            });
+
+            foreach ($items as $item) {
+                $stocks = $item->stocks;
+                if (!auth()->user()->hasRole('admin')) {
+                    $stocks = $stocks->whereIn('godown_id', $godownIds);
+                }
+                $totalQty += $stocks->sum('qty');
+
+                $purchaseQuery = \App\Models\PurchaseItem::where('product_id', $item->id);
+                $saleQuery = \App\Models\SaleItem::where('product_id', $item->id);
+                if (!auth()->user()->hasRole('admin')) {
+                    $purchaseQuery->whereIn('godown_id', $godownIds);
+                    $saleQuery->whereIn('godown_id', $godownIds);
+                }
+                $totalPurchase += $purchaseQuery->sum('subtotal');
+                $totalSale += $saleQuery->sum('subtotal');
+
+                $latestPurchase = \App\Models\PurchaseItem::where('product_id', $item->id);
+                if (!auth()->user()->hasRole('admin')) {
+                    $latestPurchase->whereIn('godown_id', $godownIds);
+                }
+                $latestPurchase = $latestPurchase->latest('created_at')->first();
+                if ($latestPurchase && (!$lastPurchase || $latestPurchase->created_at > $lastPurchase)) {
+                    $lastPurchase = $latestPurchase->created_at;
+                    $lastPurchaseQty = $latestPurchase->qty ?? 0;
+                    $lastPurchaseUnit = optional($item->unit)->name ?? '';
+                }
+
+                $latestSale = \App\Models\SaleItem::where('product_id', $item->id);
+                if (!auth()->user()->hasRole('admin')) {
+                    $latestSale->whereIn('godown_id', $godownIds);
+                }
+                $latestSale = $latestSale->latest('created_at')->first();
+                if ($latestSale && (!$lastSale || $latestSale->created_at > $lastSale)) {
+                    $lastSale = $latestSale->created_at;
+                    $lastSaleQty = $latestSale->qty ?? 0;
+                    $lastSaleUnit = optional($item->unit)->name ?? '';
+                }
+            }
+
+            return [
+                'category_name'       => $category->name,
+                'total_qty'           => $totalQty,
+                'total_purchase'      => $totalPurchase,
+                'total_sale'          => $totalSale,
+                'last_purchase_at'    => $lastPurchase,
+                'last_purchase_qty'   => $lastPurchaseQty,
+                'last_purchase_unit'  => $lastPurchaseUnit,
+                'last_sale_at'        => $lastSale,
+                'last_sale_qty'       => $lastSaleQty,
+                'last_sale_unit'      => $lastSaleUnit,
+            ];
+        });
+
+        $company = \App\Models\CompanySetting::where('created_by', auth()->id())->first();
+
+        $pdf = \Barryvdh\DomPDF\Facade\Pdf::loadView('pdf.category-wise-stock-summary', [
             'categories' => $categories,
-            'filters' => $request->only('from', 'to'),
+            'filters' => $request->only('from', 'to', 'category_id'),
             'company' => $company
         ]);
 
         return $pdf->download('category-wise-stock-summary.pdf');
     }
 
+    // categoryWiseStockSummaryExcel
+
+    // public function categoryWiseStockSummaryExcel(Request $request)
+    // {
+    //     $categories = $this->getCategoryWiseStockData($request); // or reuse same logic from existing controller
+    //     $company = CompanySetting::where('created_by', auth()->id())->first();
+
+    //     return Excel::download(
+    //         new CategoryWiseStockSummaryExport($categories, $request->only('from', 'to', 'category_id'), $company),
+    //         'category-wise-stock-summary.xlsx'
+    //     );
+    // }
+
     public function categoryWiseStockSummaryExcel(Request $request)
     {
-        $categories = $this->getCategoryWiseStockData($request); // or reuse same logic from existing controller
+        // Use godown_scope_ids for multi-level access control
+        $godownIds = godown_scope_ids();
+
+        // Use the same logic as in the main report for access control
+        $from = $request->input('from');
+        $to = $request->input('to');
+        $categoryId = $request->input('category_id');
+
+        $query = \App\Models\Category::with(['items.stocks'])
+            ->when(!auth()->user()->hasRole('admin'), function ($q) {
+                $q->whereHas('items', fn($qq) => $qq->where('created_by', auth()->id()));
+            });
+
+        if ($categoryId) {
+            $query->where('id', $categoryId);
+        }
+
+        $categories = $query->get()->map(function ($category) use ($godownIds) {
+            $totalQty = 0;
+            $totalPurchase = 0;
+            $totalSale = 0;
+            $lastPurchase = null;
+            $lastSale = null;
+            $lastPurchaseQty = 0;
+            $lastSaleQty = 0;
+            $lastPurchaseUnit = '';
+            $lastSaleUnit = '';
+
+            $items = $category->items->filter(function ($item) {
+                return auth()->user()->hasRole('admin') || $item->created_by === auth()->id();
+            });
+
+            foreach ($items as $item) {
+                $stocks = $item->stocks;
+                if (!auth()->user()->hasRole('admin')) {
+                    $stocks = $stocks->whereIn('godown_id', $godownIds);
+                }
+                $totalQty += $stocks->sum('qty');
+
+                $purchaseQuery = \App\Models\PurchaseItem::where('product_id', $item->id);
+                $saleQuery = \App\Models\SaleItem::where('product_id', $item->id);
+                if (!auth()->user()->hasRole('admin')) {
+                    $purchaseQuery->whereIn('godown_id', $godownIds);
+                    $saleQuery->whereIn('godown_id', $godownIds);
+                }
+                $totalPurchase += $purchaseQuery->sum('subtotal');
+                $totalSale += $saleQuery->sum('subtotal');
+
+                $latestPurchase = \App\Models\PurchaseItem::where('product_id', $item->id);
+                if (!auth()->user()->hasRole('admin')) {
+                    $latestPurchase->whereIn('godown_id', $godownIds);
+                }
+                $latestPurchase = $latestPurchase->latest('created_at')->first();
+                if ($latestPurchase && (!$lastPurchase || $latestPurchase->created_at > $lastPurchase)) {
+                    $lastPurchase = $latestPurchase->created_at;
+                    $lastPurchaseQty = $latestPurchase->qty ?? 0;
+                    $lastPurchaseUnit = optional($item->unit)->name ?? '';
+                }
+
+                $latestSale = \App\Models\SaleItem::where('product_id', $item->id);
+                if (!auth()->user()->hasRole('admin')) {
+                    $latestSale->whereIn('godown_id', $godownIds);
+                }
+                $latestSale = $latestSale->latest('created_at')->first();
+                if ($latestSale && (!$lastSale || $latestSale->created_at > $lastSale)) {
+                    $lastSale = $latestSale->created_at;
+                    $lastSaleQty = $latestSale->qty ?? 0;
+                    $lastSaleUnit = optional($item->unit)->name ?? '';
+                }
+            }
+
+            return [
+                'category_name'       => $category->name,
+                'total_qty'           => $totalQty,
+                'total_purchase'      => $totalPurchase,
+                'total_sale'          => $totalSale,
+                'last_purchase_at'    => $lastPurchase,
+                'last_purchase_qty'   => $lastPurchaseQty,
+                'last_purchase_unit'  => $lastPurchaseUnit,
+                'last_sale_at'        => $lastSale,
+                'last_sale_qty'       => $lastSaleQty,
+                'last_sale_unit'      => $lastSaleUnit,
+            ];
+        });
+
         $company = CompanySetting::where('created_by', auth()->id())->first();
 
         return Excel::download(
@@ -298,12 +801,90 @@ class ReportController extends Controller
         );
     }
 
+    // itemWiseStockSummary
+
+    // public function itemWiseStockSummary(Request $request)
+    // {
+    //     $from = $request->input('from');
+    //     $to = $request->input('to');
+    //     $godownId = $request->input('godown_id');
+    //     $itemId = $request->input('item_id');
+
+    //     $query = Item::with(['unit', 'stocks'])
+    //         ->when(!auth()->user()->hasRole('admin'), function ($q) {
+    //             $q->where('created_by', auth()->id());
+    //         });
+
+    //     if ($itemId) {
+    //         $query->where('id', $itemId);
+    //     }
+
+    //     $items = $query->get()->map(function ($item) use ($from, $to, $godownId) {
+    //         $stocks = $item->stocks;
+    //         if ($godownId) {
+    //             $stocks = $stocks->where('godown_id', $godownId);
+    //         }
+
+    //         $totalQty = $stocks->sum('qty');
+
+    //         $totalPurchase = PurchaseItem::where('product_id', $item->id)
+    //             ->when($from && $to, fn($q) => $q->whereBetween('created_at', [$from, $to]))
+    //             ->sum('subtotal');
+
+    //         $totalSale = SaleItem::where('product_id', $item->id)
+    //             ->when($from && $to, fn($q) => $q->whereBetween('created_at', [$from, $to]))
+    //             ->sum('subtotal');
+
+    //         $totalSaleQty = SaleItem::where('product_id', $item->id)
+    //             ->when($from && $to, fn($q) => $q->whereBetween('created_at', [$from, $to]))
+    //             ->sum('qty');
+
+    //         $lastPurchase = PurchaseItem::where('product_id', $item->id)
+    //             ->when($from && $to, fn($q) => $q->whereBetween('created_at', [$from, $to]))
+    //             ->latest('created_at')->first();
+
+    //         $lastSale = SaleItem::where('product_id', $item->id)
+    //             ->when($from && $to, fn($q) => $q->whereBetween('created_at', [$from, $to]))
+    //             ->latest('created_at')->first();
+
+    //         return [
+    //             'item_name'           => $item->item_name,
+    //             'unit'                => optional($item->unit)->name ?? '',
+    //             'total_qty'           => $totalQty,
+    //             'total_purchase'      => $totalPurchase,
+    //             'total_sale'          => $totalSale,
+    //             'total_sale_qty'      => $totalSaleQty,
+    //             'last_purchase_at'    => optional($lastPurchase)->created_at,
+    //             'last_purchase_qty'   => optional($lastPurchase)->qty ?? 0,
+    //             'last_sale_at'        => optional($lastSale)->created_at,
+    //             'last_sale_qty'       => optional($lastSale)->qty ?? 0,
+    //         ];
+    //     });
+
+    //     return Inertia::render('reports/ItemWiseStockSummary', [
+    //         'items' => $items,
+    //         'godowns' => Godown::when(!auth()->user()->hasRole('admin'), fn($q) => $q->where('created_by', auth()->id()))
+    //             ->get(['id', 'name']),
+    //         'categories' => Category::when(!auth()->user()->hasRole('admin'), fn($q) => $q->where('created_by', auth()->id()))
+    //             ->get(['id', 'name']),
+    //         'company' => CompanySetting::where('created_by', auth()->id())->first(),
+    //         'filters' => [
+    //             'from' => $from,
+    //             'to' => $to,
+    //             'godown_id' => $godownId,
+    //         ],
+    //     ]);
+    // }
+
     public function itemWiseStockSummary(Request $request)
     {
         $from = $request->input('from');
         $to = $request->input('to');
         $godownId = $request->input('godown_id');
         $itemId = $request->input('item_id');
+
+        // Use godown_scope_ids for multi-level access control
+        $godownIds = godown_scope_ids();
 
         $query = Item::with(['unit', 'stocks'])
             ->when(!auth()->user()->hasRole('admin'), function ($q) {
@@ -314,33 +895,50 @@ class ReportController extends Controller
             $query->where('id', $itemId);
         }
 
-        $items = $query->get()->map(function ($item) use ($from, $to, $godownId) {
+        $items = $query->get()->map(function ($item) use ($from, $to, $godownId, $godownIds) {
             $stocks = $item->stocks;
+            // Restrict stocks by godown access for non-admins
+            if (!auth()->user()->hasRole('admin')) {
+                $stocks = $stocks->whereIn('godown_id', $godownIds);
+            }
             if ($godownId) {
                 $stocks = $stocks->where('godown_id', $godownId);
             }
 
             $totalQty = $stocks->sum('qty');
 
-            $totalPurchase = PurchaseItem::where('product_id', $item->id)
-                ->when($from && $to, fn($q) => $q->whereBetween('created_at', [$from, $to]))
-                ->sum('subtotal');
+            // Restrict purchases/sales by godown access for non-admins
+            $purchaseQuery = PurchaseItem::where('product_id', $item->id)
+                ->when($from && $to, fn($q) => $q->whereBetween('created_at', [$from, $to]));
+            $saleQuery = SaleItem::where('product_id', $item->id)
+                ->when($from && $to, fn($q) => $q->whereBetween('created_at', [$from, $to]));
+            if (!auth()->user()->hasRole('admin')) {
+                $purchaseQuery->whereIn('godown_id', $godownIds);
+                $saleQuery->whereIn('godown_id', $godownIds);
+            }
+            if ($godownId) {
+                $purchaseQuery->where('godown_id', $godownId);
+                $saleQuery->where('godown_id', $godownId);
+            }
 
-            $totalSale = SaleItem::where('product_id', $item->id)
-                ->when($from && $to, fn($q) => $q->whereBetween('created_at', [$from, $to]))
-                ->sum('subtotal');
-
-            $totalSaleQty = SaleItem::where('product_id', $item->id)
-                ->when($from && $to, fn($q) => $q->whereBetween('created_at', [$from, $to]))
-                ->sum('qty');
+            $totalPurchase = $purchaseQuery->sum('subtotal');
+            $totalSale = $saleQuery->sum('subtotal');
+            $totalSaleQty = $saleQuery->sum('qty');
 
             $lastPurchase = PurchaseItem::where('product_id', $item->id)
-                ->when($from && $to, fn($q) => $q->whereBetween('created_at', [$from, $to]))
-                ->latest('created_at')->first();
-
+                ->when($from && $to, fn($q) => $q->whereBetween('created_at', [$from, $to]));
             $lastSale = SaleItem::where('product_id', $item->id)
-                ->when($from && $to, fn($q) => $q->whereBetween('created_at', [$from, $to]))
-                ->latest('created_at')->first();
+                ->when($from && $to, fn($q) => $q->whereBetween('created_at', [$from, $to]));
+            if (!auth()->user()->hasRole('admin')) {
+                $lastPurchase->whereIn('godown_id', $godownIds);
+                $lastSale->whereIn('godown_id', $godownIds);
+            }
+            if ($godownId) {
+                $lastPurchase->where('godown_id', $godownId);
+                $lastSale->where('godown_id', $godownId);
+            }
+            $lastPurchase = $lastPurchase->latest('created_at')->first();
+            $lastSale = $lastSale->latest('created_at')->first();
 
             return [
                 'item_name'           => $item->item_name,
@@ -371,12 +969,101 @@ class ReportController extends Controller
         ]);
     }
 
+    // itemWiseStockSummaryPDF
+
+    // public function itemWiseStockSummaryPDF(Request $request)
+    // {
+    //     $items = $this->getItemWiseStockData($request);
+    //     $company = CompanySetting::where('created_by', auth()->id())->first();
+
+    //     $pdf = Pdf::loadView('pdf.item-wise-stock-summary', [
+    //         'items' => $items,
+    //         'filters' => $request->only('from', 'to', 'godown_id'),
+    //         'company' => $company
+    //     ]);
+
+    //     return $pdf->download('item-wise-stock-summary.pdf');
+    // }
+
     public function itemWiseStockSummaryPDF(Request $request)
     {
-        $items = $this->getItemWiseStockData($request);
-        $company = CompanySetting::where('created_by', auth()->id())->first();
+        // Use godown_scope_ids for multi-level access control
+        $godownIds = godown_scope_ids();
 
-        $pdf = Pdf::loadView('pdf.item-wise-stock-summary', [
+        $from = $request->input('from');
+        $to = $request->input('to');
+        $godownId = $request->input('godown_id');
+        $itemId = $request->input('item_id');
+
+        $query = \App\Models\Item::with(['unit', 'stocks'])
+            ->when(!auth()->user()->hasRole('admin'), function ($q) {
+                $q->where('created_by', auth()->id());
+            });
+
+        if ($itemId) {
+            $query->where('id', $itemId);
+        }
+
+        $items = $query->get()->map(function ($item) use ($from, $to, $godownId, $godownIds) {
+            $stocks = $item->stocks;
+            if (!auth()->user()->hasRole('admin')) {
+                $stocks = $stocks->whereIn('godown_id', $godownIds);
+            }
+            if ($godownId) {
+                $stocks = $stocks->where('godown_id', $godownId);
+            }
+
+            $totalQty = $stocks->sum('qty');
+
+            $purchaseQuery = \App\Models\PurchaseItem::where('product_id', $item->id)
+                ->when($from && $to, fn($q) => $q->whereBetween('created_at', [$from, $to]));
+            $saleQuery = \App\Models\SaleItem::where('product_id', $item->id)
+                ->when($from && $to, fn($q) => $q->whereBetween('created_at', [$from, $to]));
+            if (!auth()->user()->hasRole('admin')) {
+                $purchaseQuery->whereIn('godown_id', $godownIds);
+                $saleQuery->whereIn('godown_id', $godownIds);
+            }
+            if ($godownId) {
+                $purchaseQuery->where('godown_id', $godownId);
+                $saleQuery->where('godown_id', $godownId);
+            }
+
+            $totalPurchase = $purchaseQuery->sum('subtotal');
+            $totalSale = $saleQuery->sum('subtotal');
+            $totalSaleQty = $saleQuery->sum('qty');
+
+            $lastPurchase = \App\Models\PurchaseItem::where('product_id', $item->id)
+                ->when($from && $to, fn($q) => $q->whereBetween('created_at', [$from, $to]));
+            $lastSale = \App\Models\SaleItem::where('product_id', $item->id)
+                ->when($from && $to, fn($q) => $q->whereBetween('created_at', [$from, $to]));
+            if (!auth()->user()->hasRole('admin')) {
+                $lastPurchase->whereIn('godown_id', $godownIds);
+                $lastSale->whereIn('godown_id', $godownIds);
+            }
+            if ($godownId) {
+                $lastPurchase->where('godown_id', $godownId);
+                $lastSale->where('godown_id', $godownId);
+            }
+            $lastPurchase = $lastPurchase->latest('created_at')->first();
+            $lastSale = $lastSale->latest('created_at')->first();
+
+            return [
+                'item_name'           => $item->item_name,
+                'unit'                => optional($item->unit)->name ?? '',
+                'total_qty'           => $totalQty,
+                'total_purchase'      => $totalPurchase,
+                'total_sale'          => $totalSale,
+                'total_sale_qty'      => $totalSaleQty,
+                'last_purchase_at'    => optional($lastPurchase)->created_at,
+                'last_purchase_qty'   => optional($lastPurchase)->qty ?? 0,
+                'last_sale_at'        => optional($lastSale)->created_at,
+                'last_sale_qty'       => optional($lastSale)->qty ?? 0,
+            ];
+        });
+
+        $company = \App\Models\CompanySetting::where('created_by', auth()->id())->first();
+
+        $pdf = \Barryvdh\DomPDF\Facade\Pdf::loadView('pdf.item-wise-stock-summary', [
             'items' => $items,
             'filters' => $request->only('from', 'to', 'godown_id'),
             'company' => $company
@@ -385,16 +1072,157 @@ class ReportController extends Controller
         return $pdf->download('item-wise-stock-summary.pdf');
     }
 
+    // itemWiseStockSummaryExcel
+
+    // public function itemWiseStockSummaryExcel(Request $request)
+    // {
+    //     $items = $this->getItemWiseStockData($request);
+    //     $company = CompanySetting::where('created_by', auth()->id())->first();
+
+    //     return Excel::download(
+    //         new ArrayExport($items->toArray()), // ✅ Now it's a plain array
+    //         'item-wise-stock-summary.xlsx'
+    //     );
+    // }
+
     public function itemWiseStockSummaryExcel(Request $request)
     {
-        $items = $this->getItemWiseStockData($request);
+        // Use godown_scope_ids for multi-level access control
+        $godownIds = godown_scope_ids();
+
+        $from = $request->input('from');
+        $to = $request->input('to');
+        $godownId = $request->input('godown_id');
+        $itemId = $request->input('item_id');
+
+        $query = \App\Models\Item::with(['unit', 'stocks'])
+            ->when(!auth()->user()->hasRole('admin'), function ($q) {
+                $q->where('created_by', auth()->id());
+            });
+
+        if ($itemId) {
+            $query->where('id', $itemId);
+        }
+
+        $items = $query->get()->map(function ($item) use ($from, $to, $godownId, $godownIds) {
+            $stocks = $item->stocks;
+            if (!auth()->user()->hasRole('admin')) {
+                $stocks = $stocks->whereIn('godown_id', $godownIds);
+            }
+            if ($godownId) {
+                $stocks = $stocks->where('godown_id', $godownId);
+            }
+
+            $totalQty = $stocks->sum('qty');
+
+            $purchaseQuery = \App\Models\PurchaseItem::where('product_id', $item->id)
+                ->when($from && $to, fn($q) => $q->whereBetween('created_at', [$from, $to]));
+            $saleQuery = \App\Models\SaleItem::where('product_id', $item->id)
+                ->when($from && $to, fn($q) => $q->whereBetween('created_at', [$from, $to]));
+            if (!auth()->user()->hasRole('admin')) {
+                $purchaseQuery->whereIn('godown_id', $godownIds);
+                $saleQuery->whereIn('godown_id', $godownIds);
+            }
+            if ($godownId) {
+                $purchaseQuery->where('godown_id', $godownId);
+                $saleQuery->where('godown_id', $godownId);
+            }
+
+            $totalPurchase = $purchaseQuery->sum('subtotal');
+            $totalSale = $saleQuery->sum('subtotal');
+            $totalSaleQty = $saleQuery->sum('qty');
+
+            $lastPurchase = \App\Models\PurchaseItem::where('product_id', $item->id)
+                ->when($from && $to, fn($q) => $q->whereBetween('created_at', [$from, $to]));
+            $lastSale = \App\Models\SaleItem::where('product_id', $item->id)
+                ->when($from && $to, fn($q) => $q->whereBetween('created_at', [$from, $to]));
+            if (!auth()->user()->hasRole('admin')) {
+                $lastPurchase->whereIn('godown_id', $godownIds);
+                $lastSale->whereIn('godown_id', $godownIds);
+            }
+            if ($godownId) {
+                $lastPurchase->where('godown_id', $godownId);
+                $lastSale->where('godown_id', $godownId);
+            }
+            $lastPurchase = $lastPurchase->latest('created_at')->first();
+            $lastSale = $lastSale->latest('created_at')->first();
+
+            return [
+                'item_name'           => $item->item_name,
+                'unit'                => optional($item->unit)->name ?? '',
+                'total_qty'           => $totalQty,
+                'total_purchase'      => $totalPurchase,
+                'total_sale'          => $totalSale,
+                'total_sale_qty'      => $totalSaleQty,
+                'last_purchase_at'    => optional($lastPurchase)->created_at,
+                'last_purchase_qty'   => optional($lastPurchase)->qty ?? 0,
+                'last_sale_at'        => optional($lastSale)->created_at,
+                'last_sale_qty'       => optional($lastSale)->qty ?? 0,
+            ];
+        });
+
         $company = CompanySetting::where('created_by', auth()->id())->first();
 
         return Excel::download(
-            new ArrayExport($items->toArray()), // ✅ Now it's a plain array
+            new ArrayExport($items->toArray()),
             'item-wise-stock-summary.xlsx'
         );
     }
+
+    // getItemWiseStockData
+
+    // private function getItemWiseStockData(Request $request)
+    // {
+    //     $from = $request->input('from');
+    //     $to = $request->input('to');
+    //     $godownId = $request->input('godown_id');
+
+    //     return Item::with(['unit', 'stocks'])
+    //         ->when(!auth()->user()->hasRole('admin'), function ($q) {
+    //             $q->where('created_by', auth()->id());
+    //         })
+    //         ->get()
+    //         ->map(function ($item) use ($from, $to, $godownId) {
+    //             $stocks = $item->stocks;
+    //             if ($godownId) {
+    //                 $stocks = $stocks->where('godown_id', $godownId);
+    //             }
+
+    //             $totalQty = $stocks->sum('qty');
+    //             $totalPurchase = PurchaseItem::where('product_id', $item->id)
+    //                 ->when($from && $to, fn($q) => $q->whereBetween('created_at', [$from, $to]))
+    //                 ->sum('subtotal');
+
+    //             $totalSale = SaleItem::where('product_id', $item->id)
+    //                 ->when($from && $to, fn($q) => $q->whereBetween('created_at', [$from, $to]))
+    //                 ->sum('subtotal');
+
+    //             $totalSaleQty = SaleItem::where('product_id', $item->id)
+    //                 ->when($from && $to, fn($q) => $q->whereBetween('created_at', [$from, $to]))
+    //                 ->sum('qty');
+
+    //             $lastPurchase = PurchaseItem::where('product_id', $item->id)
+    //                 ->when($from && $to, fn($q) => $q->whereBetween('created_at', [$from, $to]))
+    //                 ->latest('created_at')->first();
+
+    //             $lastSale = SaleItem::where('product_id', $item->id)
+    //                 ->when($from && $to, fn($q) => $q->whereBetween('created_at', [$from, $to]))
+    //                 ->latest('created_at')->first();
+
+    //             return [
+    //                 'item_name'           => $item->item_name,
+    //                 'unit'                => optional($item->unit)->name ?? '',
+    //                 'total_qty'           => $totalQty,
+    //                 'total_purchase'      => $totalPurchase,
+    //                 'total_sale'          => $totalSale,
+    //                 'total_sale_qty'      => $totalSaleQty,
+    //                 'last_purchase_at'    => optional($lastPurchase)->created_at,
+    //                 'last_purchase_qty'   => optional($lastPurchase)->qty ?? 0,
+    //                 'last_sale_at'        => optional($lastSale)->created_at,
+    //                 'last_sale_qty'       => optional($lastSale)->qty ?? 0,
+    //             ];
+    //         });
+    // }
 
     private function getItemWiseStockData(Request $request)
     {
@@ -402,37 +1230,58 @@ class ReportController extends Controller
         $to = $request->input('to');
         $godownId = $request->input('godown_id');
 
+        // Use godown_scope_ids for multi-level access control
+        $godownIds = godown_scope_ids();
+
         return Item::with(['unit', 'stocks'])
             ->when(!auth()->user()->hasRole('admin'), function ($q) {
                 $q->where('created_by', auth()->id());
             })
             ->get()
-            ->map(function ($item) use ($from, $to, $godownId) {
+            ->map(function ($item) use ($from, $to, $godownId, $godownIds) {
                 $stocks = $item->stocks;
+                // Restrict stocks by godown access for non-admins
+                if (!auth()->user()->hasRole('admin')) {
+                    $stocks = $stocks->whereIn('godown_id', $godownIds);
+                }
                 if ($godownId) {
                     $stocks = $stocks->where('godown_id', $godownId);
                 }
 
                 $totalQty = $stocks->sum('qty');
-                $totalPurchase = PurchaseItem::where('product_id', $item->id)
-                    ->when($from && $to, fn($q) => $q->whereBetween('created_at', [$from, $to]))
-                    ->sum('subtotal');
 
-                $totalSale = SaleItem::where('product_id', $item->id)
-                    ->when($from && $to, fn($q) => $q->whereBetween('created_at', [$from, $to]))
-                    ->sum('subtotal');
+                // Restrict purchases/sales by godown access for non-admins
+                $purchaseQuery = PurchaseItem::where('product_id', $item->id)
+                    ->when($from && $to, fn($q) => $q->whereBetween('created_at', [$from, $to]));
+                $saleQuery = SaleItem::where('product_id', $item->id)
+                    ->when($from && $to, fn($q) => $q->whereBetween('created_at', [$from, $to]));
+                if (!auth()->user()->hasRole('admin')) {
+                    $purchaseQuery->whereIn('godown_id', $godownIds);
+                    $saleQuery->whereIn('godown_id', $godownIds);
+                }
+                if ($godownId) {
+                    $purchaseQuery->where('godown_id', $godownId);
+                    $saleQuery->where('godown_id', $godownId);
+                }
 
-                $totalSaleQty = SaleItem::where('product_id', $item->id)
-                    ->when($from && $to, fn($q) => $q->whereBetween('created_at', [$from, $to]))
-                    ->sum('qty');
+                $totalPurchase = $purchaseQuery->sum('subtotal');
+                $totalSale = $saleQuery->sum('subtotal');
+                $totalSaleQty = $saleQuery->sum('qty');
 
                 $lastPurchase = PurchaseItem::where('product_id', $item->id)
-                    ->when($from && $to, fn($q) => $q->whereBetween('created_at', [$from, $to]))
-                    ->latest('created_at')->first();
-
+                    ->when($from && $to, fn($q) => $q->whereBetween('created_at', [$from, $to]));
                 $lastSale = SaleItem::where('product_id', $item->id)
-                    ->when($from && $to, fn($q) => $q->whereBetween('created_at', [$from, $to]))
-                    ->latest('created_at')->first();
+                    ->when($from && $to, fn($q) => $q->whereBetween('created_at', [$from, $to]));
+                if (!auth()->user()->hasRole('admin')) {
+                    $lastPurchase->whereIn('godown_id', $godownIds);
+                    $lastSale->whereIn('godown_id', $godownIds);
+                }
+                if ($godownId) {
+                    $lastPurchase->where('godown_id', $godownId);
+                    $lastSale->where('godown_id', $godownId);
+                }
+                $lastPurchase = $lastPurchase->latest('created_at')->first();
+                $lastSale = $lastSale->latest('created_at')->first();
 
                 return [
                     'item_name'           => $item->item_name,
@@ -449,6 +1298,239 @@ class ReportController extends Controller
             });
     }
 
+    // dayBook
+
+    // public function dayBook(Request $request)
+    // {
+    //     $authUser = auth()->user();
+    //     $isAdmin = $authUser->hasRole('admin');
+
+    //     $company = \App\Models\CompanySetting::where('created_by', auth()->id())->first();
+
+    //     // 👇 Admin gets all users; non-admin gets self + users they created
+    //     $allowedUserIds = $isAdmin
+    //         ? \App\Models\User::pluck('id')
+    //         : \App\Models\User::where('created_by', $authUser->id)
+    //         ->orWhere('id', $authUser->id)
+    //         ->pluck('id');
+
+    //     $users = \App\Models\User::select('id', 'name')
+    //         ->whereIn('id', $allowedUserIds)
+    //         ->get();
+
+    //     // 🔍 If filters missing, show filter page
+    //     if (!$request->filled('from_date') || !$request->filled('to_date')) {
+    //         return Inertia::render('reports/DayBookFilter', [
+    //             'users' => $users,
+    //             'isAdmin' => $isAdmin,
+    //         ]);
+    //     }
+
+    //     // ✅ Validation
+    //     $request->validate([
+    //         'from_date' => 'required|date',
+    //         'to_date' => 'required|date|after_or_equal:from_date',
+    //         'transaction_type' => 'nullable|string',
+    //         'created_by' => 'nullable|integer',
+    //     ]);
+
+    //     $from = $request->from_date;
+    //     $to = $request->to_date;
+    //     $userId = $request->created_by;
+    //     $type = $request->transaction_type;
+
+    //     $entries = collect();
+
+    //     // ✅ Common filter closure
+    //     $applyFilters = fn($query) => $query
+    //         ->whereBetween('date', [$from, $to])
+    //         ->when($userId, fn($q) => $q->where('created_by', $userId))
+    //         ->when(!$isAdmin, fn($q) => $q->whereIn('created_by', $allowedUserIds));
+
+    //     // ✅ Purchase
+    //     if (!$type || $type === 'Purchase') {
+    //         $entries = $entries->merge(
+    //             $applyFilters(\App\Models\Purchase::query())
+    //                 ->with(['creator', 'accountLedger'])
+    //                 ->get()
+    //                 ->map(fn($r) => [
+    //                     'date' => $r->date,
+    //                     'voucher_no' => $r->voucher_no,
+    //                     'type' => 'Purchase',
+    //                     'ledger' => optional($r->accountLedger)->account_ledger_name,
+    //                     'debit' => $r->grand_total,
+    //                     'credit' => 0,
+    //                     'note' => $r->note ?? '-',
+    //                     'created_by' => optional($r->creator)->name,
+    //                 ])
+    //         );
+    //     }
+
+    //     // ✅ Purchase Return
+    //     if (!$type || $type === 'Purchase Return') {
+    //         $entries = $entries->merge(
+    //             \App\Models\PurchaseReturn::query()
+    //                 ->whereBetween('date', [$from, $to])
+    //                 ->when($userId, fn($q) => $q->where('created_by', $userId))
+    //                 ->when(!$isAdmin, fn($q) => $q->whereIn('created_by', $allowedUserIds))
+    //                 ->with(['creator', 'accountLedger'])
+    //                 ->get()
+    //                 ->map(fn($r) => [
+    //                     'date' => $r->date,
+    //                     'voucher_no' => $r->return_voucher_no,
+    //                     'type' => 'Purchase Return',
+    //                     'ledger' => optional($r->accountLedger)->account_ledger_name,
+    //                     'debit' => 0,
+    //                     'credit' => $r->grand_total,
+    //                     'note' => $r->reason ?? '-',
+    //                     'created_by' => optional($r->creator)->name,
+    //                 ])
+    //         );
+    //     }
+
+    //     // ✅ Sale
+    //     if (!$type || $type === 'Sale') {
+    //         $entries = $entries->merge(
+    //             \App\Models\Sale::query()
+    //                 ->whereBetween('date', [$from, $to])
+    //                 ->when($userId, fn($q) => $q->where('created_by', $userId))
+    //                 ->when(!$isAdmin, fn($q) => $q->whereIn('created_by', $allowedUserIds))
+    //                 ->with(['creator', 'accountLedger'])
+    //                 ->get()
+    //                 ->map(fn($r) => [
+    //                     'date' => $r->date,
+    //                     'voucher_no' => $r->voucher_no,
+    //                     'type' => 'Sale',
+    //                     'ledger' => optional($r->accountLedger)->account_ledger_name,
+    //                     'debit' => $r->grand_total,
+    //                     'credit' => 0,
+    //                     'note' => '-',
+    //                     'created_by' => optional($r->creator)->name,
+    //                 ])
+    //         );
+    //     }
+
+    //     // ✅ Sale Return
+    //     if (!$type || $type === 'Sale Return') {
+    //         $entries = $entries->merge(
+    //             \App\Models\SalesReturn::query()
+    //                 ->whereBetween('return_date', [$from, $to])
+    //                 ->when($userId, fn($q) => $q->where('created_by', $userId))
+    //                 ->when(!$isAdmin, fn($q) => $q->whereIn('created_by', $allowedUserIds))
+    //                 ->with(['creator', 'accountLedger'])
+    //                 ->get()
+    //                 ->map(fn($r) => [
+    //                     'date' => $r->return_date,
+    //                     'voucher_no' => $r->voucher_no,
+    //                     'type' => 'Sale Return',
+    //                     'ledger' => optional($r->accountLedger)->account_ledger_name,
+    //                     'debit' => 0,
+    //                     'credit' => $r->total_return_amount,
+    //                     'note' => $r->reason ?? '-',
+    //                     'created_by' => optional($r->creator)->name,
+    //                 ])
+    //         );
+    //     }
+
+    //     // ✅ Receive
+    //     if (!$type || $type === 'Receive') {
+    //         $entries = $entries->merge(
+    //             $applyFilters(\App\Models\ReceivedAdd::query())
+    //                 ->with(['accountLedger', 'creator']) // ✅ eager load both
+    //                 ->get()
+    //                 ->map(fn($r) => [
+    //                     'date' => $r->date,
+    //                     'voucher_no' => $r->voucher_no,
+    //                     'type' => 'Receive',
+    //                     'ledger' => optional($r->accountLedger)->account_ledger_name ?? '-', // ✅ correctly access ledger name
+    //                     'debit' => $r->amount,
+    //                     'credit' => 0,
+    //                     'note' => $r->description ?? '-',
+    //                     'created_by' => optional($r->creator)->name,
+    //                 ])
+    //         );
+    //     }
+
+
+    //     // ✅ Payment
+    //     if (!$type || $type === 'Payment') {
+    //         $entries = $entries->merge(
+    //             $applyFilters(\App\Models\PaymentAdd::query())
+    //                 ->with(['creator', 'accountLedger'])
+    //                 ->get()
+    //                 ->map(fn($r) => [
+    //                     'date' => $r->date,
+    //                     'voucher_no' => $r->voucher_no,
+    //                     'type' => 'Payment',
+    //                     'ledger' => optional($r->accountLedger)->account_ledger_name,
+    //                     'debit' => 0,
+    //                     'credit' => $r->amount,
+    //                     'note' => $r->description ?? '-',
+    //                     'created_by' => optional($r->creator)->name,
+    //                 ])
+    //         );
+    //     }
+
+    //     // ✅ Contra
+    //     if (!$type || $type === 'Contra') {
+    //         $entries = $entries->merge(
+    //             $applyFilters(\App\Models\ContraAdd::query())
+    //                 ->with('creator')
+    //                 ->get()
+    //                 ->map(fn($r) => [
+    //                     'date' => $r->date,
+    //                     'voucher_no' => $r->voucher_no,
+    //                     'type' => 'Contra',
+    //                     'ledger' => '-',
+    //                     'debit' => $r->amount,
+    //                     'credit' => 0,
+    //                     'note' => $r->description ?? '-',
+    //                     'created_by' => optional($r->creator)->name,
+    //                 ])
+    //         );
+    //     }
+
+    //     // ✅ Journal
+    //     if (!$type || $type === 'Journal') {
+    //         $entries = $entries->merge(
+    //             $applyFilters(\App\Models\Journal::query())
+    //                 ->with('entries.ledger', 'creator')
+    //                 ->get()
+    //                 ->flatMap(function ($journal) {
+    //                     return $journal->entries->map(function ($entry) use ($journal) {
+    //                         return [
+    //                             'date' => $journal->date,
+    //                             'voucher_no' => $journal->voucher_no,
+    //                             'type' => 'Journal',
+    //                             'ledger' => optional($entry->ledger)->account_ledger_name,
+    //                             'debit' => $entry->type === 'debit' ? $entry->amount : 0,
+    //                             'credit' => $entry->type === 'credit' ? $entry->amount : 0,
+    //                             'note' => $entry->note ?? $journal->narration,
+    //                             'created_by' => optional($journal->creator)->name,
+    //                         ];
+    //                     });
+    //                 })
+    //         );
+    //     }
+
+    //     $sorted = $entries->sortBy(['date', 'voucher_no'])->values();
+
+    //     return Inertia::render('reports/DayBook', [
+    //         'users' => $users,
+    //         'isAdmin' => $isAdmin,
+    //         'entries' => $sorted,
+    //         'from' => $from,
+    //         'to' => $to,
+    //         'filters' => [
+    //             'from' => $from,
+    //             'to' => $to,
+    //             'transaction_type' => $type,
+    //             'created_by' => $userId,
+    //         ],
+    //         'company' => $company,
+    //     ]);
+    // }
+
     public function dayBook(Request $request)
     {
         $authUser = auth()->user();
@@ -460,12 +1542,15 @@ class ReportController extends Controller
         $allowedUserIds = $isAdmin
             ? \App\Models\User::pluck('id')
             : \App\Models\User::where('created_by', $authUser->id)
-            ->orWhere('id', $authUser->id)
-            ->pluck('id');
+                ->orWhere('id', $authUser->id)
+                ->pluck('id');
 
         $users = \App\Models\User::select('id', 'name')
             ->whereIn('id', $allowedUserIds)
             ->get();
+
+        // Use godown_scope_ids for multi-level access control
+        $godownIds = godown_scope_ids();
 
         // 🔍 If filters missing, show filter page
         if (!$request->filled('from_date') || !$request->filled('to_date')) {
@@ -481,20 +1566,24 @@ class ReportController extends Controller
             'to_date' => 'required|date|after_or_equal:from_date',
             'transaction_type' => 'nullable|string',
             'created_by' => 'nullable|integer',
+            'godown_id' => 'nullable|integer',
         ]);
 
         $from = $request->from_date;
         $to = $request->to_date;
         $userId = $request->created_by;
         $type = $request->transaction_type;
+        $godownId = $request->godown_id;
 
         $entries = collect();
 
         // ✅ Common filter closure
-        $applyFilters = fn($query) => $query
-            ->whereBetween('date', [$from, $to])
+        $applyFilters = fn($query, $dateField = 'date') => $query
+            ->whereBetween($dateField, [$from, $to])
             ->when($userId, fn($q) => $q->where('created_by', $userId))
-            ->when(!$isAdmin, fn($q) => $q->whereIn('created_by', $allowedUserIds));
+            ->when(!$isAdmin, fn($q) => $q->whereIn('created_by', $allowedUserIds))
+            ->when(!$isAdmin && $godownId, fn($q) => $q->where('godown_id', $godownId))
+            ->when(!$isAdmin && !$godownId, fn($q) => $q->whereIn('godown_id', $godownIds));
 
         // ✅ Purchase
         if (!$type || $type === 'Purchase') {
@@ -518,10 +1607,7 @@ class ReportController extends Controller
         // ✅ Purchase Return
         if (!$type || $type === 'Purchase Return') {
             $entries = $entries->merge(
-                \App\Models\PurchaseReturn::query()
-                    ->whereBetween('date', [$from, $to])
-                    ->when($userId, fn($q) => $q->where('created_by', $userId))
-                    ->when(!$isAdmin, fn($q) => $q->whereIn('created_by', $allowedUserIds))
+                $applyFilters(\App\Models\PurchaseReturn::query())
                     ->with(['creator', 'accountLedger'])
                     ->get()
                     ->map(fn($r) => [
@@ -540,10 +1626,7 @@ class ReportController extends Controller
         // ✅ Sale
         if (!$type || $type === 'Sale') {
             $entries = $entries->merge(
-                \App\Models\Sale::query()
-                    ->whereBetween('date', [$from, $to])
-                    ->when($userId, fn($q) => $q->where('created_by', $userId))
-                    ->when(!$isAdmin, fn($q) => $q->whereIn('created_by', $allowedUserIds))
+                $applyFilters(\App\Models\Sale::query())
                     ->with(['creator', 'accountLedger'])
                     ->get()
                     ->map(fn($r) => [
@@ -562,10 +1645,7 @@ class ReportController extends Controller
         // ✅ Sale Return
         if (!$type || $type === 'Sale Return') {
             $entries = $entries->merge(
-                \App\Models\SalesReturn::query()
-                    ->whereBetween('return_date', [$from, $to])
-                    ->when($userId, fn($q) => $q->where('created_by', $userId))
-                    ->when(!$isAdmin, fn($q) => $q->whereIn('created_by', $allowedUserIds))
+                $applyFilters(\App\Models\SalesReturn::query(), 'return_date')
                     ->with(['creator', 'accountLedger'])
                     ->get()
                     ->map(fn($r) => [
@@ -585,13 +1665,13 @@ class ReportController extends Controller
         if (!$type || $type === 'Receive') {
             $entries = $entries->merge(
                 $applyFilters(\App\Models\ReceivedAdd::query())
-                    ->with(['accountLedger', 'creator']) // ✅ eager load both
+                    ->with(['accountLedger', 'creator'])
                     ->get()
                     ->map(fn($r) => [
                         'date' => $r->date,
                         'voucher_no' => $r->voucher_no,
                         'type' => 'Receive',
-                        'ledger' => optional($r->accountLedger)->account_ledger_name ?? '-', // ✅ correctly access ledger name
+                        'ledger' => optional($r->accountLedger)->account_ledger_name ?? '-',
                         'debit' => $r->amount,
                         'credit' => 0,
                         'note' => $r->description ?? '-',
@@ -599,7 +1679,6 @@ class ReportController extends Controller
                     ])
             );
         }
-
 
         // ✅ Payment
         if (!$type || $type === 'Payment') {
@@ -675,10 +1754,196 @@ class ReportController extends Controller
                 'to' => $to,
                 'transaction_type' => $type,
                 'created_by' => $userId,
+                'godown_id' => $godownId,
             ],
             'company' => $company,
         ]);
     }
+
+    // getDayBookEntries
+
+    // private function getDayBookEntries(Request $request, $allowedUserIds, $isAdmin)
+    // {
+    //     $from = $request->from_date;
+    //     $to = $request->to_date;
+    //     $userId = $request->created_by;
+    //     $type = $request->transaction_type;
+
+    //     $entries = collect();
+
+    //     $applyFilters = fn($query) => $query
+    //         ->whereBetween('date', [$from, $to])
+    //         ->when($userId, fn($q) => $q->where('created_by', $userId))
+    //         ->when(!$isAdmin, fn($q) => $q->whereIn('created_by', $allowedUserIds));
+
+    //     // ✅ Purchase
+    //     if (!$type || $type === 'Purchase') {
+    //         $entries = $entries->merge(
+    //             $applyFilters(\App\Models\Purchase::query())
+    //                 ->with(['creator', 'accountLedger'])
+    //                 ->get()
+    //                 ->map(fn($r) => [
+    //                     'date' => $r->date,
+    //                     'voucher_no' => $r->voucher_no,
+    //                     'type' => 'Purchase',
+    //                     'ledger' => optional($r->accountLedger)->account_ledger_name,
+    //                     'debit' => $r->grand_total,
+    //                     'credit' => 0,
+    //                     'note' => $r->note ?? '-',
+    //                     'created_by' => optional($r->creator)->name,
+    //                 ])
+    //         );
+    //     }
+
+    //     // ✅ Purchase Return
+    //     if (!$type || $type === 'Purchase Return') {
+    //         $entries = $entries->merge(
+    //             \App\Models\PurchaseReturn::query()
+    //                 ->whereBetween('date', [$from, $to])
+    //                 ->when($userId, fn($q) => $q->where('created_by', $userId))
+    //                 ->when(!$isAdmin, fn($q) => $q->whereIn('created_by', $allowedUserIds))
+    //                 ->with(['creator', 'accountLedger'])
+    //                 ->get()
+    //                 ->map(fn($r) => [
+    //                     'date' => $r->date,
+    //                     'voucher_no' => $r->return_voucher_no,
+    //                     'type' => 'Purchase Return',
+    //                     'ledger' => optional($r->accountLedger)->account_ledger_name,
+    //                     'debit' => 0,
+    //                     'credit' => $r->grand_total,
+    //                     'note' => $r->reason ?? '-',
+    //                     'created_by' => optional($r->creator)->name,
+    //                 ])
+    //         );
+    //     }
+
+    //     // ✅ Sale
+    //     if (!$type || $type === 'Sale') {
+    //         $entries = $entries->merge(
+    //             \App\Models\Sale::query()
+    //                 ->whereBetween('date', [$from, $to])
+    //                 ->when($userId, fn($q) => $q->where('created_by', $userId))
+    //                 ->when(!$isAdmin, fn($q) => $q->whereIn('created_by', $allowedUserIds))
+    //                 ->with(['creator', 'accountLedger'])
+    //                 ->get()
+    //                 ->map(fn($r) => [
+    //                     'date' => $r->date,
+    //                     'voucher_no' => $r->voucher_no,
+    //                     'type' => 'Sale',
+    //                     'ledger' => optional($r->accountLedger)->account_ledger_name,
+    //                     'debit' => $r->grand_total,
+    //                     'credit' => 0,
+    //                     'note' => '-',
+    //                     'created_by' => optional($r->creator)->name,
+    //                 ])
+    //         );
+    //     }
+
+    //     // ✅ Sale Return
+    //     if (!$type || $type === 'Sale Return') {
+    //         $entries = $entries->merge(
+    //             \App\Models\SalesReturn::query()
+    //                 ->whereBetween('return_date', [$from, $to])
+    //                 ->when($userId, fn($q) => $q->where('created_by', $userId))
+    //                 ->when(!$isAdmin, fn($q) => $q->whereIn('created_by', $allowedUserIds))
+    //                 ->with(['creator', 'accountLedger'])
+    //                 ->get()
+    //                 ->map(fn($r) => [
+    //                     'date' => $r->return_date,
+    //                     'voucher_no' => $r->voucher_no,
+    //                     'type' => 'Sale Return',
+    //                     'ledger' => optional($r->accountLedger)->account_ledger_name,
+    //                     'debit' => 0,
+    //                     'credit' => $r->total_return_amount,
+    //                     'note' => $r->reason ?? '-',
+    //                     'created_by' => optional($r->creator)->name,
+    //                 ])
+    //         );
+    //     }
+
+    //     // ✅ Receive
+    //     if (!$type || $type === 'Receive') {
+    //         $entries = $entries->merge(
+    //             $applyFilters(\App\Models\ReceivedAdd::query())
+    //                 ->with(['accountLedger', 'creator'])
+    //                 ->get()
+    //                 ->map(fn($r) => [
+    //                     'date' => $r->date,
+    //                     'voucher_no' => $r->voucher_no,
+    //                     'type' => 'Receive',
+    //                     'ledger' => optional($r->accountLedger)->account_ledger_name ?? '-',
+    //                     'debit' => $r->amount,
+    //                     'credit' => 0,
+    //                     'note' => $r->description ?? '-',
+    //                     'created_by' => optional($r->creator)->name,
+    //                 ])
+    //         );
+    //     }
+
+    //     // ✅ Payment
+    //     if (!$type || $type === 'Payment') {
+    //         $entries = $entries->merge(
+    //             $applyFilters(\App\Models\PaymentAdd::query())
+    //                 ->with(['creator', 'accountLedger'])
+    //                 ->get()
+    //                 ->map(fn($r) => [
+    //                     'date' => $r->date,
+    //                     'voucher_no' => $r->voucher_no,
+    //                     'type' => 'Payment',
+    //                     'ledger' => optional($r->accountLedger)->account_ledger_name,
+    //                     'debit' => 0,
+    //                     'credit' => $r->amount,
+    //                     'note' => $r->description ?? '-',
+    //                     'created_by' => optional($r->creator)->name,
+    //                 ])
+    //         );
+    //     }
+
+    //     // ✅ Contra
+    //     if (!$type || $type === 'Contra') {
+    //         $entries = $entries->merge(
+    //             $applyFilters(\App\Models\ContraAdd::query())
+    //                 ->with('creator')
+    //                 ->get()
+    //                 ->map(fn($r) => [
+    //                     'date' => $r->date,
+    //                     'voucher_no' => $r->voucher_no,
+    //                     'type' => 'Contra',
+    //                     'ledger' => '-',
+    //                     'debit' => $r->amount,
+    //                     'credit' => 0,
+    //                     'note' => $r->description ?? '-',
+    //                     'created_by' => optional($r->creator)->name,
+    //                 ])
+    //         );
+    //     }
+
+    //     // ✅ Journal
+    //     if (!$type || $type === 'Journal') {
+    //         $entries = $entries->merge(
+    //             $applyFilters(\App\Models\Journal::query())
+    //                 ->with('entries.ledger', 'creator')
+    //                 ->get()
+    //                 ->flatMap(function ($journal) {
+    //                     return $journal->entries->map(function ($entry) use ($journal) {
+    //                         return [
+    //                             'date' => $journal->date,
+    //                             'voucher_no' => $journal->voucher_no,
+    //                             'type' => 'Journal',
+    //                             'ledger' => optional($entry->ledger)->account_ledger_name,
+    //                             'debit' => $entry->type === 'debit' ? $entry->amount : 0,
+    //                             'credit' => $entry->type === 'credit' ? $entry->amount : 0,
+    //                             'note' => $entry->note ?? $journal->narration,
+    //                             'created_by' => optional($journal->creator)->name,
+    //                         ];
+    //                     });
+    //                 })
+    //         );
+    //     }
+
+    //     return $entries->sortBy(['date', 'voucher_no'])->values();
+    // }
+
 
     private function getDayBookEntries(Request $request, $allowedUserIds, $isAdmin)
     {
@@ -686,13 +1951,20 @@ class ReportController extends Controller
         $to = $request->to_date;
         $userId = $request->created_by;
         $type = $request->transaction_type;
+        $godownId = $request->godown_id;
+
+        // Use godown_scope_ids for multi-level access control
+        $godownIds = godown_scope_ids();
 
         $entries = collect();
 
-        $applyFilters = fn($query) => $query
-            ->whereBetween('date', [$from, $to])
+        // Enhanced filter closure with godown access
+        $applyFilters = fn($query, $dateField = 'date') => $query
+            ->whereBetween($dateField, [$from, $to])
             ->when($userId, fn($q) => $q->where('created_by', $userId))
-            ->when(!$isAdmin, fn($q) => $q->whereIn('created_by', $allowedUserIds));
+            ->when(!$isAdmin, fn($q) => $q->whereIn('created_by', $allowedUserIds))
+            ->when(!$isAdmin && $godownId, fn($q) => $q->where('godown_id', $godownId))
+            ->when(!$isAdmin && !$godownId, fn($q) => $q->whereIn('godown_id', $godownIds));
 
         // ✅ Purchase
         if (!$type || $type === 'Purchase') {
@@ -716,10 +1988,7 @@ class ReportController extends Controller
         // ✅ Purchase Return
         if (!$type || $type === 'Purchase Return') {
             $entries = $entries->merge(
-                \App\Models\PurchaseReturn::query()
-                    ->whereBetween('date', [$from, $to])
-                    ->when($userId, fn($q) => $q->where('created_by', $userId))
-                    ->when(!$isAdmin, fn($q) => $q->whereIn('created_by', $allowedUserIds))
+                $applyFilters(\App\Models\PurchaseReturn::query())
                     ->with(['creator', 'accountLedger'])
                     ->get()
                     ->map(fn($r) => [
@@ -738,10 +2007,7 @@ class ReportController extends Controller
         // ✅ Sale
         if (!$type || $type === 'Sale') {
             $entries = $entries->merge(
-                \App\Models\Sale::query()
-                    ->whereBetween('date', [$from, $to])
-                    ->when($userId, fn($q) => $q->where('created_by', $userId))
-                    ->when(!$isAdmin, fn($q) => $q->whereIn('created_by', $allowedUserIds))
+                $applyFilters(\App\Models\Sale::query())
                     ->with(['creator', 'accountLedger'])
                     ->get()
                     ->map(fn($r) => [
@@ -760,10 +2026,7 @@ class ReportController extends Controller
         // ✅ Sale Return
         if (!$type || $type === 'Sale Return') {
             $entries = $entries->merge(
-                \App\Models\SalesReturn::query()
-                    ->whereBetween('return_date', [$from, $to])
-                    ->when($userId, fn($q) => $q->where('created_by', $userId))
-                    ->when(!$isAdmin, fn($q) => $q->whereIn('created_by', $allowedUserIds))
+                $applyFilters(\App\Models\SalesReturn::query(), 'return_date')
                     ->with(['creator', 'accountLedger'])
                     ->get()
                     ->map(fn($r) => [
@@ -862,13 +2125,44 @@ class ReportController extends Controller
         return $entries->sortBy(['date', 'voucher_no'])->values();
     }
 
+    // dayBookExcel 
 
+    // public function dayBookExcel(Request $request)
+    // {
+    //     $request->validate([
+    //         'from_date' => 'required|date',
+    //         'to_date' => 'required|date|after_or_equal:from_date',
+    //     ]);
+
+    //     $authUser = auth()->user();
+    //     $isAdmin = $authUser->hasRole('admin');
+
+    //     $allowedUserIds = $isAdmin
+    //         ? \App\Models\User::pluck('id')
+    //         : \App\Models\User::where('created_by', $authUser->id)->orWhere('id', $authUser->id)->pluck('id');
+
+    //     $request->merge([
+    //         'from_date' => $request->from_date ?? now()->format('Y-m-d'),
+    //         'to_date' => $request->to_date ?? now()->format('Y-m-d'),
+    //     ]);
+    //     $authUser = auth()->user();
+    //     $isAdmin = $authUser->hasRole('admin');
+
+    //     $allowedUserIds = $isAdmin
+    //         ? \App\Models\User::pluck('id')
+    //         : \App\Models\User::where('created_by', $authUser->id)->orWhere('id', $authUser->id)->pluck('id');
+
+    //     $entries = $this->getDayBookEntries($request, $allowedUserIds, $isAdmin);
+
+    //     return \Excel::download(new \App\Exports\DayBookExport($entries->toArray()), 'day-book-report.xlsx');
+    // }
 
     public function dayBookExcel(Request $request)
     {
         $request->validate([
             'from_date' => 'required|date',
             'to_date' => 'required|date|after_or_equal:from_date',
+            'godown_id' => 'nullable|integer',
         ]);
 
         $authUser = auth()->user();
@@ -877,28 +2171,65 @@ class ReportController extends Controller
         $allowedUserIds = $isAdmin
             ? \App\Models\User::pluck('id')
             : \App\Models\User::where('created_by', $authUser->id)->orWhere('id', $authUser->id)->pluck('id');
+
+        // Use godown_scope_ids for multi-level access control
+        $godownIds = godown_scope_ids();
 
         $request->merge([
             'from_date' => $request->from_date ?? now()->format('Y-m-d'),
             'to_date' => $request->to_date ?? now()->format('Y-m-d'),
         ]);
-        $authUser = auth()->user();
-        $isAdmin = $authUser->hasRole('admin');
-
-        $allowedUserIds = $isAdmin
-            ? \App\Models\User::pluck('id')
-            : \App\Models\User::where('created_by', $authUser->id)->orWhere('id', $authUser->id)->pluck('id');
 
         $entries = $this->getDayBookEntries($request, $allowedUserIds, $isAdmin);
 
         return \Excel::download(new \App\Exports\DayBookExport($entries->toArray()), 'day-book-report.xlsx');
     }
 
+    // dayBookPdf
+
+    // public function dayBookPdf(Request $request)
+    // {
+    //     $request->validate([
+    //         'from_date' => 'required|date',
+    //         'to_date' => 'required|date|after_or_equal:from_date',
+    //     ]);
+
+    //     $authUser = auth()->user();
+    //     $isAdmin = $authUser->hasRole('admin');
+
+    //     $allowedUserIds = $isAdmin
+    //         ? \App\Models\User::pluck('id')
+    //         : \App\Models\User::where('created_by', $authUser->id)->orWhere('id', $authUser->id)->pluck('id');
+
+    //     $request->merge([
+    //         'from_date' => $request->from_date ?? now()->format('Y-m-d'),
+    //         'to_date' => $request->to_date ?? now()->format('Y-m-d'),
+    //     ]);
+    //     $authUser = auth()->user();
+    //     $isAdmin = $authUser->hasRole('admin');
+
+    //     $allowedUserIds = $isAdmin
+    //         ? \App\Models\User::pluck('id')
+    //         : \App\Models\User::where('created_by', $authUser->id)->orWhere('id', $authUser->id)->pluck('id');
+
+    //     $entries = $this->getDayBookEntries($request, $allowedUserIds, $isAdmin);
+    //     $company = \App\Models\CompanySetting::firstWhere('created_by', auth()->id());
+
+    //     $pdf = \PDF::loadView('reports.day-book-pdf', [
+    //         'entries' => $entries,
+    //         'filters' => $request->all(),
+    //         'company' => $company,
+    //     ])->setPaper('a4', 'landscape');
+
+    //     return $pdf->download('day-book-report.pdf');
+    // }
+
     public function dayBookPdf(Request $request)
     {
         $request->validate([
             'from_date' => 'required|date',
             'to_date' => 'required|date|after_or_equal:from_date',
+            'godown_id' => 'nullable|integer',
         ]);
 
         $authUser = auth()->user();
@@ -907,17 +2238,14 @@ class ReportController extends Controller
         $allowedUserIds = $isAdmin
             ? \App\Models\User::pluck('id')
             : \App\Models\User::where('created_by', $authUser->id)->orWhere('id', $authUser->id)->pluck('id');
+
+        // Use godown_scope_ids for multi-level access control
+        $godownIds = godown_scope_ids();
 
         $request->merge([
             'from_date' => $request->from_date ?? now()->format('Y-m-d'),
             'to_date' => $request->to_date ?? now()->format('Y-m-d'),
         ]);
-        $authUser = auth()->user();
-        $isAdmin = $authUser->hasRole('admin');
-
-        $allowedUserIds = $isAdmin
-            ? \App\Models\User::pluck('id')
-            : \App\Models\User::where('created_by', $authUser->id)->orWhere('id', $authUser->id)->pluck('id');
 
         $entries = $this->getDayBookEntries($request, $allowedUserIds, $isAdmin);
         $company = \App\Models\CompanySetting::firstWhere('created_by', auth()->id());
@@ -930,6 +2258,110 @@ class ReportController extends Controller
 
         return $pdf->download('day-book-report.pdf');
     }
+
+    // accountBook
+
+    // public function accountBook(Request $request)
+    // {
+    //     // ── 1.  Ledgers for the filter drop-down ─────────────────────────────────────
+    //     $ledgers = AccountLedger::select('id', 'account_ledger_name')
+    //         ->when(
+    //             !auth()->user()->hasRole('admin'),
+    //             fn($q) => $q->where('created_by', auth()->id())
+    //         )
+    //         ->get();
+
+    //     // ── 2.  Show filter page if any field missing ───────────────────────────────
+    //     if (
+    //         !$request->filled('ledger_id') ||
+    //         !$request->filled('from_date') ||
+    //         !$request->filled('to_date')
+    //     ) {
+
+    //         return Inertia::render('reports/AccountBookFilter', [
+    //             'ledgers' => $ledgers,
+    //         ]);
+    //     }
+
+    //     // ── 3.  Core variables ──────────────────────────────────────────────────────
+    //     $ledgerId = $request->ledger_id;
+    //     $from     = $request->from_date;
+    //     $to       = $request->to_date;
+
+    //     // ── 4.  Get the full ledger profile (phone, email, etc.) ────────────────────
+    //     $ledger = AccountLedger::findOrFail($ledgerId);
+
+    //     // ── 5.  Opening balance before the FROM date ────────────────────────────────
+    //     $openingBalance = JournalEntry::where('account_ledger_id', $ledgerId)
+    //         ->whereHas('journal', fn($q) => $q->where('date', '<', $from))
+    //         ->sum(DB::raw("CASE
+    //                       WHEN type = 'credit' THEN amount
+    //                       ELSE -amount
+    //                    END"));
+
+    //     // ── 6.  Ledger transactions within the range ────────────────────────────────
+    //     $entries = JournalEntry::with(['journal', 'ledger'])   // 👈 eager-load ledger
+    //         ->where('account_ledger_id', $ledgerId)
+    //         ->whereHas('journal', fn($q) => $q->whereBetween('date', [$from, $to]))
+    //         ->get()
+    //         ->sortBy(fn($e) => $e->journal->date)
+    //         ->values();
+
+    //     // ── 6-A.  Helper to derive the same labels Day Book uses ───────────────
+    //     $resolveType = static function ($journal) {
+    //         // You can derive from either voucher prefix …or… the morph class
+    //         return match (substr($journal->voucher_no, 0, 3)) {
+    //             'PUR' => 'Purchase',
+    //             'RET' => 'Purchase Return',     // purchase-return prefix
+    //             'SAL' => 'Sale',
+    //             'SRL' => 'Sale Return',         // sales-return prefix (adjust if different)
+    //             'PAY' => 'Payment',
+    //             'REC' => 'Receive',
+    //             'CON' => 'Contra',
+    //             default => 'Journal',
+    //         };
+    //     };
+
+    //     // ── 7.  Company info ────────────────────────────────────────────────────────
+    //     $company = company_info();
+
+    //     // ── 8.  Send data to React page ─────────────────────────────────────────────
+    //     return Inertia::render('reports/AccountBook', [
+    //         // dropdown data so the page can keep the Select2 populated
+    //         'ledgers'         => $ledgers,
+
+    //         // single ledger profile (for header at left)
+    //         'ledger'          => [
+    //             'id'                => $ledger->id,
+    //             'account_ledger_name' => $ledger->account_ledger_name,
+    //             'phone_number'      => $ledger->phone_number,
+    //             'email'             => $ledger->email,
+    //             'address'           => $ledger->address,
+    //             'opening_balance'   => (float) $ledger->opening_balance,
+    //             'debit_credit'      => $ledger->debit_credit,   // 'debit' | 'credit'
+    //         ],
+
+    //         'company'         => $company,
+    //         'opening_balance' => (float) $openingBalance,
+
+    //         // map entries so debit/credit are always floats
+    //         'entries' => $entries->map(function ($entry) use ($resolveType) {
+    //             return [
+    //                 'date'        => $entry->journal->date,
+    //                 'voucher_no'  => $entry->journal->voucher_no,
+    //                 'type'        => $entry->journal->voucher_type ?? $resolveType($entry->journal),
+    //                 'account'     => $entry->ledger->account_ledger_name ?? '',
+    //                 'note'        => $entry->note ?? '-',
+    //                 'debit'       => $entry->type === 'debit'  ? (float) $entry->amount : 0.0,
+    //                 'credit'      => $entry->type === 'credit' ? (float) $entry->amount : 0.0,
+    //             ];
+    //         }),
+
+    //         'from'       => $from,
+    //         'to'         => $to,
+    //         'ledger_id'  => $ledgerId,
+    //     ]);
+    // }
 
     public function accountBook(Request $request)
     {
@@ -947,7 +2379,6 @@ class ReportController extends Controller
             !$request->filled('from_date') ||
             !$request->filled('to_date')
         ) {
-
             return Inertia::render('reports/AccountBookFilter', [
                 'ledgers' => $ledgers,
             ]);
@@ -961,30 +2392,36 @@ class ReportController extends Controller
         // ── 4.  Get the full ledger profile (phone, email, etc.) ────────────────────
         $ledger = AccountLedger::findOrFail($ledgerId);
 
-        // ── 5.  Opening balance before the FROM date ────────────────────────────────
-        $openingBalance = JournalEntry::where('account_ledger_id', $ledgerId)
-            ->whereHas('journal', fn($q) => $q->where('date', '<', $from))
-            ->sum(DB::raw("CASE
-                          WHEN type = 'credit' THEN amount
-                          ELSE -amount
-                       END"));
+        // ── 5.  Use godown_scope_ids for multi-level access control ────────────────
+        $godownIds = godown_scope_ids();
+        $isAdmin = auth()->user()->hasRole('admin');
 
-        // ── 6.  Ledger transactions within the range ────────────────────────────────
-        $entries = JournalEntry::with(['journal', 'ledger'])   // 👈 eager-load ledger
+        // ── 6.  Opening balance before the FROM date ────────────────────────────────
+        $openingBalanceQuery = JournalEntry::where('account_ledger_id', $ledgerId)
+            ->whereHas('journal', fn($q) => $q->where('date', '<', $from));
+        if (!$isAdmin) {
+            $openingBalanceQuery->whereIn('godown_id', $godownIds);
+        }
+        $openingBalance = $openingBalanceQuery->sum(DB::raw("CASE WHEN type = 'credit' THEN amount ELSE -amount END"));
+
+        // ── 7.  Ledger transactions within the range ────────────────────────────────
+        $entriesQuery = JournalEntry::with(['journal', 'ledger'])
             ->where('account_ledger_id', $ledgerId)
-            ->whereHas('journal', fn($q) => $q->whereBetween('date', [$from, $to]))
-            ->get()
+            ->whereHas('journal', fn($q) => $q->whereBetween('date', [$from, $to]));
+        if (!$isAdmin) {
+            $entriesQuery->whereIn('godown_id', $godownIds);
+        }
+        $entries = $entriesQuery->get()
             ->sortBy(fn($e) => $e->journal->date)
             ->values();
 
-        // ── 6-A.  Helper to derive the same labels Day Book uses ───────────────
+        // ── 7-A.  Helper to derive the same labels Day Book uses ───────────────
         $resolveType = static function ($journal) {
-            // You can derive from either voucher prefix …or… the morph class
             return match (substr($journal->voucher_no, 0, 3)) {
                 'PUR' => 'Purchase',
-                'RET' => 'Purchase Return',     // purchase-return prefix
+                'RET' => 'Purchase Return',
                 'SAL' => 'Sale',
-                'SRL' => 'Sale Return',         // sales-return prefix (adjust if different)
+                'SRL' => 'Sale Return',
                 'PAY' => 'Payment',
                 'REC' => 'Receive',
                 'CON' => 'Contra',
@@ -992,15 +2429,12 @@ class ReportController extends Controller
             };
         };
 
-        // ── 7.  Company info ────────────────────────────────────────────────────────
+        // ── 8.  Company info ────────────────────────────────────────────────────────
         $company = company_info();
 
-        // ── 8.  Send data to React page ─────────────────────────────────────────────
+        // ── 9.  Send data to React page ─────────────────────────────────────────────
         return Inertia::render('reports/AccountBook', [
-            // dropdown data so the page can keep the Select2 populated
             'ledgers'         => $ledgers,
-
-            // single ledger profile (for header at left)
             'ledger'          => [
                 'id'                => $ledger->id,
                 'account_ledger_name' => $ledger->account_ledger_name,
@@ -1008,13 +2442,10 @@ class ReportController extends Controller
                 'email'             => $ledger->email,
                 'address'           => $ledger->address,
                 'opening_balance'   => (float) $ledger->opening_balance,
-                'debit_credit'      => $ledger->debit_credit,   // 'debit' | 'credit'
+                'debit_credit'      => $ledger->debit_credit,
             ],
-
             'company'         => $company,
             'opening_balance' => (float) $openingBalance,
-
-            // map entries so debit/credit are always floats
             'entries' => $entries->map(function ($entry) use ($resolveType) {
                 return [
                     'date'        => $entry->journal->date,
@@ -1026,23 +2457,56 @@ class ReportController extends Controller
                     'credit'      => $entry->type === 'credit' ? (float) $entry->amount : 0.0,
                 ];
             }),
-
             'from'       => $from,
             'to'         => $to,
             'ledger_id'  => $ledgerId,
         ]);
     }
+
+    // exportAccountBookExcel
+
     public function exportAccountBookExcel(Request $request)
     {
         $data = $this->getAccountBookData($request);
         return Excel::download(new AccountBookExport(collect($data['entries'])), 'account_book.xlsx');
     }
 
+    // exportAccountBookPDF 
 
+    // public function exportAccountBookPDF(Request $request)
+    // {
+    //     $data = $this->getAccountBookData($request);
+
+    //     $company = CompanySetting::firstWhere('created_by', auth()->id());
+    //     $ledger = AccountLedger::findOrFail($request->ledger_id);
+
+    //     $ledgerProfile = [
+    //         'id' => $ledger->id,
+    //         'account_ledger_name' => $ledger->account_ledger_name,
+    //         'phone_number' => $ledger->phone_number ?? '-',
+    //         'email' => $ledger->email ?? '-',
+    //         'address' => $ledger->address ?? '-',
+    //         'opening_balance' => (float) $ledger->opening_balance,
+    //         'debit_credit' => $ledger->debit_credit,
+    //     ];
+
+    //     return Pdf::loadView('pdf.account-book', [
+    //         'entries' => $data['entries'],
+    //         'opening_balance' => $data['opening_balance'],
+    //         'company' => $company,
+    //         'ledger' => $ledgerProfile,
+    //         'from' => $request->from,
+    //         'to' => $request->to,
+    //     ])->setPaper('a4', 'landscape')->download('account_book.pdf');
+    // }
 
     public function exportAccountBookPDF(Request $request)
     {
-        $data = $this->getAccountBookData($request);
+        // Use godown_scope_ids for multi-level access control
+        $godownIds = godown_scope_ids();
+        $isAdmin = auth()->user()->hasRole('admin');
+
+        $data = $this->getAccountBookDataWithScope($request, $godownIds, $isAdmin);
 
         $company = CompanySetting::firstWhere('created_by', auth()->id());
         $ledger = AccountLedger::findOrFail($request->ledger_id);
@@ -1066,8 +2530,8 @@ class ReportController extends Controller
             'to' => $request->to,
         ])->setPaper('a4', 'landscape')->download('account_book.pdf');
     }
-
-    private function getAccountBookData(Request $request): array
+    // Add this helper for godown-level access control
+    private function getAccountBookDataWithScope(Request $request, $godownIds, $isAdmin): array
     {
         $request->validate([
             'ledger_id' => 'required|exists:account_ledgers,id',
@@ -1079,14 +2543,20 @@ class ReportController extends Controller
         $from = $request->from;
         $to = $request->to;
 
-        $openingBalance = \App\Models\JournalEntry::where('account_ledger_id', $ledgerId)
-            ->whereHas('journal', fn($q) => $q->where('date', '<', $from))
-            ->sum(\DB::raw("CASE WHEN type = 'credit' THEN amount ELSE -amount END"));
+        $openingBalanceQuery = \App\Models\JournalEntry::where('account_ledger_id', $ledgerId)
+            ->whereHas('journal', fn($q) => $q->where('date', '<', $from));
+        if (!$isAdmin) {
+            $openingBalanceQuery->whereIn('godown_id', $godownIds);
+        }
+        $openingBalance = $openingBalanceQuery->sum(\DB::raw("CASE WHEN type = 'credit' THEN amount ELSE -amount END"));
 
-        $entries = \App\Models\JournalEntry::with(['journal', 'ledger'])
+        $entriesQuery = \App\Models\JournalEntry::with(['journal', 'ledger'])
             ->where('account_ledger_id', $ledgerId)
-            ->whereHas('journal', fn($q) => $q->whereBetween('date', [$from, $to]))
-            ->get()
+            ->whereHas('journal', fn($q) => $q->whereBetween('date', [$from, $to]));
+        if (!$isAdmin) {
+            $entriesQuery->whereIn('godown_id', $godownIds);
+        }
+        $entries = $entriesQuery->get()
             ->sortBy(fn($e) => $e->journal->date)
             ->values()
             ->map(function ($entry) {
@@ -1106,6 +2576,99 @@ class ReportController extends Controller
             'opening_balance' => $openingBalance,
         ];
     }
+
+    // getAccountBookData
+
+    // private function getAccountBookData(Request $request): array
+    // {
+    //     $request->validate([
+    //         'ledger_id' => 'required|exists:account_ledgers,id',
+    //         'from' => 'required|date',
+    //         'to' => 'required|date',
+    //     ]);
+
+    //     $ledgerId = $request->ledger_id;
+    //     $from = $request->from;
+    //     $to = $request->to;
+
+    //     $openingBalance = \App\Models\JournalEntry::where('account_ledger_id', $ledgerId)
+    //         ->whereHas('journal', fn($q) => $q->where('date', '<', $from))
+    //         ->sum(\DB::raw("CASE WHEN type = 'credit' THEN amount ELSE -amount END"));
+
+    //     $entries = \App\Models\JournalEntry::with(['journal', 'ledger'])
+    //         ->where('account_ledger_id', $ledgerId)
+    //         ->whereHas('journal', fn($q) => $q->whereBetween('date', [$from, $to]))
+    //         ->get()
+    //         ->sortBy(fn($e) => $e->journal->date)
+    //         ->values()
+    //         ->map(function ($entry) {
+    //             return [
+    //                 'date'       => $entry->journal->date,
+    //                 'voucher_no' => $entry->journal->voucher_no,
+    //                 'type'       => $entry->journal->voucher_type ?? $this->resolveVoucherType($entry->journal->voucher_no),
+    //                 'account'    => $entry->ledger->account_ledger_name ?? '-',
+    //                 'note'       => $entry->note ?? '-',
+    //                 'debit'      => $entry->type === 'debit' ? (float) $entry->amount : 0.0,
+    //                 'credit'     => $entry->type === 'credit' ? (float) $entry->amount : 0.0,
+    //             ];
+    //         });
+
+    //     return [
+    //         'entries' => $entries,
+    //         'opening_balance' => $openingBalance,
+    //     ];
+    // }
+
+    private function getAccountBookData(Request $request): array
+    {
+        $request->validate([
+            'ledger_id' => 'required|exists:account_ledgers,id',
+            'from' => 'required|date',
+            'to' => 'required|date',
+        ]);
+
+        $ledgerId = $request->ledger_id;
+        $from = $request->from;
+        $to = $request->to;
+
+        // Use godown_scope_ids for multi-level access control
+        $godownIds = godown_scope_ids();
+        $isAdmin = auth()->user()->hasRole('admin');
+
+        $openingBalanceQuery = \App\Models\JournalEntry::where('account_ledger_id', $ledgerId)
+            ->whereHas('journal', fn($q) => $q->where('date', '<', $from));
+        if (!$isAdmin) {
+            $openingBalanceQuery->whereIn('godown_id', $godownIds);
+        }
+        $openingBalance = $openingBalanceQuery->sum(\DB::raw("CASE WHEN type = 'credit' THEN amount ELSE -amount END"));
+
+        $entriesQuery = \App\Models\JournalEntry::with(['journal', 'ledger'])
+            ->where('account_ledger_id', $ledgerId)
+            ->whereHas('journal', fn($q) => $q->whereBetween('date', [$from, $to]));
+        if (!$isAdmin) {
+            $entriesQuery->whereIn('godown_id', $godownIds);
+        }
+        $entries = $entriesQuery->get()
+            ->sortBy(fn($e) => $e->journal->date)
+            ->values()
+            ->map(function ($entry) {
+                return [
+                    'date'       => $entry->journal->date,
+                    'voucher_no' => $entry->journal->voucher_no,
+                    'type'       => $entry->journal->voucher_type ?? $this->resolveVoucherType($entry->journal->voucher_no),
+                    'account'    => $entry->ledger->account_ledger_name ?? '-',
+                    'note'       => $entry->note ?? '-',
+                    'debit'      => $entry->type === 'debit' ? (float) $entry->amount : 0.0,
+                    'credit'     => $entry->type === 'credit' ? (float) $entry->amount : 0.0,
+                ];
+            });
+
+        return [
+            'entries' => $entries,
+            'opening_balance' => $openingBalance,
+        ];
+    }
+
     private function resolveVoucherType(string $voucherNo): string
     {
         return match (substr($voucherNo, 0, 3)) {
@@ -1119,4 +2682,6 @@ class ReportController extends Controller
             default => 'Journal',
         };
     }
+
+
 }

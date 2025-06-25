@@ -7,6 +7,37 @@ use App\Services\InventoryService;
 
 
 
+// employee helper
+if (!function_exists('employee_scope_ids')) {
+    function employee_scope_ids(): array
+    {
+        $user = auth()->user();
+        if (!$user) return [];
+
+        // Admin: see all employees
+        if ($user->hasRole('admin')) {
+            return []; // No filter for admin, means all employees visible
+        }
+
+        // My own ID
+        $ids = [$user->id];
+
+        // All descendants (multi-level, no admins)
+        $descendants = get_all_descendant_user_ids($user->id);
+        $ids = array_merge($ids, $descendants);
+
+        // Add parent if parent is not admin
+        $parentId = $user->created_by;
+        if ($parentId) {
+            $parent = User::find($parentId);
+            if ($parent && !$parent->hasRole('admin')) {
+                $ids[] = $parentId;
+            }
+        }
+
+        return array_unique($ids);
+    }
+}
 
 // inventory helper
 if (!function_exists('get_all_descendant_user_ids')) {
