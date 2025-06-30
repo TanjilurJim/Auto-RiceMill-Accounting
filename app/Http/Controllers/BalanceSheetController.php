@@ -71,11 +71,20 @@ class BalanceSheetController extends Controller
         $from = $request->query('from_date') ?: $fyStart;
         $to   = $request->query('to_date')   ?: $fyEnd;
 
+        $user = auth()->user();
+        $ids = user_scope_ids();
+
         /* ───── Journal balances per group_under ───── */
         $raw = JournalEntry::join('account_ledgers',  'journal_entries.account_ledger_id', '=', 'account_ledgers.id')
             ->join('group_unders', 'account_ledgers.group_under_id', '=', 'group_unders.id')
             ->join('journals',     'journal_entries.journal_id',     '=', 'journals.id')
             ->whereBetween('journals.date', [$from, $to])
+
+            ->when(
+                !$user->hasRole('admin'),
+                fn($q) => $q->whereIn('journals.created_by', $ids)
+            )
+
             ->selectRaw('group_unders.name  as group_name,
                          journal_entries.type as dr_cr,
                          SUM(journal_entries.amount)  as total')

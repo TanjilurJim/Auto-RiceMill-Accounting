@@ -39,8 +39,8 @@ export default function ContraPrint(props: any) {
       <div className="mb-6 text-center print:text-xs">
         {logo && <img src={logo} alt="logo" className="mx-auto mb-2 h-20 object-contain print:h-12" />}
         <h1 className="text-2xl font-bold uppercase">{company?.company_name}</h1>
-        {company?.address && <p>{company.address}</p>}
-        {company?.phone   && <p>Phone: {company.phone}</p>}
+        {company?.address && <p>{company?.address}</p>}
+        {company?.phone   && <p>Phone: {company?.phone}</p>}
       </div>
 
       {/* Voucher meta */}

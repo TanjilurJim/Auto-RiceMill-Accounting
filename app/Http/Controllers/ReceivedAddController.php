@@ -15,21 +15,44 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 
+use function user_scope_ids;
+
 class ReceivedAddController extends Controller
 {
+    // public function create()
+    // {
+    //     $query = ReceivedMode::query();
+    //     $ledgerQuery = AccountLedger::query();
+
+    //     // Only show own data if not admin
+    //     if (!auth()->user()->hasRole('admin')) {
+    //         $query->where('created_by', auth()->id());
+    //         $ledgerQuery->where('created_by', auth()->id());
+    //     }
+
+    //     return Inertia::render('received-add/create', [
+    //         'receivedModes' => $query->select('id', 'mode_name', 'ledger_id')->get(), // ✅ Add 'ledger_id'
+    //         'accountLedgers' => $ledgerQuery
+    //             ->select('id', 'account_ledger_name', 'phone_number', 'opening_balance', 'closing_balance')
+    //             ->get(),
+    //     ]);
+    // }
+
     public function create()
     {
+        $user = auth()->user();
+        $userIds = user_scope_ids();
+
         $query = ReceivedMode::query();
         $ledgerQuery = AccountLedger::query();
 
-        // Only show own data if not admin
-        if (!auth()->user()->hasRole('admin')) {
-            $query->where('created_by', auth()->id());
-            $ledgerQuery->where('created_by', auth()->id());
+        if (!$user->hasRole('admin')) {
+            $query->whereIn('created_by', $userIds);
+            $ledgerQuery->whereIn('created_by', $userIds);
         }
 
         return Inertia::render('received-add/create', [
-            'receivedModes' => $query->select('id', 'mode_name', 'ledger_id')->get(), // ✅ Add 'ledger_id'
+            'receivedModes' => $query->select('id', 'mode_name', 'ledger_id')->get(),
             'accountLedgers' => $ledgerQuery
                 ->select('id', 'account_ledger_name', 'phone_number', 'opening_balance', 'closing_balance')
                 ->get(),
@@ -107,11 +130,30 @@ class ReceivedAddController extends Controller
     }
 
 
+    // public function index()
+    // {
+    //     $receivedAdds = ReceivedAdd::with(['receivedMode', 'accountLedger'])
+    //         ->when(!auth()->user()->hasRole('admin'), function ($query) {
+    //             $query->where('created_by', auth()->id());
+    //         })
+    //         ->orderByDesc('date')
+    //         ->paginate(10);
+
+    //     return Inertia::render('received-add/index', [
+    //         'receivedAdds' => $receivedAdds,
+    //         'currentPage' => $receivedAdds->currentPage(),
+    //         'perPage' => $receivedAdds->perPage(),
+    //     ]);
+    // }
+
     public function index()
     {
+        $user = auth()->user();
+        $userIds = user_scope_ids();
+
         $receivedAdds = ReceivedAdd::with(['receivedMode', 'accountLedger'])
-            ->when(!auth()->user()->hasRole('admin'), function ($query) {
-                $query->where('created_by', auth()->id());
+            ->when(!$user->hasRole('admin'), function ($query) use ($userIds) {
+                $query->whereIn('created_by', $userIds);
             })
             ->orderByDesc('date')
             ->paginate(10);
@@ -123,8 +165,24 @@ class ReceivedAddController extends Controller
         ]);
     }
 
+    // public function edit(ReceivedAdd $receivedAdd)
+    // {
+    //     return Inertia::render('received-add/edit', [
+    //         'receivedAdd' => $receivedAdd->load(['receivedMode', 'accountLedger']),
+    //         'receivedModes' => ReceivedMode::select('id', 'mode_name')->get(),
+    //         'accountLedgers' => AccountLedger::select('id', 'account_ledger_name', 'phone_number', 'opening_balance', 'closing_balance')->get(),
+    //     ]);
+    // }
+
     public function edit(ReceivedAdd $receivedAdd)
     {
+        $user = auth()->user();
+        $userIds = user_scope_ids();
+
+        if (!$user->hasRole('admin') && !in_array($receivedAdd->created_by, $userIds)) {
+            abort(403, 'Unauthorised');
+        }
+
         return Inertia::render('received-add/edit', [
             'receivedAdd' => $receivedAdd->load(['receivedMode', 'accountLedger']),
             'receivedModes' => ReceivedMode::select('id', 'mode_name')->get(),
@@ -132,8 +190,32 @@ class ReceivedAddController extends Controller
         ]);
     }
 
+    // public function update(Request $request, ReceivedAdd $receivedAdd)
+    // {
+    //     $request->validate([
+    //         'date' => 'required|date',
+    //         'voucher_no' => 'required|string|unique:received_adds,voucher_no,' . $receivedAdd->id,
+    //         'received_mode_id' => 'required|exists:received_modes,id',
+    //         'account_ledger_id' => 'required|exists:account_ledgers,id',
+    //         'amount' => 'required|numeric|min:0.01',
+    //         'description' => 'nullable|string',
+    //         'send_sms' => 'boolean',
+    //     ]);
+
+    //     $receivedAdd->update($request->all());
+
+    //     return redirect()->route('received-add.index')->with('success', 'Received Add updated successfully!');
+    // }
+
     public function update(Request $request, ReceivedAdd $receivedAdd)
     {
+        $user = auth()->user();
+        $userIds = user_scope_ids();
+
+        if (!$user->hasRole('admin') && !in_array($receivedAdd->created_by, $userIds)) {
+            abort(403, 'Unauthorised');
+        }
+
         $request->validate([
             'date' => 'required|date',
             'voucher_no' => 'required|string|unique:received_adds,voucher_no,' . $receivedAdd->id,
@@ -149,28 +231,62 @@ class ReceivedAddController extends Controller
         return redirect()->route('received-add.index')->with('success', 'Received Add updated successfully!');
     }
 
+    // public function destroy(ReceivedAdd $receivedAdd)
+    // {
+    //     $receivedAdd->delete();
+    //     return redirect()->route('received-add.index')->with('success', 'Deleted successfully.');
+    // }
+
     public function destroy(ReceivedAdd $receivedAdd)
     {
-        $receivedAdd->delete();
-        return redirect()->route('received-add.index')->with('success', 'Deleted successfully.');
-    }
-    public function print(ReceivedAdd $receivedAdd)
-    {
-        /* tenant safety */
-        if (
-            ! auth()->user()->hasRole('admin') &&
-            $receivedAdd->created_by !== auth()->id()
-        ) {
+        $user = auth()->user();
+        $userIds = user_scope_ids();
+
+        if (!$user->hasRole('admin') && !in_array($receivedAdd->created_by, $userIds)) {
             abort(403, 'Unauthorised');
         }
 
-        /* what the UI needs */
+        $receivedAdd->delete();
+        return redirect()->route('received-add.index')->with('success', 'Deleted successfully.');
+    }
+
+
+    // public function print(ReceivedAdd $receivedAdd)
+    // {
+    //     /* tenant safety */
+    //     if (
+    //         ! auth()->user()->hasRole('admin') &&
+    //         $receivedAdd->created_by !== auth()->id()
+    //     ) {
+    //         abort(403, 'Unauthorised');
+    //     }
+
+    //     /* what the UI needs */
+    //     $receivedAdd->load(['receivedMode', 'accountLedger']);
+
+    //     return Inertia::render('received-add/print', [
+    //         'receivedAdd'  => $receivedAdd,
+    //         'company'      => company_info(),                       // ↞ helper adds logo URLs too
+    //         'amountWords'  => numberToWords((int) $receivedAdd->amount),
+    //     ]);
+    // }
+
+    public function print(ReceivedAdd $receivedAdd)
+    {
+        $user = auth()->user();
+        $userIds = user_scope_ids();
+
+        if (!$user->hasRole('admin') && !in_array($receivedAdd->created_by, $userIds)) {
+            abort(403, 'Unauthorised');
+        }
+
         $receivedAdd->load(['receivedMode', 'accountLedger']);
 
         return Inertia::render('received-add/print', [
             'receivedAdd'  => $receivedAdd,
-            'company'      => company_info(),                       // ↞ helper adds logo URLs too
+            'company'      => company_info(),
             'amountWords'  => numberToWords((int) $receivedAdd->amount),
         ]);
     }
+
 }

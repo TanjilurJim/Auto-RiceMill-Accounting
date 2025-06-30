@@ -91,9 +91,9 @@ export default function ProfitLoss({
                 )}
 
                 <h1 className="text-2xl font-bold">{company?.company_name}</h1>
-                {company?.address && <div>{company.address}</div>}
-                {company?.phone && <div>Phone: {company.phone}</div>}
-                {company?.email && <div>Email: {company.email}</div>}
+                {company?.address && <div>{company?.address}</div>}
+                {company?.phone && <div>Phone: {company?.phone}</div>}
+                {company?.email && <div>Email: {company?.email}</div>}
             </div>
 
             <div className="p-6 print:bg-white print:p-0">

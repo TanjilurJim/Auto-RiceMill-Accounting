@@ -71,7 +71,7 @@ export default function AccountBook({ company, entries, opening_balance, from, t
 
     return (
         <AppLayout title="Account Book">
-            <div className="absolute top-4 right-4 print:hidden">
+            <div className="absolute top-16 right-4 print:hidden">
                 <Link href={route('reports.account-book')} className="text-sm text-blue-600 hover:underline">
                     Change Filters
                 </Link>
@@ -82,23 +82,23 @@ export default function AccountBook({ company, entries, opening_balance, from, t
                 {/* Header */}
                 {/* Header Layout */}
                 <div className="mb-6 text-center">
-                    {company?.logo_url && <img src={company.logo_url} alt="Company Logo" className="mx-auto mb-2 h-20 object-contain print:h-12" />}
-                    <h2 className="text-2xl font-bold">{company.company_name}</h2>
+                    {company?.logo_url && <img src={company?.logo_url} alt="Company Logo" className="mx-auto mb-2 h-20 object-contain print:h-12" />}
+                    <h2 className="text-2xl font-bold">{company?.company_name}</h2>
 
-                    {company.address && <p className="text-sm">{company.address}</p>}
-                    {company.mobile && <p className="text-sm">Mobile: {company.mobile}</p>}
-                    {company.email && <p className="text-sm">Email: {company.email}</p>}
-                    {company.website && (
+                    {company?.address && <p className="text-sm">{company?.address}</p>}
+                    {company?.mobile && <p className="text-sm">Mobile: {company?.mobile}</p>}
+                    {company?.email && <p className="text-sm">Email: {company?.email}</p>}
+                    {company?.website && (
                         <p className="text-sm">
                             Website:{' '}
-                            <a href={company.website} target="_blank" rel="noopener noreferrer" className="text-blue-600 underline">
-                                {company.website}
+                            <a href={company?.website} target="_blank" rel="noopener noreferrer" className="text-blue-600 underline">
+                                {company?.website}
                             </a>
                         </p>
                     )}
-                    {company.financial_year && (
+                    {company?.financial_year && (
                         <p className="mt-1 text-sm italic">
-                            Financial Year: <strong> {company.financial_year}</strong>
+                            Financial Year: <strong> {company?.financial_year}</strong>
                         </p>
                     )}
                 </div>

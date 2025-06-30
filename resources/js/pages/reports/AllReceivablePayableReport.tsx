@@ -37,7 +37,7 @@ export default function AllReceivablePayableReport({ from_date, to_date, receiva
             <Head title="Receivable & Payable Report" />
 
             <div className="p-6 print:bg-white print:p-0">
-            <div className="absolute top-4 right-4 print:hidden">
+            <div className="absolute top-16 right-4 print:hidden">
                 <Link href={route('reports.receivable-payable.filter')} className="text-sm text-blue-600 hover:underline">
                     Change Filters
                 </Link>
@@ -45,16 +45,16 @@ export default function AllReceivablePayableReport({ from_date, to_date, receiva
                 {/* ✅ Company Info (Visible in Print Too) */}
                 <div className="mb-4 text-center print:text-sm">
                     {/* image add  */}
-                    {company.logo_path && (
+                    {company?.logo_path && (
                         <img
-                            src={company.logo_path}
+                            src={company?.logo_path}
                             alt="Company Logo"
                             className="mx-auto mb-2 h-16 w-16 object-cover"
                         />
                     )}
-                    <h1 className="text-xl font-bold">{company.company_name}</h1>
-                    <p className="text-sm text-gray-600">{company.address}</p>
-                    <p className="text-sm text-gray-600">Phone: {company.phone}</p>
+                    <h1 className="text-xl font-bold">{company?.company_name}</h1>
+                    <p className="text-sm text-gray-600">{company?.address}</p>
+                    <p className="text-sm text-gray-600">Phone: {company?.phone}</p>
 
                     <h2 className="text-xl font-semibold underline">All Receivable & Payable Report</h2>
                     <p className="mt-2 text-sm text-gray-600">
@@ -161,7 +161,7 @@ export default function AllReceivablePayableReport({ from_date, to_date, receiva
             <div className="text-muted-foreground flex justify-between px-6 py-2 text-sm">
                 <span>Generated on {new Date().toLocaleString()}</span>
                 <span>
-                    {company.company_name} • {company.email}
+                    {company?.company_name} • {company?.email}
                 </span>
             </div>
         </AppLayout>

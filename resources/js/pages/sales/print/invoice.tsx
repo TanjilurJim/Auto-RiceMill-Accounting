@@ -32,13 +32,13 @@ export default function SaleInvoice({ sale, company }: { sale: any; company: any
 
             {/* Company heading */}
             <div className="mb-6 text-center print:text-xs">
-                {company?.logo_url && <img src={company.logo_url} alt="Logo" className="mx-auto mb-2 h-20 object-contain print:h-12" />}
+                {company?.logo_url && <img src={company?.logo_url} alt="Logo" className="mx-auto mb-2 h-20 object-contain print:h-12" />}
 
                 <h1 className="text-2xl font-bold uppercase">{company?.company_name ?? company?.name}</h1>
 
-                {company?.address && <div>{company.address}</div>}
-                {company?.phone && <div>Phone: +88 {company.phone}</div>}
-                {company?.email && <div>Email: {company.email}</div>}
+                {company?.address && <div>{company?.address}</div>}
+                {company?.phone && <div>Phone: +88 {company?.phone}</div>}
+                {company?.email && <div>Email: {company?.email}</div>}
 
                 <h2 className="mt-3 text-xl font-semibold">Sale Invoice</h2>
             </div>

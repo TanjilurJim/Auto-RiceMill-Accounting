@@ -21,6 +21,7 @@ class AccountGroupController extends Controller
         $accountGroups = $query->get();
 
         return Inertia::render('account-groups/index', ['accountGroups' => $accountGroups]);
+        
     }
 
     public function create()

@@ -2,11 +2,14 @@
 
 namespace App\Http\Controllers;
 
-use Barryvdh\DomPDF\Facade\Pdf;
-use Illuminate\Http\Request;
 use Inertia\Inertia;
-use App\Exports\AllReceivedPaymentExport;
+use Illuminate\Http\Request;
+use App\Models\AccountLedger;
+use Barryvdh\DomPDF\Facade\Pdf;
 use Maatwebsite\Excel\Facades\Excel;
+use App\Exports\AllReceivedPaymentExport;
+
+use function user_scope_ids;
 
 class AllReceivedPaymentReportController extends Controller
 {
@@ -79,6 +82,21 @@ class AllReceivedPaymentReportController extends Controller
             'from_date' => $from,
             'to_date' => $to,
             'company' => company_info(),
+        ]);
+    }
+
+    public function filter()
+    {
+        $user = auth()->user();
+        $ids = user_scope_ids();
+
+        $ledgers = AccountLedger::when(
+            !$user->hasRole('admin'),
+            fn($q) => $q->whereIn('created_by', $ids)
+        )->get(['id', 'account_ledger_name']);
+
+        return Inertia::render('reports/AllReceivedPaymentFilter', [
+            'ledgers' => $ledgers,
         ]);
     }
 
@@ -177,13 +195,25 @@ class AllReceivedPaymentReportController extends Controller
     /**
      * Restricts queries based on user hierarchy
      */
+    // protected function applyUserScope($query)
+    // {
+    //     return $query->when(!auth()->user()->hasRole('admin'), function ($query) {
+    //         $query->where(function ($q) {
+    //             $q->where('created_by', auth()->id())
+    //                 ->orWhereHas('creator', fn($q2) => $q2->where('created_by', auth()->id()));
+    //         });
+    //     });
+    // }
+
     protected function applyUserScope($query)
     {
-        return $query->when(!auth()->user()->hasRole('admin'), function ($query) {
-            $query->where(function ($q) {
-                $q->where('created_by', auth()->id())
-                    ->orWhereHas('creator', fn($q2) => $q2->where('created_by', auth()->id()));
-            });
-        });
+        $user = auth()->user();
+        $ids = user_scope_ids();
+
+        return $query->when(
+            !$user->hasRole('admin'),
+            fn($q) => $q->whereIn('created_by', $ids)
+        );
     }
+
 }

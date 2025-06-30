@@ -45,7 +45,7 @@ const logoSrc = company?.logo_url ?? company?.logo_thumb_url ?? null;
 
       <div className="p-6 print:bg-white print:p-0">
         {/* top‑right link */}
-        <div className="absolute top-4 right-4 print:hidden">
+        <div className="absolute top-16 right-4 print:hidden">
           <Link
             href={route('reports.all-received-payment.filter')}
             className="text-sm text-blue-600 hover:underline"
@@ -66,10 +66,10 @@ const logoSrc = company?.logo_url ?? company?.logo_thumb_url ?? null;
     )}
 
     <div className="flex-1">
-      <h1 className="text-2xl font-bold">{company.company_name}</h1>
-      {company.address && <div>{company.address}</div>}
-      {company.phone && <div>Phone: {company.phone}</div>}
-      {company.email && <div>Email: {company.email}</div>}
+      <h1 className="text-2xl font-bold">{company?.company_name}</h1>
+      {company?.address && <div>{company?.address}</div>}
+      {company?.phone && <div>Phone: {company?.phone}</div>}
+      {company?.email && <div>Email: {company?.email}</div>}
     </div>
   </div>
 )}

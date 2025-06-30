@@ -2,8 +2,7 @@ import ActionFooter from '@/components/ActionFooter';
 import PageHeader from '@/components/PageHeader';
 import AppLayout from '@/layouts/app-layout';
 import { Head, useForm } from '@inertiajs/react';
-import React, { useEffect, useState } from 'react';
-import axios from 'axios';
+import React, { useEffect } from 'react';
 
 interface Props {
     ledgers: { id: number; name: string }[];
@@ -13,15 +12,7 @@ interface Props {
     godowns: { id: number; name: string }[];
 }
 
-interface Product {
-    id: number;
-    name: string;
-    stock: number;
-    unit_id: number;
-    unit: { name: string };
-}
-
-export default function SalesOrderCreate({ ledgers, salesmen, products, units, godowns, stockItemsByGodown }: Props) {
+export default function SalesOrderCreate({ ledgers, salesmen, products, units, godowns }: Props) {
     const { data, setData, post, processing, errors } = useForm({
         date: '',
         voucher_no: '',
@@ -43,12 +34,6 @@ export default function SalesOrderCreate({ ledgers, salesmen, products, units, g
         ],
     });
 
-
-    const [filteredProducts, setFilteredProducts] = useState<Product[]>([]);
-
-
-
-
     useEffect(() => {
         if (!data.voucher_no) {
             const today = new Date();
@@ -57,17 +42,6 @@ export default function SalesOrderCreate({ ledgers, salesmen, products, units, g
             setData('voucher_no', `SO-${formatted}-${random}`);
         }
     }, []);
-
-    // Fetch products for selected godown
-    useEffect(() => {
-        if (data.godown_id) {
-            axios.get(`/sales-orders/products/by-godown/${data.godown_id}`).then((res) => {
-                setFilteredProducts(res.data); // Make sure your backend returns [{id, name, stock, unit_id, unit:{name}}]
-            });
-        } else {
-            setFilteredProducts([]);
-        }
-    }, [data.godown_id]);
 
     const totalQuantity = data.items.reduce((sum, item) => sum + parseFloat((item.quantity as any) || 0), 0);
     const grandTotal = data.items.reduce((sum, item) => sum + parseFloat((item.subtotal as any) || 0), 0);
@@ -80,8 +54,6 @@ export default function SalesOrderCreate({ ledgers, salesmen, products, units, g
         const rate = parseFloat(updatedItems[index].rate as any) || 0;
         const discount = parseFloat(updatedItems[index].discount_value as any) || 0;
         const type = updatedItems[index].discount_type;
-
-
 
         let subtotal = qty * rate;
         if (type === 'percentage') subtotal -= (subtotal * discount) / 100;
@@ -219,17 +191,11 @@ export default function SalesOrderCreate({ ledgers, salesmen, products, units, g
                                                         value={item.product_id}
                                                         onChange={(e) => handleItemChange(i, 'product_id', e.target.value)}
                                                         className="w-full rounded border px-1 py-1"
-                                                        disabled={!data.godown_id}
                                                     >
                                                         <option value="">Select</option>
-                                                        {/* {products.map((p) => (
+                                                        {products.map((p) => (
                                                             <option key={p.id} value={p.id}>
                                                                 {p.name} ({p.stock})
-                                                            </option>
-                                                        ))} */}
-                                                        {filteredProducts.map((p) => (
-                                                            <option key={p.id} value={p.id}>
-                                                                {p.name} ({p.stock} {p.unit?.name})
                                                             </option>
                                                         ))}
                                                     </select>

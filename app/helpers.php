@@ -7,39 +7,110 @@ use App\Services\InventoryService;
 
 
 
-// employee helper
-if (!function_exists('employee_scope_ids')) {
-    function employee_scope_ids(): array
+
+// // inventory helper
+// if (!function_exists('get_all_descendant_user_ids')) {
+//     function get_all_descendant_user_ids($userId)
+//     {
+//         $ids = [];
+//         $children = User::where('created_by', $userId)
+//             ->whereDoesntHave('roles', function ($q) {
+//                 $q->where('name', 'admin');
+//             })
+//             ->pluck('id')
+//             ->toArray();
+
+//         foreach ($children as $childId) {
+//             $ids[] = $childId;
+//             $ids = array_merge($ids, get_all_descendant_user_ids($childId));
+//         }
+//         return $ids;
+//     }
+// }
+
+// // inventory helper -> accessible_user_ids()
+// if (!function_exists('godown_scope_ids')) {
+//     function godown_scope_ids(): array
+//     {
+//         $user = auth()->user();
+//         if (!$user) return [];
+
+//         // Admin: see all godowns
+//         if ($user->hasRole('admin')) {
+//             return []; // No filter for admin
+//         }
+
+//         // My own ID
+//         $ids = [$user->id];
+
+//         // All descendants (multi-level, no admins)
+//         $descendants = get_all_descendant_user_ids($user->id);
+//         $ids = array_merge($ids, $descendants);
+
+//         // Add parent if parent is not admin
+//         $parentId = $user->created_by;
+//         if ($parentId) {
+//             $parent = User::find($parentId);
+//             if ($parent && !$parent->hasRole('admin')) {
+//                 $ids[] = $parentId;
+//             }
+//         }
+
+//         return array_unique($ids);
+//     }
+// }
+
+// // user scope helper
+// if (!function_exists('user_scope_ids')) {
+//     function user_scope_ids(): array
+//     {
+//         $user = auth()->user();
+//         if (!$user) return [];
+
+//         // Admin: see all employees
+//         if ($user->hasRole('admin')) {
+//             return []; // No filter for admin, means all employees visible
+//         }
+
+//         // My own ID
+//         $ids = [$user->id];
+
+//         // All descendants (multi-level, no admins)
+//         $descendants = get_all_descendant_user_ids($user->id);
+//         $ids = array_merge($ids, $descendants);
+
+//         // Add parent if parent is not admin
+//         $parentId = $user->created_by;
+//         if ($parentId) {
+//             $parent = User::find($parentId);
+//             if ($parent && !$parent->hasRole('admin')) {
+//                 $ids[] = $parentId;
+//             }
+//         }
+
+//         return array_unique($ids);
+//     }
+// }
+
+
+// Top-most parent (group head) খুঁজে বের করার ফাংশন
+if (!function_exists('get_top_parent_id')) {
+    function get_top_parent_id($user)
     {
-        $user = auth()->user();
-        if (!$user) return [];
-
-        // Admin: see all employees
-        if ($user->hasRole('admin')) {
-            return []; // No filter for admin, means all employees visible
-        }
-
-        // My own ID
-        $ids = [$user->id];
-
-        // All descendants (multi-level, no admins)
-        $descendants = get_all_descendant_user_ids($user->id);
-        $ids = array_merge($ids, $descendants);
-
-        // Add parent if parent is not admin
-        $parentId = $user->created_by;
-        if ($parentId) {
-            $parent = User::find($parentId);
-            if ($parent && !$parent->hasRole('admin')) {
-                $ids[] = $parentId;
+        if ($user->hasRole('admin')) return null;
+        $current = $user;
+        while ($current->created_by) {
+            $parent = User::find($current->created_by);
+            if (!$parent || $parent->hasRole('admin')) {
+                break;
             }
+            $current = $parent;
         }
-
-        return array_unique($ids);
+        return $current->id;
     }
 }
 
-// inventory helper
+// Recursive: সব descendant (child/sub-child...) return করে
 if (!function_exists('get_all_descendant_user_ids')) {
     function get_all_descendant_user_ids($userId)
     {
@@ -59,60 +130,82 @@ if (!function_exists('get_all_descendant_user_ids')) {
     }
 }
 
-// inventory helper
+// Group-wise user ID list (strict group access)
 if (!function_exists('godown_scope_ids')) {
     function godown_scope_ids(): array
     {
         $user = auth()->user();
         if (!$user) return [];
 
-        // Admin: see all godowns
+        // Admin: see all
         if ($user->hasRole('admin')) {
             return []; // No filter for admin
         }
 
-        // My own ID
-        $ids = [$user->id];
+        // Group head (top-most parent under admin)
+        $groupHeadId = get_top_parent_id($user);
 
-        // All descendants (multi-level, no admins)
-        $descendants = get_all_descendant_user_ids($user->id);
-        $ids = array_merge($ids, $descendants);
+        // Group head + all descendants (the whole group)
+        $ids = [$groupHeadId];
+        $ids = array_merge($ids, get_all_descendant_user_ids($groupHeadId));
 
-        // Add parent if parent is not admin
-        $parentId = $user->created_by;
-        if ($parentId) {
-            $parent = User::find($parentId);
-            if ($parent && !$parent->hasRole('admin')) {
-                $ids[] = $parentId;
-            }
+        return array_unique($ids);
+    }
+}
+// Group-wise user ID list (strict group access)
+if (!function_exists('user_scope_ids')) {
+    function user_scope_ids(): array
+    {
+        $user = auth()->user();
+        if (!$user) return [];
+
+        // Admin: see all
+        if ($user->hasRole('admin')) {
+            return []; // No filter for admin
         }
+
+        // Group head (top-most parent under admin)
+        $groupHeadId = get_top_parent_id($user);
+
+        // Group head + all descendants (the whole group)
+        $ids = [$groupHeadId];
+        $ids = array_merge($ids, get_all_descendant_user_ids($groupHeadId));
 
         return array_unique($ids);
     }
 }
 
+
+
+
+
+
+
+
+
+
+
 // dashboard helper
-if (!function_exists('user_scope_ids')) {
-    function user_scope_ids($user = null): array
-    {
-        $user = $user ?: auth()->user();
-        if (!$user) return [];
-        $myId = $user->id;
-        $parentId = $user->created_by;
-        $myUsers = User::where('created_by', $myId)->pluck('id')->toArray();
+// if (!function_exists('user_scope_ids')) {
+//     function user_scope_ids($user = null): array
+//     {
+//         $user = $user ?: auth()->user();
+//         if (!$user) return [];
+//         $myId = $user->id;
+//         $parentId = $user->created_by;
+//         $myUsers = User::where('created_by', $myId)->pluck('id')->toArray();
 
-        $userIds = [$myId];
-        if ($parentId) {
-            $parent = User::find($parentId);
-            if ($parent && !$parent->hasRole('admin')) {
-                $userIds[] = $parentId;
-            }
-        }
-        $userIds = array_merge($userIds, $myUsers);
-        return array_unique($userIds);
-    }
-}
-
+//         $userIds = [$myId];
+//         if ($parentId) {
+//             $parent = User::find($parentId);
+//             if ($parent && !$parent->hasRole('admin')) {
+//                 $userIds[] = $parentId;
+//             }
+//         }
+//         $userIds = array_merge($userIds, $myUsers);
+//         return array_unique($userIds);
+//     }
+// }
 
 // auth helper
 if (!function_exists('createdByMeOnly')) {

@@ -379,4 +379,28 @@ class SalesOrderController extends Controller
         ]);
     }
 
+    public function getProductsByGodown($godownId)
+    {
+        $ids = godown_scope_ids();
+
+        $stocks = Stock::with('item.unit')
+            ->where('godown_id', $godownId)
+            ->when(!empty($ids), function ($q) use ($ids) {
+                $q->whereIn('created_by', $ids);
+            })
+            ->get();
+
+        $result = $stocks->map(function ($stock) {
+            return [
+                'id'        => $stock->item->id,
+                'name'      => $stock->item->item_name,
+                'unit'      => ['name' => $stock->item->unit->name ?? ''],
+                'stock'     => $stock->qty,
+                'unit_id'   => $stock->item->unit_id,
+            ];
+        });
+
+        return response()->json($result);
+    }
+
 }

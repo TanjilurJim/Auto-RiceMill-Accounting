@@ -57,18 +57,18 @@ export default function ItemWiseStockSummary({ items, filters, company }: Props)
                     <CardHeader className="space-y-1 border-b bg-gray-50 py-6 text-center">
                         {company?.logo_path && (
                             <img
-                                src={company.logo_path}
+                                src={company?.logo_path}
                                 alt="Company Logo"
                                 className="mx-auto mb-4 h-16 w-16 object-cover"
                             />
                         )}
                         <h1 className="text-3xl font-bold uppercase">{company?.company_name ?? 'Company Name'}</h1>
-                        {company?.address && <p className="text-sm text-gray-700">{company.address}</p>}
-                        {company?.mobile && <p className="text-sm text-gray-700">Phone: {company.mobile}</p>}
+                        {company?.address && <p className="text-sm text-gray-700">{company?.address}</p>}
+                        {company?.mobile && <p className="text-sm text-gray-700">Phone: {company?.mobile}</p>}
                         {(company?.email || company?.website) && (
                             <p className="text-sm text-gray-700">
-                                {company.email} {company.email && company.website && ' | '}
-                                {company.website}
+                                {company?.email} {company?.email && company?.website && ' | '}
+                                {company?.website}
                             </p>
                         )}
 

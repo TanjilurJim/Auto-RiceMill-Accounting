@@ -46,15 +46,15 @@ export default function SaleReturnReport({
           <CardHeader className="bg-gray-50 py-6 text-center relative">
             {company?.logo_path && (
               <img
-                src={company.logo_path}
+                src={company?.logo_path}
                 alt="Company Logo"
                 className="mx-auto mb-2 h-16 w-16 object-cover"
               />
             )}
-            <h1 className="text-3xl font-bold uppercase">{company.company_name}</h1>
-            {company.address && <p className="text-sm">{company.address}</p>}
-            {company.mobile && <p className="text-sm">Phone: {company.mobile}</p>}
-            {company.email && <p className="text-sm">{company.email}</p>}
+            <h1 className="text-3xl font-bold uppercase">{company?.company_name}</h1>
+            {company?.address && <p className="text-sm">{company?.address}</p>}
+            {company?.mobile && <p className="text-sm">Phone: {company?.mobile}</p>}
+            {company?.email && <p className="text-sm">{company?.email}</p>}
 
             <div className="mt-4">
               <h2 className="text-xl font-semibold underline">Sales Return Report</h2>
@@ -63,7 +63,7 @@ export default function SaleReturnReport({
               </p>
             </div>
 
-            <div className="absolute top-4 right-4 print:hidden">
+            <div className="absolute top-16 right-4 print:hidden">
               <Link href={route('reports.sale.filter', { tab: 'return' })} className="text-sm text-blue-600 hover:underline">
                 Change Filters
               </Link>
@@ -146,7 +146,7 @@ export default function SaleReturnReport({
           {/* Footer */}
           <div className="text-muted-foreground flex justify-between px-6 py-2 text-sm">
             <span>Generated on {new Date().toLocaleString()}</span>
-            <span>{company.company_name} • {company.email}</span>
+            <span>{company?.company_name} • {company?.email}</span>
           </div>
         </Card>
       </div>

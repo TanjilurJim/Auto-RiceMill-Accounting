@@ -31,17 +31,26 @@ class PurchaseReportController extends Controller
      | 0️⃣  Helpers
      |=========================================================*/
     /** List of user-ids the current user is allowed to see. */
+    // private function allowedUserIds(): array
+    // {
+    //     if (auth()->user()->hasRole('admin')) {
+    //         return [];                 // admin → no restriction
+    //     }
+
+    //     $me   = auth()->id();
+    //     $subs = \App\Models\User::where('created_by', $me)
+    //         ->pluck('id')->all();  // direct sub-users
+
+    //     return array_merge([$me], $subs);
+    // }
+
     private function allowedUserIds(): array
     {
         if (auth()->user()->hasRole('admin')) {
-            return [];                 // admin → no restriction
+            return []; // admin → no restriction
         }
-
-        $me   = auth()->id();
-        $subs = \App\Models\User::where('created_by', $me)
-            ->pluck('id')->all();  // direct sub-users
-
-        return array_merge([$me], $subs);
+        // Use the global helper for multi-level user access
+        return user_scope_ids();
     }
 
     /* =========================================================
@@ -52,14 +61,17 @@ class PurchaseReportController extends Controller
         /* ----------------------------------------------------------
           | Build the list of user-ids this person may see
           | --------------------------------------------------------*/
-        if (auth()->user()->hasRole('admin')) {
-            // admin → no restriction (null means “skip the whereIn later”)
-            $visibleIds = null;
-        } else {
-            $me        = auth()->id();
-            $childIds  = User::where('created_by', $me)->pluck('id')->all();
-            $visibleIds = array_merge([$me], $childIds);   // [me + direct sub-users]
-        }
+        // if (auth()->user()->hasRole('admin')) {
+        //     // admin → no restriction (null means “skip the whereIn later”)
+        //     $visibleIds = null;
+        // } else {
+        //     $me        = auth()->id();
+        //     $childIds  = User::where('created_by', $me)->pluck('id')->all();
+        //     $visibleIds = array_merge([$me], $childIds);   // [me + direct sub-users]
+        // }
+
+        $visibleIds = auth()->user()->hasRole('admin') ? null : user_scope_ids();
+
 
         /* ----------------------------------------------------------
           | Drop-down data, each scoped with the SAME rule

@@ -24,9 +24,9 @@ export default function BalanceSheet({ from_date, to_date, balances, stock, work
                 {logo && <img src={logo} alt="Logo" className="mx-auto mb-2 h-20 object-contain print:h-12" />}
 
                 <h1 className="text-2xl font-bold">{company?.company_name}</h1>
-                {company?.address && <div>{company.address}</div>}
-                {company?.phone && <div>Phone: {company.phone}</div>}
-                {company?.email && <div>Email: {company.email}</div>}
+                {company?.address && <div>{company?.address}</div>}
+                {company?.phone && <div>Phone: {company?.phone}</div>}
+                {company?.email && <div>Email: {company?.email}</div>}
                 <p className="mt-1 text-sm">
                     Balance Sheet &nbsp;
                     <strong>{from_date}</strong> → <strong>{to_date}</strong>

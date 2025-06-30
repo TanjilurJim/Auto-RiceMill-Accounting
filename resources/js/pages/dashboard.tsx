@@ -115,7 +115,7 @@ export default function Dashboard() {
             </div> */}
 
             {/* KPI cards */}
-            <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4 m-2">
+            {/* <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4 m-2">
                 {kpis.map(({ title, value, icon: Icon, color, bg }) => (
                     <Card
                         key={title}
@@ -131,6 +131,32 @@ export default function Dashboard() {
                         <div className="flex-1">
                             <p className="text-muted-foreground text-sm">{title}</p>
                             <p className="flex justify-center text-xl font-semibold">{typeof value === 'number' ? value.toLocaleString() : value}</p>
+                        </div>
+                    </Card>
+                ))}
+            </div> */}
+            <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4 m-2">
+                {kpis.map(({ title, value, icon: Icon, color, bg }) => (
+                    <Card
+                        key={title}
+                        className={cn(
+                            'flex items-center gap-4 rounded-lg p-4 border border-gray-100 dark:border-muted/30',
+                            'bg-white dark:bg-muted/40 shadow-sm transition-transform duration-200',
+                            'hover:-translate-y-1 hover:shadow-lg hover:border-primary/40',
+                            bg
+                        )}
+                    >
+                        <div className={cn(
+                            'flex items-center justify-center rounded-full h-12 w-12 shadow-sm',
+                            color, 'bg-opacity-10'
+                        )}>
+                            <Icon className={cn('h-7 w-7', color)} />
+                        </div>
+                        <div className="flex-1 min-w-0 text-center">
+                            <p className="text-xs text-gray-500 dark:text-gray-400 truncate">{title}</p>
+                            <p className="text-2xl font-bold text-gray-800 dark:text-gray-100 mt-1">
+                                {typeof value === 'number' ? value.toLocaleString() : value}
+                            </p>
                         </div>
                     </Card>
                 ))}

@@ -41,13 +41,13 @@ export default function SalesReturnInvoice(
 
         {/* company header */}
         <div className="mb-6 text-center print:text-xs">
-          {company.logo_url &&
-            <img src={company.logo_url} className="mx-auto h-20 object-contain mb-2 print:h-12" />}
+          {company?.logo_url &&
+            <img src={company?.logo_url} className="mx-auto h-20 object-contain mb-2 print:h-12" />}
           <h1 className="text-2xl font-bold uppercase">
-            {company.company_name ?? company.name}
+            {company?.company_name ?? company?.name}
           </h1>
-          {company.address && <div>{company.address}</div>}
-          {company.phone   && <div>Phone: +88 {company.phone}</div>}
+          {company?.address && <div>{company?.address}</div>}
+          {company?.phone   && <div>Phone: +88 {company?.phone}</div>}
           <h2 className="mt-3 font-semibold">SALES RETURN INVOICE</h2>
         </div>
 

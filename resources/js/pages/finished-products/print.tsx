@@ -56,9 +56,9 @@ export default function Print({ finishedProduct, company, amountInWords }: Props
             <Head title="Production Sheet" />
             {/* Company Info */}
             <div className="mb-4 text-center">
-                <h1 className="text-xl font-bold uppercase">{company.company_name}</h1>
-                <p>{company.address}</p>
-                <p>Phone: {company.mobile}</p>
+                <h1 className="text-xl font-bold uppercase">{company?.company_name}</h1>
+                <p>{company?.address}</p>
+                <p>Phone: {company?.mobile}</p>
             </div>
 
             {/* Heading */}

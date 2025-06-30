@@ -65,26 +65,56 @@ class PurchaseReturnController extends Controller
     }
 
     // 🟢 Create form
+    // public function create()
+    // {
+    //     // return Inertia::render('purchase_returns/create', [
+    //     //     'godowns' => Godown::where('created_by', auth()->id())->get(),
+    //     //     'ledgers' => AccountLedger::where('created_by', auth()->id())->get(),
+    //     //     'items' => Item::where('created_by', auth()->id())->get()->unique('item_name')->values(),
+    //     //     'receivedModes' => ReceivedMode::with('ledger') // 🆕 add this
+    //     //         ->where('created_by', auth()->id())
+    //     //         ->get(),
+    //     // ]);
+
+    //     $userIds = godown_scope_ids(); // [multi-level access]
+
+    //     return Inertia::render('purchase_returns/create', [
+    //         'godowns' => Godown::whereIn('created_by', $userIds)->get(), // [multi-level access]
+    //         'ledgers' => AccountLedger::whereIn('created_by', $userIds)->get(), // [multi-level access]
+    //         'items' => Item::whereIn('created_by', $userIds)->get()->unique('item_name')->values(), // [multi-level access]
+    //         'receivedModes' => ReceivedMode::with('ledger')
+    //             ->whereIn('created_by', $userIds) // [multi-level access]
+    //             ->get(),
+    //     ]);
+    // }
+
     public function create()
     {
-        // return Inertia::render('purchase_returns/create', [
-        //     'godowns' => Godown::where('created_by', auth()->id())->get(),
-        //     'ledgers' => AccountLedger::where('created_by', auth()->id())->get(),
-        //     'items' => Item::where('created_by', auth()->id())->get()->unique('item_name')->values(),
-        //     'receivedModes' => ReceivedMode::with('ledger') // 🆕 add this
-        //         ->where('created_by', auth()->id())
-        //         ->get(),
-        // ]);
+        $user = auth()->user();
+        $userIds = godown_scope_ids();
 
-        $userIds = godown_scope_ids(); // [multi-level access]
+        // If admin, show all data (no filter)
+        $godowns = $user->hasRole('admin')
+            ? Godown::all()
+            : Godown::whereIn('created_by', $userIds)->get();
+
+        $ledgers = $user->hasRole('admin')
+            ? AccountLedger::all()
+            : AccountLedger::whereIn('created_by', $userIds)->get();
+
+        $items = $user->hasRole('admin')
+            ? Item::all()->unique('item_name')->values()
+            : Item::whereIn('created_by', $userIds)->get()->unique('item_name')->values();
+
+        $receivedModes = $user->hasRole('admin')
+            ? ReceivedMode::with('ledger')->get()
+            : ReceivedMode::with('ledger')->whereIn('created_by', $userIds)->get();
 
         return Inertia::render('purchase_returns/create', [
-            'godowns' => Godown::whereIn('created_by', $userIds)->get(), // [multi-level access]
-            'ledgers' => AccountLedger::whereIn('created_by', $userIds)->get(), // [multi-level access]
-            'items' => Item::whereIn('created_by', $userIds)->get()->unique('item_name')->values(), // [multi-level access]
-            'receivedModes' => ReceivedMode::with('ledger')
-                ->whereIn('created_by', $userIds) // [multi-level access]
-                ->get(),
+            'godowns' => $godowns,
+            'ledgers' => $ledgers,
+            'items' => $items,
+            'receivedModes' => $receivedModes,
         ]);
     }
 

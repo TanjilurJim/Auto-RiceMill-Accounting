@@ -349,8 +349,8 @@ class PurchaseController extends Controller
     //     }
 
     //     // $userId = auth()->id();
-    //     // $userIds = user_scope_ids();
-    //     $userIds = godown_scope_ids(); // [multi-level access]
+    //     // $userId = user_scope_ids();
+    //     $userId = godown_scope_ids(); // [multi-level access]
 
     //     return Inertia::render('purchases/edit', [
     //         'purchase' => $purchase->load([

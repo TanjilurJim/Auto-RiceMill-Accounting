@@ -16,65 +16,121 @@ use Illuminate\Http\Request;
 use App\Models\PurchaseReturn;
 use Illuminate\Support\Facades\Auth;
 
+use function user_scope_ids; // <-- Add this line
+
+
 class DashboardController extends Controller
 {
+    // public function index()
+    // {
+
+    //     // $userIds = user_scope_ids(); // <-- Use multi-level user ids
+
+
+    //     $user = Auth::user();
+
+    //     if ($user->hasRole('admin')) {
+    //     // Admin: see all users' data
+    //     $userIds = User::pluck('id')->toArray();
+    //     } else {
+    //         $myId = $user->id;
+    //         $myUsers = User::where('created_by', $myId)->pluck('id')->toArray();
+
+    //         // Only include your creator if they are NOT admin
+    //         $parentId = $user->created_by;
+    //         $parentUsers = [];
+    //         if ($parentId) {
+    //             $parent = User::find($parentId);
+    //             if ($parent && !$parent->hasRole('admin')) {
+    //                 $parentUsers[] = $parentId;
+    //             }
+    //         }
+
+    //         $userIds = array_unique(array_merge([$myId], $myUsers, $parentUsers));
+    //     }
+
+    //     // $myId = $user->id;
+
+    //     // // Users you created
+    //     // $myUsers = User::where('created_by', $myId)->pluck('id')->toArray();
+
+    //     // // Only include your creator if they are NOT admin
+    //     // $parentId = $user->created_by;
+    //     // $parentUsers = [];
+    //     // if ($parentId) {
+    //     //     $parent = User::find($parentId);
+    //     //     if ($parent && !$parent->hasRole('admin')) {
+    //     //         $parentUsers[] = $parentId;
+    //     //     }
+    //     // }
+
+    //     // // Merge all relevant user IDs
+    //     // $userIds = array_unique(array_merge([$myId], $myUsers, $parentUsers));
+
+
+    //     // Sum sales for these users
+    //     $totalSales = Sale::whereIn('created_by', $userIds)->sum('grand_total');
+    //     $totalPurchases = Purchase::whereIn('created_by', $userIds)->sum('grand_total');
+    //     $totalPurchaseReturns = PurchaseReturn::whereIn('created_by', $userIds)->sum('grand_total');
+    //     $totalSalesReturns = SalesReturn::whereIn('created_by', $userIds)->sum('total_return_amount');
+    //     $totalSalesOrders = SalesOrder::whereIn('created_by', $userIds)->sum('total_amount');
+    //     $totalReceived = ReceivedAdd::whereIn('created_by', $userIds)->sum('amount');
+    //     $totalPayment = PaymentAdd::whereIn('created_by', $userIds)->sum('amount');
+    //     $totalWorkOrders = WorkingOrder::whereIn('created_by', $userIds)->count();
+    //     // Work orders with production_status = 'completed'
+    //     $completedWorkOrders = WorkingOrder::whereIn('created_by', $userIds)
+    //         ->where('production_status', 'completed')
+    //         ->count();
+
+
+    //     return Inertia::render('dashboard', [
+    //         'totalSales' => $totalSales,
+    //         'totalPurchases' => $totalPurchases,
+    //         'totalPurchaseReturns' => $totalPurchaseReturns,
+    //         'totalSalesReturns' => $totalSalesReturns,
+    //         'totalSalesOrders' => $totalSalesOrders,
+    //         'totalReceived' => $totalReceived,
+    //         'totalPayment' => $totalPayment,
+    //         'totalWorkOrders' => $totalWorkOrders,
+    //         'completedWorkOrders' => $completedWorkOrders,
+
+    //     ]);
+    // }
+
     public function index()
     {
-        $user = Auth::user();
+        $userIds = user_scope_ids();
 
-        if ($user->hasRole('admin')) {
-        // Admin: see all users' data
-        $userIds = User::pluck('id')->toArray();
-        } else {
-            $myId = $user->id;
-            $myUsers = User::where('created_by', $myId)->pluck('id')->toArray();
+        // If admin, don't filter by userIds
+        $isAdmin = empty($userIds);
 
-            // Only include your creator if they are NOT admin
-            $parentId = $user->created_by;
-            $parentUsers = [];
-            if ($parentId) {
-                $parent = User::find($parentId);
-                if ($parent && !$parent->hasRole('admin')) {
-                    $parentUsers[] = $parentId;
-                }
-            }
-
-            $userIds = array_unique(array_merge([$myId], $myUsers, $parentUsers));
-        }
-
-        // $myId = $user->id;
-
-        // // Users you created
-        // $myUsers = User::where('created_by', $myId)->pluck('id')->toArray();
-
-        // // Only include your creator if they are NOT admin
-        // $parentId = $user->created_by;
-        // $parentUsers = [];
-        // if ($parentId) {
-        //     $parent = User::find($parentId);
-        //     if ($parent && !$parent->hasRole('admin')) {
-        //         $parentUsers[] = $parentId;
-        //     }
-        // }
-
-        // // Merge all relevant user IDs
-        // $userIds = array_unique(array_merge([$myId], $myUsers, $parentUsers));
-
-
-        // Sum sales for these users
-        $totalSales = Sale::whereIn('created_by', $userIds)->sum('grand_total');
-        $totalPurchases = Purchase::whereIn('created_by', $userIds)->sum('grand_total');
-        $totalPurchaseReturns = PurchaseReturn::whereIn('created_by', $userIds)->sum('grand_total');
-        $totalSalesReturns = SalesReturn::whereIn('created_by', $userIds)->sum('total_return_amount');
-        $totalSalesOrders = SalesOrder::whereIn('created_by', $userIds)->sum('total_amount');
-        $totalReceived = ReceivedAdd::whereIn('created_by', $userIds)->sum('amount');
-        $totalPayment = PaymentAdd::whereIn('created_by', $userIds)->sum('amount');
-        $totalWorkOrders = WorkingOrder::whereIn('created_by', $userIds)->count();
-        // Work orders with production_status = 'completed'
-        $completedWorkOrders = WorkingOrder::whereIn('created_by', $userIds)
-            ->where('production_status', 'completed')
-            ->count();
-
+        $totalSales = Sale::when(!$isAdmin, function ($q) use ($userIds) {
+                $q->whereIn('created_by', $userIds);
+            })->sum('grand_total');
+        $totalPurchases = Purchase::when(!$isAdmin, function ($q) use ($userIds) {
+                $q->whereIn('created_by', $userIds);
+            })->sum('grand_total');
+        $totalPurchaseReturns = PurchaseReturn::when(!$isAdmin, function ($q) use ($userIds) {
+                $q->whereIn('created_by', $userIds);
+            })->sum('grand_total');
+        $totalSalesReturns = SalesReturn::when(!$isAdmin, function ($q) use ($userIds) {
+                $q->whereIn('created_by', $userIds);
+            })->sum('total_return_amount');
+        $totalSalesOrders = SalesOrder::when(!$isAdmin, function ($q) use ($userIds) {
+                $q->whereIn('created_by', $userIds);
+            })->sum('total_amount');
+        $totalReceived = ReceivedAdd::when(!$isAdmin, function ($q) use ($userIds) {
+                $q->whereIn('created_by', $userIds);
+            })->sum('amount');
+        $totalPayment = PaymentAdd::when(!$isAdmin, function ($q) use ($userIds) {
+                $q->whereIn('created_by', $userIds);
+            })->sum('amount');
+        $totalWorkOrders = WorkingOrder::when(!$isAdmin, function ($q) use ($userIds) {
+                $q->whereIn('created_by', $userIds);
+            })->count();
+        $completedWorkOrders = WorkingOrder::when(!$isAdmin, function ($q) use ($userIds) {
+                $q->whereIn('created_by', $userIds);
+            })->where('production_status', 'completed')->count();
 
         return Inertia::render('dashboard', [
             'totalSales' => $totalSales,
@@ -86,7 +142,7 @@ class DashboardController extends Controller
             'totalPayment' => $totalPayment,
             'totalWorkOrders' => $totalWorkOrders,
             'completedWorkOrders' => $completedWorkOrders,
-
         ]);
     }
+
 }

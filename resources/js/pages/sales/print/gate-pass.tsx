@@ -36,18 +36,18 @@ export default function GatePass({
 
       {/* ── Company header ── */}
       <div className="mb-4 text-center print:text-xs">
-        {company.logo_url && (
+        {company?.logo_url && (
           <img
-            src={company.logo_url}
+            src={company?.logo_url}
             alt="Logo"
             className="mx-auto mb-2 h-20 object-contain print:h-12"
           />
         )}
         <h1 className="text-2xl font-bold uppercase">
-          {company.company_name ?? company.name}
+          {company?.company_name ?? company?.name}
         </h1>
-        {company.address && <div>{company.address}</div>}
-        {company.phone && <div>+88 {company.phone}</div>}
+        {company?.address && <div>{company?.address}</div>}
+        {company?.phone && <div>+88 {company?.phone}</div>}
         <h2 className="mt-2 font-semibold underline">GATE PASS</h2>
       </div>
 

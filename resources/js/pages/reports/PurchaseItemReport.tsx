@@ -49,7 +49,7 @@ export default function PurchaseItemReport({
             <div className="space-y-1">
               {company?.logo_path && (
                 <img
-                  src={company.logo_path}
+                  src={company?.logo_path}
                   alt="Company Logo"
                   className="mx-auto mb-2 h-16 w-16 object-cover"
                 />
@@ -58,16 +58,16 @@ export default function PurchaseItemReport({
                 {company?.company_name ?? 'Company Name'}
               </h1>
               {company?.address && (
-                <p className="text-sm text-gray-700">{company.address}</p>
+                <p className="text-sm text-gray-700">{company?.address}</p>
               )}
               {company?.mobile && (
-                <p className="text-sm text-gray-700">Phone: {company.mobile}</p>
+                <p className="text-sm text-gray-700">Phone: {company?.mobile}</p>
               )}
               {(company?.email || company?.website) && (
                 <p className="text-sm text-gray-700">
-                  {company.email && <span>{company.email}</span>}
-                  {company.email && company.website && <span className="mx-1">|</span>}
-                  {company.website && <span>{company.website}</span>}
+                  {company?.email && <span>{company?.email}</span>}
+                  {company?.email && company?.website && <span className="mx-1">|</span>}
+                  {company?.website && <span>{company?.website}</span>}
                 </p>
               )}
             </div>
@@ -82,7 +82,7 @@ export default function PurchaseItemReport({
               </p>
             </div>
 
-            <div className="absolute top-4 right-4 print:hidden">
+            <div className="absolute top-16 right-4 print:hidden">
               <Link
                 href={route('reports.purchase.filter', { tab: 'item' })}
                 className="text-sm text-blue-600 hover:underline"

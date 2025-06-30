@@ -18,17 +18,27 @@ class SaleReportController extends Controller
      | 0️⃣  Helpers
      |=========================================================*/
 
+    // private function allowedUserIds(): array
+    // {
+    //     if (auth()->user()->hasRole('admin')) {
+    //         return [];  // no restriction
+    //     }
+
+    //     $me = auth()->id();
+    //     $subs = \App\Models\User::where('created_by', $me)->pluck('id')->all();
+
+    //     return array_merge([$me], $subs);
+    // }
+
     private function allowedUserIds(): array
     {
         if (auth()->user()->hasRole('admin')) {
             return [];  // no restriction
         }
-
-        $me = auth()->id();
-        $subs = \App\Models\User::where('created_by', $me)->pluck('id')->all();
-
-        return array_merge([$me], $subs);
+        // Use the global helper for multi-level user access
+        return user_scope_ids();
     }
+
 
     /* =========================================================
      | 1️⃣  FILTER PAGE

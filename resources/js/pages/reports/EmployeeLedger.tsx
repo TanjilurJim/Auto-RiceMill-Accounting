@@ -74,20 +74,20 @@ const EmployeeLedger: React.FC = () => {
                 <div className="mb-4 text-center">
                     {company?.logo_path && (
                         <img
-                            src={company.logo_path}
+                            src={company?.logo_path}
                             alt="Company Logo"
                             className="mx-auto mb-2 h-16 w-16 object-cover"
                         />
                     )}
                     <h2 className="text-xl sm:text-2xl lg:text-3xl font-bold">
-                        {company.company_name}
+                        {company?.company_name}
                     </h2>
-                    <p className="text-sm sm:text-base">{company.address}</p>
-                    <p className="text-sm sm:text-base">{company.mobile}</p>
-                    <p className="text-sm sm:text-base">{company.email}</p>
-                    <p className="text-sm sm:text-base">{company.website}</p>
+                    <p className="text-sm sm:text-base">{company?.address}</p>
+                    <p className="text-sm sm:text-base">{company?.mobile}</p>
+                    <p className="text-sm sm:text-base">{company?.email}</p>
+                    <p className="text-sm sm:text-base">{company?.website}</p>
                     <p className="text-sm sm:text-base">
-                        Financial Year: {company.financial_year}
+                        Financial Year: {company?.financial_year}
                     </p>
                 </div>
 

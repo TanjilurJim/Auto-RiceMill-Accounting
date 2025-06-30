@@ -89,12 +89,19 @@ class ProfitLossController extends Controller
         $from = $request->query('from_date') ?: now()->startOfYear()->toDateString();
         $to   = $request->query('to_date')   ?: now()->endOfYear()->toDateString();
 
+        $user = auth()->user();
+        $ids = user_scope_ids();
+
         /* ---------- shared entry builder ---------- */
         $entries = JournalEntry::with(['ledger', 'journal'])
             ->whereHas('journal', fn ($q) => $q->whereBetween('date', [$from, $to]));
 
-        if (!auth()->user()->hasRole('admin')) {
-            $entries->whereHas('journal', fn ($q) => $q->where('created_by', auth()->id()));
+        // if (!auth()->user()->hasRole('admin')) {
+        //     $entries->whereHas('journal', fn ($q) => $q->where('created_by', auth()->id()));
+        // }
+
+        if (!$user->hasRole('admin')) {
+            $entries->whereHas('journal', fn ($q) => $q->whereIn('created_by', $ids)); 
         }
 
         /* ---------- top‑level figures ---------- */
@@ -131,8 +138,12 @@ class ProfitLossController extends Controller
             ->join('group_unders',  'account_ledgers.group_under_id', '=', 'group_unders.id')
             ->join('journals',      'journal_entries.journal_id',     '=', 'journals.id')
             ->whereBetween('journals.date', [$from, $to])
-            ->when(!auth()->user()->hasRole('admin'),
-                fn ($q) => $q->where('journals.created_by', auth()->id()))
+            // ->when(!auth()->user()->hasRole('admin'),
+            //     fn ($q) => $q->where('journals.created_by', auth()->id()))
+
+            ->when(!$user->hasRole('admin'),
+                fn ($q) => $q->whereIn('journals.created_by', $ids))
+
             ->selectRaw('group_unders.name as group_name,
                          journal_entries.type as dr_cr,
                          SUM(journal_entries.amount) as total')
@@ -156,6 +167,18 @@ class ProfitLossController extends Controller
         /* ---------- company info ---------- */
         $co = company_info();
         // dd($groupSums->keys());
+
+        if (!$co) {
+            $co = (object)[
+                'company_name'   => '',
+                'phone'          => '',
+                'email'          => '',
+                'address'        => '',
+                'logo_url'       => '',
+                'logo_thumb_url' => '',
+            ];
+        }
+
         return [
             'from_date' => $from,
             'to_date'   => $to,
@@ -163,12 +186,12 @@ class ProfitLossController extends Controller
             'byLedger'  => $byLedger,
             'grouped'   => $grouped,   // <-- new payload
             'company'   => [
-                'company_name'   => $co->company_name,
-                'phone'          => $co->phone ?? null,
-                'email'          => $co->email ?? null,
-                'address'        => $co->address ?? null,
-                'logo_url'       => $co->logo_url ?? null,
-                'logo_thumb_url' => $co->logo_thumb_url ?? null,
+                'company_name'   => $co->company_name ,
+                'phone'          => $co->phone ,
+                'email'          => $co->email ,
+                'address'        => $co->address ,
+                'logo_url'       => $co->logo_url ,
+                'logo_thumb_url' => $co->logo_thumb_url ,
             ],
         ];
     }

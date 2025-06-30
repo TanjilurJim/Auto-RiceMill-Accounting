@@ -146,6 +146,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('/sales/{sale}/load', [SalesReturnController::class, 'loadSale']);
     Route::get('/sales-returns/{salesReturn}/invoice', [SalesReturnController::class, 'invoice'])->name('sales-returns.invoice');
     Route::resource('sales-orders', SalesOrderController::class);
+    Route::get('/sales-orders/products/by-godown/{id}', [SalesOrderController::class, 'getProductsByGodown']);
     Route::get('/sales-orders/{salesOrder}/invoice', [SalesOrderController::class, 'invoice'])->name('sales-orders.invoice');
     Route::get('/sales/items/by-godown/{id}', [SaleController::class, 'getItemsByGodown']);
 
@@ -235,9 +236,13 @@ Route::middleware(['auth', 'verified'])->group(function () {
 
     // All Receivable Payable Report
     // Filter Page (Step 1)
-    Route::get('/reports/receivable-payable/filter', function () {
-        return Inertia::render('reports/AllReceivablePayableFilter');
-    })->name('reports.receivable-payable.filter');
+
+    // Route::get('/reports/receivable-payable/filter', function () {
+    //     return Inertia::render('reports/AllReceivablePayableFilter');
+    // })->name('reports.receivable-payable.filter');
+
+    Route::get('/reports/receivable-payable/filter', [AllReceivablePayableReportController::class, 'filter'])
+    ->name('reports.receivable-payable.filter');
 
     // Final Report Page (Step 2)
     Route::get('/reports/receivable-payable', [AllReceivablePayableReportController::class, 'index'])
@@ -245,11 +250,13 @@ Route::middleware(['auth', 'verified'])->group(function () {
 
     // All Received Payment Report  
 
-    Route::get('/reports/all-received-payment', [App\Http\Controllers\AllReceivedPaymentReportController::class, 'index'])->name('reports.all-received-payment');
+    Route::get('/reports/all-received-payment', [AllReceivedPaymentReportController::class, 'index'])->name('reports.all-received-payment');
 
-    Route::get('/reports/all-received-payment/filter', function () {
-        return Inertia::render('reports/AllReceivedPaymentFilter');
-    })->name('reports.all-received-payment.filter');
+    // Route::get('/reports/all-received-payment/filter', function () {
+    //     return Inertia::render('reports/AllReceivedPaymentFilter');
+    // })->name('reports.all-received-payment.filter');
+    Route::get('/reports/all-received-payment/filter', [AllReceivedPaymentReportController::class, 'filter'])
+    ->name('reports.all-received-payment.filter');
 
     //Profit Loss
     /* filter form */

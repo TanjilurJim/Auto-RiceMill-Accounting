@@ -191,6 +191,7 @@ export default function PurchaseCreate({
     const [newGroupId, setNewGroupId] = useState('');
     const [inventoryLedgerOptions, setInventoryLedgerOptions] = useState<Ledger[]>(inventoryLedgers);
     const godownItems: StockRow[] = data.godown_id && stockItemsByGodown[data.godown_id] ? stockItemsByGodown[data.godown_id] : [];
+    console.log(godownItems);
     return (
         <AppLayout>
             <Head title="Add Purchase" />

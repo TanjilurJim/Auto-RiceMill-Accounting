@@ -1,3 +1,4 @@
+import Pagination from '@/components/Pagination';
 import AppLayout from '@/layouts/app-layout';
 import { Head, Link, router } from '@inertiajs/react';
 import Swal from 'sweetalert2';
@@ -8,6 +9,13 @@ interface AccountGroup {
     nature?: { name: string };
     groupUnder?: { name: string };
     creator?: { name: string };
+}
+
+interface PaginationData {
+    links: { url: string | null; label: string; active: boolean }[];
+    currentPage: number;
+    lastPage: number;
+    total: number;
 }
 
 export default function AccountGroupIndex({ accountGroups }: { accountGroups: AccountGroup[] }) {
@@ -82,6 +90,10 @@ export default function AccountGroupIndex({ accountGroups }: { accountGroups: Ac
                         </tbody>
                     </table>
                 </div>
+
+                {/* Pagination can be added here if needed */}
+                
+
             </div>
         </AppLayout>
     );

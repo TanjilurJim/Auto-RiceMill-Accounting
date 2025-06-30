@@ -31,7 +31,7 @@ class FinishedProductController extends Controller
 
     public function index()
     {
-        $ids = godown_scope_ids();
+        $ids = user_scope_ids();
 
         $finishedProducts = FinishedProduct::with([
             'workingOrder',
@@ -63,7 +63,7 @@ class FinishedProductController extends Controller
 
     public function create()
     {
-        $ids = godown_scope_ids();
+        $ids = user_scope_ids();
 
         return Inertia::render('finished-products/create', [
             'workingOrders' => WorkingOrder::with(['items.item', 'items.godown', 'extras'])
@@ -146,7 +146,7 @@ class FinishedProductController extends Controller
 
     public function store(Request $request)
     {
-        $ids = godown_scope_ids();
+        $ids = user_scope_ids();
 
         $data = $request->validate([
             'working_order_id'           => 'required|exists:working_orders,id',
@@ -220,7 +220,7 @@ class FinishedProductController extends Controller
 
     public function show($id)
     {
-        $ids = godown_scope_ids();
+        $ids = user_scope_ids();
 
         $finishedProduct = FinishedProduct::with([
             'workingOrder',
@@ -265,7 +265,7 @@ class FinishedProductController extends Controller
 
     public function edit($id)
     {
-        $ids = godown_scope_ids();
+        $ids = user_scope_ids();
 
         $finishedProduct = FinishedProduct::with(['items', 'workingOrder', 'items.product', 'items.godown'])
             ->when($ids !== null && !empty($ids), fn($q) => $q->whereIn('created_by', $ids))
@@ -362,7 +362,7 @@ class FinishedProductController extends Controller
 
     public function update(Request $request, $id)
     {
-        $ids = godown_scope_ids();
+        $ids = user_scope_ids();
 
         $fp = FinishedProduct::when($ids !== null && !empty($ids), fn($q) => $q->whereIn('created_by', $ids))->findOrFail($id);
 
@@ -415,7 +415,7 @@ class FinishedProductController extends Controller
 
     public function destroy($id)
     {
-        $ids = godown_scope_ids();
+        $ids = user_scope_ids();
 
         $fp = FinishedProduct::when($ids !== null && !empty($ids), fn($q) => $q->whereIn('created_by', $ids))->findOrFail($id);
 
@@ -445,7 +445,7 @@ class FinishedProductController extends Controller
 
     public function print($id)
     {
-        $ids = godown_scope_ids();
+        $ids = user_scope_ids();
 
         $finishedProduct = FinishedProduct::with(['items.product', 'items.godown', 'workingOrder'])
             ->when($ids !== null && !empty($ids), fn($q) => $q->whereIn('created_by', $ids))
@@ -484,7 +484,7 @@ class FinishedProductController extends Controller
 
     private function nextVoucher($ids = null): string
     {
-        $ids = $ids ?? godown_scope_ids();
+        $ids = $ids ?? user_scope_ids();
 
         $last = FinishedProduct::when($ids !== null && !empty($ids), fn($q) => $q->whereIn('created_by', $ids))
             ->latest()

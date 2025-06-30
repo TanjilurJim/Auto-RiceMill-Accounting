@@ -48,13 +48,13 @@ export default function ReceivedPrint(
         {/* company header */}
         <div className="mb-6 text-center print:text-xs">
           {company?.logo_url &&
-            <img src={company.logo_url}
+            <img src={company?.logo_url}
                  className="mx-auto h-20 object-contain mb-2 print:h-12" />}
           <h1 className="text-xl font-bold">
             {company?.company_name ?? company?.name ?? 'Company Name'}
           </h1>
-          {company?.address && <div>{company.address}</div>}
-          {company?.phone   && <div>Phone: +88 {company.phone}</div>}
+          {company?.address && <div>{company?.address}</div>}
+          {company?.phone   && <div>Phone: +88 {company?.phone}</div>}
         </div>
 
         <h2 className="mb-4 text-center text-lg font-semibold underline">

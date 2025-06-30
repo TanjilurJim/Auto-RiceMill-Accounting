@@ -23,6 +23,8 @@ use App\Exports\ReceivablePayableExport;
 
 use Inertia\Inertia;
 
+use function user_scope_ids;
+
 
 class AllReceivablePayableReportController extends Controller
 {
@@ -135,6 +137,22 @@ class AllReceivablePayableReportController extends Controller
             'receivables' => $receivables,
             'payables' => $payables,
             'company' => $company,
+        ]);
+    }
+
+
+    public function filter()
+    {
+        $user = auth()->user();
+        $ids = user_scope_ids();
+
+        $ledgers = AccountLedger::when(
+            !$user->hasRole('admin'),
+            fn($q) => $q->whereIn('created_by', $ids)
+        )->get(['id', 'account_ledger_name']);
+
+        return Inertia::render('reports/AllReceivablePayableFilter', [
+            'ledgers' => $ledgers,
         ]);
     }
 
@@ -277,4 +295,16 @@ class AllReceivablePayableReportController extends Controller
     //         });
     //     });
     // }
+
+    protected function applyUserScope($query)
+    {
+        $user = auth()->user();
+        $ids = user_scope_ids();
+
+        return $query->when(
+            !$user->hasRole('admin'),
+            fn($q) => $q->whereIn('created_by', $ids)
+        );
+    }
+
 }
