@@ -44,7 +44,7 @@ export default function PartyStockWithdrawIndex({ withdrawals }: Props) {
                                     <td className="border p-2">{withdrawal.ref_no}</td>
                                     <td className="border p-2">{withdrawal.party_ledger_name}</td>
                                     <td className="border p-2">{withdrawal.godown_name}</td>
-                                    <td className="border p-2">{withdrawal.total.toFixed(2)}</td>
+                                    <td className="border p-2">{Number(withdrawal.total || 0).toFixed(2)}</td>
                                 </tr>
                             ))}
                         </tbody>

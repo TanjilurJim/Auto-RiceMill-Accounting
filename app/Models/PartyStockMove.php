@@ -9,34 +9,31 @@ class PartyStockMove extends Model
     protected $fillable = [
         'date',
         'party_ledger_id',
-        'item_id',
+        'party_item_id',     // 🔄
         'godown_id_from',
         'godown_id_to',
         'qty',
-        'rate',       // ✅ add this
+        'rate',
         'total',
         'move_type',
         'ref_no',
         'remarks',
         'created_by',
-        'unit_name',  // Add this to allow mass assignment of unit_name
+        'unit_name',
     ];
 
+    public function partyItem()
+    {
+        return $this->belongsTo(PartyItem::class);
+    }
     public function partyLedger()
     {
-        return $this->belongsTo(AccountLedger::class, 'party_ledger_id');
+        return $this->belongsTo(AccountLedger::class);
     }
-
-    public function item()
-    {
-        return $this->belongsTo(Item::class, 'item_id');
-    }
-
     public function godownFrom()
     {
         return $this->belongsTo(Godown::class, 'godown_id_from');
     }
-
     public function godownTo()
     {
         return $this->belongsTo(Godown::class, 'godown_id_to');

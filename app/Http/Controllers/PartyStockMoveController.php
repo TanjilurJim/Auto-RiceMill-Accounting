@@ -2,6 +2,8 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\PartyItem;
+
 use App\Models\PartyStockMove;
 use App\Models\PartyJobStock;
 use App\Models\AccountLedger;
@@ -26,7 +28,7 @@ class PartyStockMoveController extends Controller
             'parties' => AccountLedger::whereIn('ledger_type', ['sales', 'income'])
                 ->where(createdByMeOnly())
                 ->get(['id', 'account_ledger_name']),
-            'items'   => Item::where(createdByMeOnly())->get(['id', 'item_name', 'unit_id']),
+            // 'items'   => Item::where(createdByMeOnly())->get(['id', 'item_name', 'unit_id']),
             'units' => Unit::where(createdByMeOnly())->get(['id', 'name']),
             'godowns' => Godown::where(createdByMeOnly())->get(['id', 'name']),
             'today'   => now()->toDateString(),
@@ -44,40 +46,55 @@ class PartyStockMoveController extends Controller
             'ref_no'           => ['nullable', 'string', 'max:255'],
             'remarks'          => ['nullable', 'string'],
             'deposits'         => ['required', 'array', 'min:1'],
-            'deposits.*.item_id' => ['required', 'exists:items,id'],
+            'deposits.*.item_name'      => ['required', 'string', 'max:255'],
             'deposits.*.qty'    => ['required', 'numeric', 'min:0.01'],
+            'deposits.*.unit_id'        => ['nullable', 'exists:units,id'],
             'deposits.*.unit_name' => ['nullable', 'string'],
             'deposits.*.rate'   => ['required', 'numeric', 'min:0'],  // Ensure rate is required
         ]);
 
         DB::transaction(function () use ($validated) {
             foreach ($validated['deposits'] as $deposit) {
-                // Create a new record in the PartyStockMove table
+
+                /* 3-A  Get (or create) the PartyItem master row  */
+                $partyItem = PartyItem::firstOrCreate(
+                    [
+                        'party_ledger_id' => $validated['party_ledger_id'],
+                        'item_name'       => trim($deposit['item_name']),
+                    ],
+                    [
+                        'unit_id'   => $deposit['unit_id'] ?? null,   // if you store it
+                        'created_by' => auth()->id(),
+                    ]
+                );
+
+                /* 3-B  Save the movement (notice party_item_id) */
                 PartyStockMove::create([
                     'date'            => $validated['date'],
                     'party_ledger_id' => $validated['party_ledger_id'],
-                    'item_id'         => $deposit['item_id'],
-                    'unit_id'         => null,
-                    'unit_name'       => $deposit['unit_name'],
+                    'party_item_id'   => $partyItem->id,        // 🔄 was item_id
                     'godown_id_from'  => null,
                     'godown_id_to'    => $validated['godown_id_to'],
                     'qty'             => $deposit['qty'],
-                    'rate'            => $deposit['rate'],  // Save the rate
-                    'total'           => $deposit['qty'] * $deposit['rate'],  // Calculate and save total
+                    'rate'            => $deposit['rate'],
+                    'total'           => bcmul($deposit['qty'], $deposit['rate'], 2),
                     'move_type'       => 'deposit',
                     'ref_no'          => $validated['ref_no'] ?? null,
                     'remarks'         => $validated['remarks'] ?? null,
+                    'unit_name'       => $deposit['unit_name'] ?? null,
                     'created_by'      => auth()->id(),
                 ]);
 
-                // Update the stock for PartyJobStock
+                /* 3-C  Update running balance table */
                 $stock = PartyJobStock::firstOrNew([
-                    'party_ledger_id' => $validated['party_ledger_id'],
-                    'item_id'         => $deposit['item_id'],
+                    'party_item_id'   => $partyItem->id,        // 🔄 was item_id
                     'godown_id'       => $validated['godown_id_to'],
                 ]);
 
-                $stock->qty = ($stock->qty ?? 0) + $deposit['qty'];
+                // keep party_ledger_id for quick look-ups (optional)
+                $stock->party_ledger_id = $validated['party_ledger_id'];
+                $stock->qty   = ($stock->qty ?? 0) + $deposit['qty'];
+                $stock->unit_name  = $deposit['unit_name'] ?? $stock->unit_name;
                 $stock->created_by = auth()->id();
                 $stock->save();
             }
@@ -100,7 +117,7 @@ class PartyStockMoveController extends Controller
             ->paginate(10); // Adjust per page as needed
 
         // Step 2: Get all stock moves with those ref_nos
-        $moves = PartyStockMove::with(['item', 'partyLedger', 'godownTo'])
+        $moves = PartyStockMove::with(['partyItem', 'partyLedger', 'godownTo'])
             ->where('move_type', 'deposit')
             ->where('created_by', auth()->id())
             ->whereIn('ref_no', $refNos->pluck('ref_no'))
@@ -119,7 +136,7 @@ class PartyStockMoveController extends Controller
                 'remarks' => $first->remarks,
                 'items' => $group->map(function ($item) {
                     return [
-                        'item_name' => $item->item->item_name ?? '',
+                        'item_name' => $item->partyItem->item_name ?? '',
                         'unit_name' => $item->unit_name ?? '',
                         'qty' => $item->qty,
                         'rate' => $item->rate ?? 0,
@@ -142,199 +159,9 @@ class PartyStockMoveController extends Controller
 
     //withdraw 
 
-    public function indexWithdraw()
-    {
-        // Fetch paginated withdrawals
-        $withdrawals = PartyStockMove::with(['item', 'partyLedger', 'godownFrom'])
-            ->where('move_type', 'withdraw')
-            ->where('created_by', auth()->id())
-            ->orderBy('date', 'desc')
-            ->paginate(10); // Paginate results
 
-        return Inertia::render('crushing/PartyStockWithdrawIndex', [
-            'withdrawals' => $withdrawals,
-        ]);
-    }
-
-    // Withdraw Method
-    public function createWithdraw(Request $request)
-    {
-        // Generate the reference number
-        $dateStr = now()->format('Ymd');
-        $random = random_int(1000, 9999);
-        $generatedRefNo = "PWD-$dateStr-$random"; // Prefix can be changed
-
-        // Fetch godowns, units, and items
-        $godowns = Godown::where(createdByMeOnly())->get(['id', 'name']);
-        $units = Unit::where(createdByMeOnly())->get(['id', 'name']);
-        $parties = AccountLedger::whereIn('ledger_type', ['sales', 'income'])
-            ->where(createdByMeOnly())
-            ->get(['id', 'account_ledger_name']);
-        $items = Item::where(createdByMeOnly())->get(['id', 'item_name']);
-
-        // Fetch available stock from PartyStockMove for each party and its godowns, including items and unit names
-        $availableStock = [];
-        foreach ($parties as $party) {
-            $stockData = PartyStockMove::where('party_ledger_id', $party->id)
-                ->with(['item', 'godownFrom', 'godownTo'])  // Eager load relationships
-                ->get(['item_id', 'godown_id_from', 'godown_id_to', 'qty', 'unit_name']);  // Fetch the necessary columns
-
-            foreach ($stockData as $stock) {
-                // Store data from godownFrom (source godown)
-                $availableStock[$party->id][$stock->item_id][$stock->godown_id_from] = [
-                    'qty' => $stock->qty,
-                    'item_name' => $stock->item->item_name,
-                    'godown_name' => $stock->godownFrom->name ?? '',
-                    'unit_name' => $stock->unit_name, // Include the unit name here
-                ];
-
-                // Store data from godownTo (destination godown)
-                $availableStock[$party->id][$stock->item_id][$stock->godown_id_to] = [
-                    'qty' => $stock->qty,
-                    'item_name' => $stock->item->item_name,
-                    'godown_name' => $stock->godownTo->name ?? '',
-                    'unit_name' => $stock->unit_name, // Include the unit name here
-                ];
-            }
-        }
-
-        return Inertia::render('crushing/WithdrawForm', [
-            'parties' => $parties,
-            'items' => $items,
-            'godowns' => $godowns,
-            'units' => $units,
-            'today' => now()->toDateString(),
-            'generated_ref_no' => $generatedRefNo,
-            'available_stock' => $availableStock, // Only pass data from PartyStockMove
-        ]);
-    }
-
-
-
-
-
-
-
-    public function withdraw(Request $request)
-    {
-        // Validate the request
-        $validated = $request->validate([
-            'date'             => ['required', 'date'],
-            'party_ledger_id'  => ['required', 'exists:account_ledgers,id'],
-            'godown_id_from'   => ['required', 'exists:godowns,id'],
-            'item_id'          => ['required', 'exists:items,id'],
-            'qty'              => ['required', 'numeric', 'min:0.01'],
-            'remarks'          => ['nullable', 'string'],
-        ]);
-
-        // Fetch available stock for the party and item
-        $availableStock = PartyJobStock::where('party_ledger_id', $validated['party_ledger_id'])
-            ->where('item_id', $validated['item_id'])
-            ->where('godown_id', $validated['godown_id_from'])
-            ->first();
-
-        if (!$availableStock || $availableStock->qty < $validated['qty']) {
-            return redirect()->back()->with('error', 'Insufficient stock for withdrawal.');
-        }
-
-        // Start a transaction to update both tables
-        DB::transaction(function () use ($validated) {
-            // Record the withdrawal in party_stock_moves
-            PartyStockMove::create([
-                'date'            => $validated['date'],
-                'party_ledger_id' => $validated['party_ledger_id'],
-                'item_id'         => $validated['item_id'],
-                'godown_id_from'  => $validated['godown_id_from'],
-                'godown_id_to'    => null,
-                'qty'             => -$validated['qty'], // Negative quantity for withdrawal
-                'move_type'       => 'withdraw',
-                'ref_no'          => $validated['ref_no'] ?? null,
-                'remarks'         => $validated['remarks'] ?? null,
-                'created_by'      => auth()->id(),
-            ]);
-
-            // Update the stock in party_job_stocks (decrease quantity)
-            $stock = PartyJobStock::where('party_ledger_id', $validated['party_ledger_id'])
-                ->where('item_id', $validated['item_id'])
-                ->where('godown_id', $validated['godown_id_from'])
-                ->first();
-
-            if ($stock) {
-                $stock->qty -= $validated['qty']; // Decrease the quantity
-                $stock->save();
-            }
-        });
-
-        return redirect()->route('party-stock.withdraw.index')->with('success', 'মাল উত্তোলন সফলভাবে সম্পন্ন হয়েছে।');
-    }
 
     //transfer
 
-    // Transfer Method
-    public function createTransfer(Request $request)
-    {
-        return Inertia::render('crushing/TransferForm', [
-            'parties' => AccountLedger::whereIn('ledger_type', ['sales', 'income'])
-                ->where(createdByMeOnly())
-                ->get(['id', 'account_ledger_name']),
-            'items'   => Item::where(createdByMeOnly())->get(['id', 'item_name']),
-            'godowns' => Godown::where(createdByMeOnly())->get(['id', 'name']),
-            'today'   => now()->toDateString(),
-        ]);
-    }
 
-    public function transfer(Request $request)
-    {
-        // Validate the request
-        $validated = $request->validate([
-            'date'             => ['required', 'date'],
-            'party_ledger_id'  => ['required', 'exists:account_ledgers,id'],
-            'godown_id_from'   => ['required', 'exists:godowns,id'],
-            'godown_id_to'     => ['required', 'exists:godowns,id'],
-            'item_id'          => ['required', 'exists:items,id'],
-            'qty'              => ['required', 'numeric', 'min:0.01'],
-            'remarks'          => ['nullable', 'string'],
-        ]);
-
-        // Start a transaction to update both tables
-        DB::transaction(function () use ($validated) {
-            // Record the transfer in party_stock_moves
-            PartyStockMove::create([
-                'date'            => $validated['date'],
-                'party_ledger_id' => $validated['party_ledger_id'],
-                'item_id'         => $validated['item_id'],
-                'godown_id_from'  => $validated['godown_id_from'],
-                'godown_id_to'    => $validated['godown_id_to'],
-                'qty'             => -$validated['qty'], // Negative quantity for withdrawal
-                'move_type'       => 'transfer',
-                'ref_no'          => $validated['ref_no'] ?? null,
-                'remarks'         => $validated['remarks'] ?? null,
-                'created_by'      => auth()->id(),
-            ]);
-
-            // Update the stock in the source godown (decrease quantity)
-            $stockFrom = PartyJobStock::where('party_ledger_id', $validated['party_ledger_id'])
-                ->where('item_id', $validated['item_id'])
-                ->where('godown_id', $validated['godown_id_from'])
-                ->first();
-
-            if ($stockFrom) {
-                $stockFrom->qty -= $validated['qty']; // Decrease the quantity in source godown
-                $stockFrom->save();
-            }
-
-            // Update the stock in the destination godown (increase quantity)
-            $stockTo = PartyJobStock::where('party_ledger_id', $validated['party_ledger_id'])
-                ->where('item_id', $validated['item_id'])
-                ->where('godown_id', $validated['godown_id_to'])
-                ->first();
-
-            if ($stockTo) {
-                $stockTo->qty += $validated['qty']; // Increase the quantity in destination godown
-                $stockTo->save();
-            }
-        });
-
-        return redirect()->route('party-stock.deposit.index')->with('success', 'মাল স্থানান্তর সফলভাবে সম্পন্ন হয়েছে।');
-    }
 }

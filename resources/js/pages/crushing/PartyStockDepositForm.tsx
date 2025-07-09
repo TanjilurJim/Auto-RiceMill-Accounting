@@ -1,8 +1,9 @@
 import AppLayout from '@/layouts/app-layout';
 import { Head, useForm } from '@inertiajs/react';
+import axios from 'axios';
 import React from 'react';
 import Select from 'react-select';
-
+import CreatableSelect from 'react-select/creatable';
 interface Props {
     parties: { id: number; account_ledger_name: string }[];
     items: { id: number; item_name: string }[];
@@ -13,24 +14,36 @@ interface Props {
 }
 
 interface DepositRow {
-    item_id: string;
-    unit_id: string;
+    item_name: string; // 🔄
+    unit_name: string; // 🔄
     qty: string;
     rate: string;
     total: number;
 }
 
-export default function PartyStockDepositForm({ parties, items, godowns, units, today, generated_ref_no }: Props) {
+export default function PartyStockDepositForm({ parties, godowns, units, today, generated_ref_no }: Props) {
     const { data, setData, post, processing, errors, reset } = useForm({
         date: today,
         party_ledger_id: '',
         godown_id_to: '',
         ref_no: generated_ref_no,
         remarks: '',
-        deposits: [{ item_id: '', unit_id: '', qty: '', rate: '', total: 0 }],
+        deposits: [{ item_name: '', unit_name: '', qty: '', rate: '', total: 0 }],
     });
 
-    const itemOptions = items.map((item) => ({ value: item.id, label: item.item_name }));
+    const [itemOptions, setItemOptions] = React.useState<{ value: string; label: string }[]>([]);
+
+    React.useEffect(() => {
+        if (!data.party_ledger_id) {
+            setItemOptions([]);
+            return;
+        }
+        axios.get(route('party.items', { party: data.party_ledger_id })).then((res) => {
+            const opts = res.data.map((x: any) => ({ value: x.item_name, label: x.item_name }));
+            setItemOptions(opts);
+        });
+    }, [data.party_ledger_id]);
+
     const unitOptions = units.map((unit) => ({ value: unit.id, label: unit.name }));
 
     const handleFieldChange = (index: number, field: keyof DepositRow, value: any) => {
@@ -45,7 +58,7 @@ export default function PartyStockDepositForm({ parties, items, godowns, units, 
     };
 
     const addRow = () => {
-        setData('deposits', [...data.deposits, { item_id: '', unit_id: '', qty: '', rate: '', total: 0 }]);
+        setData('deposits', [...data.deposits, { item_name: '', unit_name: '', qty: '', rate: '', total: 0 }]);
     };
 
     const removeRow = (index: number) => {
@@ -144,10 +157,11 @@ export default function PartyStockDepositForm({ parties, items, godowns, units, 
                                     {data.deposits.map((row, index) => (
                                         <tr key={index}>
                                             <td className="border p-2">
-                                                <Select
+                                                <CreatableSelect
+                                                    isDisabled={!data.party_ledger_id} // block until party chosen
                                                     options={itemOptions}
-                                                    value={itemOptions.find((opt) => opt.value === Number(row.item_id))}
-                                                    onChange={(selected) => handleFieldChange(index, 'item_id', selected?.value.toString() || '')}
+                                                    value={row.item_name ? { value: row.item_name, label: row.item_name } : null}
+                                                    onChange={(sel) => handleFieldChange(index, 'item_name', sel?.value ?? '')}
                                                     placeholder="পণ্য"
                                                     isClearable
                                                 />

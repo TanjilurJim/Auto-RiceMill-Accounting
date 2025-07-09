@@ -19,6 +19,7 @@ use App\Http\Controllers\PurchaseController;
 use App\Http\Controllers\SalesManController;
 use App\Http\Controllers\ContraAddController;
 use App\Http\Controllers\DashboardController;
+use App\Http\Controllers\PartyItemController;
 use App\Http\Controllers\DepartmentController;
 use App\Http\Controllers\JournalAddController;
 use App\Http\Controllers\PartyStockController;
@@ -43,6 +44,9 @@ use App\Http\Controllers\CompanySettingController;
 use App\Http\Controllers\PartyStockMoveController;
 use App\Http\Controllers\PurchaseReportController;
 use App\Http\Controllers\PurchaseReturnController;
+use App\Http\Controllers\PartyStockWithdrawController;
+use App\Http\Controllers\PartyStockAdjustmentController;
+use App\Http\Controllers\PartyStockDepositController;   
 
 
 use App\Http\Controllers\FinishedProductController;
@@ -288,6 +292,10 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('reports/balance-sheet/excel', [BalanceSheetController::class, 'excel'])
         ->name('reports.balance-sheet.excel');
 
+    // Party Stock api
+    Route::get('/api/parties/{party}/items', [PartyItemController::class, 'index'])
+     ->name('party.items');
+     
     // Party Stock
     Route::prefix('party-stock')->group(function () {
         Route::get('deposit', [PartyStockMoveController::class, 'create'])->name('party-stock.deposit.create');
@@ -296,13 +304,13 @@ Route::middleware(['auth', 'verified'])->group(function () {
         
 
         // Withdraw Routes
-        Route::get('withdraw-list', [PartyStockMoveController::class, 'indexWithdraw'])->name('party-stock.withdraw.index');
-        Route::get('withdraw', [PartyStockMoveController::class, 'createWithdraw'])->name('party-stock.withdraw.create');  // Change to 'createWithdraw'
-        Route::post('withdraw', [PartyStockMoveController::class, 'withdraw'])->name('party-stock.withdraw.store');  // Change to 'withdraw.store'
+        Route::get('withdraw-list', [PartyStockWithdrawController::class, 'index'])->name('party-stock.withdraw.index');
+        Route::get('withdraw', [PartyStockWithdrawController::class, 'create'])->name('party-stock.withdraw.create');  // Change to 'createWithdraw'
+        Route::post('withdraw', [PartyStockWithdrawController::class, 'withdraw'])->name('party-stock.withdraw.store');  // Change to 'withdraw.store'
 
         // Transfer Routes
-        Route::get('transfer', [PartyStockMoveController::class, 'createTransfer'])->name('party-stock.transfer.create');  // Change to 'createTransfer'
-        Route::post('transfer', [PartyStockMoveController::class, 'transfer'])->name('party-stock.transfer.store');  // Change to 'transfer.store'
+        Route::get('transfer', [PartyStockAdjustmentController::class, 'create'])->name('party-stock.transfer.create');  // Change to 'createTransfer'
+        Route::post('transfer', [PartyStockAdjustmentController::class, 'transfer'])->name('party-stock.transfer.store');  // Change to 'transfer.store'
     });
 
     // Route::prefix('party-stock')->group(function () {

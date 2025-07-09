@@ -7,27 +7,29 @@ use Illuminate\Database\Eloquent\Model;
 class PartyJobStock extends Model
 {
     protected $fillable = [
-        'party_ledger_id',
-        'item_id',
+        'party_ledger_id',   // still handy for quick look-ups
+        'party_item_id',     // NEW
         'godown_id',
         'qty',
+        'unit_name',
         'created_by',
-        'unit_name',  // Add this if you need to store or use unit_name in PartyJobStock
     ];
 
-    public function partyLedger() {
+    public function partyItem()
+    {
+        return $this->belongsTo(PartyItem::class);
+    }
+    public function partyLedger()
+    {
         return $this->belongsTo(AccountLedger::class, 'party_ledger_id');
     }
-    
-    public function item() {
-        return $this->belongsTo(Item::class, 'item_id');
-    }
-    
-    public function godown() {
-        return $this->belongsTo(Godown::class, 'godown_id');
+    public function godown()
+    {
+        return $this->belongsTo(Godown::class);
     }
 
-    public function creator() {
+    public function creator()
+    {
         return $this->belongsTo(User::class, 'created_by');
     }
 }

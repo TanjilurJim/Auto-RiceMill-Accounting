@@ -327,7 +327,7 @@ const mainNavItems: NavItem[] = [
                 icon: FileText,
             },
             {
-                title: 'পণ্য স্থানান্তর',
+                title: 'পণ্য স্থানান্তর/এ্যাডজাস্টমেন্ট',
                 href: '/party-stock/transfer',
                 icon: Repeat, // ↔️ transfer arrow icon
             },

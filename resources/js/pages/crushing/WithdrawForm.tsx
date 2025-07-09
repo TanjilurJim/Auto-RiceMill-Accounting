@@ -15,8 +15,8 @@ interface Props {
 }
 
 interface WithdrawRow {
-    item_id: string;
-    unit_id: string;
+    party_item_id: string;
+    unit_name: string;
     qty: string;
     rate: string;
     total: number;
@@ -35,22 +35,27 @@ export default function WithdrawForm({
         date: today,
         party_ledger_id: '',
         godown_id_from: '',
-        ref_no: generated_ref_no, // Use the generated reference number from backend
+        ref_no: generated_ref_no,
         remarks: '',
-        withdraws: [{ item_id: '', unit_id: '', qty: '', rate: '', total: 0 }],
+        withdraws: [{ party_item_id: '', unit_name: '', qty: '', rate: '', total: 0 }],
     });
 
-    const [partyGodowns, setPartyGodowns] = useState<any[]>([]); // Store godowns for selected party
+    const [partyGodowns, setPartyGodowns] = useState<{ value: number; label: string }[]>([]); // Store godowns for selected party
 
     const itemOptions = items.map((item) => ({ value: item.id, label: item.item_name }));
-    const godownOptions = godowns.map((godown) => ({ value: godown.id, label: godown.name }));
+
+    // const godownOptions = godowns.map((godown) => ({ value: godown.id, label: godown.name }));
     const unitOptions = units.map((unit) => ({ value: unit.id, label: unit.name }));
 
     useEffect(() => {
-        if (data.party_ledger_id) {
-            fetchPartyGodowns(data.party_ledger_id); // Fetch godowns for selected party
+        if (!data.party_ledger_id || !available_stock[data.party_ledger_id]) {
+            setPartyGodowns([]);
+            return;
         }
-    }, [data.party_ledger_id]);
+        // build list from available_stock
+        const list = Object.entries(available_stock[data.party_ledger_id]).map(([gid, g]: any) => ({ value: Number(gid), label: g.godown_name }));
+        setPartyGodowns(list);
+    }, [data.party_ledger_id, available_stock]);
 
     useEffect(() => {
         console.log('Available stock:', available_stock); // Log available stock passed from backend
@@ -71,7 +76,11 @@ export default function WithdrawForm({
         const updated = [...data.withdraws];
         updated[index][field] = value;
 
-        // Calculate total based on qty and rate
+        if (field === 'party_item_id') {
+            const found = items.find((i) => i.id === Number(value));
+            updated[index].unit_name = found?.unit_name || '';
+        }
+
         const qty = parseFloat(updated[index].qty) || 0;
         const rate = parseFloat(updated[index].rate) || 0;
         updated[index].total = qty * rate;
@@ -79,9 +88,7 @@ export default function WithdrawForm({
         setData('withdraws', updated);
     };
 
-    const addRow = () => {
-        setData('withdraws', [...data.withdraws, { item_id: '', unit_id: '', qty: '', rate: '', total: 0 }]);
-    };
+    const addRow = () => setData('withdraws', [...data.withdraws, { party_item_id: '', unit_name: '', qty: '', rate: '', total: 0 }]);
 
     const removeRow = (index: number) => {
         if (data.withdraws.length === 1) return;
@@ -112,22 +119,17 @@ export default function WithdrawForm({
                         {data.party_ledger_id && available_stock[data.party_ledger_id] ? (
                             <>
                                 <h2 className="text-lg font-semibold">Available Stock for Selected Party:</h2>
-                                <div className="mt-2">
-                                    {/* Iterate over each itemId */}
-                                    {Object.keys(available_stock[data.party_ledger_id]).map((itemId) => (
-                                        <div key={itemId} className="mb-2">
-                                            <h3 className="font-semibold">{available_stock[data.party_ledger_id][itemId].item_name}:</h3>
-                                            <div className="ml-4">
-                                                {/* Render available stock for each godown */}
-                                                {Object.values(available_stock[data.party_ledger_id][itemId]).map((godown) => (
-                                                    <p key={godown.godown_name}>
-                                                        <span className="font-semibold">
-                                                            {godown.qty} {godown.unit_name} of {godown.item_name} in{' '}
-                                                        </span>
-                                                        <span className="italic">{godown.godown_name}</span>
-                                                    </p>
+                                <div className="mt-2 space-y-2">
+                                    {Object.entries(available_stock[data.party_ledger_id]).map(([godownId, g]) => (
+                                        <div key={godownId}>
+                                            <h3 className="font-bold">{g.godown_name}</h3>
+                                            <ul className="ml-4 list-disc">
+                                                {g.items.map((itm, idx) => (
+                                                    <li key={idx}>
+                                                        {Number(itm.qty).toFixed(3)} {itm.unit_name} of {itm.item_name}
+                                                    </li>
                                                 ))}
-                                            </div>
+                                            </ul>
                                         </div>
                                     ))}
                                 </div>
@@ -176,8 +178,8 @@ export default function WithdrawForm({
                                 <label className="mb-1 block font-medium">গুদাম</label>
                                 {partyGodowns.length > 0 && (
                                     <Select
-                                        options={partyGodowns.map((g) => ({ value: g.id, label: g.name }))}
-                                        value={partyGodowns.find((opt) => opt.value === Number(data.godown_id_from))}
+                                        options={partyGodowns}
+                                        value={partyGodowns.find((o) => o.value === Number(data.godown_id_from))}
                                         onChange={(selected) => setData('godown_id_from', selected?.value || '')}
                                         classNamePrefix="react-select"
                                         placeholder="গুদাম খুঁজুন..."
@@ -217,21 +219,27 @@ export default function WithdrawForm({
                                             <td className="border p-2">
                                                 <Select
                                                     options={itemOptions}
-                                                    value={itemOptions.find((opt) => opt.value === Number(row.item_id))}
-                                                    onChange={(selected) => handleFieldChange(index, 'item_id', selected?.value.toString() || '')}
+                                                    value={itemOptions.find((opt) => opt.value === Number(row.party_item_id))}
+                                                    onChange={(selected) =>
+                                                        handleFieldChange(index, 'party_item_id', selected?.value.toString() || '')
+                                                    }
                                                     placeholder="পণ্য"
                                                     isClearable
                                                 />
                                             </td>
                                             <td className="border p-2">
-                                                <Select
-                                                    options={unitOptions}
-                                                    value={unitOptions.find((opt) => opt.value === Number(row.unit_id))}
-                                                    onChange={(selected) => handleFieldChange(index, 'unit_id', selected?.value || '')}
-                                                    classNamePrefix="react-select"
-                                                    placeholder="একক খুঁজুন..."
-                                                    isClearable
-                                                />
+                                                <select
+                                                    className="w-full rounded border p-1"
+                                                    value={row.unit_name}
+                                                    onChange={(e) => handleFieldChange(index, 'unit_name', e.target.value)}
+                                                >
+                                                    <option value="">-- একক নির্বাচন করুন --</option>
+                                                    {units.map((u) => (
+                                                        <option key={u.id} value={u.name}>
+                                                            {u.name}
+                                                        </option>
+                                                    ))}
+                                                </select>
                                             </td>
                                             <td className="border p-2">
                                                 <input
@@ -239,7 +247,6 @@ export default function WithdrawForm({
                                                     value={row.qty}
                                                     onChange={(e) => handleFieldChange(index, 'qty', e.target.value)}
                                                     className="w-full rounded border p-1"
-                                                    max={available_stock[row.item_id] ? available_stock[row.item_id][data.godown_id_from] : 0} // Limit max to available stock
                                                 />
                                             </td>
                                             <td className="border p-2">
