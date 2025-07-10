@@ -3,10 +3,12 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
-
+use App\Traits\BelongsToTenant;
 class PartyItem extends Model
 {
     //
+    use BelongsToTenant;
+
     protected $fillable = [
         'party_ledger_id', 'item_name', 'unit_id', 'created_by',
     ];

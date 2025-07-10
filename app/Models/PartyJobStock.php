@@ -3,9 +3,11 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use App\Traits\BelongsToTenant;
 
 class PartyJobStock extends Model
 {
+    use BelongsToTenant;
     protected $fillable = [
         'party_ledger_id',   // still handy for quick look-ups
         'party_item_id',     // NEW

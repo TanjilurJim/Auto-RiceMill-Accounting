@@ -1,6 +1,7 @@
 <?php
 
 namespace App\Models;
+use App\Traits\BelongsToTenant;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
@@ -8,7 +9,7 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 class Item extends Model
 {
     //
-    use SoftDeletes;
+    use SoftDeletes, BelongsToTenant;
 
     protected $fillable = [
         'item_name',

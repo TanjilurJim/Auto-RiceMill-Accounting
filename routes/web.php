@@ -46,7 +46,7 @@ use App\Http\Controllers\PurchaseReportController;
 use App\Http\Controllers\PurchaseReturnController;
 use App\Http\Controllers\PartyStockWithdrawController;
 use App\Http\Controllers\PartyStockAdjustmentController;
-use App\Http\Controllers\PartyStockDepositController;   
+use App\Http\Controllers\PartyStockDepositController;
 
 
 use App\Http\Controllers\FinishedProductController;
@@ -246,7 +246,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
     // })->name('reports.receivable-payable.filter');
 
     Route::get('/reports/receivable-payable/filter', [AllReceivablePayableReportController::class, 'filter'])
-    ->name('reports.receivable-payable.filter');
+        ->name('reports.receivable-payable.filter');
 
     // Final Report Page (Step 2)
     Route::get('/reports/receivable-payable', [AllReceivablePayableReportController::class, 'index'])
@@ -260,7 +260,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
     //     return Inertia::render('reports/AllReceivedPaymentFilter');
     // })->name('reports.all-received-payment.filter');
     Route::get('/reports/all-received-payment/filter', [AllReceivedPaymentReportController::class, 'filter'])
-    ->name('reports.all-received-payment.filter');
+        ->name('reports.all-received-payment.filter');
 
     //Profit Loss
     /* filter form */
@@ -294,14 +294,14 @@ Route::middleware(['auth', 'verified'])->group(function () {
 
     // Party Stock api
     Route::get('/api/parties/{party}/items', [PartyItemController::class, 'index'])
-     ->name('party.items');
-     
+        ->name('party.items');
+
     // Party Stock
     Route::prefix('party-stock')->group(function () {
         Route::get('deposit', [PartyStockMoveController::class, 'create'])->name('party-stock.deposit.create');
         Route::post('deposit', [PartyStockMoveController::class, 'store'])->name('party-stock.deposit.store');
         Route::get('deposit-list', [PartyStockMoveController::class, 'index'])->name('party-stock.deposit.index');
-        
+
 
         // Withdraw Routes
         Route::get('withdraw-list', [PartyStockWithdrawController::class, 'index'])->name('party-stock.withdraw.index');
@@ -309,8 +309,8 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::post('withdraw', [PartyStockWithdrawController::class, 'withdraw'])->name('party-stock.withdraw.store');  // Change to 'withdraw.store'
 
         // Transfer Routes
-        Route::get('transfer', [PartyStockAdjustmentController::class, 'create'])->name('party-stock.transfer.create');  // Change to 'createTransfer'
-        Route::post('transfer', [PartyStockAdjustmentController::class, 'transfer'])->name('party-stock.transfer.store');  // Change to 'transfer.store'
+        Route::get('convert',        [PartyStockAdjustmentController::class, 'create'])->name('party-stock.transfer.create');
+        Route::post('convert',       [PartyStockAdjustmentController::class, 'transfer'])->name('party-stock.transfer.store');  // Change to 'transfer.store'
     });
 
     // Route::prefix('party-stock')->group(function () {

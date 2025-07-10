@@ -2,86 +2,135 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\PartyItem;
 use App\Models\PartyStockMove;
 use App\Models\PartyJobStock;
 use App\Models\AccountLedger;
-use App\Models\Item;
-use App\Models\Unit;
 use App\Models\Godown;
+use App\Models\Unit;
 use Illuminate\Http\Request;
-
 use Inertia\Inertia;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Pagination\LengthAwarePaginator;
 
 class PartyStockAdjustmentController extends Controller
 {
-    //
-    // Transfer Method
-    public function create(Request $request)
+    /* ----------  FORM  ---------- */
+    public function create()
     {
-        return Inertia::render('crushing/TransferForm', [
-            'parties' => AccountLedger::whereIn('ledger_type', ['sales', 'income'])
-                ->where(createdByMeOnly())
-                ->get(['id', 'account_ledger_name']),
-            'items'   => Item::where(createdByMeOnly())->get(['id', 'item_name']),
-            'godowns' => Godown::where(createdByMeOnly())->get(['id', 'name']),
-            'today'   => now()->toDateString(),
+        $dateStr = now()->format('Ymd');
+        $ref = "CONV-$dateStr-".random_int(1000,9999);
+
+        return Inertia::render('crushing/ConvertForm', [
+            'parties'  => AccountLedger::whereIn('ledger_type',['sales','income'])->get(['id','account_ledger_name']),
+            'units'    => Unit::all(['id','name']),
+            'godowns'  => Godown::all(['id','name']),
+            'today'    => now()->toDateString(),
+            'generated_ref_no' => $ref,
         ]);
     }
 
+    /* ----------  STORE  ---------- */
     public function transfer(Request $request)
     {
-        // Validate the request
+        /* 1️⃣  Whole-voucher validation */
         $validated = $request->validate([
-            'date'             => ['required', 'date'],
-            'party_ledger_id'  => ['required', 'exists:account_ledgers,id'],
-            'godown_id_from'   => ['required', 'exists:godowns,id'],
-            'godown_id_to'     => ['required', 'exists:godowns,id'],
-            'item_id'          => ['required', 'exists:items,id'],
-            'qty'              => ['required', 'numeric', 'min:0.01'],
-            'remarks'          => ['nullable', 'string'],
+            'date'            => ['required','date'],
+            'ref_no'          => ['required','string','max:255','unique:party_stock_moves,ref_no'],
+            'party_ledger_id' => ['required','exists:account_ledgers,id'],
+            'godown_id'       => ['required','exists:godowns,id'],
+
+            /* arrays */
+            'consumed'        => ['required','array','min:1'],
+            'generated'       => ['required','array','min:1'],
+
+            /* each consumed line */
+            'consumed.*.party_item_id' => ['required','exists:party_items,id'],
+            'consumed.*.qty'           => ['required','numeric','min:0.01'],
+            'consumed.*.unit_name'     => ['nullable','string'],
+
+            /* each generated line */
+            'generated.*.item_name'    => ['required','string','max:255'],
+            'generated.*.qty'          => ['required','numeric','min:0.01'],
+            'generated.*.unit_name'    => ['nullable','string'],
         ]);
 
-        // Start a transaction to update both tables
+        /* 2️⃣  One transaction – lock + post both sides */
         DB::transaction(function () use ($validated) {
-            // Record the transfer in party_stock_moves
-            PartyStockMove::create([
-                'date'            => $validated['date'],
-                'party_ledger_id' => $validated['party_ledger_id'],
-                'item_id'         => $validated['item_id'],
-                'godown_id_from'  => $validated['godown_id_from'],
-                'godown_id_to'    => $validated['godown_id_to'],
-                'qty'             => -$validated['qty'], // Negative quantity for withdrawal
-                'move_type'       => 'transfer',
-                'ref_no'          => $validated['ref_no'] ?? null,
-                'remarks'         => $validated['remarks'] ?? null,
-                'created_by'      => auth()->id(),
-            ]);
 
-            // Update the stock in the source godown (decrease quantity)
-            $stockFrom = PartyJobStock::where('party_ledger_id', $validated['party_ledger_id'])
-                ->where('item_id', $validated['item_id'])
-                ->where('godown_id', $validated['godown_id_from'])
-                ->first();
+            /* -- CONSUMED (negative) -------------------------------- */
+            foreach ($validated['consumed'] as $row) {
 
-            if ($stockFrom) {
-                $stockFrom->qty -= $validated['qty']; // Decrease the quantity in source godown
-                $stockFrom->save();
+                /* lock stock */
+                $stock = PartyJobStock::where('party_item_id', $row['party_item_id'])
+                    ->where('godown_id', $validated['godown_id'])
+                    ->lockForUpdate()
+                    ->first();
+
+                if (!$stock || $stock->qty < $row['qty']) {
+                    throw \Illuminate\Validation\ValidationException::withMessages([
+                        'consumed' => ['Stock not enough for item #'.$row['party_item_id']],
+                    ]);
+                }
+
+                /* movement */
+                PartyStockMove::create([
+                    'date'            => $validated['date'],
+                    'ref_no'          => $validated['ref_no'],
+                    'move_type'       => 'convert-out',
+                    'party_ledger_id' => $validated['party_ledger_id'],
+                    'party_item_id'   => $row['party_item_id'],
+                    'godown_id_from'  => $validated['godown_id'],
+                    'godown_id_to'    => null,
+                    'qty'             => -$row['qty'],
+                    'unit_name'       => $row['unit_name'] ?? null,
+                    'total'           => 0,
+                    'created_by'      => auth()->id(),
+                ]);
+
+                /* decrement balance */
+                $stock->qty -= $row['qty'];
+                $stock->save();
             }
 
-            // Update the stock in the destination godown (increase quantity)
-            $stockTo = PartyJobStock::where('party_ledger_id', $validated['party_ledger_id'])
-                ->where('item_id', $validated['item_id'])
-                ->where('godown_id', $validated['godown_id_to'])
-                ->first();
+            /* -- GENERATED (positive) ------------------------------- */
+            foreach ($validated['generated'] as $row) {
 
-            if ($stockTo) {
-                $stockTo->qty += $validated['qty']; // Increase the quantity in destination godown
-                $stockTo->save();
+                $partyItem = PartyItem::firstOrCreate(
+                    [
+                        'party_ledger_id' => $validated['party_ledger_id'],
+                        'item_name'       => trim($row['item_name']),
+                    ],
+                    ['created_by' => auth()->id()]
+                );
+
+                PartyStockMove::create([
+                    'date'            => $validated['date'],
+                    'ref_no'          => $validated['ref_no'],
+                    'move_type'       => 'convert-in',
+                    'party_ledger_id' => $validated['party_ledger_id'],
+                    'party_item_id'   => $partyItem->id,
+                    'godown_id_from'  => null,
+                    'godown_id_to'    => $validated['godown_id'],
+                    'qty'             =>  $row['qty'],
+                    'unit_name'       => $row['unit_name'] ?? null,
+                    'total'           => 0,
+                    'created_by'      => auth()->id(),
+                ]);
+
+                $stock = PartyJobStock::firstOrNew([
+                    'party_item_id' => $partyItem->id,
+                    'godown_id'     => $validated['godown_id'],
+                ]);
+                $stock->party_ledger_id = $validated['party_ledger_id'];
+                $stock->qty += $row['qty'];
+                $stock->unit_name = $row['unit_name'] ?? $stock->unit_name;
+                $stock->created_by = auth()->id();
+                $stock->save();
             }
         });
 
-        return redirect()->route('party-stock.deposit.index')->with('success', 'মাল স্থানান্তর সফলভাবে সম্পন্ন হয়েছে।');
+        return redirect()
+            ->route('party-stock.withdraw.index')   // or separate convert list
+            ->with('success','Conversion saved successfully');
     }
 }

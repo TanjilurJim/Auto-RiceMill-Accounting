@@ -24,9 +24,11 @@ class PartyStockWithdrawController extends Controller
         // grab all withdraw moves for this user
         $rows = PartyStockMove::with(['partyItem', 'partyLedger', 'godownFrom'])
             ->where('move_type', 'withdraw')
-            ->where('created_by', auth()->id())
+            ->whereIn('created_by', user_scope_ids())
             ->orderBy('date', 'desc')
             ->get();
+
+
 
         // reshape: one row per voucher (ref_no)
         $withdrawals = $rows->groupBy('ref_no')->map(function ($group) {
@@ -65,18 +67,22 @@ class PartyStockWithdrawController extends Controller
         $generatedRefNo = "PWD-$dateStr-$random"; // Prefix can be changed
 
         // Fetch godowns, units, and items
-        $godowns = Godown::where(createdByMeOnly())->get(['id', 'name']);
-        $units = Unit::where(createdByMeOnly())->get(['id', 'name']);
+        // ➋ CREATE – fetch look-up lists ------------------------------------------
+        $godowns = Godown::whereIn('created_by', user_scope_ids())
+            ->get(['id', 'name']);
+
+        $units   = Unit::whereIn('created_by', user_scope_ids())
+            ->get(['id', 'name']);
+
         $parties = AccountLedger::whereIn('ledger_type', ['sales', 'income'])
-            ->where(createdByMeOnly())
+            ->whereIn('created_by', user_scope_ids())
             ->get(['id', 'account_ledger_name']);
-        $items = PartyItem::where(createdByMeOnly())->get(['id', 'item_name', 'party_ledger_id']);
 
-        // Fetch available stock from PartyStockMove for each party and its godowns, including items and unit names
-        $availableStock = [];
+        $items   = PartyItem::whereIn('created_by', user_scope_ids())
+            ->get(['id', 'item_name', 'party_ledger_id']);
 
-        $stocks = PartyJobStock::with(['partyItem', 'godown'])
-            ->where(createdByMeOnly())
+        $stocks  = PartyJobStock::with(['partyItem', 'godown'])
+            ->whereIn('created_by', user_scope_ids())
             ->get();
 
         foreach ($stocks as $stock) {
@@ -116,7 +122,7 @@ class PartyStockWithdrawController extends Controller
             'date'            => ['required', 'date'],
             'party_ledger_id' => ['required', 'exists:account_ledgers,id'],
             'godown_id_from'  => ['required', 'exists:godowns,id'],
-            'ref_no'          => ['required','string','max:255','unique:party_stock_moves,ref_no'],
+            'ref_no'          => ['required', 'string', 'max:255', 'unique:party_stock_moves,ref_no'],
             'remarks'         => ['nullable', 'string', 'max:1000'],
             'withdraws'       => ['required', 'array', 'min:1'],
 
@@ -132,9 +138,10 @@ class PartyStockWithdrawController extends Controller
             foreach ($validated['withdraws'] as $row) {
 
                 /* --- stock check (with row-level lock) --- */
-                $stock = PartyJobStock::where('party_ledger_id', $validated['party_ledger_id'])
-                    ->where('party_item_id',  $row['party_item_id'])
-                    ->where('godown_id',      $validated['godown_id_from'])
+                $stock = PartyJobStock::whereIn('created_by', user_scope_ids())   // 👈 add
+                    ->where('party_ledger_id', $validated['party_ledger_id'])
+                    ->where('party_item_id',   $row['party_item_id'])
+                    ->where('godown_id',       $validated['godown_id_from'])
                     ->lockForUpdate()
                     ->first();
 

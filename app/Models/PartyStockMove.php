@@ -3,9 +3,12 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use App\Traits\BelongsToTenant;
 
 class PartyStockMove extends Model
 {
+    use BelongsToTenant;
+    
     protected $fillable = [
         'date',
         'party_ledger_id',

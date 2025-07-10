@@ -26,11 +26,11 @@ class PartyStockMoveController extends Controller
 
         return Inertia::render('crushing/PartyStockDepositForm', [
             'parties' => AccountLedger::whereIn('ledger_type', ['sales', 'income'])
-                ->where(createdByMeOnly())
+                
                 ->get(['id', 'account_ledger_name']),
             // 'items'   => Item::where(createdByMeOnly())->get(['id', 'item_name', 'unit_id']),
-            'units' => Unit::where(createdByMeOnly())->get(['id', 'name']),
-            'godowns' => Godown::where(createdByMeOnly())->get(['id', 'name']),
+            'units' => Unit::all(['id', 'name']),
+            'godowns' => Godown::all(['id', 'name']),
             'today'   => now()->toDateString(),
             'generated_ref_no' => $generatedRefNo,
         ]);
