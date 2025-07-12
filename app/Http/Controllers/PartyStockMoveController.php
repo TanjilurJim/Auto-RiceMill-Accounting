@@ -111,7 +111,7 @@ class PartyStockMoveController extends Controller
         // Step 1: Get paginated list of distinct ref_no's
         $refNos = PartyStockMove::select('ref_no')
             ->where('move_type', 'deposit')
-            ->where('created_by', auth()->id())
+            
             ->groupBy('ref_no')
             ->orderByRaw('MAX(date) DESC')
             ->paginate(10); // Adjust per page as needed
@@ -119,7 +119,7 @@ class PartyStockMoveController extends Controller
         // Step 2: Get all stock moves with those ref_nos
         $moves = PartyStockMove::with(['partyItem', 'partyLedger', 'godownTo'])
             ->where('move_type', 'deposit')
-            ->where('created_by', auth()->id())
+            
             ->whereIn('ref_no', $refNos->pluck('ref_no'))
             ->orderBy('date', 'desc')
             ->get();

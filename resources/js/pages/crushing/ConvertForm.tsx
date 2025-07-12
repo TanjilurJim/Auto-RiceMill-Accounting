@@ -1,6 +1,6 @@
 /*  resources/js/pages/crushing/ConvertForm.tsx  */
 import AppLayout from '@/layouts/app-layout';
-import { Head, useForm } from '@inertiajs/react';
+import { Head, useForm, Link } from '@inertiajs/react';
 import React from 'react';
 import Select from 'react-select';
 import CreatableSelect from 'react-select/creatable';
@@ -93,6 +93,8 @@ export default function ConvertForm({ parties, godowns, units, today, generated_
      if (!pId || !gId) return [];                       // guard clauses
      if (!available_stock[pId] || !available_stock[pId][gId]) return [];
 
+    
+
      const { items } = available_stock[pId][gId];   
 
         return items.map((itm: any) => ({
@@ -117,6 +119,11 @@ export default function ConvertForm({ parties, godowns, units, today, generated_
             <Head title="Conversion / Transfer" />
 
             <div className="h-full w-screen bg-gray-100 p-6 lg:w-full">
+                <div className="mb-4">
+                    <Link href={route('party-stock.transfer.index')} className="text-blue-600 hover:underline">
+                        ← Back to list
+                    </Link>
+                </div>
                 <div className="rounded-lg bg-white p-6">
                     <h1 className="mb-4 text-xl font-bold">পণ্য রূপান্তর (Crushing → Output)</h1>
 

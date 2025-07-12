@@ -6,46 +6,43 @@ import { type NavItem } from '@/types';
 import { Link, usePage } from '@inertiajs/react';
 import {
     Banknote,
-    BarChartBig,
-    BarChart2,
-    Warehouse,
-    ScrollText,
-    Scale,
     BanknoteIcon,
-    BookOpen,
+    BarChart2,
+    BarChartBig,
     Boxes,
     Building2,
+    CalendarClock,
+    CalendarDays,
     ClipboardList,
+    DownloadCloud,
+    Droplets,
     Factory,
     FileText,
     Folder,
     FolderKanban,
     InfoIcon,
-    CalendarClock,
     Landmark,
+    Layers,
     LayoutGrid,
     Lock,
     Notebook,
     Package,
     ReceiptText,
+    Repeat,
     RotateCcw,
+    Scale,
+    ScrollText,
     Settings2,
     Shield,
     ShoppingCart,
     Shuffle,
+    UploadCloud,
     Users,
     Wallet,
+    Warehouse,
     Workflow,
-    BarChart,
-    UploadCloud,
-    DownloadCloud,
-    Repeat,
-    Layers,
-    Droplets,
-    CalendarDays
-    
 } from 'lucide-react';
-import { FiSettings, FiHome, FiAward, FiClock, FiUsers } from 'react-icons/fi';
+import { FiAward, FiClock, FiHome, FiSettings, FiUsers } from 'react-icons/fi';
 import AppLogo from './app-logo';
 
 interface Role {
@@ -327,15 +324,16 @@ const mainNavItems: NavItem[] = [
                 icon: FileText,
             },
             {
-                title: 'পণ্য ট্রান্সফার',
-                href: '/party-stock/transfer',
+                title: 'পণ্য ট্রান্সফার/ক্রাশিং',
+                href: '/party-stock/convert',
                 icon: Repeat, // ↔️ transfer arrow icon
             },
             {
                 title: 'ক্রাশিং কাজের তালিকা',
-                href: '/crushing-jobs',
+                href: '/party-stock/convert-list',
                 icon: FileText,
             },
+            { title: 'ক্রাশিং ভাউচারসমূহ', href: '/party-stock/rent-voucher/', icon: FileText },
             {
                 title: 'ক্রাশিং রিপোর্টসমূহ',
                 icon: BarChart2,
@@ -376,7 +374,6 @@ const mainNavItems: NavItem[] = [
                 icon: Building2, // 👈 This icon works well for users
             },
 
-            
             // Later you can add more inventory-related items here (e.g., Products, Stock Transfers, etc.)
         ],
     },

@@ -8,6 +8,8 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\ItemController;
 use App\Http\Controllers\RoleController;
 use App\Http\Controllers\SaleController;
+use App\Http\Controllers\ConversionVoucherController;
+use App\Http\Controllers\RentVoucherController;
 use App\Http\Controllers\UnitController;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\ShiftController;
@@ -298,6 +300,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
 
     // Party Stock
     Route::prefix('party-stock')->group(function () {
+        /* ───── Deposit ───── */
         Route::get('deposit', [PartyStockMoveController::class, 'create'])->name('party-stock.deposit.create');
         Route::post('deposit', [PartyStockMoveController::class, 'store'])->name('party-stock.deposit.store');
         Route::get('deposit-list', [PartyStockMoveController::class, 'index'])->name('party-stock.deposit.index');
@@ -308,9 +311,28 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::get('withdraw', [PartyStockWithdrawController::class, 'create'])->name('party-stock.withdraw.create');  // Change to 'createWithdraw'
         Route::post('withdraw', [PartyStockWithdrawController::class, 'withdraw'])->name('party-stock.withdraw.store');  // Change to 'withdraw.store'
 
-        // Transfer Routes
+        // Transfer Routes/ Crushing
         Route::get('convert',        [PartyStockAdjustmentController::class, 'create'])->name('party-stock.transfer.create');
         Route::post('convert',       [PartyStockAdjustmentController::class, 'transfer'])->name('party-stock.transfer.store');  // Change to 'transfer.store'
+        Route::get('convert-list',       [PartyStockAdjustmentController::class, 'index'])->name('party-stock.transfer.index');  // Change to 'transfer.store'
+        Route::get('convert/{id}',       [PartyStockAdjustmentController::class, 'show'])->name('party-stock.transfer.show');  // Change to 'transfer.store'
+        Route::get('convert/{id}/edit',      [PartyStockAdjustmentController::class, 'edit'])->name('party-stock.transfer.edit');
+        Route::put('convert/{id}',           [PartyStockAdjustmentController::class, 'update'])->name('party-stock.transfer.update'); // PATCH also fine
+        Route::delete('convert/{id}',           [PartyStockAdjustmentController::class, 'destroy'])->name('party-stock.transfer.destroy');
+
+        Route::prefix('conversion-voucher')->name('conversion.voucher.')->group(function () {
+            Route::get('/',             [ConversionVoucherController::class, 'index'])->name('index');
+            Route::get('{voucher}',     [ConversionVoucherController::class, 'show'])->name('show');
+            Route::get('{voucher}/pdf', [ConversionVoucherController::class, 'pdf'])->name('pdf');
+        });
+
+
+        Route::prefix('rent-voucher')->name('party-stock.rent-voucher.')->group(function () {
+            Route::get('create', [RentVoucherController::class, 'create'])->name('create');
+            Route::post('/',      [RentVoucherController::class, 'store'])->name('store');
+            Route::get('/',       [RentVoucherController::class, 'index'])->name('index');
+            Route::get('{voucher}', [RentVoucherController::class, 'show'])->name('show');
+        });
     });
 
     // Route::prefix('party-stock')->group(function () {
