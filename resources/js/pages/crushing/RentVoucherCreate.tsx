@@ -1,8 +1,12 @@
+/*  resources/js/pages/crushing/RentVoucherCreate.tsx  */
 import AppLayout from '@/layouts/app-layout';
 import { Head, useForm } from '@inertiajs/react';
+import axios from 'axios';
 import React from 'react';
 import Select from 'react-select';
+import { route } from 'ziggy-js';
 
+/* ---------- types ---------- */
 interface Party {
     id: number;
     account_ledger_name: string;
@@ -16,6 +20,7 @@ interface ReceivedMode {
     mode_name: string;
     phone_number: string | null;
 }
+
 interface Props {
     today: string;
     generated_vch_no: string;
@@ -32,14 +37,22 @@ interface Line {
     amount: number;
 }
 
+/* ---------- helper for summary rows ---------- */
+const SummaryRow = ({ label, value, bold = false }: { label: string; value: number; bold?: boolean }) => (
+    <div className="flex justify-between">
+        <span className={bold ? 'font-semibold' : ''}>{label}</span>
+        <span className={bold ? 'font-semibold' : ''}>{value.toFixed(2)}</span>
+    </div>
+);
+
 export default function RentVoucherCreate({ today, generated_vch_no, parties, items, modes }: Props) {
-    /* ---------- form state ---------- */
+    /* ---------- form ---------- */
     const { data, setData, post, processing, errors } = useForm<{
         date: string;
         vch_no: string;
         party_ledger_id: string;
         lines: Line[];
-        received_mode: string;
+        received_mode_id: string;
         received_amount: string;
         remarks: string;
     }>({
@@ -52,8 +65,34 @@ export default function RentVoucherCreate({ today, generated_vch_no, parties, it
         remarks: '',
     });
 
-    /* ---------- helpers ---------- */
-    const addLine = () => setData('lines', [...data.lines, { party_item_id: '', qty: '', mon: '', rate: '', amount: 0 }]);
+    /* ---------- previous balance fetch ---------- */
+    const [prevBal, setPrevBal] = React.useState<number>(0);
+
+    React.useEffect(() => {
+        if (!data.party_ledger_id) {
+            setPrevBal(0);
+            return;
+        }
+
+        axios
+            .get(route('account-ledgers.balance', data.party_ledger_id))
+            .then((res) => {
+                let bal = Number(res.data.closing_balance ?? 0);
+                // if (res.data.debit_credit === 'credit') bal = -bal; // sign flip on credit
+                setPrevBal(bal);
+            })
+            .catch(() => setPrevBal(0));
+    }, [data.party_ledger_id]);
+
+    /* ---------- line helpers ---------- */
+    const recalcAmounts = (lines: Line[]) => lines.map((l) => ({ ...l, amount: (parseFloat(l.qty) || 0) * (parseFloat(l.rate) || 0) }));
+
+    const updateLine = (idx: number, field: keyof Line, value: any) => {
+        const upd = data.lines.map((l, i) => (i === idx ? { ...l, [field]: value } : l));
+        setData('lines', recalcAmounts(upd));
+    };
+
+    const addLine = () => setData('lines', [...data.lines, { party_item_id: '', qty: '', unit: '', rate: '', amount: 0 }]);
     const removeLine = (idx: number) => {
         if (data.lines.length === 1) return;
         setData(
@@ -62,31 +101,26 @@ export default function RentVoucherCreate({ today, generated_vch_no, parties, it
         );
     };
 
-    const updateLine = (idx: number, field: keyof Line, value: any) => {
-        const updated = data.lines.map((l, i) => (i === idx ? { ...l, [field]: value } : l));
-        setData('lines', recalcAmounts(updated));
-    };
+    /* ---------- computed totals ---------- */
+    const billTotal = data.lines.reduce((s, l) => s + l.amount, 0); // today’s invoice
+    const received = Number(data.received_amount || 0); // cash today
 
-    /* recalc each line's amount */
-    const recalcAmounts = (lines: Line[]) => lines.map((l) => ({ ...l, amount: (parseFloat(l.qty) || 0) * (parseFloat(l.rate) || 0) }));
-
-    const grandTotal = data.lines.reduce((s, l) => s + l.amount, 0);
-    const prevBal = 0; // ↙ pull actual balance here if needed
-    const balance = prevBal + grandTotal - (parseFloat(data.received_amount) || 0);
-
-    const submit = (e: React.FormEvent) => {
-        e.preventDefault();
-        post(route('party-stock.rent-voucher.store'));
-    };
+    const subTotal = prevBal - billTotal; // balance *before* today’s payment
+    const newBalance = subTotal + received; // balance *after* payment
 
     /* ---------- dropdown options ---------- */
     const partyOpts = parties.map((p) => ({ value: String(p.id), label: p.account_ledger_name }));
     const itemOpts = items.map((i) => ({ value: String(i.id), label: i.item_name }));
-
     const modeOpts = modes.map((m) => ({
         value: String(m.id),
         label: m.mode_name + (m.phone_number ? ` (${m.phone_number})` : ''),
     }));
+
+    /* ---------- submit ---------- */
+    const submit = (e: React.FormEvent) => {
+        e.preventDefault();
+        post(route('party-stock.rent-voucher.store'));
+    };
 
     /* ---------- JSX ---------- */
     return (
@@ -98,9 +132,8 @@ export default function RentVoucherCreate({ today, generated_vch_no, parties, it
                     <h1 className="text-lg font-semibold">Rent Voucher Create</h1>
                 </div>
 
-                {/* header grid */}
+                {/* header */}
                 <div className="grid gap-4 md:grid-cols-3">
-                    {/* date */}
                     <div>
                         <label className="font-medium">Date*</label>
                         <input
@@ -111,53 +144,46 @@ export default function RentVoucherCreate({ today, generated_vch_no, parties, it
                         />
                         {errors.date && <p className="text-sm text-red-500">{errors.date}</p>}
                     </div>
-                    {/* vch no */}
                     <div>
                         <label className="font-medium">Vch No</label>
                         <input className="w-full rounded border p-2" value={data.vch_no} onChange={(e) => setData('vch_no', e.target.value)} />
                         {errors.vch_no && <p className="text-sm text-red-500">{errors.vch_no}</p>}
                     </div>
-                    {/* party */}
                     <div>
                         <label className="font-medium">Account Ledger*</label>
                         <Select
                             options={partyOpts}
                             classNamePrefix="rs"
                             value={partyOpts.find((o) => o.value === data.party_ledger_id) || null}
-                            onChange={(opt) => setData('party_ledger_id', opt?.value || '')}
+                            onChange={(o) => setData('party_ledger_id', o?.value || '')}
                             placeholder="Select Account Ledger"
                         />
                         {errors.party_ledger_id && <p className="text-sm text-red-500">{errors.party_ledger_id}</p>}
                     </div>
                 </div>
 
-                {/* line entry strip */}
+                {/* quick-entry strip */}
                 <div className="grid gap-2 rounded border bg-gray-50 p-3 md:grid-cols-5">
                     <Select
                         options={itemOpts}
                         classNamePrefix="rs"
                         placeholder="Select a Product"
-                        onChange={(opt) => updateLine(0, 'party_item_id', opt?.value || '')}
+                        onChange={(o) => updateLine(0, 'party_item_id', o?.value || '')}
                     />
-                    <input
-                        type="number"
-                        placeholder="Quantity"
-                        className="rounded border p-2"
-                        onChange={(e) => updateLine(0, 'qty', e.target.value)}
-                    />
-                    <input type="number" placeholder="Unit" className="rounded border p-2" onChange={(e) => updateLine(0, 'unit', e.target.value)} />
+                    <input type="number" placeholder="Qty" className="rounded border p-2" onChange={(e) => updateLine(0, 'qty', e.target.value)} />
+                    <input type="text" placeholder="Unit" className="rounded border p-2" onChange={(e) => updateLine(0, 'unit', e.target.value)} />
                     <input type="number" placeholder="Rate" className="rounded border p-2" onChange={(e) => updateLine(0, 'rate', e.target.value)} />
-                    <button type="button" onClick={addLine} className="rounded bg-purple-600 px-4 text-white">
+                    <button type="button" className="rounded bg-purple-600 px-4 text-white" onClick={addLine}>
                         Add
                     </button>
                 </div>
 
-                {/* lines table */}
+                {/* detail table */}
                 <table className="w-full border text-sm">
                     <thead className="bg-gray-100">
                         <tr>
                             <th className="border p-2">Product Name</th>
-                            <th className="border p-2">Quantity</th>
+                            <th className="border p-2">Qty</th>
                             <th className="border p-2">Unit</th>
                             <th className="border p-2">Rate</th>
                             <th className="border p-2">Amount</th>
@@ -172,7 +198,7 @@ export default function RentVoucherCreate({ today, generated_vch_no, parties, it
                                         options={itemOpts}
                                         classNamePrefix="rs"
                                         value={itemOpts.find((o) => o.value === l.party_item_id) || null}
-                                        onChange={(opt) => updateLine(idx, 'party_item_id', opt?.value || '')}
+                                        onChange={(o) => updateLine(idx, 'party_item_id', o?.value || '')}
                                     />
                                     {errors[`lines.${idx}.party_item_id`] && (
                                         <small className="text-red-500">{errors[`lines.${idx}.party_item_id`]}</small>
@@ -188,7 +214,7 @@ export default function RentVoucherCreate({ today, generated_vch_no, parties, it
                                 </td>
                                 <td>
                                     <input
-                                        type="number"
+                                        type="text"
                                         className="w-full border p-1"
                                         value={l.unit}
                                         onChange={(e) => updateLine(idx, 'unit', e.target.value)}
@@ -204,7 +230,7 @@ export default function RentVoucherCreate({ today, generated_vch_no, parties, it
                                 </td>
                                 <td className="px-2 text-right">{l.amount.toFixed(2)}</td>
                                 <td className="text-center">
-                                    <button type="button" onClick={() => removeLine(idx)} className="font-bold text-red-600">
+                                    <button type="button" className="font-bold text-red-600" onClick={() => removeLine(idx)}>
                                         ✕
                                     </button>
                                 </td>
@@ -213,38 +239,36 @@ export default function RentVoucherCreate({ today, generated_vch_no, parties, it
                     </tbody>
                 </table>
 
-                {/* totals & payment */}
-                <div className="grid gap-4 md:grid-cols-2">
-                    <div className="space-y-2">
-                        <div className="flex justify-between">
-                            <span className="font-medium">Total*</span>
-                            <input readOnly className="w-40 border bg-gray-50 px-2 py-1 text-right" value={grandTotal.toFixed(2)} />
+                {/* voucher summary */}
+                <div className="rounded border bg-gray-50 p-4">
+                    <div className="grid gap-6 sm:grid-cols-2">
+                        {/* left */}
+                        <div className="space-y-2">
+                            <SummaryRow label="Previous Balance" value={prevBal} />
+                            <SummaryRow label="Bill Amount" value={billTotal} />
+                            <hr />
+                            <SummaryRow label="Sub-total" value={subTotal} bold />
                         </div>
-                        <div className="flex justify-between">
-                            <span className="font-medium">Previous Balance</span>
-                            <input readOnly className="w-40 border bg-gray-50 px-2 py-1 text-right" value={prevBal.toFixed(2)} />
-                        </div>
-                    </div>
 
-                    <div className="space-y-2">
-                        <div className="flex justify-between">
-                            <Select
-                                options={modeOpts}
-                                classNamePrefix="rs"
-                                placeholder="Select Received Mode*"
-                                value={modeOpts.find((o) => o.value === data.received_mode_id) || null}
-                                onChange={(opt) => setData('received_mode_id', opt?.value || '')}
-                            />
-                            <input
-                                type="number"
-                                className="w-40 border px-2 py-1 text-right"
-                                value={data.received_amount}
-                                onChange={(e) => setData('received_amount', e.target.value)}
-                            />
-                        </div>
-                        <div className="flex justify-between">
-                            <span className="font-medium">Balance*</span>
-                            <input readOnly className="w-40 border bg-gray-50 px-2 py-1 text-right" value={balance.toFixed(2)} />
+                        {/* right */}
+                        <div className="space-y-4">
+                            <div className="flex items-center justify-between">
+                                <Select
+                                    options={modeOpts}
+                                    classNamePrefix="rs"
+                                    className="mr-2 flex-1"
+                                    placeholder="Received Mode*"
+                                    value={modeOpts.find((o) => o.value === data.received_mode_id) || null}
+                                    onChange={(o) => setData('received_mode_id', o?.value || '')}
+                                />
+                                <input
+                                    type="number"
+                                    className="w-32 border p-1 text-right"
+                                    value={data.received_amount}
+                                    onChange={(e) => setData('received_amount', e.target.value)}
+                                />
+                            </div>
+                            <SummaryRow label="New Balance" value={newBalance} bold />
                         </div>
                     </div>
                 </div>

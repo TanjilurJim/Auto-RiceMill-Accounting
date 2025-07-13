@@ -41,14 +41,24 @@ class RentVoucherController extends Controller
             // 'received_mode'   => ['required', 'string'],
             'received_mode_id' => ['required', 'exists:received_modes,id'],
             'received_amount'  => ['required', 'numeric', 'min:0'],
-        // 'received_amount' => ['required', 'numeric', 'min:0'],
+            // 'received_amount' => ['required', 'numeric', 'min:0'],
             'remarks'         => ['nullable', 'string'],
         ]);
 
         DB::transaction(function () use ($v) {
 
-            $grand   = collect($v['lines'])->sum(fn($l) => $l['qty'] * $l['rate']);
-            $prevBal = 0;  // TODO: pull real balance from ledger if you track it
+            /* ----------- 1.  Pull previous balance from ledger ----------- */
+            $ledger = \App\Models\AccountLedger::findOrFail($v['party_ledger_id']);
+
+
+            $prevBal = $ledger->closing_balance ?? $ledger->opening_balance ?? 0;  // TODO: pull real balance from ledger if you track it
+
+            if ($ledger->debit_credit === 'credit') {
+                $prevBal = -$prevBal;
+            }
+
+            /* ----------- 2.  Calculate totals & balance  ----------- */
+            $grand = collect($v['lines'])->sum(fn($l) => $l['qty'] * $l['rate']);
             $balance = $prevBal + $grand - $v['received_amount'];
 
             $voucher = RentVoucher::create([
