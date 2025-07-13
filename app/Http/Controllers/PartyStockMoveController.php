@@ -56,14 +56,19 @@ class PartyStockMoveController extends Controller
         DB::transaction(function () use ($validated) {
             foreach ($validated['deposits'] as $deposit) {
 
+                $unitId = Unit::where('name', $deposit['unit_name'])->value('id'); 
+
                 /* 3-A  Get (or create) the PartyItem master row  */
                 $partyItem = PartyItem::firstOrCreate(
+
+
+
                     [
                         'party_ledger_id' => $validated['party_ledger_id'],
                         'item_name'       => trim($deposit['item_name']),
                     ],
                     [
-                        'unit_id'   => $deposit['unit_id'] ?? null,   // if you store it
+                        'unit_id'    => $unitId,    // if you store it
                         'created_by' => auth()->id(),
                     ]
                 );

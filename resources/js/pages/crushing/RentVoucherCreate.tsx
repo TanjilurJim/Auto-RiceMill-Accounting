@@ -5,7 +5,6 @@ import axios from 'axios';
 import React from 'react';
 import Select from 'react-select';
 import { route } from 'ziggy-js';
-
 /* ---------- types ---------- */
 interface Party {
     id: number;
@@ -14,6 +13,7 @@ interface Party {
 interface Item {
     id: number;
     item_name: string;
+    unit_name: string;
 }
 interface ReceivedMode {
     id: number;
@@ -27,12 +27,14 @@ interface Props {
     parties: Party[];
     items: Item[];
     modes: ReceivedMode[];
+    units: { id: number; name: string }[];
 }
 
 interface Line {
     party_item_id: string;
     qty: string;
-    unit: string;
+    unit_name: string;
+    // unit: string;
     rate: string;
     amount: number;
 }
@@ -45,7 +47,7 @@ const SummaryRow = ({ label, value, bold = false }: { label: string; value: numb
     </div>
 );
 
-export default function RentVoucherCreate({ today, generated_vch_no, parties, items, modes }: Props) {
+export default function RentVoucherCreate({ today, generated_vch_no, parties, items, modes, units }: Props) {
     /* ---------- form ---------- */
     const { data, setData, post, processing, errors } = useForm<{
         date: string;
@@ -59,11 +61,13 @@ export default function RentVoucherCreate({ today, generated_vch_no, parties, it
         date: today,
         vch_no: generated_vch_no,
         party_ledger_id: '',
-        lines: [{ party_item_id: '', qty: '', unit: '', rate: '', amount: 0 }],
+        lines: [{ party_item_id: '', qty: '', unit_name: '', rate: '', amount: 0 }],
         received_mode_id: '',
         received_amount: '',
         remarks: '',
     });
+
+    const unitOpts = units.map((u) => ({ value: u.name, label: u.name }));
 
     /* ---------- previous balance fetch ---------- */
     const [prevBal, setPrevBal] = React.useState<number>(0);
@@ -92,7 +96,7 @@ export default function RentVoucherCreate({ today, generated_vch_no, parties, it
         setData('lines', recalcAmounts(upd));
     };
 
-    const addLine = () => setData('lines', [...data.lines, { party_item_id: '', qty: '', unit: '', rate: '', amount: 0 }]);
+    const addLine = () => setData('lines', [...data.lines, { party_item_id: '', qty: '', unit_name: '', rate: '', amount: 0 }]);
     const removeLine = (idx: number) => {
         if (data.lines.length === 1) return;
         setData(
@@ -110,7 +114,7 @@ export default function RentVoucherCreate({ today, generated_vch_no, parties, it
 
     /* ---------- dropdown options ---------- */
     const partyOpts = parties.map((p) => ({ value: String(p.id), label: p.account_ledger_name }));
-    const itemOpts = items.map((i) => ({ value: String(i.id), label: i.item_name }));
+    const itemOpts = items.map((i) => ({ value: String(i.id), label: i.item_name, unit_name: i.unit_name }));
     const modeOpts = modes.map((m) => ({
         value: String(m.id),
         label: m.mode_name + (m.phone_number ? ` (${m.phone_number})` : ''),
@@ -163,20 +167,7 @@ export default function RentVoucherCreate({ today, generated_vch_no, parties, it
                 </div>
 
                 {/* quick-entry strip */}
-                <div className="grid gap-2 rounded border bg-gray-50 p-3 md:grid-cols-5">
-                    <Select
-                        options={itemOpts}
-                        classNamePrefix="rs"
-                        placeholder="Select a Product"
-                        onChange={(o) => updateLine(0, 'party_item_id', o?.value || '')}
-                    />
-                    <input type="number" placeholder="Qty" className="rounded border p-2" onChange={(e) => updateLine(0, 'qty', e.target.value)} />
-                    <input type="text" placeholder="Unit" className="rounded border p-2" onChange={(e) => updateLine(0, 'unit', e.target.value)} />
-                    <input type="number" placeholder="Rate" className="rounded border p-2" onChange={(e) => updateLine(0, 'rate', e.target.value)} />
-                    <button type="button" className="rounded bg-purple-600 px-4 text-white" onClick={addLine}>
-                        Add
-                    </button>
-                </div>
+                {/*  */}
 
                 {/* detail table */}
                 <table className="w-full border text-sm">
@@ -198,7 +189,9 @@ export default function RentVoucherCreate({ today, generated_vch_no, parties, it
                                         options={itemOpts}
                                         classNamePrefix="rs"
                                         value={itemOpts.find((o) => o.value === l.party_item_id) || null}
-                                        onChange={(o) => updateLine(idx, 'party_item_id', o?.value || '')}
+                                        onChange={(o) => {
+                                            updateLine(idx, 'party_item_id', o?.value || '');
+                                        }}
                                     />
                                     {errors[`lines.${idx}.party_item_id`] && (
                                         <small className="text-red-500">{errors[`lines.${idx}.party_item_id`]}</small>
@@ -213,13 +206,14 @@ export default function RentVoucherCreate({ today, generated_vch_no, parties, it
                                     />
                                 </td>
                                 <td>
-                                    <input
-                                        type="text"
-                                        className="w-full border p-1"
-                                        value={l.unit}
-                                        onChange={(e) => updateLine(idx, 'unit', e.target.value)}
+                                    <Select
+                                        options={unitOpts}
+                                        classNamePrefix="rs"
+                                        value={unitOpts.find((o) => o.value === l.unit_name) || null}
+                                        onChange={(o) => updateLine(idx, 'unit_name', o?.value || '')}
                                     />
                                 </td>
+
                                 <td>
                                     <input
                                         type="number"
@@ -238,6 +232,15 @@ export default function RentVoucherCreate({ today, generated_vch_no, parties, it
                         ))}
                     </tbody>
                 </table>
+                <div className="mt-2">
+                    <button
+                        type="button"
+                        className="rounded bg-purple-600 px-4 py-1 text-sm font-semibold text-white hover:bg-purple-700"
+                        onClick={addLine}
+                    >
+                        + New Product
+                    </button>
+                </div>
 
                 {/* voucher summary */}
                 <div className="rounded border bg-gray-50 p-4">
@@ -268,6 +271,7 @@ export default function RentVoucherCreate({ today, generated_vch_no, parties, it
                                     onChange={(e) => setData('received_amount', e.target.value)}
                                 />
                             </div>
+                            {errors.received_mode_id && <p className="mt-1 text-sm text-red-500">{errors.received_mode_id}</p>}
                             <SummaryRow label="New Balance" value={newBalance} bold />
                         </div>
                     </div>

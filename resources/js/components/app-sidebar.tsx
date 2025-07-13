@@ -324,12 +324,12 @@ const mainNavItems: NavItem[] = [
                 icon: FileText,
             },
             {
-                title: 'পণ্য ট্রান্সফার/ক্রাশিং',
+                title: 'পণ্য ট্রান্সফার/রুপান্তর',
                 href: '/party-stock/convert',
                 icon: Repeat, // ↔️ transfer arrow icon
             },
-            {
-                title: 'ক্রাশিং কাজের তালিকা',
+            { 
+                title: 'পণ্য ট্রান্সফার তালিকা',
                 href: '/party-stock/convert-list',
                 icon: FileText,
             },

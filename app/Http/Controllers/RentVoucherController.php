@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\RentVoucher;
 use App\Models\AccountLedger;
+use App\Models\Unit;
 use App\Models\ReceivedMode;
 use App\Models\PartyItem;
 use Illuminate\Http\Request;
@@ -16,13 +17,24 @@ class RentVoucherController extends Controller
     public function create()
     {
         return Inertia::render('crushing/RentVoucherCreate', [
-            'today'   => now()->toDateString(),
+            'today'            => now()->toDateString(),
             'generated_vch_no' => 'RV-' . now()->format('Ymd') . '-' . random_int(1000, 9999),
+
             'parties' => AccountLedger::whereIn('ledger_type', ['sales', 'income'])
                 ->get(['id', 'account_ledger_name']),
-            'items'   => PartyItem::with('partyLedger')->get(['id', 'item_name']),
+
+            'items'   => PartyItem::with('unit:id,name')
+                ->select('id', 'item_name', 'unit_id')
+                ->get()
+                ->map(fn($i) => [
+                    'id'        => $i->id,
+                    'item_name' => $i->item_name,
+                    'unit_name' => optional($i->unit)->name,   // may be null
+                ]),
+
+            'units'   => Unit::orderBy('name')->get(['id', 'name']),   // 👈 NEW
             'modes'   => ReceivedMode::orderBy('mode_name')
-                ->get(['id', 'mode_name', 'phone_number']),   // pass phone if needed
+                ->get(['id', 'mode_name', 'phone_number']),
         ]);
     }
 
@@ -35,8 +47,8 @@ class RentVoucherController extends Controller
             'party_ledger_id' => ['required', 'exists:account_ledgers,id'],
             'lines'           => ['required', 'array', 'min:1'],
             'lines.*.party_item_id' => ['required', 'exists:party_items,id'],
-            'lines.*.qty'     => ['required', 'numeric', 'min:0.01'],
-            'lines.*.mon'     => ['nullable', 'numeric', 'min:0'],
+            'lines.*.unit_name'     => ['required', 'string', 'max:50'],  // NEW
+            'lines.*.qty'           => ['required', 'numeric', 'min:0.01'],
             'lines.*.rate'    => ['required', 'numeric', 'min:0'],
             // 'received_mode'   => ['required', 'string'],
             'received_mode_id' => ['required', 'exists:received_modes,id'],
@@ -79,8 +91,9 @@ class RentVoucherController extends Controller
             foreach ($v['lines'] as $l) {
                 $voucher->lines()->create([
                     'party_item_id' => $l['party_item_id'],
+                    'unit_name'     => $l['unit_name'],
                     'qty'           => $l['qty'],
-                    'mon'           => $l['mon'],
+                    // 'mon'           => $l['mon'],
                     'rate'          => $l['rate'],
                     'amount'        => $l['qty'] * $l['rate'],
                 ]);
@@ -113,16 +126,31 @@ class RentVoucherController extends Controller
     /* ----------  SHOW / PRINTABLE VIEW  ---------- */
     public function show(RentVoucher $voucher)
     {
-        $voucher->load(['party', 'lines.item']);
+        // eager-load the relation
+        $voucher->load(['party', 'receivedMode', 'lines.item']);
 
         return Inertia::render('crushing/RentVoucherShow', [
-            'voucher' => $voucher,
-            'lines'   => $voucher->lines->map(fn($l) => [
-                'item'   => $l->item->item_name,
-                'qty'    => $l->qty,
-                'mon'    => $l->mon,
-                'rate'   => $l->rate,
-                'amount' => $l->amount,
+            'voucher' => $voucher->only([
+                'id',
+                'date',
+                'vch_no',
+                'grand_total',
+                'previous_balance',
+                'balance',
+                'received_amount',
+            ]) + [
+                // ship the mode in a compact form
+                'received_mode' => $voucher->receivedMode
+                    ? $voucher->receivedMode->only(['mode_name', 'phone_number'])
+                    : null,
+                'party' => $voucher->party->only(['account_ledger_name']),
+            ],
+            'lines' => $voucher->lines->map(fn($l) => [
+                'item'      => $l->item->item_name,
+                'qty'       => $l->qty,
+                'unit_name' => $l->unit_name,
+                'rate'      => $l->rate,
+                'amount'    => $l->amount,
             ]),
         ]);
     }
