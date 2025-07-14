@@ -347,15 +347,10 @@ const mainNavItems: NavItem[] = [
                         title: 'পার্টি স্টক রিপোর্ট',
                         href: '/crushing/party-stock-report',
                         icon: Layers,
-                    },
-                    {
-                        title: 'Yield রিপোর্ট',
-                        href: '/reports/yield-register',
-                        icon: Droplets,
-                    },
+                    },                  
                     {
                         title: 'Rent Day Book',
-                        href: '/reports/rent-day-book',
+                        href: '/crushing/rent-day-book',
                         icon: CalendarDays,
                     },
                 ],
