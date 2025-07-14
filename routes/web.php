@@ -341,6 +341,8 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('crushing/party-stock-report', [PartyStockReportController::class, 'index'])
         ->name('crushing.party-stock-report.index');
 
+    Route::get('/crushing/rent-day-book', [\App\Http\Controllers\DayBookController::class, 'index'])
+     ->name('reports.daybook');
 
     // Route::prefix('party-stock')->group(function () {
     //     Route::get('/available-stock/{partyId}', [PartyStockController::class, 'getAvailableStock']);
