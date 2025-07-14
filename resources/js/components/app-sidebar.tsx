@@ -301,7 +301,7 @@ const mainNavItems: NavItem[] = [
 
     {
         title: 'Crushing / Rent',
-        icon: Warehouse, // or PackagePlus, Boxes, or ScaleIcon for variation
+        icon: Warehouse,
         children: [
             {
                 title: 'পার্টির পণ্য জমা',
@@ -309,9 +309,9 @@ const mainNavItems: NavItem[] = [
                 icon: UploadCloud,
             },
             {
-                title: 'পার্টির পণ্য জমা তালিকা', // The new link to the index page
-                href: '/party-stock/deposit-list', // Link to the list
-                icon: FileText, // You can choose any suitable icon here
+                title: 'পার্টির পণ্য জমা তালিকা',
+                href: '/party-stock/deposit-list',
+                icon: FileText,
             },
             {
                 title: 'পণ্য উত্তোলন',
@@ -319,28 +319,33 @@ const mainNavItems: NavItem[] = [
                 icon: DownloadCloud,
             },
             {
-                title: 'পণ্য উত্তোলন তালিকা', // The new link to the withdraw list
-                href: '/party-stock/withdraw-list', // Correct the link to the index page
+                title: 'পণ্য উত্তোলন তালিকা',
+                href: '/party-stock/withdraw-list',
                 icon: FileText,
             },
             {
                 title: 'পণ্য ট্রান্সফার/রুপান্তর',
                 href: '/party-stock/convert',
-                icon: Repeat, // ↔️ transfer arrow icon
+                icon: Repeat,
             },
-            { 
+            {
                 title: 'পণ্য ট্রান্সফার তালিকা',
                 href: '/party-stock/convert-list',
                 icon: FileText,
             },
-            { title: 'ক্রাশিং ভাউচারসমূহ', href: '/party-stock/rent-voucher/', icon: FileText },
+            {
+                title: 'ক্রাশিং ভাউচারসমূহ',
+                href: '/party-stock/rent-voucher/',
+                icon: FileText,
+            },
             {
                 title: 'ক্রাশিং রিপোর্টসমূহ',
                 icon: BarChart2,
+                href: '/crushing', 
                 children: [
                     {
                         title: 'পার্টি স্টক রিপোর্ট',
-                        href: '/reports/crushing-party-stock',
+                        href: '/crushing/party-stock-report',
                         icon: Layers,
                     },
                     {

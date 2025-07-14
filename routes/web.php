@@ -49,7 +49,7 @@ use App\Http\Controllers\PurchaseReturnController;
 use App\Http\Controllers\PartyStockWithdrawController;
 use App\Http\Controllers\PartyStockAdjustmentController;
 use App\Http\Controllers\PartyStockDepositController;
-
+use App\Http\Controllers\PartyStockReportController;
 
 use App\Http\Controllers\FinishedProductController;
 
@@ -332,8 +332,15 @@ Route::middleware(['auth', 'verified'])->group(function () {
             Route::post('/',      [RentVoucherController::class, 'store'])->name('store');
             Route::get('/',       [RentVoucherController::class, 'index'])->name('index');
             Route::get('{voucher}', [RentVoucherController::class, 'show'])->name('show');
+            Route::get('{voucher}/edit', [RentVoucherController::class, 'edit'])->name('edit');
+            Route::put('{voucher}',      [RentVoucherController::class, 'update'])->name('update');
         });
     });
+
+    // routes/web.php (crushing module)
+    Route::get('crushing/party-stock-report', [PartyStockReportController::class, 'index'])
+        ->name('crushing.party-stock-report.index');
+
 
     // Route::prefix('party-stock')->group(function () {
     //     Route::get('/available-stock/{partyId}', [PartyStockController::class, 'getAvailableStock']);

@@ -8,7 +8,7 @@ use App\Traits\BelongsToTenant;
 class PartyStockMove extends Model
 {
     use BelongsToTenant;
-    
+
     protected $fillable = [
         'date',
         'party_ledger_id',
@@ -45,5 +45,13 @@ class PartyStockMove extends Model
     public function creator()
     {
         return $this->belongsTo(User::class, 'created_by');
+    }
+    public function party()
+    {
+        return $this->belongsTo(AccountLedger::class, 'party_ledger_id');
+    }
+    public function item()
+    {
+        return $this->belongsTo(\App\Models\PartyItem::class, 'party_item_id');
     }
 }

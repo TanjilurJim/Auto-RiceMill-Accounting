@@ -343,7 +343,7 @@ export default function RentVoucherShow() {
                                 Print Voucher
                             </button>
 
-                            <button
+                            {/* <button
                                 disabled
                                 className="inline-flex items-center rounded-lg border border-gray-300 bg-white px-6 py-3 text-base font-medium text-gray-700 transition-colors hover:bg-gray-50 focus:ring-2 focus:ring-gray-500 focus:ring-offset-2 focus:outline-none"
                             >
@@ -356,7 +356,7 @@ export default function RentVoucherShow() {
                                     />
                                 </svg>
                                 Download PDF
-                            </button>
+                            </button> */}
                         </div>
 
                         <Link

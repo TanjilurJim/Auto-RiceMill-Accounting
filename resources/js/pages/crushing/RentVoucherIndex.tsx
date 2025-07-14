@@ -1,6 +1,7 @@
+import ActionButtons from '@/components/ActionButtons';
 import Pagination from '@/components/Pagination';
 import AppLayout from '@/layouts/app-layout';
-import { Head, Link } from '@inertiajs/react';
+import { Head } from '@inertiajs/react';
 
 interface Voucher {
     id: number;
@@ -30,12 +31,12 @@ export default function RentVoucherIndex({ vouchers, pagination }: Props) {
                 <div className="mb-4 flex items-center justify-between">
                     <h1 className="text-xl font-bold">Rent Vouchers</h1>
 
-                    <Link
+                    <a
                         href={route('party-stock.rent-voucher.create')}
                         className="inline-flex items-center rounded bg-green-600 px-3 py-1 text-white hover:bg-green-700"
                     >
                         + New Voucher
-                    </Link>
+                    </a>
                 </div>
 
                 <table className="mb-6 w-full border text-sm">
@@ -60,19 +61,24 @@ export default function RentVoucherIndex({ vouchers, pagination }: Props) {
                                 <td className="border p-2 text-right">{v.grand_total}</td>
                                 <td className="border p-2 text-right">{v.balance}</td>
                                 <td className="border p-2 text-center">
-                                    <Link
-                                        href={route('party-stock.rent-voucher.show', v.id)}
-                                        className="inline-flex items-center rounded bg-blue-600 px-2 py-1 text-white hover:bg-blue-700"
-                                    >
-                                        View
-                                    </Link>
+                                    <ActionButtons
+                                        viewHref={route('party-stock.rent-voucher.show', v.id)}
+                                        editHref={route('party-stock.rent-voucher.edit', v.id)}
+                                        viewText="View"
+                                        editText="Edit"
+                                    />
                                 </td>
                             </tr>
                         ))}
                     </tbody>
                 </table>
 
-                <Pagination links={pagination.links} currentPage={pagination.currentPage} lastPage={pagination.lastPage} total={pagination.total} />
+                <Pagination
+                    links={pagination.links}
+                    currentPage={pagination.currentPage}
+                    lastPage={pagination.lastPage}
+                    total={pagination.total}
+                />
             </div>
         </AppLayout>
     );
