@@ -80,4 +80,6 @@ class Sale extends Model
     {
         return $this->belongsTo(Journal::class);
     }
+    public function payments() { return $this->hasMany(SalePayment::class); }
+
 }
