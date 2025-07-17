@@ -3,6 +3,10 @@
 namespace App\Http\Controllers;
 
 use App\Models\Sale;
+use App\Services\SalePaymentService;
+use App\Services\LedgerService;
+use Carbon\Carbon;          // already there if you date-parse elsewhere
+
 use Illuminate\Support\Facades\Log;
 use App\Models\SaleItem;
 use App\Models\Godown;
@@ -100,18 +104,7 @@ class SaleController extends Controller
         ]);
     }
 
-    private function updateLedgerBalance($ledgerId, $type, $amount)
-    {
-        $ledger = AccountLedger::find($ledgerId);
-        if (!$ledger) return;
 
-        $current = $ledger->closing_balance ?? $ledger->opening_balance ?? 0;
-        $ledger->closing_balance = $type === 'debit'
-            ? $current + $amount
-            : $current - $amount;
-
-        $ledger->save();
-    }
 
     // Store Sale
     public function store(Request $request)
@@ -148,10 +141,13 @@ class SaleController extends Controller
                 'grand_total' => collect($request->sale_items)->sum('subtotal'),
                 'other_expense_ledger_id' => $request->other_expense_ledger_id,
                 'other_amount' => $request->other_amount ?? 0,
-                'received_mode_id' => $request->received_mode_id,
-                'amount_received' => $request->amount_received,
-                'total_due' => $request->total_due,
-                'closing_balance' => $request->closing_balance,
+                // 'received_mode_id' => $request->received_mode_id,
+                // 'amount_received' => $request->amount_received,
+                // 'total_due' => $request->total_due,
+                // 'closing_balance' => $request->closing_balance,
+
+                'total_due' => collect($request->sale_items)->sum('subtotal'),
+
                 'created_by' => auth()->id(),
             ]);
 
@@ -220,7 +216,7 @@ class SaleController extends Controller
             $amountReceived = $request->amount_received ?? 0;
             $customerLedgerId = $request->account_ledger_id;
 
-            // 4️⃣ Dr  Accounts Receivable  (buyer owes us)
+            // 4️⃣ Dr  Accounts Receivable  (buyer owes us)LedgerService
             JournalEntry::create([
                 'journal_id'        => $journal->id,
                 'account_ledger_id' => $customerLedgerId,
@@ -228,7 +224,7 @@ class SaleController extends Controller
                 'amount'            => $grandTotal,
                 'note'              => 'Sale price receivable',
             ]);
-            $this->updateLedgerBalance($customerLedgerId, 'debit', $grandTotal);
+            LedgerService::adjust($customerLedgerId, 'debit', $grandTotal);
 
             // 4️⃣(b) Cr  Sales Income  (revenue)
             JournalEntry::create([
@@ -238,33 +234,21 @@ class SaleController extends Controller
                 'amount'            => $grandTotal,
                 'note'              => 'Sales revenue',
             ]);
-            $this->updateLedgerBalance($salesLedgerId, 'credit', $grandTotal);
+            LedgerService::adjust($salesLedgerId, 'credit', $grandTotal);
 
             // 5️⃣ Debit received account if paid
             // 5️⃣ Receive cash/bkash if paid
-            if ($amountReceived > 0 && $request->received_mode_id) {
-                $receivedMode = ReceivedMode::with('ledger')->find($request->received_mode_id);
-                if ($receivedMode && $receivedMode->ledger) {
-                    // Dr Cash / Bank   ↑ asset
-                    JournalEntry::create([
-                        'journal_id'        => $journal->id,
-                        'account_ledger_id' => $receivedMode->ledger_id,
-                        'type'              => 'debit',
-                        'amount'            => $amountReceived,
-                        'note'              => 'Payment received via ' . $receivedMode->mode_name,
-                    ]);
-                    $this->updateLedgerBalance($receivedMode->ledger_id, 'debit', $amountReceived);
+            // 5️⃣  If customer paid immediately, record it via the service
+            if (($request->amount_received ?? 0) > 0 && $request->received_mode_id) {
+                $mode = ReceivedMode::find($request->received_mode_id);
 
-                    // Cr Accounts Receivable  ↓ customer dues
-                    JournalEntry::create([
-                        'journal_id'        => $journal->id,
-                        'account_ledger_id' => $customerLedgerId,
-                        'type'              => 'credit',
-                        'amount'            => $amountReceived,
-                        'note'              => 'Receivable settled by customer',
-                    ]);
-                    $this->updateLedgerBalance($customerLedgerId, 'credit', $amountReceived);
-                }
+                SalePaymentService::record(
+                    $sale,
+                    $request->amount_received,
+                    Carbon::parse($request->date),
+                    $mode,
+                    'Initial payment on invoice creation'
+                );
             }
 
             // 6️⃣  Cr  Inventory  (asset ↓ at COST)
@@ -275,7 +259,7 @@ class SaleController extends Controller
                 'amount'            => $totalCost,
                 'note'              => 'Inventory out (at cost)',
             ]);
-            $this->updateLedgerBalance($request->inventory_ledger_id, 'credit', $totalCost);
+            LedgerService::adjust($request->inventory_ledger_id, 'credit', $totalCost);
 
             // 7️⃣  Dr  COGS  (expense ↑ at COST)
             JournalEntry::create([
@@ -285,7 +269,7 @@ class SaleController extends Controller
                 'amount'            => $totalCost,
                 'note'              => 'Cost of Goods Sold',
             ]);
-            $this->updateLedgerBalance($request->cogs_ledger_id, 'debit', $totalCost);
+            LedgerService::adjust($request->cogs_ledger_id, 'debit', $totalCost);
 
             DB::commit();
             return redirect()->route('sales.index')->with('success', 'Sale created and journal posted!');
@@ -386,7 +370,7 @@ class SaleController extends Controller
             if ($sale->journal_id) {
                 $oldEntries = JournalEntry::where('journal_id', $sale->journal_id)->get();
                 foreach ($oldEntries as $e) {
-                    $this->updateLedgerBalance(
+                    LedgerService::adjust(
                         $e->account_ledger_id,
                         $e->type === 'debit' ? 'credit' : 'debit',
                         $e->amount
@@ -427,10 +411,11 @@ class SaleController extends Controller
                 'grand_total'          => collect($request->sale_items)->sum('subtotal'),
                 'other_expense_ledger_id' => $request->other_expense_ledger_id,
                 'other_amount'         => $request->other_amount ?? 0,
-                'received_mode_id'     => $request->received_mode_id,
-                'amount_received'      => $request->amount_received,
-                'total_due'            => $request->total_due,
-                'closing_balance'      => $request->closing_balance,
+                // 'received_mode_id'     => $request->received_mode_id,
+                // 'amount_received'      => $request->amount_received,
+                // 'total_due'            => $request->total_due,
+                // 'closing_balance'      => $request->closing_balance,
+                'total_due'             => collect($request->sale_items)->sum('subtotal'), // full for now
             ]);
 
             $sale->saleItems()->delete();
@@ -498,7 +483,7 @@ class SaleController extends Controller
                 'amount'            => $grandTotal,
                 'note'              => 'Sale price receivable',
             ]);
-            $this->updateLedgerBalance($customerLedger, 'debit', $grandTotal);
+            LedgerService::adjust($customerLedger, 'debit', $grandTotal);
 
             // Cr Sales Income
             JournalEntry::create([
@@ -508,32 +493,12 @@ class SaleController extends Controller
                 'amount'            => $grandTotal,
                 'note'              => 'Sales revenue',
             ]);
-            $this->updateLedgerBalance($salesLedgerId, 'credit', $grandTotal);
+            LedgerService::adjust($salesLedgerId, 'credit', $grandTotal);
 
             // যদি নগদ নেন ➜ Dr Cash / Cr AR
-            if ($amountReceived > 0 && $request->received_mode_id) {
-                $rcvMode = ReceivedMode::with('ledger')->find($request->received_mode_id);
-                if ($rcvMode && $rcvMode->ledger) {
-                    // Dr Cash / Bank
-                    JournalEntry::create([
-                        'journal_id'        => $journal->id,
-                        'account_ledger_id' => $rcvMode->ledger_id,
-                        'type'              => 'debit',
-                        'amount'            => $amountReceived,
-                        'note'              => 'Payment received via ' . $rcvMode->mode_name,
-                    ]);
-                    $this->updateLedgerBalance($rcvMode->ledger_id, 'debit', $amountReceived);
-
-                    // Cr Accounts Receivable
-                    JournalEntry::create([
-                        'journal_id'        => $journal->id,
-                        'account_ledger_id' => $customerLedger,
-                        'type'              => 'credit',
-                        'amount'            => $amountReceived,
-                        'note'              => 'Receivable settled',
-                    ]);
-                    $this->updateLedgerBalance($customerLedger, 'credit', $amountReceived);
-                }
+            if (($request->amount_received ?? 0) > 0 && $request->received_mode_id) {
+                $mode = ReceivedMode::find($request->received_mode_id);
+                SalePaymentService::record($sale, $request->amount_received, Carbon::parse($request->date), $mode, 'Payment recorded while editing invoice');
             }
 
             // Cr Inventory (at cost)
@@ -544,7 +509,7 @@ class SaleController extends Controller
                 'amount'            => $totalCost,
                 'note'              => 'Inventory out (at cost)',
             ]);
-            $this->updateLedgerBalance($request->inventory_ledger_id, 'credit', $totalCost);
+            LedgerService::adjust($request->inventory_ledger_id, 'credit', $totalCost);
 
             // Dr COGS
             JournalEntry::create([
@@ -554,7 +519,7 @@ class SaleController extends Controller
                 'amount'            => $totalCost,
                 'note'              => 'Cost of Goods Sold',
             ]);
-            $this->updateLedgerBalance($request->cogs_ledger_id, 'debit', $totalCost);
+            LedgerService::adjust($request->cogs_ledger_id, 'debit', $totalCost);
 
             DB::commit();
             return redirect()->route('sales.index')
@@ -748,6 +713,4 @@ class SaleController extends Controller
         \Log::info($result);
         return response()->json($result);
     }
-
-
 }

@@ -79,8 +79,9 @@ export default function SaleCreate({
         received_mode_id: '',
         amount_received: '',
         inventory_ledger_id: '',
-        total_due: '',
-        closing_balance: '',
+        // total_due: '',
+        // closing_balance: '',
+
         cogs_ledger_id: '',
     });
     useEffect(() => {
@@ -115,27 +116,21 @@ export default function SaleCreate({
 
     const customerLedgers = ledgers.filter((l) => l.mark_for_user);
 
-    const [currentLedgerBalance, setCurrentLedgerBalance] = useState(0);
+    // const [currentLedgerBalance, setCurrentLedgerBalance] = useState(0);
+
+    const [uiTotalDue, setUiTotalDue] = useState('0.00');
+    const [uiClosingBal, setUiClosingBal] = useState('0.00');
 
     // When received_mode_id changes ➜ fetch balance and recompute
     useEffect(() => {
         const mode = receivedModes.find((m) => m.id == data.received_mode_id);
-        if (mode?.ledger) {
-            const balance = parseFloat(mode.ledger.closing_balance || mode.ledger.opening_balance || 0);
-            setCurrentLedgerBalance(balance);
-            const received = parseFloat(data.amount_received) || 0;
-            setData('closing_balance', (balance + received).toFixed(2));
-        } else {
-            setCurrentLedgerBalance(0);
-            setData('closing_balance', '0.00');
-        }
-    }, [data.received_mode_id]);
+        const ledgerBal = parseFloat((mode as any)?.ledger?.closing_balance ?? 0) + parseFloat((mode as any)?.ledger?.opening_balance ?? 0);
+        const rec = parseFloat(data.amount_received || '0');
+        setUiClosingBal((ledgerBal + rec).toFixed(2));
+    }, [data.received_mode_id, data.amount_received]);
 
     // When amount_received changes ➜ recompute
-    useEffect(() => {
-        const received = parseFloat(data.amount_received) || 0;
-        setData('closing_balance', (currentLedgerBalance + received).toFixed(2)); // ✅ updates UI live
-    }, [data.amount_received]);
+    
 
     // Auto-generate voucher no on mount
     useEffect(() => {
@@ -150,15 +145,9 @@ export default function SaleCreate({
 
     // 🛠️ Add this to SaleCreate component to auto-calculate due
     useEffect(() => {
-        const total = data.sale_items.reduce((sum, item) => {
-            const sub = parseFloat(item.subtotal || 0);
-            return sum + (isNaN(sub) ? 0 : sub);
-        }, 0);
-
-        const received = parseFloat(data.amount_received) || 0;
-        const due = total - received;
-
-        setData('total_due', due.toFixed(2));
+        const total = data.sale_items.reduce((s, i) => s + parseFloat(i.subtotal || '0'), 0);
+        const rec = parseFloat(data.amount_received || '0');
+        setUiTotalDue((total - rec).toFixed(2));
     }, [data.sale_items, data.amount_received]);
 
     // Handle changes in each row's product fields
@@ -348,7 +337,7 @@ export default function SaleCreate({
                                             <option value="">Select</option>
                                             {filteredItems.map((p) => (
                                                 <option key={p.id} value={p.id}>
-                                                    {p.item_name} ({p.stock_qty} in stock)
+                                                    {p.item_name} ({p.stock_qty}{p.unit} in stock)
                                                 </option>
                                             ))}
                                         </select>
@@ -486,7 +475,6 @@ export default function SaleCreate({
                                     </div>
                                     {errors.inventory_ledger_id && <div className="text-sm text-red-500">{errors.inventory_ledger_id}</div>}
                                 </div>
-
                                 {/* Other Amount */}
                                 {/* COGS Ledger */}
                                 <div className="col-span-1">
@@ -520,7 +508,6 @@ export default function SaleCreate({
                                     </div>
                                     {errors.cogs_ledger_id && <div className="text-sm text-red-500">{errors.cogs_ledger_id}</div>}
                                 </div>
-
                                 {/* Receive Mode */}
                                 <div>
                                     <label className="mb-1 block text-sm font-semibold text-gray-700">Receive Mode</label>
@@ -536,9 +523,8 @@ export default function SaleCreate({
                                             </option>
                                         ))}
                                     </select>
-                                    <div className="mt-1 text-sm text-gray-500">Current Balance: {currentLedgerBalance.toFixed(2)}</div>
+                                    <div className="mt-1 text-sm text-gray-500">Projected Closing Bal.: {uiClosingBal}</div>
                                 </div>
-
                                 {/* Receive Amount */}
                                 <div>
                                     <label className="mb-1 block text-sm font-semibold text-gray-700">Receive Amount</label>
@@ -550,23 +536,15 @@ export default function SaleCreate({
                                         onChange={(e) => setData('amount_received', e.target.value)}
                                     />
                                 </div>
-
                                 {/* Total Due */}
                                 <div>
                                     <label className="mb-1 block text-sm font-semibold text-gray-700">Total Due</label>
-                                    <input
-                                        type="number"
-                                        placeholder="0.00"
-                                        className="w-full border p-2"
-                                        value={data.total_due || ''}
-                                        onChange={(e) => setData('total_due', e.target.value)}
-                                    />
+                                    <input type="number" readOnly className="w-full border bg-gray-100 p-2" value={uiTotalDue} />
                                 </div>
-
                                 {/* Closing Balance */}
                                 <div>
                                     <label className="mb-1 block text-sm font-semibold text-gray-700">Closing Balance</label>
-                                    <input type="number" className="w-full border bg-gray-100 p-2" value={data.closing_balance || ''} readOnly />
+                                    <input type="number" readOnly className="w-full border bg-gray-100 p-2" value={uiClosingBal} />
                                 </div>
                             </div>
                         </div>
@@ -666,8 +644,6 @@ export default function SaleCreate({
                                 </div>
                             </div>
                         </div>
-
-                       
 
                         {/* Section 4: Submit */}
                         <ActionFooter

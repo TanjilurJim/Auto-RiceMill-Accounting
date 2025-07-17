@@ -14,7 +14,34 @@ class JournalService
      * ------------------------------------------------------------ */
     public static function createJournalForPurchase($purchase)
     {
-        // … your untouched code …
+        return DB::transaction(function () use ($purchase) {
+            $journal = Journal::create([
+                'date' => $purchase->date,
+                'voucher_no' => $purchase->voucher_no,
+                'narration' => 'Auto journal for Purchase ID ' . $purchase->id,
+                'created_by' => $purchase->created_by,
+            ]);
+
+            // Debit: Purchase/Inventory
+            JournalEntry::create([
+                'journal_id' => $journal->id,
+                'account_ledger_id' => config('accounts.purchase_ledger_id'), // Use your system's "Inventory" or "Purchase" ledger
+                'type' => 'debit',
+                'amount' => $purchase->grand_total,
+                'note' => 'Purchase to Inventory',
+            ]);
+
+            // Credit: Supplier
+            JournalEntry::create([
+                'journal_id' => $journal->id,
+                'account_ledger_id' => $purchase->account_ledger_id,
+                'type' => 'credit',
+                'amount' => $purchase->grand_total,
+                'note' => 'Payable to Supplier',
+            ]);
+
+            return $journal;
+        });
     }
 
     /* ------------------------------------------------------------
@@ -38,8 +65,10 @@ class JournalService
         $sale->update(['journal_id' => $journal->id]);
 
         /* ---- 1. Cash / Bank in  ---- */
+
+
         if ($p->amount > 0 && $p->ledger) {
-            self::addEntry($journal, $p->ledger_id, 'debit', $p->amount, 'Customer payment');
+            self::addEntry($journal, $p->account_ledger_id, 'debit', $p->amount, 'Customer payment');
         }
 
         /* ---- 2. Finance charge income ---- */
@@ -72,7 +101,6 @@ class JournalService
         ]);
 
         // ↳ adjust to your existing ledger-balance updater
-        app(\App\Http\Controllers\SaleController::class)
-            ->updateLedgerBalance($ledgerId, $type, $amt);
+        \App\Services\LedgerService::adjust($ledgerId, $type, $amt);
     }
 }

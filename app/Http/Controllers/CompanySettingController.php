@@ -20,6 +20,10 @@ class CompanySettingController extends Controller
         return Inertia::render('company-settings/edit', [
             'setting' => $setting,
             'financialYears' => $financialYears,
+            'interestBasisOptions' => [         // 👈 add this
+                ['value' => 'due',   'label' => 'Due amount'],
+                ['value' => 'total', 'label' => 'Total invoice amount'],
+            ],
         ]);
     }
 
@@ -35,7 +39,19 @@ class CompanySettingController extends Controller
             'mobile' => 'nullable|string|max:20',
             'address' => 'nullable|string',
             'description' => 'nullable|string',
+
+            // 🆕 global-interest flags
+            'apply_interest'     => 'nullable|boolean',
+            'interest_basis'     => 'nullable|in:due,total',
+            'interest_rate_per_month' => 'nullable|numeric|min:0',  
+            'interest_rate_per_year'  => 'nullable|numeric|min:0',
+            'interest_type' => 'required|in:percentage,flat',
+            'interest_flat_per_day' => 'nullable|numeric|min:0',
+
         ]);
+
+        // 🟢 normalise checkbox
+        $validated['apply_interest'] = $request->boolean('apply_interest');
 
         $setting = CompanySetting::firstOrNew(['created_by' => auth()->id()]);
 
@@ -55,7 +71,7 @@ class CompanySettingController extends Controller
 
             // normal web‑size 300 px wide  ───────────────────────
             $full = $manager->read($image)
-                                   // ← fixes EXIF rotation
+                // ← fixes EXIF rotation
                 ->resize(300, 300, function ($c) {
                     $c->aspectRatio();
                     $c->upsize();
@@ -67,7 +83,7 @@ class CompanySettingController extends Controller
 
             // **thumbnail 120×120 bounding box**  ───────────────
             $thumb = $manager->read($image)
-                
+
                 ->resize(120, 120, function ($c) {
                     $c->aspectRatio();
                     $c->upsize();

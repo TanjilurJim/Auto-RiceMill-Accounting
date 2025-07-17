@@ -18,14 +18,22 @@ class CompanySetting extends Model
         'mobile',
         'address',
         'description',
+        'apply_interest',
+        'interest_flat_per_day',
+        'interest_rate_per_year',
+        'interest_rate_per_month',
+        'interest_basis',
         'logo_path',
+        'interest_type', 
         'logo_thumb_path', 
     ];
 
      /* ──────────── Accessors ──────────── */
      protected $appends = ['logo_url', 'logo_thumb_url'];
 
-     
+     protected $casts = [
+        'apply_interest'  => 'boolean',
+    ];
 
      public function getLogoUrlAttribute(): ?string
      {

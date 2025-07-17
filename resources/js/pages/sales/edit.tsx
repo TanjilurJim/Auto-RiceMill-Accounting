@@ -24,6 +24,7 @@ interface Sale {
     rent_advance: string | null;
     net_rent: string | null;
     truck_driver_name: string | null;
+    
     driver_address: string | null;
     driver_mobile: string | null;
     sale_items: SaleItem[];

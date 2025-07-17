@@ -24,6 +24,7 @@ use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\PartyItemController;
 use App\Http\Controllers\DepartmentController;
 use App\Http\Controllers\JournalAddController;
+use App\Http\Controllers\DueController;
 use App\Http\Controllers\PartyStockController;
 use App\Http\Controllers\PaymentAddController;
 use App\Http\Controllers\PermissionController;
@@ -337,12 +338,27 @@ Route::middleware(['auth', 'verified'])->group(function () {
         });
     });
 
+    // routes/web.php
+    Route::prefix('dues')->middleware('auth')->group(function () {
+
+        /** list all invoices with money outstanding */
+        Route::get('/',  [DueController::class, 'index'])->name('dues.index');
+         Route::get('/settled',         [DueController::class, 'settled'])->name('dues.settled');
+
+        /** open “Receive Payment” modal / page for a single sale  */
+        Route::get('/{sale}', [DueController::class, 'show'])->name('dues.show');
+
+        /** post a new instalment (hits SalePaymentService) */
+        Route::post('/{sale}/pay', [DueController::class, 'store'])->name('dues.pay');
+    });
+
+
     // routes/web.php (crushing module)
     Route::get('crushing/party-stock-report', [PartyStockReportController::class, 'index'])
         ->name('crushing.party-stock-report.index');
 
     Route::get('/crushing/rent-day-book', [\App\Http\Controllers\DayBookController::class, 'index'])
-     ->name('reports.daybook');
+        ->name('reports.daybook');
 
     // Route::prefix('party-stock')->group(function () {
     //     Route::get('/available-stock/{partyId}', [PartyStockController::class, 'getAvailableStock']);

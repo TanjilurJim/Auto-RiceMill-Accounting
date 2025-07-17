@@ -129,6 +129,16 @@ const mainNavItems: NavItem[] = [
                 icon: ReceiptText,
             },
             {
+                title: 'Dues',
+                href: '/dues',
+                icon: ReceiptText,
+            },
+            {
+                title: 'Dues Settled',
+                href: '/dues/settled',
+                icon: ReceiptText,
+            },
+            {
                 title: 'Sales Order & List',
                 href: '/sales-orders',
                 icon: Folder,

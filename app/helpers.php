@@ -381,6 +381,26 @@ if (! function_exists('company_info')) {
 
 
 
+
+if (! function_exists('setting')) {
+    /**
+     * Fetch a column from the current company's settings row.
+     *
+     * @param  string  $key      Column name in company_settings
+     * @param  mixed   $default  Fallback when column is null / row missing
+     * @return mixed
+     */
+    function setting(string $key, $default = null)
+    {
+        static $row = null;                               // ⏱ one-request cache
+        $row ??= company_info();
+
+        return $row?->{$key} ?? $default;
+    }
+}
+
+
+
 if (!function_exists('inventory_service')) {
     function inventory_service(): InventoryService
     {
