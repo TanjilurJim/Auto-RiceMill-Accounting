@@ -43,4 +43,9 @@ class SalaryReceive extends Model
     {
         return $this->belongsTo(User::class, 'created_by');
     }
+
+    public function slipEmployee()   // alias reads nicer in code
+    {
+        return $this->belongsTo(SalarySlipEmployee::class, 'salary_slip_employee_id');
+    }
 }

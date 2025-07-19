@@ -16,7 +16,7 @@ use App\Models\AccountLedger;
 use App\Models\User;
 use Illuminate\Support\Facades\DB;
 
-use function godown_scope_ids;
+
 
 class EmployeeController extends Controller
 {
@@ -38,18 +38,20 @@ class EmployeeController extends Controller
 
     public function index()
     {
-        $ids = godown_scope_ids();
+        $employees = Employee::with('department', 'designation', 'shift', 'referenceBy')
+            ->withSum('salarySlipEmployees as gross', 'total_amount')
+            ->withSum('salarySlipEmployees as paid',  'paid_amount')
+            ->addSelect(DB::raw('
+            (SELECT COALESCE(SUM(total_amount - paid_amount),0)
+             FROM salary_slip_employees sse
+             WHERE sse.employee_id = employees.id
+            ) AS outstanding
+        '))
+            ->orderByDesc('outstanding')
+            ->paginate(15)
+            ->withQueryString();   // keeps future filters
 
-        $employees = Employee::query()
-            ->with('department', 'designation', 'shift', 'referenceBy')
-            ->when($ids !== null && !empty($ids), function ($query) use ($ids) {
-                $query->whereIn('created_by', $ids);
-            })
-            ->get();
-
-        return Inertia::render('employees/index', [
-            'employees' => $employees
-        ]);
+        return Inertia::render('employees/index', compact('employees'));
     }
 
 
@@ -81,26 +83,17 @@ class EmployeeController extends Controller
 
     public function create()
     {
-        $ids = godown_scope_ids();
-
-        $departments = Department::when($ids !== null && !empty($ids), function ($q) use ($ids) {
-            $q->whereIn('created_by', $ids);
-        })->get();
-        $designations = Designation::when($ids !== null && !empty($ids), function ($q) use ($ids) {
-            $q->whereIn('created_by', $ids);
-        })->get();
-        $shifts = Shift::when($ids !== null && !empty($ids), function ($q) use ($ids) {
-            $q->whereIn('created_by', $ids);
-        })->get();
-        $references = Employee::when($ids !== null && !empty($ids), function ($q) use ($ids) {
-            $q->whereIn('created_by', $ids);
-        })->get();
+        // Global scope already limits rows to the child’s tenant set
+        $departments  = Department::all();
+        $designations = Designation::all();
+        $shifts       = Shift::all();
+        $references   = Employee::all();   // Employee already has the trait
 
         return Inertia::render('employees/create', [
-            'departments' => $departments,
+            'departments'  => $departments,
             'designations' => $designations,
-            'shifts' => $shifts,
-            'references' => $references,
+            'shifts'       => $shifts,
+            'references'   => $references,
         ]);
     }
 
@@ -358,4 +351,26 @@ class EmployeeController extends Controller
         return redirect()->route('employees.index')->with('success', 'Employee deleted successfully.');
     }
 
+    public function salaryReport(Employee $employee)
+    {
+        $ids = godown_scope_ids();
+        if ($ids && !in_array($employee->created_by, $ids)) {
+            abort(403);
+        }
+
+        $employee->load([
+            'salarySlipEmployees' => fn($q) =>
+            $q->with('salarySlip')
+                ->orderByDesc('id'),
+            'salarySlipEmployees.receives' => fn($q) =>
+            $q->orderBy('date'),
+            'department',
+            'designation',
+            'shift'
+        ]);
+
+        return Inertia::render('employees/salary-report', [
+            'employee' => $employee
+        ]);
+    }
 }

@@ -9,23 +9,31 @@ class SalarySlipEmployee extends Model
 {
     use HasFactory;
 
+    /* ───── Mass-assignable ───── */
     protected $fillable = [
         'salary_slip_id',
         'employee_id',
         'basic_salary',
         'additional_amount',
         'total_amount',
+        'paid_amount',        // ← NEW
+        'status',             // ← NEW   (Unpaid / Partially Paid / Paid)
     ];
 
-    // Relationship to SalarySlip model
-    public function salarySlip()
+    /* ───── Relationships ───── */
+    public function salarySlip()     { return $this->belongsTo(SalarySlip::class); }
+    public function employee()       { return $this->belongsTo(Employee::class); }
+    public function receives()       { return $this->hasMany(SalaryReceive::class); }
+
+    /* ───── Accessors / Helpers ───── */
+    public function getOutstandingAttribute(): float
     {
-        return $this->belongsTo(SalarySlip::class);
+        return max(0, $this->total_amount - $this->paid_amount);
     }
 
-    // Relationship to Employee model
-    public function employee()
+    /* Optional scope if you want a quick filter */
+    public function scopeOutstanding($q)
     {
-        return $this->belongsTo(Employee::class);
+        return $q->whereColumn('total_amount', '>', 'paid_amount');
     }
 }

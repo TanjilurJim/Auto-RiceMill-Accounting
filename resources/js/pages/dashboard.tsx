@@ -3,14 +3,7 @@ import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import AppLayout from '@/layouts/app-layout';
 import { cn } from '@/lib/utils';
 import { Head, usePage } from '@inertiajs/react';
-import {
-    CheckCircle2,
-    CircleDollarSign,
-    ReceiptText,
-    RotateCcw,
-    ShoppingCart,
-    Wallet,
-} from 'lucide-react';
+import { CheckCircle2, CircleDollarSign, ReceiptText, RotateCcw, ShoppingCart, Wallet } from 'lucide-react';
 import { useState } from 'react';
 import { Bar, BarChart, Cell, Legend, Line, LineChart, Pie, PieChart, ResponsiveContainer, Sector, Tooltip, XAxis, YAxis } from 'recharts';
 
@@ -23,8 +16,6 @@ import { Bar, BarChart, Cell, Legend, Line, LineChart, Pie, PieChart, Responsive
 //     { label: 'Account Ledger', href: '/reports/account-ledger', icon: BookOpenCheck, color: 'bg-purple-500' },
 //     { label: 'Stock Report', href: '/reports/stock-summary', icon: Layers3, color: 'bg-cyan-600' },
 // ];
-
-
 
 /* ─────────────────────────────── Charts data ────────────────────────── */
 const monthly = [
@@ -75,9 +66,11 @@ export default function Dashboard() {
     const totalReceived = (usePage().props as any).totalReceived ?? 0;
     const totalPayment = (usePage().props as any).totalPayment ?? 0;
     const totalWorkOrders = (usePage().props as any).totalWorkOrders ?? 0;
+
+    const totalDues = (usePage().props as any).totalDues ?? 0;
+    // const totalDueAdjustments = (usePage().props as any).totalDueAdjustments ?? 0;
+    const clearedDuesCount = (usePage().props as any).clearedDuesCount ?? 0;
     const completedWorkOrders = (usePage().props as any).completedWorkOrders ?? 0;
-
-
 
     /* ───────────────────────────────── KPIs ─────────────────────────────── */
     const kpis = [
@@ -90,7 +83,16 @@ export default function Dashboard() {
         { title: 'Sales Returns', value: totalSalesReturns, icon: RotateCcw, color: 'text-fuchsia-600', bg: 'bg-fuchsia-50' },
         { title: 'Purchase Returns', value: totalPurchaseReturns, icon: RotateCcw, color: 'text-cyan-600', bg: 'bg-cyan-50' },
         { title: 'Open Sales Orders', value: totalSalesOrders, icon: ShoppingCart, color: 'text-orange-600', bg: 'bg-orange-50' },
-        { title: 'Work Orders Done', value: `${completedWorkOrders} / ${totalWorkOrders}`, icon: CheckCircle2, color: 'text-indigo-600', bg: 'bg-indigo-50' },
+        {
+            title: 'Work Orders Done',
+            value: `${completedWorkOrders} / ${totalWorkOrders}`,
+            icon: CheckCircle2,
+            color: 'text-indigo-600',
+            bg: 'bg-indigo-50',
+        },
+        { title: 'Outstanding Dues', value: totalDues, icon: Wallet, color: 'text-amber-600', bg: 'bg-amber-50' },
+        { title: 'Dues Cleared', value: clearedDuesCount, icon: CheckCircle2, color: 'text-emerald-600', bg: 'bg-emerald-50' },
+        // { title: 'Due Adjustments', value: totalDueAdjustments, icon: RotateCcw, color: 'text-slate-600', bg: 'bg-slate-50' },
     ];
 
     return (
@@ -135,26 +137,23 @@ export default function Dashboard() {
                     </Card>
                 ))}
             </div> */}
-            <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4 m-2">
+            <div className="m-2 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
                 {kpis.map(({ title, value, icon: Icon, color, bg }) => (
                     <Card
                         key={title}
                         className={cn(
-                            'flex items-center gap-4 rounded-lg p-4 border border-gray-100 dark:border-muted/30',
-                            'bg-white dark:bg-muted/40 shadow-sm transition-transform duration-200',
-                            'hover:-translate-y-1 hover:shadow-lg hover:border-primary/40',
-                            bg
+                            'dark:border-muted/30 flex items-center gap-4 rounded-lg border border-gray-100 p-4',
+                            'dark:bg-muted/40 bg-white shadow-sm transition-transform duration-200',
+                            'hover:border-primary/40 hover:-translate-y-1 hover:shadow-lg',
+                            bg,
                         )}
                     >
-                        <div className={cn(
-                            'flex items-center justify-center rounded-full h-12 w-12 shadow-sm',
-                            color, 'bg-opacity-10'
-                        )}>
+                        <div className={cn('flex h-12 w-12 items-center justify-center rounded-full shadow-sm', color, 'bg-opacity-10')}>
                             <Icon className={cn('h-7 w-7', color)} />
                         </div>
-                        <div className="flex-1 min-w-0 text-center">
-                            <p className="text-xs text-gray-500 dark:text-gray-400 truncate">{title}</p>
-                            <p className="text-2xl font-bold text-gray-800 dark:text-gray-100 mt-1">
+                        <div className="min-w-0 flex-1 text-center">
+                            <p className="truncate text-xs text-gray-500 dark:text-gray-400">{title}</p>
+                            <p className="mt-1 text-2xl font-bold text-gray-800 dark:text-gray-100">
                                 {typeof value === 'number' ? value.toLocaleString() : value}
                             </p>
                         </div>

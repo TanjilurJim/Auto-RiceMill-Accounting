@@ -23,6 +23,18 @@ class SalarySlip extends Model
         return $this->hasMany(SalarySlipEmployee::class);
     }
 
+    public function getTotalOutstandingAttribute(): float
+    {
+        // summed on the PHP side; if you need DB-level speed make it a query scope
+        return $this->salarySlipEmployees->sum(fn($e) => $e->outstanding);
+    }
+
+    /* one-liner to fetch all still-owed rows on this slip */
+    public function outstandingEmployees()
+    {
+        return $this->salarySlipEmployees()->outstanding();
+    }
+
     // Relationship to User model (Created by)
     public function creator()
     {

@@ -2,13 +2,15 @@
 
 namespace App\Models;
 
+use App\Traits\BelongsToTenant;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
 class Employee extends Model
 {
-    use HasFactory;
+    use HasFactory, BelongsToTenant;
 
+    /* ───── Mass-assignable ───── */
     protected $fillable = [
         'name',
         'mobile',
@@ -27,38 +29,52 @@ class Employee extends Model
         'created_by',
     ];
 
-    // Relationship to Department model
+    /* ───── Relationships ───── */
     public function department()
     {
         return $this->belongsTo(Department::class);
     }
-
-    // Relationship to Designation model
     public function designation()
     {
         return $this->belongsTo(Designation::class);
     }
-
-    // Relationship to Shift model
     public function shift()
     {
         return $this->belongsTo(Shift::class);
     }
-
-    // Relationship to User model (Created by)
     public function creator()
     {
         return $this->belongsTo(User::class, 'created_by');
     }
-
-    // Relationship to Reference Employee model (if any)
     public function referenceBy()
     {
         return $this->belongsTo(Employee::class, 'reference_by');
     }
-    
     public function ledger()
     {
-        return $this->hasOne(AccountLedger::class); // if using employee_id
+        return $this->hasOne(AccountLedger::class);
+    }
+
+    /* NEW: link to all slip-rows for this employee */
+    public function salarySlipEmployees()
+    {
+        return $this->hasMany(SalarySlipEmployee::class);
+    }
+
+    /* ───── Convenience accessors ───── */
+    public function getGrossSalaryAttribute(): float
+    {
+        // all slips ever issued
+        return $this->salarySlipEmployees->sum('total_amount');
+    }
+
+    public function getSalaryPaidAttribute(): float
+    {
+        return $this->salarySlipEmployees->sum('paid_amount');
+    }
+
+    public function getSalaryOutstandingAttribute(): float
+    {
+        return max(0, $this->gross_salary - $this->salary_paid);
     }
 }

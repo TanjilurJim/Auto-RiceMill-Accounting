@@ -7,6 +7,9 @@ use App\Models\User;
 use Inertia\Inertia;
 // use Illuminate\Foundation\Auth\User;
 use App\Models\Purchase;
+use Illuminate\Support\Facades\DB;
+
+use App\Models\SalePayment;
 use App\Models\PaymentAdd;
 use App\Models\SalesOrder;
 use App\Models\ReceivedAdd;
@@ -105,32 +108,63 @@ class DashboardController extends Controller
         $isAdmin = empty($userIds);
 
         $totalSales = Sale::when(!$isAdmin, function ($q) use ($userIds) {
-                $q->whereIn('created_by', $userIds);
-            })->sum('grand_total');
+            $q->whereIn('created_by', $userIds);
+        })->sum('grand_total');
         $totalPurchases = Purchase::when(!$isAdmin, function ($q) use ($userIds) {
-                $q->whereIn('created_by', $userIds);
-            })->sum('grand_total');
+            $q->whereIn('created_by', $userIds);
+        })->sum('grand_total');
         $totalPurchaseReturns = PurchaseReturn::when(!$isAdmin, function ($q) use ($userIds) {
-                $q->whereIn('created_by', $userIds);
-            })->sum('grand_total');
+            $q->whereIn('created_by', $userIds);
+        })->sum('grand_total');
         $totalSalesReturns = SalesReturn::when(!$isAdmin, function ($q) use ($userIds) {
-                $q->whereIn('created_by', $userIds);
-            })->sum('total_return_amount');
+            $q->whereIn('created_by', $userIds);
+        })->sum('total_return_amount');
         $totalSalesOrders = SalesOrder::when(!$isAdmin, function ($q) use ($userIds) {
-                $q->whereIn('created_by', $userIds);
-            })->sum('total_amount');
+            $q->whereIn('created_by', $userIds);
+        })->sum('total_amount');
         $totalReceived = ReceivedAdd::when(!$isAdmin, function ($q) use ($userIds) {
-                $q->whereIn('created_by', $userIds);
-            })->sum('amount');
+            $q->whereIn('created_by', $userIds);
+        })->sum('amount');
         $totalPayment = PaymentAdd::when(!$isAdmin, function ($q) use ($userIds) {
-                $q->whereIn('created_by', $userIds);
-            })->sum('amount');
+            $q->whereIn('created_by', $userIds);
+        })->sum('amount');
         $totalWorkOrders = WorkingOrder::when(!$isAdmin, function ($q) use ($userIds) {
-                $q->whereIn('created_by', $userIds);
-            })->count();
+            $q->whereIn('created_by', $userIds);
+        })->count();
         $completedWorkOrders = WorkingOrder::when(!$isAdmin, function ($q) use ($userIds) {
-                $q->whereIn('created_by', $userIds);
-            })->where('production_status', 'completed')->count();
+            $q->whereIn('created_by', $userIds);
+        })->where('production_status', 'completed')->count();
+
+
+        $dueExpr = '(sales.grand_total + (
+                   select coalesce(sum(interest_amount),0)
+                   from sale_payments
+                   where sale_id = sales.id
+               ) - (
+                   select coalesce(sum(amount),0)
+                   from sale_payments
+                   where sale_id = sales.id
+               ))';
+
+        $totalClearedDues = DB::table('sales')
+            ->when(!$isAdmin, fn($q) => $q->whereIn('created_by', $userIds))
+            ->whereRaw("$dueExpr <= 0")      // fully settled
+            ->count();
+
+        $totalDues = DB::table('sales')
+            ->when(!$isAdmin, fn($q) => $q->whereIn('created_by', $userIds))
+            ->selectRaw("sum($dueExpr) as total_outstanding")
+            ->whereRaw("$dueExpr > 0")        // only positive balances
+            ->value('total_outstanding') ?? 0;
+
+        /* ──────────────── NEW: Due-adjustment write-offs ─────────────────────
+       Sum any sale-payment rows you flagged with waive_interest = true.    */
+        $totalDueAdjustments = SalePayment::where('waive_interest', true)
+            ->whereHas('sale', fn($q) => $q->when(
+                !$isAdmin,
+                fn($qq) => $qq->whereIn('created_by', $userIds)
+            ))
+            ->sum('interest_amount');         // use the colu
 
         return Inertia::render('dashboard', [
             'totalSales' => $totalSales,
@@ -142,7 +176,9 @@ class DashboardController extends Controller
             'totalPayment' => $totalPayment,
             'totalWorkOrders' => $totalWorkOrders,
             'completedWorkOrders' => $completedWorkOrders,
+
+            'totalDues'             => $totalDues,
+            'clearedDuesCount'   => $totalClearedDues,   
         ]);
     }
-
 }

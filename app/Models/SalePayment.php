@@ -21,7 +21,10 @@ class SalePayment extends Model
         'amount'          => 'decimal:2',
         'interest_amount' => 'decimal:2',
         'date'            => 'date',
+
+        'waive_interest' => 'boolean',
     ];
+
 
     public function sale()
     {

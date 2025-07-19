@@ -12,6 +12,7 @@ use App\Http\Controllers\ConversionVoucherController;
 use App\Http\Controllers\RentVoucherController;
 use App\Http\Controllers\UnitController;
 use App\Http\Controllers\UserController;
+use App\Http\Controllers\SalaryOwedController;
 use App\Http\Controllers\ShiftController;
 use App\Http\Controllers\GodownController;
 use App\Http\Controllers\ReportController;
@@ -186,6 +187,15 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::resource('designations', DesignationController::class);
     Route::resource('shifts', ShiftController::class);
     Route::resource('employees', EmployeeController::class);
+
+    // employee salary report
+    Route::get(
+        'employees/{employee}/salary-report',
+        [EmployeeController::class, 'salaryReport']
+    )->name('employees.salary-report');
+
+
+
     // Salary
     Route::resource('salary-slips', SalarySlipController::class);
     Route::get('/salary-slips/{salarySlip}/invoice', [SalarySlipController::class, 'invoice'])->name('salary-slips.invoice');
@@ -194,6 +204,13 @@ Route::middleware(['auth', 'verified'])->group(function () {
     ]);
     // Employee Report
     Route::get('employee-ledger', [ReportController::class, 'employeeLedger'])->name('employee.ledger');
+    Route::
+    prefix('employee-reports')
+    ->name('employee-reports.')
+    ->group(function () {
+        Route::get('/', [\App\Http\Controllers\EmployeeReportController::class,'index'])
+            ->name('index');
+    });
 
     //Stock Report
     Route::get('/reports/stock-summary', [ReportController::class, 'stockSummary'])->name('reports.stock-summary');
@@ -336,6 +353,17 @@ Route::middleware(['auth', 'verified'])->group(function () {
             Route::get('{voucher}/edit', [RentVoucherController::class, 'edit'])->name('edit');
             Route::put('{voucher}',      [RentVoucherController::class, 'update'])->name('update');
         });
+
+        
+    });
+
+    // salary owed
+    Route::
+    prefix('salary-owed')
+    ->name('salary-owed.')
+    ->group(function () {
+        Route::get('/',          [SalaryOwedController::class, 'index'])->name('index');
+        Route::get('{employee}', [SalaryOwedController::class, 'show']) ->name('show');
     });
 
     // routes/web.php
@@ -343,7 +371,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
 
         /** list all invoices with money outstanding */
         Route::get('/',  [DueController::class, 'index'])->name('dues.index');
-         Route::get('/settled',         [DueController::class, 'settled'])->name('dues.settled');
+        Route::get('/settled',         [DueController::class, 'settled'])->name('dues.settled');
 
         /** open “Receive Payment” modal / page for a single sale  */
         Route::get('/{sale}', [DueController::class, 'show'])->name('dues.show');

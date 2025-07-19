@@ -1,10 +1,12 @@
 import ActionButtons from '@/components/ActionButtons';
-import { confirmDialog } from '@/components/confirmDialog';
 import PageHeader from '@/components/PageHeader';
+import Pagination from '@/components/Pagination';
 import TableComponent from '@/components/TableComponent';
+import { confirmDialog } from '@/components/confirmDialog';
 import AppLayout from '@/layouts/app-layout';
 import { Head, router } from '@inertiajs/react';
 
+/* ───── Types ───── */
 interface Employee {
     id: number;
     name: string;
@@ -18,41 +20,42 @@ interface Employee {
     creator?: { name: string };
 }
 
-export default function EmployeeIndex({ employees }: { employees: Employee[] }) {
-    const handleDelete = (id: number) => {
+interface Paginated<T> {
+    data: T[];
+    links: { url: string | null; label: string; active: boolean }[];
+    current_page: number;
+    last_page: number;
+    total: number;
+}
 
-        confirmDialog(
-            {}, () => {
-                router.delete(`/employees/${id}`);
-            }
-        );
-
-    };
+/* ───── Page Component ───── */
+export default function EmployeeIndex({ employees }: { employees: Paginated<Employee> }) {
+    const handleDelete = (id: number) => confirmDialog({}, () => router.delete(`/employees/${id}`));
 
     const columns = [
-        { header: '#', accessor: (_: Employee, index: number) => index + 1, className: 'text-center' },
+        { header: '#', accessor: (_: Employee, i: number) => i + 1, className: 'text-center' },
         { header: 'Name', accessor: 'name' },
         { header: 'Email', accessor: 'email' },
         { header: 'Mobile', accessor: 'mobile' },
         { header: 'Salary', accessor: 'salary' },
-        { header: 'Department', accessor: (row: Employee) => row.department.name },
-        { header: 'Designation', accessor: (row: Employee) => row.designation.name },
-        { header: 'Shift', accessor: (row: Employee) => row.shift.name },
+        { header: 'Department', accessor: (row: Employee) => row.department?.name },
+        { header: 'Designation', accessor: (row: Employee) => row.designation?.name },
+        { header: 'Shift', accessor: (row: Employee) => row.shift?.name },
         { header: 'Status', accessor: 'status' },
     ];
 
     return (
         <AppLayout>
             <Head title="Employees" />
-            <div className="bg-gray-100 p-6 h-full w-screen lg:w-full">
-                <div className="bg-white h-full rounded-lg p-6">
-                    {/* Header */}
-                    <PageHeader title="Employees" addLinkHref='/employees/create' addLinkText="+ Add Employee" />
 
-                    {/* Table */}
+            <div className="h-full w-screen bg-gray-100 p-6 lg:w-full">
+                <div className="h-full rounded-lg bg-white p-6">
+                    <PageHeader title="Employees" addLinkHref="/employees/create" addLinkText="+ Add Employee" />
+
+                    {/* Data table */}
                     <TableComponent
                         columns={columns}
-                        data={employees}
+                        data={employees.data}
                         actions={(row: Employee) => (
                             <ActionButtons
                                 editHref={`/employees/${row.id}/edit`}
@@ -63,6 +66,9 @@ export default function EmployeeIndex({ employees }: { employees: Employee[] }) 
                         )}
                         noDataMessage="No employees found."
                     />
+
+                    {/* Pagination bar */}
+                    <Pagination links={employees.links} currentPage={employees.current_page} lastPage={employees.last_page} total={employees.total} />
                 </div>
             </div>
         </AppLayout>

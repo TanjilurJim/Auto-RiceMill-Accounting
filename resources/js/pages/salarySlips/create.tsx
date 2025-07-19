@@ -72,14 +72,11 @@ export default function SalarySlipCreate({ employees }: { employees: Employee[] 
     const removeEmployeeRow = (index: number) => {
         if (data.salary_slip_employees.length === 1) return;
 
-        confirmDialog(
-            {}, () => {
-                const updated = [...data.salary_slip_employees];
-                updated.splice(index, 1);
-                setData('salary_slip_employees', updated);
-            }
-        )
-
+        confirmDialog({}, () => {
+            const updated = [...data.salary_slip_employees];
+            updated.splice(index, 1);
+            setData('salary_slip_employees', updated);
+        });
     };
 
     // ✅  new version
@@ -87,7 +84,7 @@ export default function SalarySlipCreate({ employees }: { employees: Employee[] 
         e.preventDefault();
 
         // 1️⃣  build a clean array
-        const sanitizedRows = data.salary_slip_employees.map(r => ({
+        const sanitizedRows = data.salary_slip_employees.map((r) => ({
             ...r,
             employee_id: Number(r.employee_id || 0),
             basic_salary: Number(r.basic_salary || 0),
@@ -98,21 +95,20 @@ export default function SalarySlipCreate({ employees }: { employees: Employee[] 
         // 2️⃣  POST – give inertia the payload explicitly
         post('/salary-slips', {
             data: {
-                ...data,                       // voucher_number, date, month, year, …
+                ...data, // voucher_number, date, month, year, …
                 salary_slip_employees: sanitizedRows,
             },
-            onSuccess: () =>
-                Swal.fire('Saved!', 'Salary slip created successfully', 'success'),
+            onSuccess: () => Swal.fire('Saved!', 'Salary slip created successfully', 'success'),
         });
     };
     return (
         <AppLayout>
             <Head title="Create Salary Slip" />
-            <div className="bg-gray-100 p-6 h-full w-screen lg:w-full">
-                <div className="bg-white h-full rounded-lg p-6">
-                    <PageHeader title="Create New Salary Slip" addLinkHref='/salary-slips' addLinkText="Back" />
+            <div className="h-full w-screen bg-gray-100 p-6 lg:w-full">
+                <div className="h-full rounded-lg bg-white p-6">
+                    <PageHeader title="Create New Salary Slip" addLinkHref="/salary-slips" addLinkText="Back" />
 
-                    <form onSubmit={handleSubmit} className="space-y-6 rounded-lg bg-white p-6 border">
+                    <form onSubmit={handleSubmit} className="space-y-6 rounded-lg border bg-white p-6">
                         {/* Salary Slip Info */}
                         {/* Salary Slip Info */}
                         <div className="space-y-4">
@@ -210,10 +206,12 @@ export default function SalarySlipCreate({ employees }: { employees: Employee[] 
                                                         value={
                                                             employee.employee_id
                                                                 ? {
-                                                                    value: employee.employee_id,
-                                                                    label: `${employees.find((e) => e.id === employee.employee_id)?.name} (${employees.find((e) => e.id === employee.employee_id)?.designation?.name ?? 'N/A'
-                                                                        })`,
-                                                                }
+                                                                      value: employee.employee_id,
+                                                                      label: `${employees.find((e) => e.id === employee.employee_id)?.name} (${
+                                                                          employees.find((e) => e.id === employee.employee_id)?.designation?.name ??
+                                                                          'N/A'
+                                                                      })`,
+                                                                  }
                                                                 : null
                                                         }
                                                         onChange={(option) => handleEmployeeChange(index, 'employee_id', option?.value)}
@@ -224,8 +222,7 @@ export default function SalarySlipCreate({ employees }: { employees: Employee[] 
                                                         type="number"
                                                         className="w-full rounded border px-2 py-1"
                                                         value={employee.basic_salary}
-                                                        onChange={(e) => handleEmployeeChange(index, 'basic_salary', e.target.value)}
-                                                        required
+                                                        readOnly // prevents editing but still submits the value
                                                     />
                                                 </td>
                                                 <td className="border px-2 py-1">
@@ -237,11 +234,11 @@ export default function SalarySlipCreate({ employees }: { employees: Employee[] 
                                                     />
                                                 </td>
                                                 <td className="border px-2 py-1">{employee.total_amount}</td>
-                                                <td className="space-x-2 border px-2 py-1 text-center flex items-center justify-center">
+                                                <td className="flex items-center justify-center space-x-2 border px-2 py-1 text-center">
                                                     <button
                                                         type="button"
                                                         onClick={() => removeEmployeeRow(index)}
-                                                        className="rounded bg-danger px-2 py-1 text-white hover:bg-danger-hover"
+                                                        className="bg-danger hover:bg-danger-hover rounded px-2 py-1 text-white"
                                                     >
                                                         &minus;
                                                     </button>
@@ -249,7 +246,7 @@ export default function SalarySlipCreate({ employees }: { employees: Employee[] 
                                                         <button
                                                             type="button"
                                                             onClick={addEmployeeRow}
-                                                            className="rounded bg-primary px-2 py-1 text-white hover:bg-primary-hover"
+                                                            className="bg-primary hover:bg-primary-hover rounded px-2 py-1 text-white"
                                                         >
                                                             +
                                                         </button>
@@ -272,8 +269,6 @@ export default function SalarySlipCreate({ employees }: { employees: Employee[] 
                             cancelText="Cancel"
                             className="justify-end"
                         />
-
-
                     </form>
                 </div>
             </div>
