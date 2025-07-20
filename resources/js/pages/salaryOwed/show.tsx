@@ -1,11 +1,13 @@
 import { Accordion, AccordionItem } from '@/components/Accordion';
-import ActionButtons from '@/components/ActionButtons';
 import PageHeader from '@/components/PageHeader';
 import ProgressBar from '@/components/ProgressBar';
 import SlipTable from '@/components/SlipTable';
+import dayjs from 'dayjs';
+import { toDisplay } from '@/utils/date';
 import AppLayout from '@/layouts/app-layout';
 import type { PageProps } from '@/types';
-import { Head, usePage } from '@inertiajs/react';
+import { PrinterIcon } from '@heroicons/react/24/outline';
+import { Head, Link, usePage } from '@inertiajs/react';
 
 /* — helpers — */
 const money = (n: number | string) =>
@@ -36,6 +38,13 @@ interface Payload {
     salary_slip_employees: SlipRow[];
 }
 
+/* ------------------------------------------------------------------ */
+/* Print Handler                                                     */
+/* ------------------------------------------------------------------ */
+const handlePrint = () => {
+    window.print();
+};
+
 export default function Show() {
     const { employee } = usePage<PageProps<{ employee: Payload }>>().props;
 
@@ -45,7 +54,9 @@ export default function Show() {
 
             <div className="h-full w-screen bg-gray-100 p-6 lg:w-full">
                 <div className="rounded-lg bg-white p-6">
+                    <div className='no-print'>
                     <PageHeader title={`Salary Statement – ${employee.name}`} addLinkHref={route('salary-owed.index')} addLinkText="← Back to List" />
+                    </div>
 
                     {/* ── KPI Cards ─────────────────────────────────────── */}
                     <div className="my-6 grid gap-4 text-center sm:grid-cols-3">
@@ -103,16 +114,25 @@ export default function Show() {
                     </Accordion>
 
                     {/* actions */}
-                    <div className="mt-6 flex gap-4 border-t pt-6">
-                        <ActionButtons
-                            onPrint={() => window.print()}
-                            printText="Print Statement"
-                            printClassName="btn-primary"
-                            viewHref={route('salary-owed.show', [employee.id, { pdf: 1 }])}
-                            viewText="Download PDF"
-                            viewClassName="btn-outline"
-                            size="md"
-                        />
+                    <div className="no-print mt-6 flex gap-4 border-t pt-6">
+                        {/* Simple Print Button */}
+                        <button
+                            type="button"
+                            onClick={handlePrint} // The same print handler function
+                            className="inline-flex items-center justify-center gap-2 rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 shadow-sm transition-colors hover:bg-gray-50 focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 focus:outline-none"
+                        >
+                            <PrinterIcon className="h-5 w-5" aria-hidden="true" />
+                            <span>Print Receipt</span>
+                        </button>
+
+                        <Link
+                            href={route('salary-receives.create', {
+                                employee_id: employee.id, // pre‑selects employee in the form
+                            })}
+                            className="addLinkText inline-flex items-center justify-center gap-2 rounded-md bg-blue-600 px-4 py-2 text-sm font-medium text-white shadow-sm transition-colors hover:bg-blue-700 focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 focus:outline-none"
+                        >
+                            Record Payment
+                        </Link>
                     </div>
                 </div>
             </div>

@@ -2,14 +2,15 @@ import ActionFooter from '@/components/ActionFooter';
 import PageHeader from '@/components/PageHeader';
 import AppLayout from '@/layouts/app-layout';
 import { Head, useForm } from '@inertiajs/react';
-import moment from 'moment';
-import React, { useEffect } from 'react';
-
+import dayjs from 'dayjs';
+import React, { useEffect, useState } from 'react';
+import DatePicker from 'react-datepicker';  
+import "react-datepicker/dist/react-datepicker.css";
 interface Employee {
     id: number;
     name: string;
 }
-
+// const [selectedDate, setSelectedDate] = useState(new Date());
 interface ReceivedMode {
     id: number;
     mode_name: string;
@@ -21,6 +22,7 @@ interface SalarySlipEmployee {
     salary_slip: { voucher_number: string };
     status: string;
     total_amount: number;
+    paid_amount: number;
 }
 
 interface Props {
@@ -30,20 +32,24 @@ interface Props {
 }
 
 export default function Create({ employees, receivedModes, salarySlipEmployees }: Props) {
-    const today = moment().format('YYYY-MM-DD');
-    const datePart = moment().format('YYYYMMDD');
-    const randomDigits = Math.floor(1000 + Math.random() * 9000); // 4 digit number
+    const todayIso = dayjs().format('YYYY-MM-DD'); // ISO for backend
+    const datePart = dayjs().format('DDMMYYYY');
+    const randomDigits = Math.floor(1000 + Math.random() * 9000);
     const defaultVchNo = `SR-${datePart}-${randomDigits}`;
 
     const { data, setData, post, processing, errors } = useForm({
+        date: todayIso, // store ISO
         vch_no: defaultVchNo,
-        date: today,
         employee_id: '',
         received_by: '',
         amount: '',
         description: '',
         salary_slip_employee_id: '',
     });
+
+    const [selectedDate, setSelectedDate] = React.useState<Date | null>(
+        dayjs(data.date).toDate(), // initialise from form state
+    );
 
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
@@ -54,8 +60,9 @@ export default function Create({ employees, receivedModes, salarySlipEmployees }
     useEffect(() => {
         const selected = salarySlipEmployees.find((sse) => sse.id === parseInt(data.salary_slip_employee_id));
         if (selected) {
-            setData('amount', selected.total_amount.toString());
-            setData('employee_id', selected.employee.id.toString()); // auto-select employee too
+            const owed = selected.total_amount - (selected.paid_amount ?? 0);
+            setData('amount', owed.toString());
+            setData('employee_id', selected.employee.id.toString());
         }
     }, [data.salary_slip_employee_id]);
 
@@ -63,13 +70,13 @@ export default function Create({ employees, receivedModes, salarySlipEmployees }
         <AppLayout>
             <Head title="Create Salary Receive" />
 
-            <div className="bg-gray-100 p-6 h-full w-screen lg:w-full">
-                <div className="bg-white h-full rounded-lg p-6">
+            <div className="h-full w-screen bg-gray-100 p-6 lg:w-full">
+                <div className="h-full rounded-lg bg-white p-6">
+                    
+                    <PageHeader title="Create Salary Receive" addLinkHref="/salary-receives" addLinkText="Back" />
 
-                    <PageHeader title="Create Salary Receive" addLinkHref='/salary-receives' addLinkText="Back" />
-
-                    <form onSubmit={handleSubmit} className="space-y-6 rounded-lg bg-white p-6 border">
-                        <div className='grid md:grid-cols-2 gap-4'>
+                    <form onSubmit={handleSubmit} className="space-y-6 rounded-lg border bg-white p-6">
+                        <div className="grid gap-4 md:grid-cols-2">
                             {/* Voucher No */}
                             <div>
                                 <label className="block font-medium">Voucher No</label>
@@ -86,13 +93,20 @@ export default function Create({ employees, receivedModes, salarySlipEmployees }
                             {/* Date */}
                             <div>
                                 <label className="block font-medium">Date</label>
-                                <input
-                                    type="date"
-                                    value={data.date}
-                                    onChange={(e) => setData('date', e.target.value)}
+
+                                <DatePicker
+                                    selected={selectedDate}
+                                    onChange={(date: Date | null) => {
+                                        setSelectedDate(date);
+                                        setData('date', date ? dayjs(date).format('YYYY-MM-DD') : '');
+                                    }}
+                                    dateFormat="dd/MM/yyyy" // <── shows 20/07/2025
+                                    placeholderText="dd/mm/yyyy"
                                     className="w-full rounded border px-3 py-2"
+                                    showPopperArrow={false}
                                     required
                                 />
+
                                 {errors.date && <div className="text-red-600">{errors.date}</div>}
                             </div>
 
@@ -142,11 +156,14 @@ export default function Create({ employees, receivedModes, salarySlipEmployees }
                                     className="w-full rounded border px-3 py-2"
                                 >
                                     <option value="">Select Salary Slip</option>
-                                    {salarySlipEmployees.map((sse) => (
-                                        <option key={sse.id} value={sse.id.toString()}>
-                                            {`${sse.employee.name} - ${sse.salary_slip.voucher_number} [${sse.status}] - ৳${sse.total_amount}`}
-                                        </option>
-                                    ))}
+                                    {salarySlipEmployees.map((sse) => {
+                                        const owed = sse.total_amount - (sse.paid_amount ?? 0);
+                                        return (
+                                            <option key={sse.id} value={sse.id.toString()}>
+                                                {`${sse.employee.name} - ${sse.salary_slip.voucher_number} [${sse.status}] - ৳${owed.toLocaleString()}`}
+                                            </option>
+                                        );
+                                    })}
                                 </select>
                                 {errors.salary_slip_employee_id && <div className="text-red-600">{errors.salary_slip_employee_id}</div>}
                             </div>
@@ -164,8 +181,6 @@ export default function Create({ employees, receivedModes, salarySlipEmployees }
                                 />
                                 {errors.amount && <div className="text-red-600">{errors.amount}</div>}
                             </div>
-
-
 
                             {/* Description */}
                             <div>

@@ -225,7 +225,7 @@ const mainNavItems: NavItem[] = [
                 icon: FiUsers,
             },
             {
-                title: 'Salary Payment',
+                title: 'Salary Slips',
                 href: '/salary-slips',
                 icon: FiUsers,
             },
@@ -235,7 +235,7 @@ const mainNavItems: NavItem[] = [
                 icon: FiUsers,
             },
             {
-                title: 'Salary Receive',
+                title: 'Salary Payments',
                 href: '/salary-receives',
                 icon: FiUsers,
             },
