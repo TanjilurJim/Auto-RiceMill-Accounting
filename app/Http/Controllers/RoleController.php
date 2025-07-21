@@ -5,47 +5,100 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use Spatie\Permission\Models\Role;
 use Spatie\Permission\Models\Permission;
+use Illuminate\Pagination\LengthAwarePaginator;
+use Illuminate\Support\Facades\DB;
 use Inertia\Inertia;
 
 class RoleController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
         $roles = Role::query()
             ->when(!auth()->user()->hasRole('admin'), function ($query) {
                 $query->where('name', '!=', 'admin'); // Hide admin role from non-admins
             })
-            ->get();
+            ->orderBy('id', 'desc')
+            ->paginate(10) // ✅ paginate here
+            ->withQueryString(); // ✅ preserves filters/search across pages
 
-        return Inertia::render('roles/index', ['roles' => $roles]);
+        return Inertia::render('roles/index', [
+            'roles' => $roles,
+        ]);
     }
 
-    public function create()
+    public function create(Request $request)
     {
-        // ✅ Non-admins can create roles
-        $permissions = Permission::all();
+        $perPage = 15;
+        $page = $request->query('page', 1);
+
+        // Get all distinct modules with their permissions
+        $modules = Permission::select(
+            DB::raw("SUBSTRING_INDEX(name, '.', 1) AS module"),
+            DB::raw("GROUP_CONCAT(id ORDER BY name SEPARATOR ',') AS permission_ids"),
+            DB::raw("GROUP_CONCAT(SUBSTRING_INDEX(name, '.', -1) ORDER BY name SEPARATOR ',') AS abilities")
+        )
+            ->groupBy('module')
+            ->orderBy('module');
+
+        // Paginate modules instead of permissions
+        $paginatedModules = $modules->paginate($perPage, ['*'], 'page', $page);
+
+        // Transform data for frontend
+        $formattedModules = $paginatedModules->map(function ($item) {
+            return [
+                'name' => $item->module,
+                'permissions' => array_map(
+                    function ($id, $ability) use ($item) {
+                        return [
+                            'id' => (int)$id,
+                            'ability' => $ability,
+                            'name' => $item->module . '.' . $ability
+                        ];
+                    },
+                    explode(',', $item->permission_ids),
+                    explode(',', $item->abilities)
+                )
+            ];
+        });
 
         return Inertia::render('roles/create', [
-            'permissions' => $permissions,
+            'modules' => [
+                'data' => $formattedModules,
+                'links' => $paginatedModules->linkCollection()->toArray(),
+                'current_page' => $paginatedModules->currentPage(),
+                'per_page' => $perPage,
+                'total' => $paginatedModules->total(),
+            ],
         ]);
     }
 
     public function store(Request $request)
     {
-        // ✅ Allow both admins and non-admins to create roles
         $request->validate([
-            'name' => ['required', 'unique:roles,name'],
-            'permissions' => 'array'
+            'name'        => ['required', 'unique:roles,name'],
+            'permissions' => ['array'],
+            'permissions.*' => ['integer', 'exists:permissions,id'],
         ]);
 
         $role = Role::create(['name' => $request->name]);
 
-        if ($request->permissions) {
-            $role->syncPermissions($request->permissions);
+        // clean: cast to int, remove non-numeric
+        $ids = collect($request->permissions)
+            ->filter(fn($v) => is_numeric($v))
+            ->map(fn($v) => (int) $v)
+            ->unique()
+            ->values()
+            ->all();
+
+        if ($ids) {
+            $role->syncPermissions($ids);
         }
 
-        return redirect()->route('roles.index')->with('success', 'Role created and permissions assigned.');
+        return redirect()
+            ->route('roles.index')
+            ->with('success', 'Role created and permissions assigned.');
     }
+
 
     public function edit($id)
     {

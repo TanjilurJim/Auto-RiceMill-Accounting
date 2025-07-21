@@ -94,23 +94,90 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('dashboard', [DashboardController::class, 'index'])->name('dashboard');
 
     // Users - requires permission: manage-users
-    Route::middleware(['permission:manage-users'])->group(function () {
-        Route::resource('users', UserController::class);
-        Route::prefix('users')->name('users.')->group(function () {
-            Route::patch('/{id}/restore', [UserController::class, 'restore'])->name('restore');
-            Route::delete('/{id}/force-delete', [UserController::class, 'forceDelete'])->name('force-delete');
-        });
-    });
+    // Route::middleware(['permission:manage-users'])->group(function () {
+    //     Route::resource('users', UserController::class);
+    //     Route::prefix('users')->name('users.')->group(function () {
+    //         Route::patch('/{id}/restore', [UserController::class, 'restore'])->name('restore');
+    //         Route::delete('/{id}/force-delete', [UserController::class, 'forceDelete'])->name('force-delete');
+    //     });
+    // });
 
     // Roles - requires permission: manage-roles
-    Route::middleware(['permission:manage-roles'])->group(function () {
-        Route::resource('roles', RoleController::class);
-    });
+    // Route::middleware(['permission:manage-roles'])->group(function () {
+    //     Route::resource('roles', RoleController::class);
+    // });
 
     // Permissions - requires permission: manage-permissions
-    Route::middleware(['permission:manage-permissions'])->group(function () {
-        Route::resource('permissions', PermissionController::class);
+    // Route::middleware(['permission:manage-permissions'])->group(function () {
+    //     Route::resource('permissions', PermissionController::class);
+    // });
+
+    //users module.ability
+
+    Route::prefix('users')->name('users.')->group(function () {
+        Route::middleware('permission:users.view')->get('/',              [UserController::class, 'index'])->name('index');
+        Route::middleware('permission:users.create')->get('/create',      [UserController::class, 'create'])->name('create');
+        Route::middleware('permission:users.create')->post('/',           [UserController::class, 'store'])->name('store');
+        Route::middleware('permission:users.view')->get('/{id}',          [UserController::class, 'show'])->name('show');
+        Route::middleware('permission:users.edit')->get('/{id}/edit',     [UserController::class, 'edit'])->name('edit');
+        Route::middleware('permission:users.edit')->put('/{id}',          [UserController::class, 'update'])->name('update');
+        Route::middleware('permission:users.delete')->delete('/{id}',     [UserController::class, 'destroy'])->name('destroy');
+        Route::middleware('permission:users.restore')->patch('/{id}/restore', [UserController::class, 'restore'])->name('restore');
+        Route::middleware('permission:users.force-delete')->delete('/{id}/force-delete', [UserController::class, 'forceDelete'])->name('force-delete');
     });
+
+    // ── Permissions (module.ability) ─────────────────────────────────
+    // ── Permissions (module.ability) ─────────────────────────────────
+    Route::prefix('permissions')->name('permissions.')->group(function () {
+        Route::middleware('permission:permissions.view')
+            ->get('/',               [PermissionController::class, 'index'])
+            ->name('index');
+
+        Route::middleware('permission:permissions.create')
+            ->get('/create',         [PermissionController::class, 'create'])
+            ->name('create');
+        Route::middleware('permission:permissions.create')
+            ->post('/',              [PermissionController::class, 'store'])
+            ->name('store');
+
+        Route::middleware('permission:permissions.edit')
+            ->get('/{id}/edit',      [PermissionController::class, 'edit'])
+            ->name('edit');
+        Route::middleware('permission:permissions.edit')
+            ->put('/{id}',           [PermissionController::class, 'update'])
+            ->name('update');
+
+        Route::middleware('permission:permissions.delete')
+            ->delete('/{id}',        [PermissionController::class, 'destroy'])
+            ->name('destroy');
+    });
+
+
+    // ── Roles (module.ability) ───────────────────────────────────────
+    Route::prefix('roles')->name('roles.')->group(function () {
+        Route::middleware('permission:roles.view')
+            ->get('/',               [RoleController::class, 'index'])
+            ->name('index');
+
+        Route::middleware('permission:roles.create')
+            ->get('/create',         [RoleController::class, 'create'])
+            ->name('create');
+        Route::middleware('permission:roles.create')
+            ->post('/',              [RoleController::class, 'store'])
+            ->name('store');
+
+        Route::middleware('permission:roles.edit')
+            ->get('/{id}/edit',      [RoleController::class, 'edit'])
+            ->name('edit');
+        Route::middleware('permission:roles.edit')
+            ->put('/{id}',           [RoleController::class, 'update'])
+            ->name('update');
+
+        Route::middleware('permission:roles.delete')
+            ->delete('/{id}',        [RoleController::class, 'destroy'])
+            ->name('destroy');
+    });
+
 
     // Account Ledgers
     Route::resource('account-groups', AccountGroupController::class);
@@ -143,11 +210,22 @@ Route::middleware(['auth', 'verified'])->group(function () {
         ->name('purchases.invoice');
     Route::resource('purchase-returns', PurchaseReturnController::class);
     Route::get('purchase-returns/{purchase_return}/invoice', [PurchaseReturnController::class, 'invoice'])->name('purchase-returns.invoice');
-    Route::resource('sales', SaleController::class);
-    Route::get('/sales/{sale}/invoice', [SaleController::class, 'invoice'])->name('sales.invoice');
-    Route::get('/sales/{sale}/truck-chalan', [SaleController::class, 'truckChalan'])->name('sales.truck-chalan');
-    Route::get('/sales/{sale}/load-slip', [SaleController::class, 'loadSlip'])->name('sales.load-slip');
-    Route::get('/sales/{sale}/gate-pass', [SaleController::class, 'gatePass'])->name('sales.gate-pass');
+    Route::resource('sales', SaleController::class)->names([
+        'index'   => 'sales.index',
+        'create'  => 'sales.create',
+        'store'   => 'sales.store',
+        'show'    => 'sales.show',
+        'edit'    => 'sales.edit',
+        'update'  => 'sales.update',
+        'destroy' => 'sales.destroy',
+    ]);
+
+    Route::prefix('sales')->name('sales.')->middleware('permission:sales.view')->group(function () {
+        Route::get('{sale}/invoice', [SaleController::class, 'invoice'])->name('invoice');
+        Route::get('{sale}/truck-chalan', [SaleController::class, 'truckChalan'])->name('truck-chalan');
+        Route::get('{sale}/load-slip', [SaleController::class, 'loadSlip'])->name('load-slip');
+        Route::get('{sale}/gate-pass', [SaleController::class, 'gatePass'])->name('gate-pass');
+    });
 
     //Sales Return
     Route::resource('sales-returns', SalesReturnController::class);
@@ -204,13 +282,12 @@ Route::middleware(['auth', 'verified'])->group(function () {
     ]);
     // Employee Report
     Route::get('employee-ledger', [ReportController::class, 'employeeLedger'])->name('employee.ledger');
-    Route::
-    prefix('employee-reports')
-    ->name('employee-reports.')
-    ->group(function () {
-        Route::get('/', [\App\Http\Controllers\EmployeeReportController::class,'index'])
-            ->name('index');
-    });
+    Route::prefix('employee-reports')
+        ->name('employee-reports.')
+        ->group(function () {
+            Route::get('/', [\App\Http\Controllers\EmployeeReportController::class, 'index'])
+                ->name('index');
+        });
 
     //Stock Report
     Route::get('/reports/stock-summary', [ReportController::class, 'stockSummary'])->name('reports.stock-summary');
@@ -353,18 +430,15 @@ Route::middleware(['auth', 'verified'])->group(function () {
             Route::get('{voucher}/edit', [RentVoucherController::class, 'edit'])->name('edit');
             Route::put('{voucher}',      [RentVoucherController::class, 'update'])->name('update');
         });
-
-        
     });
 
     // salary owed
-    Route::
-    prefix('salary-owed')
-    ->name('salary-owed.')
-    ->group(function () {
-        Route::get('/',          [SalaryOwedController::class, 'index'])->name('index');
-        Route::get('{employee}', [SalaryOwedController::class, 'show']) ->name('show');
-    });
+    Route::prefix('salary-owed')
+        ->name('salary-owed.')
+        ->group(function () {
+            Route::get('/',          [SalaryOwedController::class, 'index'])->name('index');
+            Route::get('{employee}', [SalaryOwedController::class, 'show'])->name('show');
+        });
 
     // routes/web.php
     Route::prefix('dues')->middleware('auth')->group(function () {
@@ -416,7 +490,7 @@ Route::prefix('reports')->name('reports.')->group(function () {
 Route::get('/reports/account-book/export/excel', [ReportController::class, 'exportAccountBookExcel'])->name('reports.account-book.excel');
 Route::get('/reports/account-book/export/pdf', [ReportController::class, 'exportAccountBookPDF'])->name('reports.account-book.pdf');
 
-// Account Group Summary Report pdf and excel
+// Account Group Summary Report pdf and excel 
 Route::get('/reports/ledger-group-summary/excel', [LedgerGroupReportController::class, 'exportExcel'])->name('reports.ledger-group-summary.excel');
 Route::get('/reports/ledger-group-summary/pdf', [LedgerGroupReportController::class, 'exportPDF'])->name('reports.ledger-group-summary.pdf');
 

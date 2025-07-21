@@ -1,4 +1,4 @@
-import { router } from "@inertiajs/react";
+import { router } from '@inertiajs/react';
 
 interface PaginationProps {
     links: { url: string | null; label: string; active: boolean }[];
@@ -28,24 +28,14 @@ const Pagination: React.FC<PaginationProps> = ({ links = [], currentPage, lastPa
                 <ul className="pagination flex flex-wrap justify-center gap-2">
                     {links.map((link, index) => (
                         <li
-                            key={link.url || index}
-                            className={`page-item ${
-                                link.active
-                                    ? "bg-blue-500 text-white rounded"
-                                    : "text-gray-500"
-                            } ${!link.url ? "disabled" : ""}`}
+                            key={`${index}-${link.url ?? 'x'}`}
+                            className={`page-item ${link.active ? 'rounded bg-blue-500 text-white' : 'text-gray-500'} ${!link.url ? 'disabled' : ''}`}
                         >
                             <a
-                                className={`page-link px-3 py-1 border rounded transition-all duration-200 ${
-                                    link.active
-                                        ? "bg-blue-500 text-white"
-                                        : "text-blue-500 hover:bg-blue-100"
-                                } ${
-                                    !link.url
-                                        ? "cursor-not-allowed text-gray-400"
-                                        : ""
-                                }`}
-                                href={link.url || "#"}
+                                className={`page-link rounded border px-3 py-1 transition-all duration-200 ${
+                                    link.active ? 'bg-blue-500 text-white' : 'text-blue-500 hover:bg-blue-100'
+                                } ${!link.url ? 'cursor-not-allowed text-gray-400' : ''}`}
+                                href={link.url || '#'}
                                 onClick={(e) => {
                                     e.preventDefault();
                                     handlePageChange(link.url);
@@ -61,4 +51,3 @@ const Pagination: React.FC<PaginationProps> = ({ links = [], currentPage, lastPa
 };
 
 export default Pagination;
-

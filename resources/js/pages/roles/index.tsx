@@ -13,22 +13,29 @@ interface Role {
     created_at: string;
 }
 
+interface Props {
+    roles: {
+        data: Role[];
+        links: any[];
+        current_page: number;
+        total: number;
+        per_page: number;
+    };
+}
+
 const breadcrumbs: BreadcrumbItem[] = [
     { title: 'Dashboard', href: '/dashboard' },
     { title: 'Roles', href: '/roles' },
 ];
 
-export default function RoleIndex({ roles }: { roles: Role[] }) {
+export default function RoleIndex({ roles }: Props) {
+    const tableData = roles.data;
 
     // 🛑 Handle Delete Confirmation
     const handleDelete = (roleId: number) => {
-
-        confirmDialog(
-            {}, () => {
-                router.delete(`/roles/${roleId}`);
-            }
-        )
-
+        confirmDialog({}, () => {
+            router.delete(`/roles/${roleId}`);
+        });
     };
 
     const columns = [
@@ -47,12 +54,12 @@ export default function RoleIndex({ roles }: { roles: Role[] }) {
                     onDelete={() => handleDelete(row.id)}
                     deleteText={
                         <>
-                            <Trash2 size={14} className="inline-block mr-1" /> Delete
+                            <Trash2 size={14} className="mr-1 inline-block" /> Delete
                         </>
                     }
                     editText={
                         <>
-                            <Pencil size={14} className="inline-block mr-1" /> Edit
+                            <Pencil size={14} className="mr-1 inline-block" /> Edit
                         </>
                     }
                     className="justify-end"
@@ -65,19 +72,18 @@ export default function RoleIndex({ roles }: { roles: Role[] }) {
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
             <Head title="Roles" />
-            <div className="bg-gray-100 p-6 h-full w-screen lg:w-full">
-                <div className="bg-white h-full rounded-lg p-6">
-
-                    <PageHeader title="Roles" addLinkHref='/roles/create' addLinkText="+ Create Role" />
+            <div className="h-full w-screen bg-gray-100 p-6 lg:w-full">
+                <div className="h-full rounded-lg bg-white p-6">
+                    <PageHeader title="Roles" addLinkHref="/roles/create" addLinkText="+ Create Role" />
 
                     {/* Table */}
                     <TableComponent
                         columns={columns}
-                        data={roles}
+                        data={tableData}
+                        pagination={roles}
                         noDataMessage="No roles found."
                         className="rounded bg-white p-4 shadow dark:bg-neutral-900"
                     />
-
                 </div>
             </div>
         </AppLayout>
