@@ -12,10 +12,15 @@ class SalaryOwedController extends Controller
         /* ───────────────── Index ───────────────── */
         public function index(Request $request)
         {
+                $search = $request->input('search');
+
                 $employees = Employee::query()
                         ->select('id', 'name')
-
-                        // keep the two sums if you still want to show them in the UI
+                        ->when(
+                                $search,
+                                fn($q) =>
+                                $q->where('name', 'like', '%' . $search . '%')
+                        )
                         ->addSelect([
                                 'gross_sum' => DB::table('salary_slip_employees')
                                         ->selectRaw('SUM(total_amount)')
@@ -24,44 +29,33 @@ class SalaryOwedController extends Controller
                                         ->selectRaw('SUM(paid_amount)')
                                         ->whereColumn('employee_id', 'employees.id'),
                         ])
-
-                        // compute outstanding WITHOUT relying on those aliases
                         ->addSelect(DB::raw('
-                                                                                                                                                                                                                        (
-                                                                                                                                                                                                                                        COALESCE((
-                                                                                                                                                                                                                                                            SELECT SUM(total_amount)
-                                                                                                                                                                                                                                                                                FROM salary_slip_employees
-                                                                                                                                                                                                                                                                                                    WHERE employee_id = employees.id
-                                                                                                                                                                                                                                                                                                                    ),0)
-                                                                                                                                                                                                                                                                                                                                  - COALESCE((
-                                                                                                                                                                                                                                                                                                                                                      SELECT SUM(paid_amount)
-                                                                                                                                                                                                                                                                                                                                                                          FROM salary_slip_employees
-                                                                                                                                                                                                                                                                                                                                                                                              WHERE employee_id = employees.id
-                                                                                                                                                                                                                                                                                                                                                                                                              ),0)
-                                                                                                                                                                                                                                                                                                                                                                                                                          ) AS outstanding
-                                                                                                                                                                                                                                                                                                                                                                                                                                  '))
-
+            (
+                COALESCE((SELECT SUM(total_amount)
+                          FROM salary_slip_employees
+                          WHERE employee_id = employees.id), 0)
+                -
+                COALESCE((SELECT SUM(paid_amount)
+                          FROM salary_slip_employees
+                          WHERE employee_id = employees.id), 0)
+            ) AS outstanding
+        '))
                         ->having('outstanding', '>', 0)
                         ->orderByDesc('outstanding')
                         ->paginate(15)
                         ->withQueryString();
 
-
                 $totals = [
                         'headcount'   => $employees->total(),
-
-                        // If you kept gross_sum / paid_sum aliases:
                         'gross'       => $employees->getCollection()->sum('gross_sum'),
                         'paid'        => $employees->getCollection()->sum('paid_sum'),
                         'outstanding' => $employees->getCollection()->sum('outstanding'),
-
-                        // If you dropped the aliases, compute on the fly:
-                        'gross' => $employees->getCollection()->sum(fn($e) => $e->gross),
                 ];
 
                 return Inertia::render('salaryOwed/index', [
                         'employees' => $employees,
                         'totals'    => $totals,
+                        'filters'   => ['search' => $search], // 🔁 Return filters for client
                 ]);
         }
 
