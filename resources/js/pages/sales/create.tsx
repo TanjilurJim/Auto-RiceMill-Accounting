@@ -81,6 +81,8 @@ export default function SaleCreate({
         inventory_ledger_id: '',
         // total_due: '',
         // closing_balance: '',
+        sub_responsible_id: '',
+        responsible_id: '',
 
         cogs_ledger_id: '',
     });
@@ -130,7 +132,6 @@ export default function SaleCreate({
     }, [data.received_mode_id, data.amount_received]);
 
     // When amount_received changes ➜ recompute
-    
 
     // Auto-generate voucher no on mount
     useEffect(() => {
@@ -337,7 +338,8 @@ export default function SaleCreate({
                                             <option value="">Select</option>
                                             {filteredItems.map((p) => (
                                                 <option key={p.id} value={p.id}>
-                                                    {p.item_name} ({p.stock_qty}{p.unit} in stock)
+                                                    {p.item_name} ({p.stock_qty}
+                                                    {p.unit} in stock)
                                                 </option>
                                             ))}
                                         </select>

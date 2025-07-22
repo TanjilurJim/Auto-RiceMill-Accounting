@@ -28,9 +28,10 @@ interface EditProps {
     };
     financialYears: FinancialYear[];
     interestBasisOptions: { value: string; label: string }[];
+    saleFlowOptions: { value: string; label: string }[];
 }
 
-export default function Edit({ setting, financialYears, interestBasisOptions = [] }: EditProps) {
+export default function Edit({ setting, financialYears, interestBasisOptions = [],saleFlowOptions = [],  }: EditProps) {
     const { data, setData, processing, errors } = useForm({
         company_name: setting?.company_name || '',
         mailing_name: setting?.mailing_name || '',
@@ -47,7 +48,7 @@ export default function Edit({ setting, financialYears, interestBasisOptions = [
         interest_rate_per_month: setting?.interest_rate_per_month ?? '',
         interest_type: setting?.interest_type || 'percentage',
         interest_flat_per_day: setting?.interest_flat_per_day ?? '',
-
+        sale_approval_flow: setting?.sale_approval_flow ?? 'none',
         logo: null as File | null,
     });
 
@@ -123,6 +124,25 @@ export default function Edit({ setting, financialYears, interestBasisOptions = [
                                 ))}
                             </select>
                             {errors.financial_year_id && <p className="mt-1 text-xs text-red-500">{errors.financial_year_id}</p>}
+                        </div>
+
+                        {/* ── Sale approval flow ───────────────────────────────────── */}
+                        <div>
+                            <label className="mb-1 block text-sm font-medium text-gray-700">Sale approval flow</label>
+
+                            <select
+                                value={data.sale_approval_flow}
+                                onChange={(e) => setData('sale_approval_flow', e.target.value)}
+                                className="w-full rounded border px-3 py-2 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+                            >
+                                {saleFlowOptions.map((opt) => (
+                                    <option key={opt.value} value={opt.value}>
+                                        {opt.label}
+                                    </option>
+                                ))}
+                            </select>
+
+                            {errors.sale_approval_flow && <p className="mt-1 text-xs text-red-500">{errors.sale_approval_flow}</p>}
                         </div>
 
                         {/* Interest flags */}

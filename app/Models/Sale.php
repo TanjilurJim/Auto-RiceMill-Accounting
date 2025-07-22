@@ -13,6 +13,12 @@ class Sale extends Model
 {
     use SoftDeletes,  BelongsToTenant;
 
+    public const STATUS_DRAFT        = 'draft';
+    public const STATUS_PENDING_SUB  = 'pending_sub';
+    public const STATUS_PENDING_RESP = 'pending_resp';
+    public const STATUS_APPROVED     = 'approved';
+    public const STATUS_REJECTED     = 'rejected';
+
     protected $fillable = [
         'date',
         'voucher_no',
@@ -47,12 +53,21 @@ class Sale extends Model
         'interest_applicable',
         'interest_basis',
         'last_interest_date',
+        'status',
+        'sub_responsible_id',
+        'responsible_id',
+        'approved_at',
     ];
     protected $casts = [
         'date'               => 'date',     // 
         'last_interest_date' => 'date',
         'interest_applicable' => 'boolean',
     ];
+
+    public function approvals()
+    {
+        return $this->hasMany(SaleApproval::class);
+    }
 
 
     public function getPrincipalDueAttribute(): float

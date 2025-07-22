@@ -28,23 +28,18 @@ class RoleController extends Controller
 
     public function create(Request $request)
     {
-        $perPage = 15;
-        $page = $request->query('page', 1);
-
-        // Get all distinct modules with their permissions
+        // Get all modules (remove pagination)
         $modules = Permission::select(
             DB::raw("SUBSTRING_INDEX(name, '.', 1) AS module"),
             DB::raw("GROUP_CONCAT(id ORDER BY name SEPARATOR ',') AS permission_ids"),
             DB::raw("GROUP_CONCAT(SUBSTRING_INDEX(name, '.', -1) ORDER BY name SEPARATOR ',') AS abilities")
         )
             ->groupBy('module')
-            ->orderBy('module');
+            ->orderBy('module')
+            ->get(); // Get ALL modules without pagination
 
-        // Paginate modules instead of permissions
-        $paginatedModules = $modules->paginate($perPage, ['*'], 'page', $page);
-
-        // Transform data for frontend
-        $formattedModules = $paginatedModules->map(function ($item) {
+        // Transform data
+        $formattedModules = $modules->map(function ($item) {
             return [
                 'name' => $item->module,
                 'permissions' => array_map(
@@ -62,13 +57,7 @@ class RoleController extends Controller
         });
 
         return Inertia::render('roles/create', [
-            'modules' => [
-                'data' => $formattedModules,
-                'links' => $paginatedModules->linkCollection()->toArray(),
-                'current_page' => $paginatedModules->currentPage(),
-                'per_page' => $perPage,
-                'total' => $paginatedModules->total(),
-            ],
+            'modules' => $formattedModules, // Send all modules
         ]);
     }
 

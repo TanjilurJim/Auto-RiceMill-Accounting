@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Sale;
 use App\Services\SalePaymentService;
 use App\Services\LedgerService;
+use App\Services\FinalizeSaleService;
 use Carbon\Carbon;          // already there if you date-parse elsewhere
 
 use Illuminate\Support\Facades\Log;
@@ -44,6 +45,10 @@ class SaleController extends Controller
     //         'sales' => $sales
     //     ]);
     // }
+
+    public const FLOW_NONE          = 'none';
+    public const FLOW_SUB_ONLY      = 'sub_only';
+    public const FLOW_SUB_AND_RESP  = 'sub_and_resp';
 
     public function index()
     {
@@ -107,178 +112,92 @@ class SaleController extends Controller
 
 
     // Store Sale
-    public function store(Request $request)
+    public function store(Request $request, FinalizeSaleService $finalizer)
     {
-        Log::debug('incoming', $request->all());
         $this->validateRequest($request);
 
-        $voucherNo = $request->voucher_no ?? 'SAL-' . now()->format('Ymd') . '-' . str_pad(Sale::max('id') + 1, 4, '0', STR_PAD_LEFT);
+        /* 0️⃣  Prepare helpers */
+        $voucherNo = $request->voucher_no
+            ?? 'SAL-' . now()->format('Ymd') . '-' . str_pad(Sale::max('id') + 1, 4, '0', STR_PAD_LEFT);
 
+        $flow = auth()->user()->company->sale_approval_flow ?? self::FLOW_NONE;
+
+        /* ------------------------------------------------------------
+     | 1️⃣  Create the Sale + its line-items
+     * ------------------------------------------------------------ */
         DB::beginTransaction();
-
         try {
-            // 1️⃣ Create Sale
+            /* --- header --- */
             $sale = Sale::create([
-                'date' => $request->date,
-                'voucher_no' => $voucherNo,
-                'godown_id' => $request->godown_id,
-                'salesman_id' => $request->salesman_id,
-                'account_ledger_id' => $request->account_ledger_id,
-                'phone' => $request->phone,
-                'address' => $request->address,
-                'shipping_details' => $request->shipping_details,
-                'delivered_to' => $request->delivered_to,
-                'truck_rent' => $request->truck_rent,
-                'rent_advance' => $request->rent_advance,
-                'net_rent' => $request->net_rent,
-                'inventory_ledger_id' => $request->inventory_ledger_id,
-                'cogs_ledger_id' => $request->cogs_ledger_id,
-                'truck_driver_name' => $request->truck_driver_name,
-                'driver_address' => $request->driver_address,
-                'driver_mobile' => $request->driver_mobile,
-                'total_qty' => collect($request->sale_items)->sum('qty'),
-                'total_discount' => collect($request->sale_items)->sum('discount'),
-                'grand_total' => collect($request->sale_items)->sum('subtotal'),
+                'date'                 => $request->date,
+                'voucher_no'           => $voucherNo,
+                'godown_id'            => $request->godown_id,
+                'salesman_id'          => $request->salesman_id,
+                'account_ledger_id'    => $request->account_ledger_id,
+                'phone'                => $request->phone,
+                'address'              => $request->address,
+                'shipping_details'     => $request->shipping_details,
+                'delivered_to'         => $request->delivered_to,
+                'truck_rent'           => $request->truck_rent,
+                'rent_advance'         => $request->rent_advance,
+                'net_rent'             => $request->net_rent,
+                'inventory_ledger_id'  => $request->inventory_ledger_id,
+                'cogs_ledger_id'       => $request->cogs_ledger_id,
+                'truck_driver_name'    => $request->truck_driver_name,
+                'driver_address'       => $request->driver_address,
+                'driver_mobile'        => $request->driver_mobile,
+                'total_qty'            => collect($request->sale_items)->sum('qty'),
+                'total_discount'       => collect($request->sale_items)->sum('discount'),
+                'grand_total'          => collect($request->sale_items)->sum('subtotal'),
                 'other_expense_ledger_id' => $request->other_expense_ledger_id,
-                'other_amount' => $request->other_amount ?? 0,
-                // 'received_mode_id' => $request->received_mode_id,
-                // 'amount_received' => $request->amount_received,
-                // 'total_due' => $request->total_due,
-                // 'closing_balance' => $request->closing_balance,
-
-                'total_due' => collect($request->sale_items)->sum('subtotal'),
-
-                'created_by' => auth()->id(),
+                'other_amount'         => $request->other_amount ?? 0,
+                'total_due'            => collect($request->sale_items)->sum('subtotal'),
+                'status'               => $flow === self::FLOW_NONE
+                    ? Sale::STATUS_APPROVED
+                    : Sale::STATUS_PENDING_SUB,
+                /* optional if you already collect these IDs in the form */
+                'sub_responsible_id'   => $request->sub_responsible_id,
+                'responsible_id'       => $request->responsible_id,
+                'created_by'           => auth()->id(),
             ]);
 
-            // 2️⃣ Create Sale Items + reduce stock
-            foreach ($request->sale_items as $item) {
+            /* --- detail lines (NO stock decrement yet) --- */
+            foreach ($request->sale_items as $row) {
                 $sale->saleItems()->create([
-                    'product_id' => $item['product_id'],
-                    'qty' => $item['qty'],
-                    'main_price' => $item['main_price'],
-                    'discount' => $item['discount'] ?? 0,
-                    'discount_type' => $item['discount_type'],
-                    'subtotal' => $item['subtotal'],
-                    'note' => $item['note'] ?? null,
-                ]);
-
-                Stock::where([
-                    'item_id' => $item['product_id'],
-                    'godown_id' => $request->godown_id,
-                    'created_by' => auth()->id(),
-                ])->decrement('qty', $item['qty']);
-            }
-
-            // ── cost-price হিসাব ─────────────────────────────
-            $totalCost = 0;
-
-            foreach ($request->sale_items as $itemRow) {
-                $qty = $itemRow['qty'];
-
-                // 1) Godown-level avg_cost থাকে ⇒ ঠিক সেটাই নিন
-                $stock = Stock::where([
-                    'item_id'   => $itemRow['product_id'],
-                    'godown_id' => $request->godown_id,
-                    'created_by' => auth()->id(),
-                ])->first();
-
-                $unitCost = $stock?->avg_cost ?? 0;
-
-                // 2) fallback করলে items.purchase_price ধরতে পারেন
-                if ($unitCost == 0) {
-                    $unitCost = Item::find($itemRow['product_id'])->purchase_price ?? 0;
-                }
-
-                $totalCost += $unitCost * $qty;
-            }
-
-            // 3️⃣ Journal Header
-            $journal = Journal::create([
-                'date' => $request->date,
-                'voucher_no' => $voucherNo,
-                'narration' => 'Auto journal for Sale',
-                'created_by' => auth()->id(),
-                'voucher_type' => 'Sale',
-            ]);
-            $sale->update(['journal_id' => $journal->id]);
-
-            if ($request->received_mode_id && $request->amount_received > 0) {
-                ReceivedMode::where('id', $request->received_mode_id)->update([
-                    'amount_received' => $request->amount_received,
-                    'transaction_date' => $request->date,
-                    'sale_id' => $sale->id,
+                    'product_id'    => $row['product_id'],
+                    'qty'           => $row['qty'],
+                    'main_price'    => $row['main_price'],
+                    'discount'      => $row['discount'] ?? 0,
+                    'discount_type' => $row['discount_type'],
+                    'subtotal'      => $row['subtotal'],
+                    'note'          => $row['note'] ?? null,
                 ]);
             }
-            $salesLedgerId = $this->getOrCreateSalesLedgerId();
-
-            $grandTotal = $sale->grand_total;
-            $amountReceived = $request->amount_received ?? 0;
-            $customerLedgerId = $request->account_ledger_id;
-
-            // 4️⃣ Dr  Accounts Receivable  (buyer owes us)LedgerService
-            JournalEntry::create([
-                'journal_id'        => $journal->id,
-                'account_ledger_id' => $customerLedgerId,
-                'type'              => 'debit',
-                'amount'            => $grandTotal,
-                'note'              => 'Sale price receivable',
-            ]);
-            LedgerService::adjust($customerLedgerId, 'debit', $grandTotal);
-
-            // 4️⃣(b) Cr  Sales Income  (revenue)
-            JournalEntry::create([
-                'journal_id'        => $journal->id,
-                'account_ledger_id' => $salesLedgerId,     // ডাইনামিক আই-ডি
-                'type'              => 'credit',
-                'amount'            => $grandTotal,
-                'note'              => 'Sales revenue',
-            ]);
-            LedgerService::adjust($salesLedgerId, 'credit', $grandTotal);
-
-            // 5️⃣ Debit received account if paid
-            // 5️⃣ Receive cash/bkash if paid
-            // 5️⃣  If customer paid immediately, record it via the service
-            if (($request->amount_received ?? 0) > 0 && $request->received_mode_id) {
-                $mode = ReceivedMode::find($request->received_mode_id);
-
-                SalePaymentService::record(
-                    $sale,
-                    $request->amount_received,
-                    Carbon::parse($request->date),
-                    $mode,
-                    'Initial payment on invoice creation'
-                );
-            }
-
-            // 6️⃣  Cr  Inventory  (asset ↓ at COST)
-            JournalEntry::create([
-                'journal_id'        => $journal->id,
-                'account_ledger_id' => $request->inventory_ledger_id,
-                'type'              => 'credit',
-                'amount'            => $totalCost,
-                'note'              => 'Inventory out (at cost)',
-            ]);
-            LedgerService::adjust($request->inventory_ledger_id, 'credit', $totalCost);
-
-            // 7️⃣  Dr  COGS  (expense ↑ at COST)
-            JournalEntry::create([
-                'journal_id'        => $journal->id,
-                'account_ledger_id' => $request->cogs_ledger_id,
-                'type'              => 'debit',
-                'amount'            => $totalCost,
-                'note'              => 'Cost of Goods Sold',
-            ]);
-            LedgerService::adjust($request->cogs_ledger_id, 'debit', $totalCost);
 
             DB::commit();
-            return redirect()->route('sales.index')->with('success', 'Sale created and journal posted!');
         } catch (\Throwable $e) {
             DB::rollBack();
             report($e);
-            return back()->with('error', 'Failed to save sale.' . $e->getMessage());
+            return back()->with('error', 'Failed to save sale.');
         }
+
+        /* ------------------------------------------------------------
+     | 2️⃣  Post immediately when no approval flow
+     * ------------------------------------------------------------ */
+        if ($flow === self::FLOW_NONE) {
+            $finalizer->handle($sale, $request->only([
+                'amount_received',
+                'received_mode_id',
+            ]));
+        }
+
+        return redirect()
+            ->route('sales.index')
+            ->with('success', $flow === self::FLOW_NONE
+                ? 'Sale saved & approved.'
+                : 'Sale saved and awaiting approval.');
     }
+
 
 
 
