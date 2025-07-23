@@ -158,6 +158,7 @@ if (!function_exists('user_scope_ids')) {
     {
         $user = auth()->user();
         if (!$user) return [];
+        
 
         // Admin: see all
         if ($user->hasRole('admin')) {

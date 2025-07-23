@@ -25,31 +25,31 @@ class CompanySetting extends Model
         'interest_rate_per_month',
         'interest_basis',
         'logo_path',
-        'interest_type', 
-        'logo_thumb_path', 
+        'interest_type',
+        'logo_thumb_path',
     ];
 
-     /* ──────────── Accessors ──────────── */
-     protected $appends = ['logo_url', 'logo_thumb_url'];
+    /* ──────────── Accessors ──────────── */
+    protected $appends = ['logo_url', 'logo_thumb_url'];
 
-     protected $casts = [
+    protected $casts = [
         'apply_interest'  => 'boolean',
     ];
 
-     public function getLogoUrlAttribute(): ?string
-     {
-         return $this->logo_path
-             ? asset('storage/' . $this->logo_path)
-             : null;
-     }
- 
-     public function getLogoThumbUrlAttribute(): ?string
-     {
-         // fall back to full logo if thumb missing
-         return $this->logo_thumb_path
-             ? asset('storage/' . $this->logo_thumb_path)
-             : $this->logo_url;
-     }
+    public function getLogoUrlAttribute(): ?string
+    {
+        return $this->logo_path
+            ? asset('storage/' . $this->logo_path)
+            : null;
+    }
+
+    public function getLogoThumbUrlAttribute(): ?string
+    {
+        // fall back to full logo if thumb missing
+        return $this->logo_thumb_path
+            ? asset('storage/' . $this->logo_thumb_path)
+            : $this->logo_url;
+    }
 
     public function creator()
     {
@@ -60,4 +60,6 @@ class CompanySetting extends Model
     {
         return $this->belongsTo(FinancialYear::class, 'financial_year_id');
     }
+
+    
 }

@@ -7,7 +7,8 @@ use App\Services\SalePaymentService;
 use App\Services\LedgerService;
 use App\Services\FinalizeSaleService;
 use Carbon\Carbon;          // already there if you date-parse elsewhere
-
+use Spatie\Permission\Models\Permission;
+use App\Models\User;
 use Illuminate\Support\Facades\Log;
 use App\Models\SaleItem;
 use App\Models\Godown;
@@ -50,6 +51,19 @@ class SaleController extends Controller
     public const FLOW_SUB_ONLY      = 'sub_only';
     public const FLOW_SUB_AND_RESP  = 'sub_and_resp';
 
+    private function defaultSub(): ?int
+    {
+        return User::whereIn('id', user_scope_ids())          // same tenant group
+            ->permission('sales.approve-sub')                 // has that permission
+            ->value('id');                                    // first match or null
+    }
+
+    private function defaultResp(): ?int
+    {
+        return User::whereIn('id', user_scope_ids())
+            ->permission('sales.approve')               // or sales.approve
+            ->value('id');
+    }
     public function index()
     {
         $ids = godown_scope_ids();
@@ -59,6 +73,7 @@ class SaleController extends Controller
             'salesman',
             'accountLedger',
             'saleItems.item',
+
             'creator'
         ])->orderBy('id', 'desc');
 
@@ -109,7 +124,22 @@ class SaleController extends Controller
         ]);
     }
 
+    public function show(Sale $sale)
+    {
 
+        $sale->load([
+            'saleItems.item.unit',
+            'godown',
+            'salesman',
+            'accountLedger',
+            'approvals.user',   // to see who approved / rejected
+        ]);
+        $sale->setAttribute('me', auth()->id());
+
+        return Inertia::render('sales/show', [
+            'sale' => $sale,
+        ]);
+    }
 
     // Store Sale
     public function store(Request $request, FinalizeSaleService $finalizer)
@@ -156,8 +186,8 @@ class SaleController extends Controller
                     ? Sale::STATUS_APPROVED
                     : Sale::STATUS_PENDING_SUB,
                 /* optional if you already collect these IDs in the form */
-                'sub_responsible_id'   => $request->sub_responsible_id,
-                'responsible_id'       => $request->responsible_id,
+                'sub_responsible_id' => $this->defaultSub(),
+                'responsible_id'     => $this->defaultResp(),
                 'created_by'           => auth()->id(),
             ]);
 
@@ -583,6 +613,118 @@ class SaleController extends Controller
             'amount_received' => 'nullable|numeric|min:0',
         ]);
     }
+
+
+
+    public function approveSub(Sale $sale)
+    {
+        if ($sale->status !== Sale::STATUS_PENDING_SUB) {
+            return back()->with('error', 'Invalid status for sub approval.');
+        }
+
+        DB::transaction(function () use ($sale) {
+            $requiresFinal = (bool) $sale->responsible_id;
+
+            $sale->update([
+                'status'           => $requiresFinal ? Sale::STATUS_PENDING_RESP : Sale::STATUS_APPROVED,
+                'sub_approved_at'  => now(),
+                'sub_approved_by'  => auth()->id(),
+            ]);
+
+            $this->logApproval($sale, 'approved', 'Approved by Sub-Responsible');
+
+            if (! $requiresFinal) {
+                app(\App\Services\FinalizeSaleService::class)->handle($sale);
+            }
+        });
+
+        return back()->with('success', 'Sale approved by Sub-Responsible.');
+    }
+
+
+
+
+    public function approveFinal(Sale $sale)
+    {
+        if ($sale->status !== Sale::STATUS_PENDING_RESP) {
+            return back()->with('error', 'Invalid status for final approval.');
+        }
+
+        DB::transaction(function () use ($sale) {
+            $sale->update([
+                'status'      => Sale::STATUS_APPROVED,
+                'approved_at' => now(),
+                'approved_by' => auth()->id(),
+            ]);
+
+            $this->logApproval($sale, 'approved', 'Approved by Responsible');
+
+            app(\App\Services\FinalizeSaleService::class)->handle($sale);
+        });
+
+        return back()->with('success', 'Sale fully approved.');
+    }
+
+
+    public function reject(Sale $sale)
+    {
+        if (!in_array($sale->status, [Sale::STATUS_PENDING_SUB, Sale::STATUS_PENDING_RESP])) {
+            return back()->with('error', 'Invalid status');
+        }
+
+        DB::transaction(function () use ($sale) {
+            $sale->update([
+                'status'       => Sale::STATUS_REJECTED,
+                'rejected_at'  => now(),
+                'rejected_by'  => auth()->id(),
+            ]);
+
+            $this->logApproval($sale, 'rejected', 'Sale rejected');
+        });
+
+        return back()->with('success', 'Sale rejected.');
+    }
+
+
+    public function inboxSub()
+    {
+        $sales = Sale::where('status', Sale::STATUS_PENDING_SUB)
+            ->where('sub_responsible_id', auth()->id())   // or by permission if you prefer
+            ->with(['godown', 'salesman', 'accountLedger'])
+            ->latest()
+            ->paginate(15);
+
+        return Inertia::render('sales/inbox/SubInbox', [
+            'sales' => $sales,
+        ]);
+    }
+
+    public function inboxResp()
+    {
+        $sales = Sale::where('status', Sale::STATUS_PENDING_RESP)
+            ->where('responsible_id', auth()->id())       // or permission-based
+            ->with(['godown', 'salesman', 'accountLedger'])
+            ->latest()
+            ->paginate(15);
+
+        return Inertia::render('sales/inbox/RespInbox', [
+            'sales' => $sales,
+        ]);
+    }
+
+
+
+    private function logApproval(Sale $sale, string $action, ?string $note = null): void
+    {
+        \App\Models\SaleApproval::create([
+            'sale_id' => $sale->id,
+            'user_id' => auth()->id(),
+            'created_by' => auth()->id(), 
+            'action'  => $action,
+            'note'    => $note,
+        ]);
+    }
+
 
     // public function getItemsByGodown($godownId)
     // {

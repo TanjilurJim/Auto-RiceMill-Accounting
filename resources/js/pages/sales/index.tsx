@@ -24,6 +24,7 @@ interface Sale {
     sale_items: SaleItem[];
     total_qty: number;
     grand_total: number;
+    status: string;
 }
 
 interface PaginatedSales {
@@ -107,6 +108,26 @@ export default function SaleIndex({ sales }: { sales: PaginatedSales }) {
                         {item.item?.item_name || 'N/A'} - {item.qty}
                     </div>
                 )),
+        },
+        {
+            header: 'Status',
+            accessor: (row: Sale) => (
+                <span
+                    className={
+                        'rounded px-2 py-0.5 text-xs font-semibold ' +
+                        {
+                            draft: 'bg-gray-200 text-gray-700',
+                            pending_sub: 'bg-yellow-100 text-yellow-800',
+                            pending_resp: 'bg-orange-100 text-orange-800',
+                            approved: 'bg-green-100 text-green-800',
+                            rejected: 'bg-red-100 text-red-800',
+                        }[row.status as Sale['status']] // fallback is undefined ⇒ no extra class
+                    }
+                >
+                    {row.status.replace('_', ' ')} {/* make it look nicer */}
+                </span>
+            ),
+            className: 'text-center', // optional
         },
         { header: 'Total Qty', accessor: 'total_qty', className: 'text-center' },
         {

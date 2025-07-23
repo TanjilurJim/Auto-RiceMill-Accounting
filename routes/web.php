@@ -25,6 +25,7 @@ use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\PartyItemController;
 use App\Http\Controllers\DepartmentController;
 use App\Http\Controllers\JournalAddController;
+use App\Http\Controllers\SaleApprovalController;
 use App\Http\Controllers\DueController;
 use App\Http\Controllers\PartyStockController;
 use App\Http\Controllers\PaymentAddController;
@@ -208,7 +209,24 @@ Route::middleware(['auth', 'verified'])->group(function () {
 
     Route::get('/purchases/{purchase}/invoice', [PurchaseController::class, 'invoice'])
         ->name('purchases.invoice');
+
+
+
+
     Route::resource('purchase-returns', PurchaseReturnController::class);
+
+
+    Route::get('/sales/inbox/sub',  [SaleController::class, 'inboxSub'])->name('sales.inbox.sub');
+    Route::get('/sales/inbox/resp', [SaleController::class, 'inboxResp'])->name('sales.inbox.resp');
+    Route::get('/sales/approvals', [SaleApprovalController::class, 'index'])
+        ->name('sales.approvals');
+
+
+    // existing approve / reject posts
+    Route::post('/sales/{sale}/approve-sub',   [SaleController::class, 'approveSub'])->name('sales.approve.sub');
+    Route::post('/sales/{sale}/approve-final', [SaleController::class, 'approveFinal'])->name('sales.approve.final');
+    Route::post('/sales/{sale}/reject',        [SaleController::class, 'reject'])->name('sales.reject');
+
     Route::get('purchase-returns/{purchase_return}/invoice', [PurchaseReturnController::class, 'invoice'])->name('purchase-returns.invoice');
     Route::resource('sales', SaleController::class)->names([
         'index'   => 'sales.index',
@@ -226,6 +244,10 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::get('{sale}/load-slip', [SaleController::class, 'loadSlip'])->name('load-slip');
         Route::get('{sale}/gate-pass', [SaleController::class, 'gatePass'])->name('gate-pass');
     });
+
+    // sale responsible
+    // 👇 approval inboxes
+
 
     //Sales Return
     Route::resource('sales-returns', SalesReturnController::class);

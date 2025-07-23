@@ -8,6 +8,8 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Spatie\Permission\Traits\HasRoles;
+use App\Models\CompanySetting;
+use function get_top_parent_id;
 
 class User extends Authenticatable
 {
@@ -56,4 +58,11 @@ class User extends Authenticatable
     {
         return $this->belongsTo(User::class, 'created_by');
     }
+
+    public function company(){
+        $headId = get_top_parent_id($this);
+        return $this->hasOne(CompanySetting::class, 'created_by')
+            ->where('created_by', $headId);
+    }
+
 }

@@ -15,7 +15,6 @@ import {
     CalendarDays,
     ClipboardList,
     DownloadCloud,
-    Droplets,
     Factory,
     FileText,
     Folder,
@@ -36,6 +35,7 @@ import {
     Shield,
     ShoppingCart,
     Shuffle,
+    History,
     UploadCloud,
     Users,
     Wallet,
@@ -128,6 +128,22 @@ const mainNavItems: NavItem[] = [
                 href: '/sales',
                 icon: ReceiptText,
             },
+            {
+                title: 'Sub-Inbox-Sales',
+                href: '/sales/inbox/sub',
+                icon: ReceiptText,
+            },
+            {
+                title: 'Responsible-Inbox-Sales',
+                href: '/sales/inbox/resp',
+                icon: ReceiptText,
+            },
+            {
+                title: 'My Approval History',
+                href: '/sales/approvals',
+                icon: History, // pick any Lucide icon
+            },
+
             {
                 title: 'Dues',
                 href: '/dues',
@@ -239,9 +255,7 @@ const mainNavItems: NavItem[] = [
                 href: '/salary-receives',
                 icon: FiUsers,
             },
-            
 
-            
             {
                 title: 'Employee Ledger Report',
                 href: '/employee-ledger',
@@ -252,7 +266,6 @@ const mainNavItems: NavItem[] = [
                 href: '/employee-reports',
                 icon: FiUsers,
             },
-
 
             // Later you can add more inventory-related items here (e.g., Products, Stock Transfers, etc.)
         ],
@@ -365,13 +378,13 @@ const mainNavItems: NavItem[] = [
             {
                 title: 'ক্রাশিং রিপোর্টসমূহ',
                 icon: BarChart2,
-                href: '/crushing', 
+                href: '/crushing',
                 children: [
                     {
                         title: 'পার্টি স্টক রিপোর্ট',
                         href: '/crushing/party-stock-report',
                         icon: Layers,
-                    },                  
+                    },
                     {
                         title: 'Rent Day Book',
                         href: '/crushing/rent-day-book',
