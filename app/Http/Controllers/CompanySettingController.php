@@ -25,10 +25,15 @@ class CompanySettingController extends Controller
                 ['value' => 'total', 'label' => 'Total invoice amount'],
             ],
             'saleFlowOptions' => [
-            ['value' => 'none',         'label' => 'No approval (post immediately)'],
-            ['value' => 'sub_only',     'label' => '1-step — Sub-Responsible only'],
-            ['value' => 'sub_and_resp', 'label' => '2-step — Sub then Responsible'],
-        ],
+                ['value' => 'none',         'label' => 'No approval (post immediately)'],
+                ['value' => 'sub_only',     'label' => '1-step — Sub-Responsible only'],
+                ['value' => 'sub_and_resp', 'label' => '2-step — Sub then Responsible'],
+            ],
+            'purchaseFlowOptions' => [
+                ['value' => 'none',         'label' => 'No approval (post immediately)'],
+                ['value' => 'sub_only',     'label' => '1-step — Sub-Responsible'],
+                ['value' => 'sub_and_resp', 'label' => '2-step — Sub then Responsible'],
+            ],
         ]);
     }
 
@@ -48,11 +53,12 @@ class CompanySettingController extends Controller
             // 🆕 global-interest flags
             'apply_interest'     => 'nullable|boolean',
             'interest_basis'     => 'nullable|in:due,total',
-            'interest_rate_per_month' => 'nullable|numeric|min:0',  
+            'interest_rate_per_month' => 'nullable|numeric|min:0',
             'interest_rate_per_year'  => 'nullable|numeric|min:0',
             'interest_type' => 'required|in:percentage,flat',
             'interest_flat_per_day' => 'nullable|numeric|min:0',
             'sale_approval_flow' => 'nullable|in:none,sub_only,sub_and_resp',
+            'purchase_approval_flow' => 'nullable|in:none,sub_only,sub_and_resp'
 
         ]);
 

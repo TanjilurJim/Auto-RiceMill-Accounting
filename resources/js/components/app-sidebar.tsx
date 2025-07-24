@@ -19,6 +19,7 @@ import {
     FileText,
     Folder,
     FolderKanban,
+    History,
     InfoIcon,
     Landmark,
     Layers,
@@ -35,7 +36,6 @@ import {
     Shield,
     ShoppingCart,
     Shuffle,
-    History,
     UploadCloud,
     Users,
     Wallet,
@@ -119,6 +119,27 @@ const mainNavItems: NavItem[] = [
                 icon: ShoppingCart,
             },
             {
+                title: 'Sub-Inbox-Purchases',
+                href: '/purchases/inbox/sub',
+                icon: ReceiptText,
+            },
+            {
+                title: 'Responsible-Inbox-Purchases',
+                href: '/purchases/inbox/resp',
+                icon: ReceiptText,
+            },
+            // {
+            //     title: 'Purchase Approve-Reject Log',
+            //     href: '/purchases/approvals',
+            //     icon: History, // pick any Lucide icon
+            // },
+            {
+                title: 'Purchase Approve-Reject Log',
+                href: route('purchases.approvals'), // or '/purchases/approvals'
+                icon: History,
+            },
+
+            {
                 title: 'Purchases Return',
                 href: '/purchase-returns',
                 icon: RotateCcw,
@@ -139,7 +160,7 @@ const mainNavItems: NavItem[] = [
                 icon: ReceiptText,
             },
             {
-                title: 'My Approval History',
+                title: 'Sale Approve-Reject Log',
                 href: '/sales/approvals',
                 icon: History, // pick any Lucide icon
             },

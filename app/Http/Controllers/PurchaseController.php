@@ -2,9 +2,12 @@
 
 namespace App\Http\Controllers;
 
+use Illuminate\Support\Facades\DB;
 use App\Models\Item;
 use App\Models\Unit;
 use App\Models\User;
+use App\Services\FinalizePurchaseService;
+use App\Models\PurchaseApproval;
 use Inertia\Inertia;
 use App\Models\Stock;
 use App\Models\Godown;
@@ -28,30 +31,7 @@ use function godown_scope_ids; // [multi-level access]
 class PurchaseController extends Controller
 {
 
-    // Show list of purchases
-    // public function index()
-    // {
-    //     $purchases = Purchase::with([
-    //         'godown',
-    //         'salesman',
-    //         'accountLedger',
-    //         'purchaseItems.item', // 🟢 Eager load item inside purchaseItems!
-    //         'creator'
-    //     ])
 
-    //         ->where('created_by', auth()->id())
-    //         ->orderBy('id', 'desc')
-    //         ->paginate(10);
-
-    //     $purchases->getCollection()->transform(function ($p) {
-    //         $p->due = $p->grand_total - $p->amount_paid;   // 👈 add field
-    //         return $p;
-    //     });
-
-    //     return Inertia::render('purchases/index', [
-    //         'purchases' => $purchases
-    //     ]);
-    // }
 
     // Show list of purchases
     public function index()
@@ -92,40 +72,7 @@ class PurchaseController extends Controller
         ]);
     }
 
-    // Show create form
-    // public function create()
-    // {
-    //     // $userIds = user_scope_ids();
-    //     $userIds = godown_scope_ids(); // [multi-level access]
 
-    //     return Inertia::render('purchases/create', [
-    //         'godowns' => Godown::whereIn('created_by', $userIds)->get(),
-    //         'salesmen' => Salesman::whereIn('created_by', $userIds)->get(),
-    //         'ledgers' => AccountLedger::whereIn('created_by', $userIds)->get(),
-    //         'stockItemsByGodown' => Stock::with('item.unit')
-    //             ->whereIn('created_by', $userIds)
-    //             ->get()
-    //             ->groupBy('godown_id')
-    //             ->map(fn($col) => $col->map(fn($s) => [
-    //                 'id'   => $s->id,
-    //                 'qty'  => $s->qty,
-    //                 'item' => [
-    //                     'id'        => $s->item->id,
-    //                     'item_name' => $s->item->item_name,
-    //                     'unit_name' => $s->item->unit->name ?? '',
-    //                 ],
-    //             ]))
-    //             ->toArray(),
-    //         'items' => [],
-    //         'inventoryLedgers' => AccountLedger::where('ledger_type', 'inventory')
-    //             ->whereIn('created_by', $userIds)
-    //             ->get(['id', 'account_ledger_name', 'ledger_type']),
-    //         'accountGroups' => AccountGroup::get(['id', 'name']),
-    //         'receivedModes' => ReceivedMode::with('ledger')
-    //             ->whereIn('created_by', $userIds)
-    //             ->get(['id', 'mode_name', 'ledger_id']),
-    //     ]);
-    // }
 
     public function create()
     {
@@ -191,6 +138,7 @@ class PurchaseController extends Controller
     // Store purchase
     public function store(Request $request)
     {
+        /* 1️⃣  Validation – unchanged */
         $request->validate([
             'date' => 'required|date',
             'voucher_no' => 'nullable|unique:purchases,voucher_no',
@@ -209,113 +157,87 @@ class PurchaseController extends Controller
             'amount_paid' => 'nullable|numeric|min:0',
         ]);
 
-        $voucherNo = $request->voucher_no ?? 'PUR-' . now()->format('Ymd') . '-' . str_pad(Purchase::max('id') + 1, 4, '0', STR_PAD_LEFT);
+        /* 2️⃣  Prepare helpers */
+        $voucherNo = $request->voucher_no
+            ?? 'PUR-' . now()->format('Ymd') . '-' . str_pad(Purchase::max('id') + 1, 4, '0', STR_PAD_LEFT);
 
-        $purchase = Purchase::create([
-            'date' => $request->date,
-            'voucher_no' => $voucherNo,
-            'godown_id' => $request->godown_id,
-            'salesman_id' => $request->salesman_id,
-            'account_ledger_id' => $request->account_ledger_id,
-            'inventory_ledger_id' => $request->inventory_ledger_id,
-            'received_mode_id' => $request->received_mode_id,
-            'amount_paid' => $request->amount_paid ?? 0,
-            'phone' => $request->phone,
-            'address' => $request->address,
-            'shipping_details' => $request->shipping_details,
-            'delivered_to' => $request->delivered_to,
-            'total_qty' => collect($request->purchase_items)->sum('qty'),
-            'total_price' => collect($request->purchase_items)->sum('subtotal'),
-            'total_discount' => collect($request->purchase_items)->sum('discount'),
-            'grand_total' => collect($request->purchase_items)->sum('subtotal'),
-            'created_by' => auth()->id(),
-        ]);
+        $flow = auth()->user()->company->purchase_approval_flow ?? 'none';
 
-        foreach ($request->purchase_items as $item) {
-            $purchase->purchaseItems()->create([
-                'product_id' => $item['product_id'],
-                'qty' => $item['qty'],
-                'price' => $item['price'],
-                'discount' => $item['discount'] ?? 0,
-                'discount_type' => $item['discount_type'],
-                'subtotal' => $item['subtotal'],
+        /* 🔹New totals -------------------------------------------------- */
+        $totalQty   = collect($request->purchase_items)->sum('qty');
+        $totalPrice = collect($request->purchase_items)->sum(
+            fn($row) => $row['qty'] * $row['price']
+        );        // before discount
+        $totalDisc  = collect($request->purchase_items)->sum('discount');
+        $grandTotal = $totalPrice - $totalDisc;                            // after discount
+        /* -------------------------------------------------------------- */
+
+        /* 3️⃣  Create header + lines (no stock / journal yet) */
+        $purchase = null;
+        DB::transaction(function () use (
+            $request,
+            $voucherNo,
+            $flow,
+            &$purchase,
+            $totalQty,
+            $totalPrice,
+            $totalDisc,
+            $grandTotal,
+        ) {
+            $purchase = Purchase::create([
+                'date'               => $request->date,
+                'voucher_no'         => $voucherNo,
+                'godown_id'          => $request->godown_id,
+                'salesman_id'        => $request->salesman_id,
+                'account_ledger_id'  => $request->account_ledger_id,
+                'inventory_ledger_id' => $request->inventory_ledger_id,
+                'received_mode_id'   => $request->received_mode_id,
+                'amount_paid'        => $request->amount_paid ?? 0,
+                'phone'              => $request->phone,
+                'address'            => $request->address,
+                'shipping_details'   => $request->shipping_details,
+                'delivered_to'       => $request->delivered_to,
+
+                /* 🔹 add the four money columns */
+                'total_qty'      => $totalQty,
+                'total_price'    => $totalPrice,
+                'total_discount' => $totalDisc,
+                'grand_total'    => $grandTotal,
+
+                'status'             => $flow === 'none'
+                    ? Purchase::STATUS_APPROVED
+                    : Purchase::STATUS_PENDING_SUB,
+                'sub_responsible_id' => $this->defaultSub(),
+                'responsible_id'     => $this->defaultResp(),
+                'created_by'         => auth()->id(),
             ]);
 
-            // Update stock
-            $stock = \App\Models\Stock::firstOrNew([
-                'item_id' => $item['product_id'],
-                'godown_id' => $request->godown_id,
-                'created_by' => auth()->id(),
-            ]);
-            $stock->qty += $item['qty'];
-            $stock->created_by = auth()->id();
-            $stock->save();
-        }
-
-        // Journal
-        $journal = Journal::create([
-            'date' => $request->date,
-            'voucher_no' => $voucherNo,
-            'narration' => 'Auto journal for Purchase',
-            'created_by' => auth()->id(),
-            'voucher_type' => 'Purchase',
-        ]);
-
-        // 1️⃣ Inventory (debit)
-        JournalEntry::create([
-            'journal_id' => $journal->id,
-            'account_ledger_id' => $request->inventory_ledger_id,
-            'type' => 'debit',
-            'amount' => $purchase->grand_total,
-            'note' => 'Inventory received',
-        ]);
-
-        $this->updateLedgerBalance($request->inventory_ledger_id, 'debit', $purchase->grand_total);
-
-        // 2️⃣ Supplier (credit)
-        JournalEntry::create([
-            'journal_id' => $journal->id,
-            'account_ledger_id' => $request->account_ledger_id,
-            'type' => 'credit',
-            'amount' => $purchase->grand_total,
-            'note' => 'Payable to Supplier',
-        ]);
-
-        $this->updateLedgerBalance($request->account_ledger_id, 'credit', $purchase->grand_total);
-
-        // 3️⃣ Payment if any
-        if ($request->amount_paid > 0 && $request->received_mode_id) {
-
-            // just fetch the row the user picked
-            $receivedMode = ReceivedMode::with('ledger')
-                ->findOrFail($request->received_mode_id);
-
-            if ($receivedMode && $receivedMode->ledger) {
-                // Credit payment method
-                JournalEntry::create([
-                    'journal_id' => $journal->id,
-                    'account_ledger_id' => $receivedMode->ledger_id,
-                    'type' => 'credit',
-                    'amount' => $request->amount_paid,
-                    'note' => 'Payment via ' . $receivedMode->mode_name,
+            foreach ($request->purchase_items as $row) {
+                $purchase->purchaseItems()->create([
+                    'product_id'    => $row['product_id'],
+                    'qty'           => $row['qty'],
+                    'price'         => $row['price'],
+                    'discount'      => $row['discount'] ?? 0,
+                    'discount_type' => $row['discount_type'],
+                    'subtotal'      => $row['subtotal'],
                 ]);
-                $this->updateLedgerBalance($receivedMode->ledger_id, 'credit', $request->amount_paid);
-
-                // Debit supplier (partial payment)
-                JournalEntry::create([
-                    'journal_id' => $journal->id,
-                    'account_ledger_id' => $request->account_ledger_id,
-                    'type' => 'debit',
-                    'amount' => $request->amount_paid,
-                    'note' => 'Partial payment to supplier',
-                ]);
-                $this->updateLedgerBalance($request->account_ledger_id, 'debit', $request->amount_paid);
             }
+        });
+
+        /* 4️⃣  Post stock & journal immediately only if no approval flow */
+        if ($flow === 'none') {
+            app(\App\Services\FinalizePurchaseService::class)->handle(
+                $purchase,
+                $request->only(['amount_paid', 'received_mode_id'])
+            );
         }
 
-        $purchase->update(['journal_id' => $journal->id]);
-
-        return redirect()->route('purchases.index')->with('success', 'Purchase created and stock updated!');
+        /* 5️⃣  Redirect with proper flash message */
+        return redirect()
+            ->route('purchases.index')
+            ->with('success', $flow === 'none'
+                ? 'Purchase saved & approved.'
+                : 'Purchase saved and awaiting approval.');
     }
 
     // 🔁 Ledger balance helper
@@ -333,98 +255,7 @@ class PurchaseController extends Controller
         $ledger->save();
     }
 
-    // public function edit(Purchase $purchase)
-    // {
-    //     // multi‑tenant guard
-    //     // if ($purchase->created_by !== auth()->id() && ! auth()->user()->hasRole('admin')) {
-    //     //     abort(403);
-    //     // }
 
-    //     $user = auth()->user(); // [multi-level access]
-    //     if (!$user->hasRole('admin')) { // [multi-level access]
-    //         $ids = godown_scope_ids(); // [multi-level access]
-    //         if (!in_array($purchase->created_by, $ids)) { // [multi-level access]
-    //             abort(403, 'Unauthorized action.');
-    //         }
-    //     }
-
-    //     // $userId = auth()->id();
-    //     // $userId = user_scope_ids();
-    //     $userId = godown_scope_ids(); // [multi-level access]
-
-    //     return Inertia::render('purchases/edit', [
-    //         'purchase' => $purchase->load([
-    //             'purchaseItems.item',
-    //             'godown',
-    //             'salesman',
-    //             'accountLedger',
-    //         ]),
-
-    //         // 'godowns'  => Godown::where('created_by', $userId)->get(['id', 'name']),
-    //         // 'salesmen' => Salesman::where('created_by', $userId)->get(['id', 'name']),
-    //         // 'ledgers'  => AccountLedger::where('created_by', $userId)->get(['id', 'account_ledger_name']),
-
-    //         // /* inventory ledgers (same filter you used on create) */
-    //         // 'inventoryLedgers' => AccountLedger::where('ledger_type', 'inventory')
-    //         //     ->where('created_by', $userId)
-    //         //     ->get(['id', 'account_ledger_name']),
-
-    //         // /* payment modes */
-    //         // 'receivedModes' => ReceivedMode::with('ledger')
-    //         //     ->where('created_by', $userId)
-    //         //     ->get(['id', 'mode_name', 'ledger_id']),
-
-    //         // /* --- NEW: grouped stock just like the create() page --- */
-    //         // 'stockItemsByGodown' => Stock::with('item.unit')
-    //         //     ->where('created_by', $userId)
-    //         //     ->get()                                // each row: item + qty
-    //         //     ->groupBy('godown_id')                 // bucket by godown
-    //         //     ->map(fn($col) => $col->map(fn($s) => [
-    //         //         'id'   => $s->id,
-    //         //         'qty'  => $s->qty,
-    //         //         'item' => [
-    //         //             'id'        => $s->item->id,
-    //         //             'item_name' => $s->item->item_name,
-    //         //             'unit_name'  => $s->item->unit->name ?? '',
-    //         //         ],
-    //         //     ]))
-    //         //     ->toArray(),
-
-
-
-    //         'godowns'  => Godown::whereIn('created_by', $userIds)->get(['id', 'name']),
-    //         'salesmen' => Salesman::whereIn('created_by', $userIds)->get(['id', 'name']),
-    //         'ledgers'  => AccountLedger::whereIn('created_by', $userIds)->get(['id', 'account_ledger_name']),
-    //         'inventoryLedgers' => AccountLedger::where('ledger_type', 'inventory')
-    //             ->whereIn('created_by', $userIds)
-    //             ->get(['id', 'account_ledger_name']),
-    //         'receivedModes' => ReceivedMode::with('ledger')
-    //             ->whereIn('created_by', $userIds)
-    //             ->get(['id', 'mode_name', 'ledger_id']),
-    //         'stockItemsByGodown' => Stock::with('item.unit')
-    //             ->whereIn('created_by', $userIds)
-    //             ->get()
-    //             ->groupBy('godown_id')
-    //             ->map(fn($col) => $col->map(fn($s) => [
-    //                 'id'   => $s->id,
-    //                 'qty'  => $s->qty,
-    //                 'item' => [
-    //                     'id'        => $s->item->id,
-    //                     'item_name' => $s->item->item_name,
-    //                     'unit_name' => $s->item->unit->name ?? '',
-    //                 ],
-    //             ]))
-    //             ->toArray(),
-
-
-    //         'phone' => $purchase->phone,
-    //         'address' => $purchase->address,
-    //         'delivered_to' => $purchase->delivered_to,
-    //         'shipping_details' => $purchase->shipping_details,
-
-
-    //     ]);
-    // }
 
     public function edit(Purchase $purchase)
     {
@@ -709,6 +540,23 @@ class PurchaseController extends Controller
         ]);
     }
 
+    public function show(Purchase $purchase)
+    {
+        $purchase->load([
+            'purchaseItems.item.unit',
+            'godown',
+            'salesman',
+            'accountLedger',
+            'approvals.user',   // to see who approved / rejected
+        ]);
+
+        $purchase->setAttribute('me', auth()->id());
+
+        return Inertia::render('purchases/show', [
+            'purchase' => $purchase,
+        ]);
+    }
+
 
     public function fetchBalance($id)
     {
@@ -733,5 +581,201 @@ class PurchaseController extends Controller
 
         $purchase->delete();
         return redirect()->back()->with('success', 'Purchase deleted successfully!');
+    }
+    /* helpers ---------------------------------------------*/
+    private function defaultSub(): ?int
+    {
+        return User::permission('purchase.sub-responsible')
+            ->whereIn('id', user_scope_ids())
+            ->value('id');
+    }
+    private function defaultResp(): ?int
+    {
+        return User::permission('purchase.responsible')
+            ->whereIn('id', user_scope_ids())
+            ->value('id');
+    }
+
+    /* APPROVE SUB -----------------------------------------*/
+    public function approveSub(Purchase $purchase)
+    {
+        abort_unless($purchase->status === Purchase::STATUS_PENDING_SUB, 400);
+
+        DB::transaction(function () use ($purchase) {
+            $needsFinal = (bool) $purchase->responsible_id;
+
+            $purchase->update([
+                'status'            => $needsFinal ? Purchase::STATUS_PENDING_RESP : Purchase::STATUS_APPROVED,
+                'sub_approved_at'   => now(),
+                'sub_approved_by'   => auth()->id(),
+            ]);
+
+            $this->logApproval($purchase, 'approved', 'Approved by Sub-Responsible');
+
+            if (! $needsFinal) {
+                app(FinalizePurchaseService::class)->handle($purchase);
+            }
+        });
+
+        return back()->with('success', 'Purchase approved at first step.');
+    }
+
+    /* APPROVE FINAL ---------------------------------------*/
+    public function approveFinal(Purchase $purchase)
+    {
+        abort_unless($purchase->status === Purchase::STATUS_PENDING_RESP, 400);
+
+        DB::transaction(function () use ($purchase) {
+            $purchase->update([
+                'status'       => Purchase::STATUS_APPROVED,
+                'approved_at'  => now(),
+                'approved_by'  => auth()->id(),
+            ]);
+
+            $this->logApproval($purchase, 'approved', 'Approved by Responsible');
+
+            app(FinalizePurchaseService::class)->handle($purchase);
+        });
+
+        return back()->with('success', 'Purchase fully approved.');
+    }
+
+    /* REJECT ----------------------------------------------*/
+    public function reject(Request $request, Purchase $purchase)
+    {
+        $request->validate(['note' => 'required|string|max:500']);
+
+        $allowed = ($purchase->status === Purchase::STATUS_PENDING_SUB  && $purchase->sub_responsible_id === auth()->id())
+            || ($purchase->status === Purchase::STATUS_PENDING_RESP && $purchase->responsible_id     === auth()->id());
+
+        abort_unless($allowed, 403);
+
+        DB::transaction(function () use ($purchase, $request) {
+            $purchase->update([
+                'status'      => Purchase::STATUS_REJECTED,
+                'rejected_at' => now(),
+                'rejected_by' => auth()->id(),
+            ]);
+
+            $this->logApproval($purchase, 'rejected', $request->note);
+        });
+
+        return back()->with('success', 'Purchase rejected.');
+    }
+
+    public function inboxSub(Request $req)
+    {
+        $purchases = Purchase::query()
+            ->where('status', Purchase::STATUS_PENDING_SUB)
+            ->where('sub_responsible_id', auth()->id())
+
+            // 🔍 Filter by voucher no or supplier name
+            ->when($req->q, function ($query, $search) {
+                $query->where(function ($q) use ($search) {
+                    $q->where('voucher_no', 'like', "%{$search}%")
+                        ->orWhereHas('accountLedger', fn($q2) => $q2->where('account_ledger_name', 'like', "%{$search}%"));
+                });
+            })
+
+            // 📅 Date range filters
+            ->when($req->from, fn($q, $from) => $q->whereDate('date', '>=', $from))
+            ->when($req->to,   fn($q, $to)   => $q->whereDate('date', '<=', $to))
+
+            ->with([
+                'godown:id,name',
+                'salesman:id,name',
+                'accountLedger:id,account_ledger_name',
+                'subApprover:id,name',
+                'respApprover:id,name',
+            ])
+            ->latest()
+            ->paginate(15)
+            ->withQueryString()
+            ->through(fn($p) => [
+                'id'          => $p->id,
+                'date'        => $p->date->toDateString(),
+                'voucher_no'  => $p->voucher_no,
+                'grand_total' => $p->grand_total,
+                'supplier'    => $p->accountLedger?->account_ledger_name,
+                'godown'      => $p->godown?->name,
+                'salesman'    => $p->salesman?->name,
+                'sub_status'  => 'pending', // always pending here
+                'resp_status' => $p->status === Purchase::STATUS_PENDING_RESP ? 'pending'
+                    : ($p->status === Purchase::STATUS_REJECTED ? 'rejected' : '—'),
+            ]);
+
+        return Inertia::render('purchases/inbox/SubInbox', [
+            'purchases' => $purchases,
+            'filters'   => $req->only(['q', 'from', 'to']),
+        ]);
+    }
+
+    public function inboxResp(Request $req)
+    {
+        $purchases = Purchase::query()
+            ->where('status', Purchase::STATUS_PENDING_RESP)
+            ->where('responsible_id', auth()->id())
+
+            /* 🔍 Search by voucher or supplier */
+            ->when($req->q, function ($query, $search) {
+                $query->where(function ($q) use ($search) {
+                    $q->where('voucher_no', 'like', "%{$search}%")
+                        ->orWhereHas(
+                            'accountLedger',
+                            fn($q2) => $q2->where('account_ledger_name', 'like', "%{$search}%")
+                        );
+                });
+            })
+
+            /* 📅 Date range */
+            ->when($req->from, fn($q, $from) => $q->whereDate('date', '>=', $from))
+            ->when($req->to,   fn($q, $to)   => $q->whereDate('date', '<=', $to))
+
+            ->with([
+                'godown:id,name',
+                'salesman:id,name',
+                'accountLedger:id,account_ledger_name',
+                'subApprover:id,name',
+                'respApprover:id,name',
+            ])
+            ->latest()
+            ->paginate(15)
+            ->withQueryString()
+            ->through(fn($p) => [
+                'id'          => $p->id,
+                'date'        => $p->date->toDateString(),
+                'voucher_no'  => $p->voucher_no,
+                'grand_total' => $p->grand_total,
+                'supplier'    => $p->accountLedger?->account_ledger_name,
+                'godown'      => $p->godown?->name,
+                'salesman'    => $p->salesman?->name,
+
+                'sub_status'  => $p->sub_approved_at
+                    ? 'approved'
+                    : ($p->status === Purchase::STATUS_REJECTED ? 'rejected' : 'pending'),
+
+                'resp_status' => 'pending',          // always pending in this inbox
+            ]);
+
+        return Inertia::render('purchases/inbox/RespInbox', [
+            'purchases' => $purchases,
+            'filters'   => $req->only(['q', 'from', 'to']),
+        ]);
+    }
+
+
+
+
+
+    /* helper */
+    private function logApproval(Purchase $purchase, string $action, ?string $note = null)
+    {
+        PurchaseApproval::create([
+            'purchase_id' => $purchase->id,
+            'user_id'     => auth()->id(),
+            'created_by'  => auth()->id(),
+            'action'      => $action,
+            'note'        => $note,
+        ]);
     }
 }

@@ -69,7 +69,14 @@ class Sale extends Model
         return $this->hasMany(SaleApproval::class);
     }
 
-
+    public function subApprover()
+    {
+        return $this->belongsTo(User::class, 'sub_approved_by');
+    }
+    public function respApprover()
+    {
+        return $this->belongsTo(User::class, 'approved_by');
+    }
     public function getPrincipalDueAttribute(): float
     {
         return max(0, $this->grand_total -

@@ -9,6 +9,13 @@ class Purchase extends Model
 {
     use SoftDeletes;
 
+    /* ── Status flags ── */
+    public const STATUS_DRAFT        = 'draft';
+    public const STATUS_PENDING_SUB  = 'pending_sub';
+    public const STATUS_PENDING_RESP = 'pending_resp';
+    public const STATUS_APPROVED     = 'approved';
+    public const STATUS_REJECTED     = 'rejected';
+
     protected $fillable = [
         'date',
         'voucher_no',
@@ -24,11 +31,23 @@ class Purchase extends Model
         'shipping_details',
         'delivered_to',
         'created_by',
-        'inventory_ledger_id', 
+        'inventory_ledger_id',
+
+        'status',
+        'sub_responsible_id',
+        'responsible_id',
+        'sub_approved_at',
+        'sub_approved_by',
+        'approved_at',
+        'approved_by',
+        'rejected_at',
+        'rejected_by',
         // 🆕 Newly added:
         'received_mode_id',
         'amount_paid',
     ];
+
+    protected $casts = ['date' => 'date'];
 
     // ✅ Relationship with Purchase Items
     public function purchaseItems()
@@ -63,5 +82,18 @@ class Purchase extends Model
     public function creator()
     {
         return $this->belongsTo(User::class, 'created_by');
+    }
+
+    public function approvals()
+    {
+        return $this->hasMany(PurchaseApproval::class);
+    }
+    public function subApprover()
+    {
+        return $this->belongsTo(User::class, 'sub_approved_by');
+    }
+    public function respApprover()
+    {
+        return $this->belongsTo(User::class, 'approved_by');
     }
 }

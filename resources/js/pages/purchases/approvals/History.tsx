@@ -1,6 +1,6 @@
-import Pagination from '@/components/Pagination';
-import AppLayout   from '@/layouts/app-layout';
-import { Link }    from '@inertiajs/react';
+import Pagination   from '@/components/Pagination';
+import AppLayout    from '@/layouts/app-layout';
+import { Link }     from '@inertiajs/react';
 
 /* ---------- types --------------------------------------------------------- */
 interface ApprovalRow {
@@ -8,12 +8,13 @@ interface ApprovalRow {
   action: 'approved' | 'rejected';
   note?: string | null;
   created_at: string;
-  sale: {
+
+  purchase: {
     id: number;
     voucher_no: string;
     date: string;
     grand_total: string | number;
-    account_ledger?: { account_ledger_name: string };
+    account_ledger?: { account_ledger_name: string };   // supplier name
   };
 }
 
@@ -40,7 +41,7 @@ const badge = (a: 'approved' | 'rejected') => (
 );
 
 const fmtDate = (iso: string) =>
-  new Date(iso).toLocaleDateString('en-GB');         // dd/mm/yyyy
+  new Date(iso).toLocaleDateString('en-GB');     // dd/mm/yyyy
 
 const fmtTk = (n: string | number) =>
   `${new Intl.NumberFormat('en-BD', { minimumFractionDigits: 2 }).format(Number(n))} Tk`;
@@ -48,8 +49,8 @@ const fmtTk = (n: string | number) =>
 /* ---------- component ----------------------------------------------------- */
 export default function History({ approvals }: { approvals: Paginator }) {
   return (
-    <AppLayout title="My Approval History">
-      <h1 className="mb-4 text-xl font-semibold">My Approval History</h1>
+    <AppLayout title="My Purchase-Approval History">
+      <h1 className="mb-4 text-xl font-semibold">My Purchase-Approval History</h1>
 
       <div className="overflow-x-auto rounded-lg border border-gray-200 bg-white shadow-sm dark:border-neutral-700 dark:bg-neutral-900">
         <table className="w-full text-sm">
@@ -57,10 +58,10 @@ export default function History({ approvals }: { approvals: Paginator }) {
             <tr>
               <th className="p-3">Date</th>
               <th className="p-3">Voucher</th>
-              <th className="p-3">Customer</th>
+              <th className="p-3">Supplier</th>
               <th className="p-3 text-right">Total</th>
               <th className="p-3">Result</th>
-              <th className="p-3">Note</th>{/* new */}
+              <th className="p-3">Note</th>
             </tr>
           </thead>
 
@@ -68,17 +69,19 @@ export default function History({ approvals }: { approvals: Paginator }) {
             {approvals.data.length ? (
               approvals.data.map((row) => (
                 <tr key={row.id} className="hover:bg-gray-50 dark:hover:bg-neutral-800/50">
-                  <td className="p-3 whitespace-nowrap">{fmtDate(row.sale.date)}</td>
+                  <td className="p-3 whitespace-nowrap">{fmtDate(row.purchase.date)}</td>
+
                   <td className="p-3 whitespace-nowrap">
                     <Link
-                      href={`/sales/${row.sale.id}`}
+                      href={`/purchases/${row.purchase.id}`}
                       className="font-medium text-sky-600 hover:underline dark:text-sky-500"
                     >
-                      {row.sale.voucher_no}
+                      {row.purchase.voucher_no}
                     </Link>
                   </td>
-                  <td className="p-3">{row.sale.account_ledger?.account_ledger_name ?? '—'}</td>
-                  <td className="p-3 text-right whitespace-nowrap">{fmtTk(row.sale.grand_total)}</td>
+
+                  <td className="p-3">{row.purchase.account_ledger?.account_ledger_name ?? '—'}</td>
+                  <td className="p-3 text-right whitespace-nowrap">{fmtTk(row.purchase.grand_total)}</td>
                   <td className="p-3">{badge(row.action)}</td>
                   <td className="p-3 max-w-xs whitespace-pre-line italic text-gray-700 dark:text-gray-300">
                     {row.note || '—'}

@@ -8,6 +8,7 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\ItemController;
 use App\Http\Controllers\RoleController;
 use App\Http\Controllers\SaleController;
+use App\Http\Controllers\PurchaseApprovalController;
 use App\Http\Controllers\ConversionVoucherController;
 use App\Http\Controllers\RentVoucherController;
 use App\Http\Controllers\UnitController;
@@ -200,19 +201,31 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::resource('units', UnitController::class);
     Route::resource('categories', CategoryController::class);
     Route::resource('items', ItemController::class);
+
+    // ---------------------------
+    // Approval inboxes
+    // ---------------------------
+    Route::get('/purchases/inbox/sub',  [PurchaseController::class, 'inboxSub'])->name('purchases.inbox.sub');
+    Route::get('/purchases/inbox/resp', [PurchaseController::class, 'inboxResp'])->name('purchases.inbox.resp');
+    Route::get('approvals', [PurchaseApprovalController::class, 'index'])
+     ->name('purchases.approvals');
+
+    // ---------------------------
+    // Approval actions
+    // ---------------------------
+    Route::post('purchases/{purchase}/approve-sub',   [PurchaseController::class, 'approveSub'])->name('purchases.approve-sub');
+    Route::post('purchases/{purchase}/approve-final', [PurchaseController::class, 'approveFinal'])->name('purchases.approve-final');
+    Route::post('purchases/{purchase}/reject',        [PurchaseController::class, 'reject'])->name('purchases.reject');
+
+    // ---------------------------
+    // Invoice preview (used by modal via axios)
+    // ---------------------------
+    Route::get('purchases/{purchase}/invoice', [PurchaseController::class, 'invoice'])->name('purchases.invoice');
+
+    // ---------------------------
+    // Resourceful routes
+    // ---------------------------
     Route::resource('purchases', PurchaseController::class);
-
-
-    // 👇 Used only by the modal via axios
-
-
-
-    Route::get('/purchases/{purchase}/invoice', [PurchaseController::class, 'invoice'])
-        ->name('purchases.invoice');
-
-
-
-
     Route::resource('purchase-returns', PurchaseReturnController::class);
 
 

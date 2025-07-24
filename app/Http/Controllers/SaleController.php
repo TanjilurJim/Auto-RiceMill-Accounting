@@ -51,17 +51,17 @@ class SaleController extends Controller
     public const FLOW_SUB_ONLY      = 'sub_only';
     public const FLOW_SUB_AND_RESP  = 'sub_and_resp';
 
-    private function defaultSub(): ?int
+    public function defaultSub(): ?int
     {
-        return User::whereIn('id', user_scope_ids())          // same tenant group
-            ->permission('sales.approve-sub')                 // has that permission
-            ->value('id');                                    // first match or null
+        return User::permission('sales.approve-sub')      // via role **or** direct
+            ->whereIn('id', user_scope_ids())            // stay inside tenant
+            ->value('id');                               // first match
     }
 
-    private function defaultResp(): ?int
+    public function defaultResp(): ?int
     {
-        return User::whereIn('id', user_scope_ids())
-            ->permission('sales.approve')               // or sales.approve
+        return User::permission('sales.approve')
+            ->whereIn('id', user_scope_ids())
             ->value('id');
     }
     public function index()
@@ -666,49 +666,141 @@ class SaleController extends Controller
     }
 
 
-    public function reject(Sale $sale)
+    public function reject(Request $request, Sale $sale)
     {
-        if (!in_array($sale->status, [Sale::STATUS_PENDING_SUB, Sale::STATUS_PENDING_RESP])) {
+        $request->validate([
+            'note' => 'required|string|max:500',
+        ]);
+
+        if (! in_array($sale->status, [Sale::STATUS_PENDING_SUB, Sale::STATUS_PENDING_RESP])) {
             return back()->with('error', 'Invalid status');
         }
 
-        DB::transaction(function () use ($sale) {
+        // (Optional) authorization: ensure the current user is the correct approver
+        $this->authorizeReject($sale); // or inline checks like you did with mayAct
+
+        DB::transaction(function () use ($sale, $request) {
             $sale->update([
-                'status'       => Sale::STATUS_REJECTED,
-                'rejected_at'  => now(),
-                'rejected_by'  => auth()->id(),
+                'status'        => Sale::STATUS_REJECTED,
+                'rejected_at'   => now(),
+                'rejected_by'   => auth()->id(),
+                // optional denormalized field:
+                // 'rejected_note' => $request->note,
             ]);
 
-            $this->logApproval($sale, 'rejected', 'Sale rejected');
+            $this->logApproval($sale, 'rejected', $request->note);
         });
 
         return back()->with('success', 'Sale rejected.');
     }
 
-
-    public function inboxSub()
+    protected function authorizeReject(Sale $sale)
     {
-        $sales = Sale::where('status', Sale::STATUS_PENDING_SUB)
-            ->where('sub_responsible_id', auth()->id())   // or by permission if you prefer
-            ->with(['godown', 'salesman', 'accountLedger'])
+        $me = auth()->id();
+
+        $allowed = ($sale->status === Sale::STATUS_PENDING_SUB  && $sale->sub_responsible_id === $me)
+            || ($sale->status === Sale::STATUS_PENDING_RESP && $sale->responsible_id === $me);
+
+        abort_unless($allowed, 403);
+    }
+
+
+
+    public function inboxSub(Request $req)
+    {
+        // No changes needed here, this is our template
+        $sales = Sale::query()
+            ->where('status', Sale::STATUS_PENDING_SUB)
+            ->where('sub_responsible_id', auth()->id())
+            // Add filtering logic here
+            ->when($req->q, function ($query, $q) {
+                $query->where('voucher_no', 'like', "%{$q}%")
+                    ->orWhereHas('accountLedger', fn($qBuilder) => $qBuilder->where('account_ledger_name', 'like', "%{$q}%"));
+            })
+            ->when($req->from, fn($query, $from) => $query->whereDate('date', '>=', $from))
+            ->when($req->to, fn($query, $to) => $query->whereDate('date', '<=', $to))
+            ->with([
+                'godown:id,name',
+                'salesman:id,name',
+                'accountLedger:id,account_ledger_name',
+                'subApprover:id,name',
+                'respApprover:id,name',
+            ])
             ->latest()
-            ->paginate(15);
+            ->paginate(15)
+            ->withQueryString() // important for pagination links to keep filters
+            ->through(fn($s) => [
+                'id'          => $s->id,
+                'date'        => $s->date->toDateString(),
+                'voucher_no'  => $s->voucher_no,
+                'grand_total' => $s->grand_total,
+                'customer'    => $s->accountLedger?->account_ledger_name,
+                'godown'      => $s->godown?->name,
+                'salesman'    => $s->salesman?->name,
+                'sub_status'  => $s->sub_approved_at
+                    ? 'approved'
+                    : ($s->status === Sale::STATUS_REJECTED ? 'rejected' : 'pending'),
+                'sub_by'      => $s->subApprover?->name,
+                'resp_status' => $s->approved_at
+                    ? 'approved'
+                    : ($s->status === Sale::STATUS_PENDING_RESP ? 'pending'
+                        : ($s->status === Sale::STATUS_REJECTED ? 'rejected' : '—')),
+                'resp_by'     => $s->respApprover?->name,
+            ]);
 
         return Inertia::render('sales/inbox/SubInbox', [
-            'sales' => $sales,
+            'sales'   => $sales,
+            'filters' => $req->only(['q', 'from', 'to']),
         ]);
     }
 
-    public function inboxResp()
+    /**
+     * MODIFIED: This now mirrors the structure of `inboxSub` for component reuse.
+     */
+    public function inboxResp(Request $req)
     {
-        $sales = Sale::where('status', Sale::STATUS_PENDING_RESP)
-            ->where('responsible_id', auth()->id())       // or permission-based
-            ->with(['godown', 'salesman', 'accountLedger'])
+        $sales = Sale::query()
+            ->where('status', Sale::STATUS_PENDING_RESP)
+            ->where('responsible_id', auth()->id())
+            // Add same filtering logic
+            ->when($req->q, function ($query, $q) {
+                $query->where('voucher_no', 'like', "%{$q}%")
+                    ->orWhereHas('accountLedger', fn($qBuilder) => $qBuilder->where('account_ledger_name', 'like', "%{$q}%"));
+            })
+            ->when($req->from, fn($query, $from) => $query->whereDate('date', '>=', $from))
+            ->when($req->to, fn($query, $to) => $query->whereDate('date', '<=', $to))
+            ->with([
+                'godown:id,name',
+                'salesman:id,name',
+                'accountLedger:id,account_ledger_name',
+                'subApprover:id,name',
+                'respApprover:id,name',
+            ])
             ->latest()
-            ->paginate(15);
+            ->paginate(15)
+            ->withQueryString() // ensure pagination links retain filters
+            ->through(fn($s) => [ // Use the same transformation
+                'id'          => $s->id,
+                'date'        => $s->date->toDateString(),
+                'voucher_no'  => $s->voucher_no,
+                'grand_total' => $s->grand_total,
+                'customer'    => $s->accountLedger?->account_ledger_name,
+                'godown'      => $s->godown?->name,
+                'salesman'    => $s->salesman?->name,
+                'sub_status'  => $s->sub_approved_at
+                    ? 'approved'
+                    : ($s->status === Sale::STATUS_REJECTED ? 'rejected' : 'pending'),
+                'sub_by'      => $s->subApprover?->name,
+                'resp_status' => $s->approved_at
+                    ? 'approved'
+                    : ($s->status === Sale::STATUS_PENDING_RESP ? 'pending'
+                        : ($s->status === Sale::STATUS_REJECTED ? 'rejected' : '—')),
+                'resp_by'     => $s->respApprover?->name,
+            ]);
 
         return Inertia::render('sales/inbox/RespInbox', [
             'sales' => $sales,
+            'filters' => $req->only(['q', 'from', 'to']), // Pass filters here too
         ]);
     }
 
@@ -719,7 +811,7 @@ class SaleController extends Controller
         \App\Models\SaleApproval::create([
             'sale_id' => $sale->id,
             'user_id' => auth()->id(),
-            'created_by' => auth()->id(), 
+            'created_by' => auth()->id(),
             'action'  => $action,
             'note'    => $note,
         ]);

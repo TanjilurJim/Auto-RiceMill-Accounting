@@ -17,6 +17,7 @@ class CompanySetting extends Model
         'financial_year_id',
         'mobile',
         'sale_approval_flow',
+        'purchase_approval_flow',
         'address',
         'description',
         'apply_interest',
