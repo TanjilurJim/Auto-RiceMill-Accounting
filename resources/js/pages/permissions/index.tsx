@@ -48,7 +48,7 @@ export default function PermissionIndex({ permissions }: { permissions: Permissi
             <div className="p-6">
                 <div className="mb-6 flex items-center justify-between">
                     <h1 className="text-2xl font-bold">Permissions</h1>
-                    <Link href="/permissions/create" className="rounded bg-green-600 px-4 py-2 text-white hover:bg-green-700">
+                    <Link href="/permissions/create" className="rounded bg-blue-600 px-4 py-2 text-white hover:bg-blue-700">
                         + Create Permission
                     </Link>
                 </div>
