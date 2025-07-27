@@ -2,7 +2,7 @@ import { NavFooter } from '@/components/nav-footer';
 import { NavMain } from '@/components/nav-main';
 import { NavUser } from '@/components/nav-user';
 import { Sidebar, SidebarContent, SidebarFooter, SidebarHeader, SidebarMenu, SidebarMenuButton, SidebarMenuItem } from '@/components/ui/sidebar';
-import { type NavItem } from '@/types';
+import type { NavItem } from '@/types';
 import { Link, usePage } from '@inertiajs/react';
 import {
     Banknote,
@@ -52,6 +52,19 @@ interface Role {
 interface AuthUser {
     user: string;
     roles: Role[];
+}
+export function sectionColor(title: string): string {
+    switch (title) {
+        case 'Payroll':
+            return '--color-warning';
+        case 'Reports':
+            return '--color-danger';
+        case 'Crushing / Rent':
+        case 'Production':
+            return '--color-info';
+        default:
+            return '--color-primary';
+    }
 }
 
 const mainNavItems: NavItem[] = [
@@ -470,33 +483,22 @@ const footerNavItems: NavItem[] = [
 function filterNavItems(items: NavItem[], userRoles: string[]): NavItem[] {
     return items
         .map((item) => {
-            // Check current item role restriction
-            if (item.roles && !item.roles.some((role) => userRoles.includes(role))) {
-                return null;
-            }
-
-            // Recursively filter children if they exist
-            let children: NavItem[] | undefined;
-            if (item.children) {
-                children = filterNavItems(item.children, userRoles);
-            }
-
+            if (item.roles && !item.roles.some((r) => userRoles.includes(r))) return null;
+            const children = item.children ? filterNavItems(item.children, userRoles) : undefined;
             return { ...item, children };
         })
         .filter(Boolean) as NavItem[];
 }
+
 export function AppSidebar() {
     const { props } = usePage();
-    const authUser = props.auth?.user;
+    const roles = props.auth?.user?.roles?.map((r: any) => r.name) || [];
 
-    // Get user roles array (e.g., ['admin', 'manager'])
-    const roles = authUser?.roles?.map((r: any) => r.name) || [];
-
-    // Apply role-based filtering to mainNavItems
     const filteredNavItems = filterNavItems(mainNavItems, roles);
 
     return (
         <Sidebar collapsible="icon" variant="inset">
+            {/* ---------- Logo ---------- */}
             <SidebarHeader>
                 <SidebarMenu>
                     <SidebarMenuItem>
@@ -509,10 +511,13 @@ export function AppSidebar() {
                 </SidebarMenu>
             </SidebarHeader>
 
+            {/* ---------- Navigation ---------- */}
             <SidebarContent>
+                {/* Pass colour helper down via props */}
                 <NavMain items={filteredNavItems} />
             </SidebarContent>
 
+            {/* ---------- Footer ---------- */}
             <SidebarFooter>
                 <NavFooter items={footerNavItems} className="mt-auto" />
                 <NavUser />
