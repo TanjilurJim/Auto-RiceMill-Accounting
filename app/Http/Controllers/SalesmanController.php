@@ -2,7 +2,7 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\SalesMan;
+use App\Models\Salesman;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 use function godown_scope_ids;
