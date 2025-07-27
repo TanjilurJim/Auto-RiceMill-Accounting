@@ -4,6 +4,7 @@ import PageHeader from '@/components/PageHeader';
 import AppLayout from '@/layouts/app-layout';
 import { Head, useForm } from '@inertiajs/react';
 import axios from 'axios';
+import { toDisplay, toISO } from '@/utils/date';
 import { useEffect, useState } from 'react';
 
 const scrollToFirstError = (errors: Record<string, any>) => {
@@ -46,7 +47,7 @@ interface Item {
 interface StockRow {
     id: number;
     qty: number;
-    item: { id: number; item_name: string;  unit_name?: string; };
+    item: { id: number; item_name: string; unit_name?: string };
 }
 
 export default function PurchaseCreate({
@@ -207,12 +208,12 @@ export default function PurchaseCreate({
                             <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
                                 {/* Date */}
                                 <input
-                                    type="date"
-                                    className="${errors.godown_id ? 'border-red-500' : 'border-gray-300'} border p-2"
-                                    placeholder="Date"
-                                    value={data.date}
-                                    onChange={(e) => setData('date', e.target.value)}
-                                />
+  type="text"
+  placeholder="dd/mm/yy"
+  value={toDisplay(data.date)}
+  onChange={e => setData('date', toISO(e.target.value))}
+  className={cn('border p-2', errors.date && 'border-red-500')}
+/>
 
                                 {/* Voucher No */}
                                 <input
@@ -357,7 +358,7 @@ export default function PurchaseCreate({
                                                         <option value="">Select</option>
                                                         {godownItems.map((stock) => (
                                                             <option key={stock.item.id} value={stock.item.id}>
-                                                                {stock.item.item_name}  ({stock.qty} {stock.item.unit_name} in stock)
+                                                                {stock.item.item_name} ({stock.qty} {stock.item.unit_name} in stock)
                                                             </option>
                                                         ))}
                                                     </select>
@@ -528,7 +529,7 @@ export default function PurchaseCreate({
                         </div>
 
                         {/* Shipping & Delivered To */}
-                        <div className="col-span-2 grid grid-cols-1 gap-4 space-y-4 md:grid-cols-2"> 
+                        <div className="col-span-2 grid grid-cols-1 gap-4 space-y-4 md:grid-cols-2">
                             {/* using this for supplier info and shipping details */}
                             <div>
                                 <label className="mb-1 block font-semibold text-gray-700">Supplier Info</label>
@@ -548,7 +549,6 @@ export default function PurchaseCreate({
                                     onChange={(e) => setData('shipping_details', e.target.value)}
                                 ></textarea>
                             </div>
-                            
                         </div>
 
                         {/* Action Buttons */}

@@ -29,7 +29,7 @@ const InputCalendar: React.FC<InputCalendarProps> = ({ value, onChange, label = 
                     >
                         {value
                             ? dayjs(value).format("DD/MM/YYYY")
-                            : "Select date"}
+                            : "DD/MM/YYYY"}
                         <ChevronDownIcon className="ml-2 h-4 w-4" />
                     </Button>
                 </PopoverTrigger>

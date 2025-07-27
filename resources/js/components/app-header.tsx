@@ -2,6 +2,8 @@ import { Breadcrumbs } from '@/components/breadcrumbs';
 import { Icon } from '@/components/icon';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
+// New imports for Dialog and Calculator
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { NavigationMenu, NavigationMenuItem, NavigationMenuList, navigationMenuTriggerStyle } from '@/components/ui/navigation-menu';
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet';
@@ -16,6 +18,7 @@ import {
     BookOpen,
     BookOpenCheck,
     BookText,
+    Calculator as CalculatorIcon, // New Icon
     CreditCard,
     Folder,
     Layers3,
@@ -27,6 +30,7 @@ import {
 } from 'lucide-react';
 import AppLogo from './app-logo';
 import AppLogoIcon from './app-logo-icon';
+import { Calculator } from './calculator'; // New Component import
 
 const mainNavItems: NavItem[] = [
     {
@@ -36,7 +40,8 @@ const mainNavItems: NavItem[] = [
     },
 ];
 const quickLinks = [
-    { label: 'Received', href: '/received-add', icon: Banknote, color: 'bg-green-600' },
+    { label: 'Calculator', href: '#', icon: CalculatorIcon, color: 'bg-slate-700', isCalculator: true },
+    { label: 'Receiveds', href: '/received-add', icon: Banknote, color: 'bg-green-600' },
     { label: 'Payment', href: '/payment-add?from_date=&to_date=', icon: CreditCard, color: 'bg-red-500' },
     { label: 'Purchases', href: '/purchases', icon: ShoppingCart, color: 'bg-amber-500' },
     { label: 'Sales', href: '/sales', icon: Package, color: 'bg-blue-600' },
@@ -145,8 +150,29 @@ export function AppHeader({ breadcrumbs = [] }: AppHeaderProps) {
                         </NavigationMenu>
                     </div>
 
-                    <div className="ml-4 hidden items-center gap-2 lg:flex">
-                        {quickLinks.map(({ label, href, icon: Icon, color }) => (
+                    {quickLinks.map(({ label, href, icon: Icon, color, isCalculator }) =>
+                        isCalculator ? (
+                            <Dialog key={label}>
+                                <DialogTrigger asChild>
+                                    <button
+                                        className={cn(
+                                            'inline-flex items-center gap-1 rounded-md px-3 py-1.5 text-sm font-medium text-white',
+                                            'shadow transition hover:-translate-y-0.5 hover:shadow-md',
+                                            color,
+                                        )}
+                                    >
+                                        <Icon className="h-4 w-4" />
+                                        <span>{label}</span>
+                                    </button>
+                                </DialogTrigger>
+                                <DialogContent className="border-none bg-transparent p-0 sm:max-w-xs">
+                                    <DialogHeader className="sr-only">
+                                        <DialogTitle>{label}</DialogTitle>
+                                    </DialogHeader>
+                                    <Calculator />
+                                </DialogContent>
+                            </Dialog>
+                        ) : (
                             <Link
                                 key={label}
                                 href={href}
@@ -159,8 +185,8 @@ export function AppHeader({ breadcrumbs = [] }: AppHeaderProps) {
                                 <Icon className="h-4 w-4" />
                                 <span>{label}</span>
                             </Link>
-                        ))}
-                    </div>
+                        ),
+                    )}
 
                     <div className="ml-auto flex items-center space-x-2">
                         <div className="relative flex items-center space-x-1">

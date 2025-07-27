@@ -4,6 +4,7 @@ import PageHeader from '@/components/PageHeader';
 import Pagination from '@/components/Pagination';
 import TableComponent from '@/components/TableComponent';
 import AppLayout from '@/layouts/app-layout';
+import {fmtDate} from '@/utils/format';
 import { Head, router } from '@inertiajs/react';
 
 interface Purchase {
@@ -36,7 +37,8 @@ export default function PurchaseIndex({ purchases }: { purchases: PaginatedPurch
 
     const columns = [
         { header: 'SL', accessor: (_: Purchase, index?: number) => (index !== undefined ? index + 1 : '-'), className: 'text-center' },
-        { header: 'Date', accessor: 'date' },
+        // { header: 'Date', accessor: 'date' },
+        { header: 'Date', accessor: (purchase:Purchase)=> fmtDate(purchase.date)},
         { header: 'Vch. No', accessor: 'voucher_no' },
         {
             header: 'Ledger',
