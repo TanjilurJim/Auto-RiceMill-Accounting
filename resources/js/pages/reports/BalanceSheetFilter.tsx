@@ -2,6 +2,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import InputCalendar from '@/components/Btn&Link/InputCalendar';
 import AppLayout from '@/layouts/app-layout';
 import { Head, router, useForm } from '@inertiajs/react';
+import PageHeader from '@/components/PageHeader';
 
 interface Props {
     default_from: string;
@@ -32,7 +33,8 @@ export default function BalanceSheetFilter({ default_from, default_to }: Props) 
 
             <div className="h-full w-screen bg-gray-100 p-6 lg:w-full">
                 <div className="h-full rounded-lg bg-white p-6">
-                    <h1 className="mb-4 text-lg font-semibold">Balance‑Sheet Filter</h1>
+                    {/* <h1 className="mb-4 text-lg font-semibold">Balance‑Sheet Filter</h1> */}
+                    <PageHeader title="Balance‑Sheet Filter" />
 
                     <Card className="rounded-lg border shadow-sm">
                       <CardContent className='p-6'>

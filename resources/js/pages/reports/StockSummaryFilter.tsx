@@ -73,7 +73,7 @@ export default function StockSummaryFilter({ godowns, categories, items }: Props
 
                         <CardContent className="p-6">
                             <form onSubmit={handleSubmit} className="space-y-6">
-                                <div className="grid grid-cols-1 gap-6 md:grid-cols-3">
+                                <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
                                     {/* From Date */}
                                     <div>
                                         <InputCalendar

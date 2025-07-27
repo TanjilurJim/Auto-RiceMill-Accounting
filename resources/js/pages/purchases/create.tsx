@@ -6,6 +6,7 @@ import { Head, useForm } from '@inertiajs/react';
 import axios from 'axios';
 import { toDisplay, toISO } from '@/utils/date';
 import { useEffect, useState } from 'react';
+import InputCalendar from '@/components/Btn&Link/InputCalendar';
 
 const scrollToFirstError = (errors: Record<string, any>) => {
     const firstField = Object.keys(errors)[0];
@@ -205,56 +206,65 @@ export default function PurchaseCreate({
                         {/* Section 1 - Purchase Info */}
                         <div className="space-y-4">
                             <h2 className="border-b pb-1 text-lg font-semibold">Purchase Information</h2>
-                            <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-                                {/* Date */}
-                                <input
-  type="text"
-  placeholder="dd/mm/yy"
-  value={toDisplay(data.date)}
-  onChange={e => setData('date', toISO(e.target.value))}
-  className={cn('border p-2', errors.date && 'border-red-500')}
-/>
-
-                                {/* Voucher No */}
-                                <input
-                                    type="text"
-                                    className="border p-2"
-                                    placeholder="Voucher No"
-                                    value={data.voucher_no}
-                                    onChange={(e) => setData('voucher_no', e.target.value)}
-                                    readOnly // Optional, remove 'readOnly' if you want to allow manual edits
-                                />
-                                {errors.voucher_no && <p className="mt-1 text-sm text-red-500">{errors.voucher_no}</p>}
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                {/* Date & Voucher No in same row */}
+                                <div className="flex flex-col md:flex-row gap-2 md:col-span-2">
+                                    <div className="flex-1">
+                                        <InputCalendar
+                                            value={data.date}
+                                            onChange={val => setData('date', val)}
+                                            label="Date"
+                                            required
+                                        />
+                                    </div>
+                                    <div className="flex-1 flex flex-col justify-end">
+                                        <label className="block text-sm font-medium mb-1 invisible md:visible">Voucher No</label>
+                                        <input
+                                            type="text"
+                                            className="border p-2 w-full"
+                                            placeholder="Voucher No"
+                                            value={data.voucher_no}
+                                            onChange={e => setData('voucher_no', e.target.value)}
+                                            readOnly
+                                        />
+                                        {errors.voucher_no && <p className="mt-1 text-sm text-red-500">{errors.voucher_no}</p>}
+                                    </div>
+                                </div>
 
                                 {/* Godown */}
-                                <select
-                                    name="godown_id" //  👈 name is important for scroll
-                                    className={cn(
-                                        'w-full border p-2',
-                                        errors.godown_id && 'border-red-500', //  red border if error
-                                    )}
-                                    value={data.godown_id}
-                                    onChange={(e) => setData('godown_id', e.target.value)}
-                                >
-                                    <option value="">Select Godown</option>
-                                    {godowns.map((g) => (
-                                        <option key={g.id} value={g.id}>
-                                            {g.name}
-                                        </option>
-                                    ))}
-                                </select>
+                                <div>
+                                    <label className="block text-sm font-medium mb-1 invisible md:visible">Godown</label>
+                                    <select
+                                        name="godown_id" //  👈 name is important for scroll
+                                        className={cn(
+                                            'w-full border p-2',
+                                            errors.godown_id && 'border-red-500', //  red border if error
+                                        )}
+                                        value={data.godown_id}
+                                        onChange={(e) => setData('godown_id', e.target.value)}
+                                    >
+                                        <option value="">Select Godown</option>
+                                        {godowns.map((g) => (
+                                            <option key={g.id} value={g.id}>
+                                                {g.name}
+                                            </option>
+                                        ))}
+                                    </select>
 
-                                {errors.godown_id && <p className="mt-1 text-sm text-red-500">{errors.godown_id}</p>}
+                                    {errors.godown_id && <p className="mt-1 text-sm text-red-500">{errors.godown_id}</p>}
+                                </div>
 
                                 {/* Salesman */}
-                                <select className="border p-2" value={data.salesman_id} onChange={(e) => setData('salesman_id', e.target.value)}>
-                                    <option value="">Select Salesman</option>
-                                    {salesmen.map((s) => (
-                                        <option key={s.id} value={s.id}>
-                                            {s.name}
-                                        </option>
-                                    ))}
-                                </select>
+                                <div>
+                                    <select className="border p-2" value={data.salesman_id} onChange={(e) => setData('salesman_id', e.target.value)}>
+                                        <option value="">Select Salesman</option>
+                                        {salesmen.map((s) => (
+                                            <option key={s.id} value={s.id}>
+                                                {s.name}
+                                            </option>
+                                        ))}
+                                    </select>
+                                </div>
 
                                 <div>
                                     {/* Party Ledger */}
