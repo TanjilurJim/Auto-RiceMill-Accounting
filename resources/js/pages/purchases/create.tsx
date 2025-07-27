@@ -256,7 +256,8 @@ export default function PurchaseCreate({
 
                                 {/* Salesman */}
                                 <div>
-                                    <select className="border p-2" value={data.salesman_id} onChange={(e) => setData('salesman_id', e.target.value)}>
+                                    <label className="block text-sm font-medium mb-1 invisible md:visible">Salesman</label>
+                                    <select className="border p-2 w-full" value={data.salesman_id} onChange={(e) => setData('salesman_id', e.target.value)}>
                                         <option value="">Select Salesman</option>
                                         {salesmen.map((s) => (
                                             <option key={s.id} value={s.id}>
@@ -268,6 +269,7 @@ export default function PurchaseCreate({
 
                                 <div>
                                     {/* Party Ledger */}
+                                    <label className="block text-sm font-medium mb-1 invisible md:visible">Party Ledger</label>
                                     <select
                                         className="h-fit w-full border p-2"
                                         value={data.account_ledger_id}
@@ -294,49 +296,61 @@ export default function PurchaseCreate({
                                 </div>
 
                                 {/* Inventory Ledger */}
-                                <div className="flex h-fit w-full flex-col items-center gap-2 md:flex-row">
-                                    <select
-                                        className={`${errors.godown_id ? 'border-red-500' : 'border-gray-300'} h-full w-full border p-2`}
-                                        value={data.inventory_ledger_id}
-                                        onChange={(e) => setData('inventory_ledger_id', e.target.value)}
-                                    >
-                                        <option value="">Select Inventory Ledger</option>
-                                        {inventoryLedgerOptions.map((l) => (
-                                            <option key={l.id} value={l.id}>
-                                                {l.account_ledger_name}
-                                            </option>
-                                        ))}
-                                    </select>
+                                <div>
 
-                                    {inventoryBalance !== null && (
-                                        <div className="mt-1 text-xs text-gray-600">Inventory Balance: {Number(inventoryBalance).toFixed(2)}</div>
-                                    )}
+                                    <label className="block text-sm font-medium mb-1 invisible md:visible">Inventory Ledger</label>
 
-                                    {/* Placeholder for Add Button — next step will handle modal */}
-                                    <button
-                                        type="button"
-                                        className="h-full w-full rounded bg-blue-500 p-2 text-white"
-                                        onClick={() => setShowLedgerModal(true)}
-                                    >
-                                        + Create New Ledger
-                                    </button>
+                                    <div className="flex h-fit w-full flex-col items-center gap-2 md:flex-row">
+
+                                        <select
+                                            className={`${errors.godown_id ? 'border-red-500' : 'border-gray-300'} h-full w-full border p-2`}
+                                            value={data.inventory_ledger_id}
+                                            onChange={(e) => setData('inventory_ledger_id', e.target.value)}
+                                        >
+                                            <option value="">Select Inventory Ledger</option>
+                                            {inventoryLedgerOptions.map((l) => (
+                                                <option key={l.id} value={l.id}>
+                                                    {l.account_ledger_name}
+                                                </option>
+                                            ))}
+                                        </select>
+
+                                        {inventoryBalance !== null && (
+                                            <div className="mt-1 text-xs text-gray-600">Inventory Balance: {Number(inventoryBalance).toFixed(2)}</div>
+                                        )}
+
+                                        {/* Placeholder for Add Button — next step will handle modal */}
+                                        <button
+                                            type="button"
+                                            className="h-full w-full rounded bg-blue-500 p-2 text-white"
+                                            onClick={() => setShowLedgerModal(true)}
+                                        >
+                                            + Create New Ledger
+                                        </button>
+                                    </div>
                                 </div>
 
                                 {/* Phone and Address Inputs */}
-                                <input
+                                <div>
+                                    <label className="block text-sm font-medium mb-1 invisible md:visible">Phone</label>
+                                    <input
                                     type="text"
-                                    className="border p-2"
+                                    className="border p-2 w-full"
                                     placeholder="Phone"
                                     value={data.phone}
                                     onChange={(e) => setData('phone', e.target.value)}
                                 />
-                                <input
-                                    type="text"
-                                    className="border p-2"
-                                    placeholder="Address"
-                                    value={data.address}
-                                    onChange={(e) => setData('address', e.target.value)}
-                                />
+                                </div>
+                                <div>
+                                    <label className="block text-sm font-medium mb-1 invisible md:visible">Address</label>
+                                    <input
+                                        type="text"
+                                        className="border p-2 w-full"
+                                        placeholder="Address"
+                                        value={data.address}
+                                        onChange={(e) => setData('address', e.target.value)}
+                                    />
+                                </div>
                             </div>
                         </div>
 
