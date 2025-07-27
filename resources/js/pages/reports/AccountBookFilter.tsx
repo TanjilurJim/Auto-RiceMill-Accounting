@@ -1,7 +1,7 @@
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent } from '@/components/ui/card';
 import { Label } from '@/components/ui/label';
-import { Input } from '@/components/ui/input';
+import InputCalendar from '@/components/Btn&Link/InputCalendar';
 import AppLayout from '@/layouts/app-layout';
 import { Head, router, useForm } from '@inertiajs/react';
 import Select from 'react-select';
@@ -77,29 +77,19 @@ export default function AccountBookFilter({ ledgers }: Props) {
                                 {/* Date range */}
                                 <div className="grid gap-6 md:grid-cols-2">
                                     <div className="space-y-2">
-                                        <Label htmlFor="from-date" className="text-gray-700">
-                                            From Date
-                                        </Label>
-                                        <Input
-                                            id="from-date"
-                                            type="date"
+                                        <InputCalendar
                                             value={data.from_date}
-                                            onChange={e => setData('from_date', e.target.value)}
+                                            onChange={val => setData('from_date', val)}
+                                            label="From Date"
                                             required
-                                            className="h-10 w-full rounded-md border-gray-300 focus:ring-1 focus:ring-blue-400 focus:border-blue-400"
                                         />
                                     </div>
                                     <div className="space-y-2">
-                                        <Label htmlFor="to-date" className="text-gray-700">
-                                            To Date
-                                        </Label>
-                                        <Input
-                                            id="to-date"
-                                            type="date"
+                                        <InputCalendar
                                             value={data.to_date}
-                                            onChange={e => setData('to_date', e.target.value)}
+                                            onChange={val => setData('to_date', val)}
+                                            label="To Date"
                                             required
-                                            className="h-10 rounded-md border-gray-300 focus:ring-1 focus:ring-blue-400 focus:border-blue-400"
                                         />
                                     </div>
                                 </div>

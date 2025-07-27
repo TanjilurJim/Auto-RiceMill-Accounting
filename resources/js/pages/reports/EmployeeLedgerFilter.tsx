@@ -1,4 +1,5 @@
 import React from 'react';
+import InputCalendar from '@/components/Btn&Link/InputCalendar';
 import { useForm } from '@inertiajs/react';
 import AppLayout from '@/layouts/app-layout';
 import { Head } from '@inertiajs/react';
@@ -52,24 +53,20 @@ const EmployeeLedgerFilter: React.FC<Props> = ({ employees }) => {
             </div>
 
             <div>
-              <label className="block font-medium mb-1">From Date</label>
-              <input
-                type="date"
+              <InputCalendar
                 value={data.from_date}
-                onChange={e => setData('from_date', e.target.value)}
-                className="w-full border rounded px-3 py-2"
+                onChange={val => setData('from_date', val)}
+                label="From Date"
                 required
               />
               {errors.from_date && <div className="text-red-600">{errors.from_date}</div>}
             </div>
 
             <div>
-              <label className="block font-medium mb-1">To Date</label>
-              <input
-                type="date"
+              <InputCalendar
                 value={data.to_date}
-                onChange={e => setData('to_date', e.target.value)}
-                className="w-full border rounded px-3 py-2"
+                onChange={val => setData('to_date', val)}
+                label="To Date"
                 required
               />
               {errors.to_date && <div className="text-red-600">{errors.to_date}</div>}

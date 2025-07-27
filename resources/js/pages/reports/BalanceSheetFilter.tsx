@@ -1,4 +1,5 @@
 import { Card, CardContent } from '@/components/ui/card';
+import InputCalendar from '@/components/Btn&Link/InputCalendar';
 import AppLayout from '@/layouts/app-layout';
 import { Head, router, useForm } from '@inertiajs/react';
 
@@ -37,29 +38,19 @@ export default function BalanceSheetFilter({ default_from, default_to }: Props) 
                       <CardContent className='p-6'>
                         <form onSubmit={submit} className="space-y-4">
                             <div>
-                                <label htmlFor="from" className="block text-sm font-medium">
-                                    From&nbsp;Date
-                                </label>
-                                <input
-                                    id="from"
-                                    type="date"
+                                <InputCalendar
                                     value={data.from_date}
-                                    onChange={(e) => setData('from_date', e.target.value)}
-                                    className="mt-1 w-full rounded border px-2 py-1"
+                                    onChange={val => setData('from_date', val)}
+                                    label="From Date"
                                     required
                                 />
                             </div>
 
                             <div>
-                                <label htmlFor="to" className="block text-sm font-medium">
-                                    To&nbsp;Date
-                                </label>
-                                <input
-                                    id="to"
-                                    type="date"
+                                <InputCalendar
                                     value={data.to_date}
-                                    onChange={(e) => setData('to_date', e.target.value)}
-                                    className="mt-1 w-full rounded border px-2 py-1"
+                                    onChange={val => setData('to_date', val)}
+                                    label="To Date"
                                     required
                                 />
                             </div>

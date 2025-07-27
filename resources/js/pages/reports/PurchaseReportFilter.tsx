@@ -4,6 +4,7 @@ import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import AppLayout from '@/layouts/app-layout';
 import { Head, useForm } from '@inertiajs/react';
 import React, { useState } from 'react';
+import InputCalendar from '@/components/Btn&Link/InputCalendar';
 
 interface Props {
     tab: 'category' | 'item' | 'party' | 'return' | 'all';
@@ -98,37 +99,33 @@ export default function PurchaseReportFilter({ tab, categories, items, suppliers
                         {/* ── Form ───────────────────────────────────────── */}
                         <CardContent className="p-6">
                             <form onSubmit={handleSubmit} className="space-y-6">
-                                <div className="grid grid-cols-1 gap-6 md:grid-cols-3">
+                                <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
                                     {/* From Date */}
                                     <div>
-                                        <label className="block text-sm font-medium">From Date *</label>
-                                        <input
-                                            type="date"
-                                            required={!data.year} // 👈 Only required if year is NOT selected
-                                            disabled={!!data.year} // 👈 Disable if year is selected
-                                            className="w-full rounded border px-3 py-2 mt-1"
+                                        <InputCalendar
                                             value={data.from_date}
-                                            onChange={(e) => {
-                                                setData('from_date', e.target.value);
-                                                setData('year', ''); // Clear year if date changed
+                                            onChange={val => {
+                                                setData('from_date', val);
+                                                setData('year', '');
                                             }}
+                                            label="From Date"
+                                            required={!data.year}
+                                            disabled={!!data.year}
                                         />
                                         {errors.from_date && <p className="text-sm text-red-500">{errors.from_date}</p>}
                                     </div>
 
                                     {/* To Date */}
                                     <div>
-                                        <label className="block text-sm font-medium">To Date *</label>
-                                        <input
-                                            type="date"
-                                            required={!data.year}
-                                            disabled={!!data.year}
-                                            className="w-full rounded border px-3 py-2 mt-1"
+                                        <InputCalendar
                                             value={data.to_date}
-                                            onChange={(e) => {
-                                                setData('to_date', e.target.value);
+                                            onChange={val => {
+                                                setData('to_date', val);
                                                 setData('year', '');
                                             }}
+                                            label="To Date"
+                                            required={!data.year}
+                                            disabled={!!data.year}
                                         />
                                         {errors.to_date && <p className="text-sm text-red-500">{errors.to_date}</p>}
                                     </div>

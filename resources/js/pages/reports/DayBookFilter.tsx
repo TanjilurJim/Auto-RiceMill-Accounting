@@ -1,4 +1,5 @@
 import PageHeader from '@/components/PageHeader';
+import InputCalendar from '@/components/Btn&Link/InputCalendar';
 import { Button } from '@/components/ui/button';
 import AppLayout from '@/layouts/app-layout';
 import { Head, router } from '@inertiajs/react';
@@ -39,28 +40,18 @@ export default function DayBookFilter({ users, isAdmin }: { users: any[]; isAdmi
                     <form onSubmit={handleSubmit} className="space-y-6 rounded-lg border bg-white p-6 shadow">
                         <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
                             <div>
-                                <label className="mb-1 block font-medium text-gray-700">
-                                    From Date<span className="text-red-500">*</span>
-                                </label>
-                                <input
-                                    type="date"
-                                    name="from_date"
+                                <InputCalendar
                                     value={filters.from_date}
-                                    onChange={handleChange}
-                                    className="w-full rounded border px-3 py-2"
+                                    onChange={val => setFilters(f => ({ ...f, from_date: val }))}
+                                    label="From Date"
                                     required
                                 />
                             </div>
                             <div>
-                                <label className="mb-1 block font-medium text-gray-700">
-                                    To Date<span className="text-red-500">*</span>
-                                </label>
-                                <input
-                                    type="date"
-                                    name="to_date"
+                                <InputCalendar
                                     value={filters.to_date}
-                                    onChange={handleChange}
-                                    className="w-full rounded border px-3 py-2"
+                                    onChange={val => setFilters(f => ({ ...f, to_date: val }))}
+                                    label="To Date"
                                     required
                                 />
                             </div>
