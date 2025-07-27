@@ -1,4 +1,5 @@
 import ActionFooter from '@/components/ActionFooter';
+import InputCalendar from '@/components/Btn&Link/InputCalendar';
 import { confirmDialog } from '@/components/confirmDialog';
 import PageHeader from '@/components/PageHeader';
 /*  resources/js/Pages/purchases/edit.tsx  */
@@ -168,78 +169,113 @@ export default function PurchaseEdit({ purchase, godowns, salesmen, ledgers, sto
                         <div className="space-y-4">
                             <h2 className="border-b pb-1 text-lg font-semibold">Purchase Information</h2>
                             <div className="grid gap-4 md:grid-cols-2">
-                                <input
-                                    type="date"
-                                    name="date"
-                                    className="border p-2"
-                                    value={data.date}
-                                    onChange={(e) => setData('date', e.target.value)}
-                                />
-                                <input type="text" className="border p-2" readOnly value={data.voucher_no ?? ''} />
-                                <select
-                                    name="godown_id"
-                                    className={cn('border p-2', errors.godown_id && 'border-red-500')}
-                                    value={data.godown_id ?? ''}
-                                    onChange={(e) => setData('godown_id', e.target.value)}
-                                >
-                                    <option value="">Select Godown</option>
-                                    {godowns.map((g) => (
-                                        <option key={g.id} value={g.id}>
-                                            {g.name}
-                                        </option>
-                                    ))}
-                                </select>
-                                <select
-                                    className="border p-2"
-                                    value={data.salesman_id ?? ''}
-                                    onChange={(e) => setData('salesman_id', e.target.value)}
-                                >
-                                    <option value="">Select Salesman</option>
-                                    {salesmen.map((s) => (
-                                        <option key={s.id} value={s.id}>
-                                            {s.name}
-                                        </option>
-                                    ))}
-                                </select>
-                                <select
-                                    className="border p-2"
-                                    value={data.account_ledger_id ?? ''}
-                                    onChange={(e) => setData('account_ledger_id', e.target.value)}
-                                >
-                                    <option value="">Select Party Ledger</option>
-                                    {ledgers.map((l) => (
-                                        <option key={l.id} value={l.id}>
-                                            {l.account_ledger_name}
-                                        </option>
-                                    ))}
-                                </select>
-                                <select
-                                    className={cn('border p-2', errors.inventory_ledger_id && 'border-red-500')}
-                                    value={data.inventory_ledger_id}
-                                    onChange={(e) => setData('inventory_ledger_id', e.target.value)}
-                                >
-                                    <option value="">Select Inventory Ledger</option>
-                                    {inventoryLedgers.map((l) => (
-                                        <option key={l.id} value={l.id}>
-                                            {l.account_ledger_name}
-                                        </option>
-                                    ))}
-                                </select>
+                                {/* Date & Voucher No in same row */}
+                                <div className="flex flex-col md:flex-row gap-2 md:col-span-2">
+                                    <div className="flex-1">
+                                        <InputCalendar
+                                            value={data.date}
+                                            onChange={val => setData('date', val)}
+                                            label="Date"
+                                            required
+                                        />
+                                    </div>
+                                    <div className="flex-1 flex flex-col justify-end">
+                                        <label className="block text-sm font-medium text-gray-700 mb-1">Voucher No</label>
+                                        <input
+                                            type="text"
+                                            className="border p-2 w-full"
+                                            placeholder="Voucher No"
+                                            value={data.voucher_no ?? ''}
+                                            readOnly
+                                        />
+                                    </div>
+                                </div>
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700 mb-1">Godown</label>
+                                    <select
+                                        name="godown_id"
+                                        className={cn('border p-2 w-full', errors.godown_id && 'border-red-500')}
+                                        value={data.godown_id ?? ''}
+                                        onChange={(e) => setData('godown_id', e.target.value)}
+                                    >
+                                        <option value="">Select Godown</option>
+                                        {godowns.map((g) => (
+                                            <option key={g.id} value={g.id}>
+                                                {g.name}
+                                            </option>
+                                        ))}
+                                    </select>
+                                </div>
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700 mb-1">Salesman</label>
+                                    <select
+                                        className="border p-2 w-full"
+                                        value={data.salesman_id ?? ''}
+                                        onChange={(e) => setData('salesman_id', e.target.value)}
+                                    >
+                                        <option value="">Select Salesman</option>
+                                        {salesmen.map((s) => (
+                                            <option key={s.id} value={s.id}>
+                                                {s.name}
+                                            </option>
+                                        ))}
+                                    </select>
+                                </div>
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700 mb-1">Account Ledger</label>
+                                    <select
+                                        className={cn('border p-2 w-full', errors.account_ledger_id && 'border-red-500')}
+                                        value={data.account_ledger_id ?? ''}
+                                        onChange={(e) => setData('account_ledger_id', e.target.value)}
+                                    >
+                                        <option value="">Select Account Ledger</option>
+                                        {ledgers.map((l) => (
+                                            <option key={l.id} value={l.id}>
+                                                {l.account_ledger_name}
+                                            </option>
+                                        ))}
+                                    </select>
+                                </div>
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700 mb-1">Inventory Ledger</label>
+                                    <select
+                                        className={cn('border p-2 w-full', errors.inventory_ledger_id && 'border-red-500')}
+                                        value={data.inventory_ledger_id}
+                                        onChange={(e) => setData('inventory_ledger_id', e.target.value)}
+                                    >
+                                        <option value="">Select Inventory Ledger</option>
+                                        {inventoryLedgers.map((l) => (
+                                            <option key={l.id} value={l.id}>
+                                                {l.account_ledger_name}
+                                            </option>
+                                        ))}
+                                    </select>
+                                </div>
 
-                                <input
-                                    type="text"
-                                    className="border p-2"
-                                    placeholder="Phone"
-                                    value={data.phone ?? ''}
-                                    onChange={(e) => setData('phone', e.target.value)}
-                                />
-                                <input
-                                    type="text"
-                                    className="border p-2"
-                                    placeholder="Address"
-                                    value={data.address ?? ''}
-                                    onChange={(e) => setData('address', e.target.value)}
-                                />
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700 mb-1">Received Mode</label>
+                                    <select
+                                        className={cn('border p-2 w-full', errors.received_mode_id && 'border-red-500')}
+                                        value={data.received_mode_id ?? ''}
+                                        onChange={(e) => setData('received_mode_id', e.target.value)}
+                                    >
+                                        <option value="">Select Payment Mode</option>
+                                        {receivedModes.map((m) => (
+                                            <option key={m.id} value={m.id}>
+                                                {m.mode_name}
+                                            </option>
+                                        ))}
+                                    </select>
+                                </div>
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700 mb-1">Address</label>
+                                    <input
+                                        type="text"
+                                        className={cn('border p-2 w-full', errors.address && 'border-red-500')}
+                                        value={data.address ?? ''}
+                                        onChange={(e) => setData('address', e.target.value)}
+                                    />
+                                </div>
                             </div>
                         </div>
 
