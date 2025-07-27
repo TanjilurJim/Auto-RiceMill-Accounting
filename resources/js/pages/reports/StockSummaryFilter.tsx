@@ -1,10 +1,15 @@
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import AppLayout from '@/layouts/app-layout';
-import { useForm, usePage } from '@inertiajs/react';
+import { useForm } from '@inertiajs/react';
 import PageHeader from '@/components/PageHeader';
 import React, { useState } from 'react';
-import { Head, router } from '@inertiajs/react';
+import { Head } from '@inertiajs/react';
+import { Popover, PopoverTrigger, PopoverContent } from "@/components/ui/popover";
+import { Calendar } from "@/components/ui/calendar";
+import { ChevronDownIcon } from "lucide-react";
+import dayjs from "dayjs";
+import InputCalendar from '@/components/Btn&Link/InputCalendar';
 
 interface Props {
     godowns: { id: number; name: string }[];
@@ -75,14 +80,10 @@ export default function StockSummaryFilter({ godowns, categories, items }: Props
                                 <div className="grid grid-cols-1 gap-6 md:grid-cols-3">
                                     {/* From Date */}
                                     <div>
-                                        <label className="block text-sm font-medium text-gray-700">
-                                            From Date <span className="text-red-500">*</span>
-                                        </label>
-                                        <input
-                                            type="date"
-                                            className="w-full rounded border px-3 py-2 focus:border-blue-500 focus:ring-blue-500"
+                                        <InputCalendar
                                             value={data.from}
-                                            onChange={(e) => setData('from', e.target.value)}
+                                            onChange={val => setData('from', val)}
+                                            label="From Date"
                                             required
                                         />
                                         {errors.from && <p className="text-sm text-red-500">{errors.from}</p>}
@@ -90,14 +91,10 @@ export default function StockSummaryFilter({ godowns, categories, items }: Props
 
                                     {/* To Date */}
                                     <div>
-                                        <label className="block text-sm font-medium text-gray-700">
-                                            To Date <span className="text-red-500">*</span>
-                                        </label>
-                                        <input
-                                            type="date"
-                                            className="w-full rounded border px-3 py-2 focus:border-blue-500 focus:ring-blue-500"
+                                        <InputCalendar
                                             value={data.to}
-                                            onChange={(e) => setData('to', e.target.value)}
+                                            onChange={val => setData('to', val)}
+                                            label="To Date"
                                             required
                                         />
                                         {errors.to && <p className="text-sm text-red-500">{errors.to}</p>}
