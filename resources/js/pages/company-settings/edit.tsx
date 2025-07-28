@@ -32,7 +32,7 @@ interface EditProps {
     purchaseFlowOptions: { value: string; label: string }[];
 }
 
-export default function Edit({ setting, financialYears, interestBasisOptions = [], saleFlowOptions = [],purchaseFlowOptions = [], }: EditProps) {
+export default function Edit({ setting, financialYears, interestBasisOptions = [], saleFlowOptions = [], purchaseFlowOptions = [] }: EditProps) {
     const { data, setData, processing, errors } = useForm({
         company_name: setting?.company_name || '',
         mailing_name: setting?.mailing_name || '',

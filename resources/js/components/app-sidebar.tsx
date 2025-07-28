@@ -123,6 +123,34 @@ const mainNavItems: NavItem[] = [
         ],
     },
     {
+        title: 'Inbox',
+        icon: ReceiptText,
+        group: true, // Add group marker
+        children: [
+            {
+                title: 'Purchases',
+                icon: ShoppingCart,
+                group: true, // Add group marker
+                children: [
+                    { title: 'Sub', href: '/purchases/inbox/sub', icon: ReceiptText },
+                    { title: 'Responsible', href: '/purchases/inbox/resp', icon: ReceiptText },
+                    { title: 'Approve-Reject Log', href: route('purchases.approvals'), icon: History },
+                ],
+            },
+            {
+                title: 'Sales',
+                icon: ReceiptText,
+                group: true, // Add group marker
+                children: [
+                    { title: 'Sub', href: '/sales/inbox/sub', icon: ReceiptText },
+                    { title: 'Responsible', href: '/sales/inbox/resp', icon: ReceiptText },
+                    { title: 'Approve-Reject Log', href: '/sales/approvals', icon: History },
+                ],
+            },
+        ],
+    },
+
+    {
         title: 'Transaction',
         icon: BanknoteIcon,
         children: [

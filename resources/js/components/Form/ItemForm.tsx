@@ -89,7 +89,7 @@ const ItemForm: React.FC<ItemFormProps> = ({
 
                 {/* Purchase Price */}
                 <div>
-                    <label className="mb-1 block font-medium">Price</label>
+                    <label className="mb-1 block font-medium">Rate</label>
                     <input
                         type="number"
                         value={data.purchase_price}
@@ -132,7 +132,7 @@ const ItemForm: React.FC<ItemFormProps> = ({
                 </div>
 
                 <div>
-                    <label className="mb-1 block font-medium">Previous Stock</label>
+                    <label className="mb-1 block font-medium">Stock</label>
                     <input
                         type="number"
                         value={data.previous_stock}

@@ -380,6 +380,31 @@ if (! function_exists('company_info')) {
     
 }
 
+/* helpers.php */
+
+// if (! function_exists('company_info')) {
+//     function company_info(): ?CompanySetting
+//     {
+//         static $cached = null;        // one‑request cache
+//         if ($cached !== null) {
+//             return $cached;
+//         }
+
+//         $ownerId = group_owner_id();
+//         if ($ownerId === null) {
+//             // No logged‑in user – or admin wants a generic record
+//             $row = CompanySetting::first();
+//         } else {
+//             $row = CompanySetting::where('created_by', $ownerId)->first();
+//         }
+
+//         if ($row) {
+//             $row->append(['logo_url', 'logo_thumb_url']);
+//         }
+
+//         return $cached = $row;
+//     }
+// }
 
 
 
@@ -412,3 +437,25 @@ if (!function_exists('inventory_service')) {
 
 
 
+// if (! function_exists('group_owner_id')) {
+//     /**
+//      * Return the user‑id that “owns” all shared resources
+//      * for the current user’s group.
+//      *
+//      *  • admin  → its own id (or use the first company row – see below)
+//      *  • others → top‑most parent under the nearest admin
+//      */
+//     function group_owner_id(): ?int
+//     {
+//         $user = auth()->user();
+//         if (! $user) {
+//             return null;
+//         }
+
+//         if ($user->hasRole('admin')) {
+//             return $user->id;             // or: return null to fetch the first row
+//         }
+
+//         return get_top_parent_id($user);  // you already have this helper
+//     }
+// }
