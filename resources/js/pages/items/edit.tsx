@@ -56,7 +56,9 @@ export default function EditItem({
         previous_stock: item.previous_stock,
         total_previous_stock_value: item.total_previous_stock_value,
         description: item.description || '',
-    });
+    }); 
+        // { header: 'Stock', accessor: (item: Item) => item.current_stock ?? 0 },
+    //
 
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();

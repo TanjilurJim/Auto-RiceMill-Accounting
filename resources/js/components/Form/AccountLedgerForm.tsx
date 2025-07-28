@@ -198,7 +198,7 @@ const AccountLedgerForm: React.FC<AccountLedgerFormProps> = ({
                     checked={data.for_transition_mode}
                     onChange={(checked) => setData('for_transition_mode', checked)}
                 /> */}
-                <InputCheckbox label="Mark for User" checked={data.mark_for_user} onChange={(checked) => setData('mark_for_user', checked)} />
+                {/* <InputCheckbox label="Mark for User" checked={data.mark_for_user} onChange={(checked) => setData('mark_for_user', checked)} /> */}
             </div>
 
             {/* Action Footer */}

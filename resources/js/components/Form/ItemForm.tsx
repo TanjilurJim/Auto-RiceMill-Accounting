@@ -89,7 +89,7 @@ const ItemForm: React.FC<ItemFormProps> = ({
 
                 {/* Purchase Price */}
                 <div>
-                    <label className="mb-1 block font-medium">Purchase Price/ Price</label>
+                    <label className="mb-1 block font-medium">Price</label>
                     <input
                         type="number"
                         value={data.purchase_price}

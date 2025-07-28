@@ -364,7 +364,7 @@ export default function SaleCreate({
 
                                     {/* Main Price */}
                                     <div className="h-full w-full">
-                                        <label className="mb-1 block text-sm font-medium text-gray-700">Main Price</label>
+                                        <label className="mb-1 block text-sm font-medium text-gray-700">Sale Price</label>
                                         <input
                                             type="number"
                                             className="w-full rounded border p-2"
