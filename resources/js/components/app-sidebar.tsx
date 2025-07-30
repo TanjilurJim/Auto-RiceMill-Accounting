@@ -1,6 +1,7 @@
 import { NavFooter } from '@/components/nav-footer';
 import { NavMain } from '@/components/nav-main';
 import { NavUser } from '@/components/nav-user';
+import { useState, useEffect } from 'react'; 
 import { Sidebar, SidebarContent, SidebarFooter, SidebarHeader, SidebarMenu, SidebarMenuButton, SidebarMenuItem } from '@/components/ui/sidebar';
 import type { NavItem } from '@/types';
 import { Link, usePage } from '@inertiajs/react';
@@ -53,6 +54,7 @@ interface AuthUser {
     user: string;
     roles: Role[];
 }
+
 export function sectionColor(title: string): string {
     switch (title) {
         case 'Payroll':
@@ -104,6 +106,12 @@ const mainNavItems: NavItem[] = [
                 href: '/godowns',
                 icon: Boxes,
             },
+            {
+                title: 'Dryers',
+                href: '/dryers',
+                icon: Boxes,
+            },
+
             {
                 title: 'Units',
                 href: '/units',
@@ -159,26 +167,12 @@ const mainNavItems: NavItem[] = [
                 href: '/purchases',
                 icon: ShoppingCart,
             },
-            {
-                title: 'Sub-Inbox-Purchases',
-                href: '/purchases/inbox/sub',
-                icon: ReceiptText,
-            },
-            {
-                title: 'Responsible-Inbox-Purchases',
-                href: '/purchases/inbox/resp',
-                icon: ReceiptText,
-            },
+
             // {
             //     title: 'Purchase Approve-Reject Log',
             //     href: '/purchases/approvals',
             //     icon: History, // pick any Lucide icon
             // },
-            {
-                title: 'Purchase Approve-Reject Log',
-                href: route('purchases.approvals'), // or '/purchases/approvals'
-                icon: History,
-            },
 
             {
                 title: 'Purchases Return',
@@ -186,24 +180,9 @@ const mainNavItems: NavItem[] = [
                 icon: RotateCcw,
             },
             {
-                title: 'Sales Add List',
+                title: 'Sales',
                 href: '/sales',
                 icon: ReceiptText,
-            },
-            {
-                title: 'Sub-Inbox-Sales',
-                href: '/sales/inbox/sub',
-                icon: ReceiptText,
-            },
-            {
-                title: 'Responsible-Inbox-Sales',
-                href: '/sales/inbox/resp',
-                icon: ReceiptText,
-            },
-            {
-                title: 'Sale Approve-Reject Log',
-                href: '/sales/approvals',
-                icon: History, // pick any Lucide icon
             },
 
             {
@@ -519,8 +498,22 @@ function filterNavItems(items: NavItem[], userRoles: string[]): NavItem[] {
 }
 
 export function AppSidebar() {
-    const { props } = usePage();
+    const { props, url } = usePage<any>();
+    const initialCounters = props.counters || {};
     const roles = props.auth?.user?.roles?.map((r: any) => r.name) || [];
+    const userId = props.auth?.user?.id;
+
+    // 🔹 live counters state
+    const [counters, setCounters] = useState(initialCounters);
+
+    // 🔹 subscribe once
+    useEffect(() => {
+        if (!userId || !window.Echo) return;
+
+        window.Echo.private(`approvals.${userId}`).listen('ApprovalCountersUpdated', (e: any) => setCounters(e.counters));
+
+        return () => window.Echo.leave(`private-approvals.${userId}`);
+    }, [userId]);
 
     const filteredNavItems = filterNavItems(mainNavItems, roles);
 
@@ -542,7 +535,7 @@ export function AppSidebar() {
             {/* ---------- Navigation ---------- */}
             <SidebarContent>
                 {/* Pass colour helper down via props */}
-                <NavMain items={filteredNavItems} />
+                <NavMain items={filteredNavItems} counters={counters} />
             </SidebarContent>
 
             {/* ---------- Footer ---------- */}
@@ -553,3 +546,6 @@ export function AppSidebar() {
         </Sidebar>
     );
 }
+// function useState(initialCounters: any): [any, any] {
+//     throw new Error('Function not implemented.');
+// }

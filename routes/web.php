@@ -5,15 +5,13 @@ use App\Models\Purchase;
 use App\Models\SalesReturn;
 use App\Models\AccountLedger;
 use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\DueController;
 use App\Http\Controllers\ItemController;
 use App\Http\Controllers\RoleController;
 use App\Http\Controllers\SaleController;
-use App\Http\Controllers\PurchaseApprovalController;
-use App\Http\Controllers\ConversionVoucherController;
-use App\Http\Controllers\RentVoucherController;
 use App\Http\Controllers\UnitController;
 use App\Http\Controllers\UserController;
-use App\Http\Controllers\SalaryOwedController;
+use App\Http\Controllers\DryerController;
 use App\Http\Controllers\ShiftController;
 use App\Http\Controllers\GodownController;
 use App\Http\Controllers\ReportController;
@@ -26,21 +24,22 @@ use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\PartyItemController;
 use App\Http\Controllers\DepartmentController;
 use App\Http\Controllers\JournalAddController;
-use App\Http\Controllers\SaleApprovalController;
-use App\Http\Controllers\DueController;
 use App\Http\Controllers\PartyStockController;
 use App\Http\Controllers\PaymentAddController;
 use App\Http\Controllers\PermissionController;
 use App\Http\Controllers\ProductionController;
 use App\Http\Controllers\ProfitLossController;
+use App\Http\Controllers\SalaryOwedController;
 use App\Http\Controllers\SalarySlipController;
 use App\Http\Controllers\SalesOrderController;
 use App\Http\Controllers\DesignationController;
 use App\Http\Controllers\ReceivedAddController;
+use App\Http\Controllers\RentVoucherController;
 use App\Http\Controllers\SalesReturnController;
 use App\Http\Controllers\AccountGroupController;
 use App\Http\Controllers\BalanceSheetController;
 use App\Http\Controllers\ReceivedModeController;
+use App\Http\Controllers\SaleApprovalController;
 use App\Http\Controllers\WorkingOrderController;
 use App\Http\Controllers\AccountLedgerController;
 use App\Http\Controllers\FinancialYearController;
@@ -50,15 +49,17 @@ use App\Http\Controllers\CompanySettingController;
 use App\Http\Controllers\PartyStockMoveController;
 use App\Http\Controllers\PurchaseReportController;
 use App\Http\Controllers\PurchaseReturnController;
+use App\Http\Controllers\FinishedProductController;
+use App\Http\Controllers\PartyStockReportController;
+use App\Http\Controllers\PurchaseApprovalController;
+use App\Http\Controllers\ConversionVoucherController;
+use App\Http\Controllers\LedgerGroupReportController;
+
+use App\Http\Controllers\PartyStockDepositController;
+
+
 use App\Http\Controllers\PartyStockWithdrawController;
 use App\Http\Controllers\PartyStockAdjustmentController;
-use App\Http\Controllers\PartyStockDepositController;
-use App\Http\Controllers\PartyStockReportController;
-
-use App\Http\Controllers\FinishedProductController;
-
-
-use App\Http\Controllers\LedgerGroupReportController;
 use App\Http\Controllers\AllReceivedPaymentReportController;
 use App\Http\Controllers\Auth\AuthenticatedSessionController;
 use App\Http\Controllers\AllReceivablePayableReportController;
@@ -501,6 +502,9 @@ Route::middleware(['auth', 'verified'])->group(function () {
     //     Route::get('/available-stock/{partyId}', [PartyStockController::class, 'getAvailableStock']);
     //     Route::get('/party-godowns/{partyId}', [PartyStockController::class, 'getPartyGodowns']);
     // });
+
+    // Dryer
+    Route::resource('dryers', DryerController::class);
 
 
 });

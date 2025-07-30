@@ -6,6 +6,7 @@ use Illuminate\Foundation\Inspiring;
 use Illuminate\Http\Request;
 use Inertia\Middleware;
 use Tighten\Ziggy\Ziggy;
+use App\Services\ApprovalCounter;
 
 class HandleInertiaRequests extends Middleware
 {
@@ -54,6 +55,9 @@ class HandleInertiaRequests extends Middleware
                 'success' => fn() => $request->session()->get('success'),
                 'error' => fn() => $request->session()->get('error'),
             ],
+            'counters' => $request->user()
+            ? ApprovalCounter::forUser($request->user()->id)
+            : [],
         ];
     }
 }

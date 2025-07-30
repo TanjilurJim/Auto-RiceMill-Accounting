@@ -84,6 +84,18 @@ class Purchase extends Model
         return $this->belongsTo(User::class, 'created_by');
     }
 
+    public function scopePendingSub($q, int $userId = null)
+    {
+        $q->where('status', self::STATUS_PENDING_SUB);
+        if ($userId) $q->where('sub_responsible_id', $userId);
+    }
+
+    public function scopePendingResp($q, int $userId = null)
+    {
+        $q->where('status', self::STATUS_PENDING_RESP);
+        if ($userId) $q->where('responsible_id', $userId);
+    }
+
     public function approvals()
     {
         return $this->hasMany(PurchaseApproval::class);

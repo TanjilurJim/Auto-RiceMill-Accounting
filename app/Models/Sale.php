@@ -108,6 +108,8 @@ class Sale extends Model
     }
 
 
+
+
     public function company()
     {
         return $this->belongsTo(CompanySetting::class, 'created_by', 'created_by');
@@ -171,6 +173,22 @@ class Sale extends Model
     public function payments()
     {
         return $this->hasMany(SalePayment::class);
+    }
+
+    public function scopePendingSub($q, int $userId = null)
+    {
+        $q->where('status', self::STATUS_PENDING_SUB);
+        if ($userId) {
+            $q->where('sub_responsible_id', $userId);
+        }
+    }
+
+    public function scopePendingResp($q, int $userId = null)
+    {
+        $q->where('status', self::STATUS_PENDING_RESP);
+        if ($userId) {
+            $q->where('responsible_id', $userId);
+        }
     }
 
 

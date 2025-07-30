@@ -13,6 +13,7 @@ use Illuminate\Support\Facades\Log;
 use App\Models\SaleItem;
 use App\Models\Godown;
 use App\Models\Salesman;
+use App\Services\ApprovalCounter;
 use App\Models\AccountLedger;
 use App\Models\Item;
 use App\Models\Stock;
@@ -28,24 +29,7 @@ use Inertia\Inertia;
 
 class SaleController extends Controller
 {
-    // List Sales
-    // public function index()
-    // {
-    //     $sales = Sale::with([
-    //         'godown',
-    //         'salesman',
-    //         'accountLedger',
-    //         'saleItems.item',
-    //         'creator'
-    //     ])
-    //         ->where('created_by', auth()->id())
-    //         ->orderBy('id', 'desc')
-    //         ->paginate(10);
 
-    //     return Inertia::render('sales/index', [
-    //         'sales' => $sales
-    //     ]);
-    // }
 
     public const FLOW_NONE          = 'none';
     public const FLOW_SUB_ONLY      = 'sub_only';
@@ -89,21 +73,7 @@ class SaleController extends Controller
         ]);
     }
 
-    // Create Sale Form
-    // public function create()
-    // {
-    //     return Inertia::render('sales/create', [
-    //         'godowns' => Godown::where('created_by', auth()->id())->get(),
-    //         'salesmen' => Salesman::where('created_by', auth()->id())->get(),
-    //         'ledgers' => AccountLedger::where('created_by', auth()->id())->get(),
-    //         'inventoryLedgers' => AccountLedger::where('created_by', auth()->id())->get(['id', 'account_ledger_name']),
-    //         'items' => Item::where('created_by', auth()->id())->get(),
-    //         'accountGroups' => \App\Models\AccountGroup::get(['id', 'name']),
-    //         'receivedModes' => \App\Models\ReceivedMode::with('ledger')
-    //             ->where('created_by', auth()->id())
-    //             ->get(['id', 'mode_name', 'ledger_id']),
-    //     ]);
-    // }
+
 
     public function create()
     {
@@ -205,9 +175,11 @@ class SaleController extends Controller
             }
 
             DB::commit();
+            ApprovalCounter::broadcast($sale->sub_responsible_id);
         } catch (\Throwable $e) {
             DB::rollBack();
             report($e);
+
             return back()->with('error', 'Failed to save sale.');
         }
 
@@ -231,40 +203,7 @@ class SaleController extends Controller
 
 
 
-    // Edit Sale Form
-    // public function edit(Sale $sale)
-    // {
-    //     if ($sale->created_by !== auth()->id()) {
-    //         abort(403);
-    //     }
 
-    //     return Inertia::render('sales/edit', [
-    //         'sale' => $sale->load([
-    //             'saleItems',
-    //             'godown',
-    //             'salesman',
-    //             'accountLedger',
-    //             'receivedMode.ledger',
-    //         ])->makeVisible(['received_mode_id', 'inventory_ledger_id']),
-    //         'cogs_ledger_id' => $sale->cogs_ledger_id,
-    //         'godowns' => Godown::where('created_by', auth()->id())->get(),
-    //         'salesmen' => Salesman::where('created_by', auth()->id())->get(),
-    //         'ledgers' => AccountLedger::where('created_by', auth()->id())->get(), // includes COGS ledgers
-    //         'inventoryLedgers' => AccountLedger::where('ledger_type', 'inventory')
-    //             ->where('created_by', auth()->id())
-    //             ->get(['id', 'account_ledger_name']),
-    //         'cogsLedgers' => AccountLedger::where('ledger_type', 'cogs')
-    //             ->where('created_by', auth()->id())
-    //             ->get(['id', 'account_ledger_name']),
-    //         'items' => Item::where('created_by', auth()->id())->get(),
-    //         'receivedModes' => ReceivedMode::with(['ledger' => function ($q) {
-    //             $q->where('ledger_type', 'received_mode');
-    //         }])
-    //             ->where('created_by', auth()->id())
-    //             ->get(['id', 'mode_name', 'ledger_id']),
-    //         'accountGroups' => \App\Models\AccountGroup::where('created_by', auth()->id())->get(['id', 'name']), // optional for modal
-    //     ]);
-    // }
 
     public function edit(Sale $sale)
     {
@@ -572,16 +511,6 @@ class SaleController extends Controller
         ]);
     }
 
-    // Destroy Sale (already present)
-    // public function destroy(Sale $sale)
-    // {
-    //     if ($sale->created_by !== auth()->id()) {
-    //         abort(403);
-    //     }
-
-    //     $sale->delete();
-    //     return redirect()->back()->with('success', 'Sale deleted successfully!');
-    // }
 
     public function destroy(Sale $sale)
     {
@@ -630,7 +559,9 @@ class SaleController extends Controller
                 'sub_approved_at'  => now(),
                 'sub_approved_by'  => auth()->id(),
             ]);
-
+            ApprovalCounter::broadcast($sale->sub_responsible_id);
+            if ($sale->responsible_id)
+                ApprovalCounter::broadcast($sale->responsible_id);
             $this->logApproval($sale, 'approved', 'Approved by Sub-Responsible');
 
             if (! $requiresFinal) {
@@ -656,6 +587,7 @@ class SaleController extends Controller
                 'approved_at' => now(),
                 'approved_by' => auth()->id(),
             ]);
+            ApprovalCounter::broadcast($sale->responsible_id);
 
             $this->logApproval($sale, 'approved', 'Approved by Responsible');
 
@@ -685,8 +617,11 @@ class SaleController extends Controller
                 'rejected_at'   => now(),
                 'rejected_by'   => auth()->id(),
                 // optional denormalized field:
-                // 'rejected_note' => $request->note,
+                'rejected_note' => $request->note,
             ]);
+            ApprovalCounter::broadcast($sale->sub_responsible_id);
+            if ($sale->responsible_id)
+            ApprovalCounter::broadcast($sale->responsible_id);
 
             $this->logApproval($sale, 'rejected', $request->note);
         });
@@ -818,30 +753,6 @@ class SaleController extends Controller
     }
 
 
-    // public function getItemsByGodown($godownId)
-    // {
-    //     $userId = auth()->id();
-
-    //     // Querying the stock data from the 'stocks' table and including the quantity
-    //     $stocks = Stock::with('item.unit') // Include unit information if needed
-    //         ->where('godown_id', $godownId)
-    //         ->where('created_by', $userId)
-    //         ->get();
-
-    //     // Map the stock data to return a list with the item's name, unit, and available stock quantity
-    //     $result = $stocks->map(function ($stock) {
-    //         return [
-    //             'id'        => $stock->item->id,
-    //             'item_name' => $stock->item->item_name,
-    //             'unit'      => $stock->item->unit->name ?? '', // Add unit name if needed
-    //             'stock_qty' => $stock->qty, // Get the stock quantity from the 'stocks' table
-    //         ];
-    //     });
-
-    //     \Log::info($result); // Check the returned result
-    //     return response()->json($result); // Return the updated list to the frontend
-
-    // }
 
     public function getItemsByGodown($godownId)
     {

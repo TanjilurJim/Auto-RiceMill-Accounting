@@ -141,6 +141,10 @@ class FinalizeSaleService
                 'status'      => Sale::STATUS_APPROVED,
                 'approved_at' => now(),
             ]);
+            ApprovalCounter::broadcast($sale->sub_responsible_id);
+            if ($sale->responsible_id) {
+                ApprovalCounter::broadcast($sale->responsible_id);
+            }
         });
     }
 

@@ -13,6 +13,7 @@ use App\Models\Stock;
 use App\Models\Godown;
 use App\Models\Journal;
 use App\Models\Purchase;
+use App\Services\ApprovalCounter;
 
 use App\Models\Salesman;
 use function numberToWords;
@@ -225,11 +226,16 @@ class PurchaseController extends Controller
         });
 
         /* 4️⃣  Post stock & journal immediately only if no approval flow */
-        if ($flow === 'none') {
-            app(\App\Services\FinalizePurchaseService::class)->handle(
-                $purchase,
-                $request->only(['amount_paid', 'received_mode_id'])
-            );
+        // if ($flow === 'none') {
+        //     app(\App\Services\FinalizePurchaseService::class)->handle(
+        //         $purchase,
+        //         $request->only(['amount_paid', 'received_mode_id'])
+        //     );
+        // }
+
+        ApprovalCounter::broadcast(auth()->id());
+        if ($purchase->sub_responsible_id) {
+            ApprovalCounter::broadcast($purchase->sub_responsible_id);
         }
 
         /* 5️⃣  Redirect with proper flash message */
@@ -610,6 +616,10 @@ class PurchaseController extends Controller
                 'sub_approved_by'   => auth()->id(),
             ]);
 
+            ApprovalCounter::broadcast($purchase->sub_responsible_id);
+            ApprovalCounter::broadcast($purchase->responsible_id);
+
+
             $this->logApproval($purchase, 'approved', 'Approved by Sub-Responsible');
 
             if (! $needsFinal) {
@@ -635,6 +645,8 @@ class PurchaseController extends Controller
             $this->logApproval($purchase, 'approved', 'Approved by Responsible');
 
             app(FinalizePurchaseService::class)->handle($purchase);
+
+            ApprovalCounter::broadcast($purchase->responsible_id);
         });
 
         return back()->with('success', 'Purchase fully approved.');
@@ -658,6 +670,9 @@ class PurchaseController extends Controller
             ]);
 
             $this->logApproval($purchase, 'rejected', $request->note);
+            ApprovalCounter::broadcast($purchase->sub_responsible_id);
+            ApprovalCounter::broadcast($purchase->responsible_id);
+            ApprovalCounter::broadcast(auth()->id());
         });
 
         return back()->with('success', 'Purchase rejected.');

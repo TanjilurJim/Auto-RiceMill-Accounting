@@ -27,7 +27,9 @@ return Application::configure(basePath: dirname(__DIR__))
             'role_or_permission' => \Spatie\Permission\Middleware\RoleOrPermissionMiddleware::class,
         ]);
     })
-    
+    ->withProviders([
+        App\Providers\BroadcastServiceProvider::class,  // 👈 ADD THIS
+    ])
     ->withExceptions(function (Exceptions $exceptions) {
         //
     })->create();
