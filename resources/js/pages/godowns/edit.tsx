@@ -1,3 +1,5 @@
+/* resources/js/pages/godowns/edit.tsx
+   ------------------------------------------------------------------ */
 import GodownForm from '@/components/Form/GodownForm';
 import PageHeader from '@/components/PageHeader';
 import AppLayout from '@/layouts/app-layout';
@@ -6,14 +8,20 @@ import { Head, useForm } from '@inertiajs/react';
 interface Godown {
     id: number;
     name: string;
-    godown_code: string;
     address: string;
 }
 
-export default function GodownEdit({ godown }: { godown: Godown }) {
+export default function GodownEdit({
+    godown,
+    khamalCount,
+}: {
+    godown: Godown;
+    khamalCount: number; // 🆕 comes from controller
+}) {
     const { data, setData, put, processing, errors } = useForm({
         name: godown.name,
         address: godown.address,
+        khamal_count: khamalCount ?? '', // 🆕
     });
 
     const submit = (e: React.FormEvent) => {
@@ -25,7 +33,7 @@ export default function GodownEdit({ godown }: { godown: Godown }) {
         <AppLayout>
             <Head title="Edit Godown" />
             <div className="h-full bg-gray-100 p-6">
-                <div className="h-full bg-white rounded-lg p-6">
+                <div className="h-full rounded-lg bg-white p-6">
                     <PageHeader title="Edit Godown" addLinkHref="/godowns" addLinkText="Back" />
 
                     <GodownForm

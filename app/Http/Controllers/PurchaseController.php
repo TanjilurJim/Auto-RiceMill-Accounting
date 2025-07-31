@@ -34,6 +34,28 @@ class PurchaseController extends Controller
 
 
 
+    private function stockGroupedByGodown(array $visibleUserIds)
+    {
+        return Stock::query()
+            ->select('godown_id', 'item_id', DB::raw('SUM(qty) as qty'))
+            ->whereIn('created_by', $visibleUserIds)
+            ->groupBy('godown_id', 'item_id')
+            ->with('item.unit')                     // item & unit after groupBy is OK
+            ->get()
+            ->groupBy('godown_id')
+            ->map(fn($rows) => $rows->map(function ($s) {   // one row per item
+                return [
+                    'id'   => $s->item_id,                   // use item_id as id
+                    'qty'  => $s->qty,
+                    'item' => [
+                        'id'        => $s->item_id,
+                        'item_name' => $s->item->item_name,
+                        'unit_name' => $s->item->unit->name ?? '',
+                    ],
+                ];
+            }))
+            ->toArray();
+    }
     // Show list of purchases
     public function index()
     {
@@ -83,18 +105,11 @@ class PurchaseController extends Controller
             $godowns = Godown::all();
             $salesmen = Salesman::all();
             $ledgers = AccountLedger::all();
-            $stockItemsByGodown = Stock::with('item.unit')->get()
-                ->groupBy('godown_id')
-                ->map(fn($col) => $col->map(fn($s) => [
-                    'id'   => $s->id,
-                    'qty'  => $s->qty,
-                    'item' => [
-                        'id'        => $s->item->id,
-                        'item_name' => $s->item->item_name,
-                        'unit_name' => $s->item->unit->name ?? '',
-                    ],
-                ]))
-                ->toArray();
+            $visibleIds      = $user->hasRole('admin') ? User::pluck('id')->all()
+                : godown_scope_ids();
+
+            $stockItemsByGodown = $this->stockGroupedByGodown($visibleIds);
+
             $inventoryLedgers = AccountLedger::where('ledger_type', 'inventory')->get(['id', 'account_ledger_name', 'ledger_type']);
             $receivedModes = ReceivedMode::with('ledger')->get(['id', 'mode_name', 'ledger_id']);
         } else {
@@ -102,20 +117,11 @@ class PurchaseController extends Controller
             $godowns = Godown::whereIn('created_by', $userIds)->get();
             $salesmen = Salesman::whereIn('created_by', $userIds)->get();
             $ledgers = AccountLedger::whereIn('created_by', $userIds)->get();
-            $stockItemsByGodown = Stock::with('item.unit')
-                ->whereIn('created_by', $userIds)
-                ->get()
-                ->groupBy('godown_id')
-                ->map(fn($col) => $col->map(fn($s) => [
-                    'id'   => $s->id,
-                    'qty'  => $s->qty,
-                    'item' => [
-                        'id'        => $s->item->id,
-                        'item_name' => $s->item->item_name,
-                        'unit_name' => $s->item->unit->name ?? '',
-                    ],
-                ]))
-                ->toArray();
+            $visibleIds      = $user->hasRole('admin') ? User::pluck('id')->all()
+                : godown_scope_ids();
+
+            $stockItemsByGodown = $this->stockGroupedByGodown($visibleIds);
+
             $inventoryLedgers = AccountLedger::where('ledger_type', 'inventory')
                 ->whereIn('created_by', $userIds)
                 ->get(['id', 'account_ledger_name', 'ledger_type']);
@@ -226,11 +232,12 @@ class PurchaseController extends Controller
         });
 
         /* 4️⃣  Post stock & journal immediately only if no approval flow */
-        // if ($flow === 'none') {
-        //     app(\App\Services\FinalizePurchaseService::class)->handle(
-        //         $purchase,
-        //         $request->only(['amount_paid', 'received_mode_id'])
-        //     );
+        if ($flow === 'none') {
+            app(\App\Services\FinalizePurchaseService::class)->handle(
+                $purchase,
+                $request->only(['amount_paid', 'received_mode_id'])
+            );
+        }
         // }
 
         ApprovalCounter::broadcast(auth()->id());
@@ -281,20 +288,10 @@ class PurchaseController extends Controller
             $receivedModes = ReceivedMode::with('ledger')
                 ->whereIn('created_by', $ids)
                 ->get(['id', 'mode_name', 'ledger_id']);
-            $stockItemsByGodown = Stock::with('item.unit')
-                ->whereIn('created_by', $ids)
-                ->get()
-                ->groupBy('godown_id')
-                ->map(fn($col) => $col->map(fn($s) => [
-                    'id'   => $s->id,
-                    'qty'  => $s->qty,
-                    'item' => [
-                        'id'        => $s->item->id,
-                        'item_name' => $s->item->item_name,
-                        'unit_name' => $s->item->unit->name ?? '',
-                    ],
-                ]))
-                ->toArray();
+            $visibleIds      = $user->hasRole('admin') ? User::pluck('id')->all()
+                : godown_scope_ids();
+
+            $stockItemsByGodown = $this->stockGroupedByGodown($visibleIds);
         } else {
             // Admin: show all
             $godowns  = Godown::all(['id', 'name']);
@@ -304,19 +301,10 @@ class PurchaseController extends Controller
                 ->get(['id', 'account_ledger_name']);
             $receivedModes = ReceivedMode::with('ledger')
                 ->get(['id', 'mode_name', 'ledger_id']);
-            $stockItemsByGodown = Stock::with('item.unit')
-                ->get()
-                ->groupBy('godown_id')
-                ->map(fn($col) => $col->map(fn($s) => [
-                    'id'   => $s->id,
-                    'qty'  => $s->qty,
-                    'item' => [
-                        'id'        => $s->item->id,
-                        'item_name' => $s->item->item_name,
-                        'unit_name' => $s->item->unit->name ?? '',
-                    ],
-                ]))
-                ->toArray();
+            $visibleIds      = $user->hasRole('admin') ? User::pluck('id')->all()
+                : godown_scope_ids();
+
+            $stockItemsByGodown = $this->stockGroupedByGodown($visibleIds);
         }
 
         return Inertia::render('purchases/edit', [
@@ -392,7 +380,9 @@ class PurchaseController extends Controller
                 'godown_id' => $purchase->godown_id,
                 'created_by' => $purchase->created_by,
             ])->decrement('qty', $old->qty);
+            Item::where('id', $old->product_id)->decrement('previous_stock', $old->qty);
         }
+
 
         /* =============================================================
      | 2️⃣  Delete old journal entries, keep / update header
@@ -464,6 +454,8 @@ class PurchaseController extends Controller
                 'godown_id' => $request->godown_id,
                 'created_by' => auth()->id(),
             ])->increment('qty', $row['qty']);
+
+            Item::where('id', $row['product_id'])->increment('previous_stock', $row['qty']);
         }
 
         /* =============================================================

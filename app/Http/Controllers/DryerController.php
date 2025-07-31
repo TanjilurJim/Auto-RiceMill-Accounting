@@ -97,7 +97,7 @@ class DryerController extends Controller
 
         $dryer->update($validated + ['updated_by' => auth()->id()]);
 
-        return back()->with('success', 'Dryer updated.');
+        return to_route('dryers.index')->with('success', 'Dryer Updated.');
     }
 
     /* ------------------------------------------------------------------ */

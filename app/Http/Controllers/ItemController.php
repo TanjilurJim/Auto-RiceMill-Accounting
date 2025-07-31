@@ -3,6 +3,8 @@
 namespace App\Http\Controllers;
 
 use App\Models\Item;
+use App\Models\Khamal;
+use Illuminate\Validation\Rule;
 use App\Models\Category;
 use App\Models\Unit;
 use App\Models\Godown;
@@ -100,7 +102,8 @@ class ItemController extends Controller
             'units'      => Unit::where(createdByMeOr($extraUserIds))->get(),
 
             // godowns: same visibility
-            'godowns'    => Godown::where(createdByMeOr($extraUserIds))->get(),
+            'godowns'    => Godown::with('khamals')
+                ->where(createdByMeOr($extraUserIds))->get(),
         ]);
     }
 
@@ -111,10 +114,17 @@ class ItemController extends Controller
     {
         // 🔥 Fix: Removed 'item_part' from validation & removed incorrect 'sales_price' field
         $validated = $request->validate([
-            'item_name' => 'required|string|max:255',
+            'item_name' => [
+                'required',
+                'string',
+                'max:255',
+                Rule::unique('items', 'item_name')
+                    ->whereIn('created_by', user_scope_ids()),   // 👈 only unique inside the group
+            ],
             'unit_id' => 'required|exists:units,id',
             'category_id' => 'required|exists:categories,id',
             'godown_id' => 'required|exists:godowns,id',
+
             'purchase_price' => 'nullable|numeric',
             'sale_price' => 'nullable|numeric', // ✅ Fixed from 'sales_price' to 'sale_price'
             'previous_stock' => 'nullable|numeric',
@@ -165,29 +175,7 @@ class ItemController extends Controller
         return redirect()->route('items.index')->with('success', 'Item created successfully!');
     }
 
-    /**
-     * Show the form for editing the specified resource.
-     */
-    // public function edit(Item $item)
-    // {
-    //     $userId = auth()->id();
 
-    //     // 🔁 Get stock quantity from `stocks` table
-    //     $stockQty = Stock::where([
-    //         'item_id' => $item->id,
-    //         'godown_id' => $item->godown_id,
-    //         'created_by' => $userId,
-    //     ])->value('qty') ?? 0;
-
-    //     $item->previous_stock = $stockQty;
-
-    //     return Inertia::render('items/edit', [
-    //         'item' => $item->load(['category', 'unit', 'godown']),
-    //         'categories' => Category::all(),
-    //         'units' => Unit::all(),
-    //         'godowns' => Godown::where('created_by', $userId)->get(),
-    //     ]);
-    // }
 
     public function edit(Item $item)
     {
@@ -217,42 +205,7 @@ class ItemController extends Controller
         ]);
     }
 
-    /**
-     * Update the specified resource in storage.
-     */
-    // public function update(Request $request, Item $item)
-    // {
-    //     $validated = $request->validate([
-    //         'item_name' => 'required|string|max:255',
-    //         'unit_id' => 'required|exists:units,id',
-    //         'category_id' => 'required|exists:categories,id',
-    //         'godown_id' => 'required|exists:godowns,id',
-    //         'purchase_price' => 'nullable|numeric',
-    //         'sale_price' => 'nullable|numeric',
-    //         'previous_stock' => 'nullable|numeric',
-    //         'total_previous_stock_value' => 'nullable|numeric',
-    //         'description' => 'nullable|string',
-    //     ]);
 
-    //     $validated['purchase_price'] = $request->purchase_price ?? 0;
-    //     $validated['sale_price'] = $request->sale_price ?? 0;
-    //     $validated['total_previous_stock_value'] = $request->total_previous_stock_value ?? 0;
-
-    //     // 🛠 update item info
-    //     $item->update($validated);
-
-    //     // 🛠 update the stock table
-    //     $stock = \App\Models\Stock::firstOrNew([
-    //         'item_id' => $item->id,
-    //         'godown_id' => $request->godown_id,
-    //         'created_by' => auth()->id(),
-    //     ]);
-
-    //     $stock->qty = $request->previous_stock ?? 0;
-    //     $stock->save();
-
-    //     return redirect()->route('items.index')->with('success', 'Item updated successfully!');
-    // }
 
     public function update(Request $request, Item $item)
     {
@@ -266,7 +219,14 @@ class ItemController extends Controller
         }
 
         $validated = $request->validate([
-            'item_name' => 'required|string|max:255',
+            'item_name' => [
+                'required',
+                'string',
+                'max:255',
+                Rule::unique('items', 'item_name')
+                    ->whereIn('created_by', user_scope_ids())
+                    ->ignore($item->id),                         // 👈 ignore current row
+            ],
             'unit_id' => 'required|exists:units,id',
             'category_id' => 'required|exists:categories,id',
             'godown_id' => 'required|exists:godowns,id',
@@ -295,38 +255,7 @@ class ItemController extends Controller
         return redirect()->route('items.index')->with('success', 'Item updated successfully!');
     }
 
-    // public function getItemsByGodown($godownId)
-    // {
-    //     $items = Item::where('created_by', auth()->id())
-    //         ->with('unit') // optional
-    //         ->get();
 
-    //     $stocks = \App\Models\Stock::where('godown_id', $godownId)
-    //         ->where('created_by', auth()->id())
-    //         ->get()
-    //         ->keyBy('item_id');
-
-    //     $itemsWithStock = $items->map(function ($item) use ($stocks) {
-    //         $stockQty = $stocks[$item->id]->qty ?? 0;
-    //         return [
-    //             'id' => $item->id,
-    //             'item_name' => $item->item_name,
-    //             'unit' => $item->unit->name ?? '',
-    //             'stock_qty' => $stockQty,
-    //         ];
-    //     });
-
-    //     return response()->json($itemsWithStock);
-    // }
-
-    /**
-     * Remove the specified resource from storage.
-     */
-    // public function destroy(Item $item)
-    // {
-    //     $item->delete();
-    //     return redirect()->back()->with('success', 'Item deleted successfully!');
-    // }
 
     public function destroy(Item $item)
     {

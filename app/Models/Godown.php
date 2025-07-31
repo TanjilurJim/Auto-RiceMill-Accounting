@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use App\Traits\BelongsToTenant;
+
 class Godown extends Model
 {
     //
@@ -15,7 +16,10 @@ class Godown extends Model
         'address',
         'created_by',
     ];
-
+    public function khamals()
+    {
+        return $this->hasMany(Khamal::class);
+    }
     public function creator()
     {
         return $this->belongsTo(User::class, 'created_by');

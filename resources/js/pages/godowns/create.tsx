@@ -8,6 +8,7 @@ export default function CreateGodown() {
     const { data, setData, post, processing, errors } = useForm({
         name: '',
         address: '',
+        khamal_count: '', 
     });
 
     const submit = (e: React.FormEvent) => {

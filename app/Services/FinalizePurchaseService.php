@@ -8,7 +8,8 @@ use App\Models\{
     Journal,
     JournalEntry,
     ReceivedMode,
-    AccountLedger
+    AccountLedger,
+    Item
 };
 use Illuminate\Support\Facades\DB;
 
@@ -54,6 +55,9 @@ class FinalizePurchaseService
                 // if new, qty may be null → normalise to 0
                 $stock->qty = ($stock->qty ?? 0) + $line->qty;
                 $stock->save();
+
+                // ── b) items table – bump previous_stock ──────────
+                Item::where('id', $line->product_id)->increment('previous_stock', $line->qty);
             }   // ← ✅ close the foreach here
 
             // ← now it’s persisted

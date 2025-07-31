@@ -1,6 +1,7 @@
 <?php
 
 namespace App\Models;
+
 use App\Traits\BelongsToTenant;
 
 use Illuminate\Database\Eloquent\Model;
@@ -17,6 +18,7 @@ class Item extends Model
         'item_code',
         'category_id',
         'unit_id',
+        'khamal_id',
         'godown_id',
         'purchase_price',
         'sale_price',
@@ -47,5 +49,9 @@ class Item extends Model
     public function stocks()
     {
         return $this->hasMany(\App\Models\Stock::class, 'item_id');
+    }
+    public function khamal()
+    {
+        return $this->belongsTo(Khamal::class);
     }
 }
