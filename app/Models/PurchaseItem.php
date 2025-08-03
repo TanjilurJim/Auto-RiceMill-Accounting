@@ -26,4 +26,8 @@ class PurchaseItem extends Model
     {
         return $this->belongsTo(Item::class, 'product_id');
     }
+    public function lot()
+    {
+        return $this->belongsTo(Lot::class);
+    }
 }

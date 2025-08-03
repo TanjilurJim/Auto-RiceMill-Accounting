@@ -1,5 +1,4 @@
 // resources/js/pages/items/edit.tsx
-import ActionFooter from '@/components/ActionFooter';
 import ItemForm from '@/components/Form/ItemForm';
 import PageHeader from '@/components/PageHeader';
 import AppLayout from '@/layouts/app-layout';
@@ -34,17 +33,7 @@ interface Godown {
     name: string;
 }
 
-export default function EditItem({
-    item,
-    categories,
-    units,
-    godowns,
-}: {
-    item: Item;
-    categories: Category[];
-    units: Unit[];
-    godowns: Godown[];
-}) {
+export default function EditItem({ item, categories, units, godowns }: { item: Item; categories: Category[]; units: Unit[]; godowns: Godown[] }) {
     const { data, setData, put, processing, errors } = useForm({
         item_name: item.item_name,
         // item_part: item.item_part,
@@ -56,8 +45,10 @@ export default function EditItem({
         previous_stock: item.previous_stock,
         total_previous_stock_value: item.total_previous_stock_value,
         description: item.description || '',
-    }); 
-        // { header: 'Stock', accessor: (item: Item) => item.current_stock ?? 0 },
+        lot_no: item.lot_no || '',
+        received_at: item.received_at || '',
+    });
+    // { header: 'Stock', accessor: (item: Item) => item.current_stock ?? 0 },
     //
 
     const handleSubmit = (e: React.FormEvent) => {
@@ -69,8 +60,8 @@ export default function EditItem({
         <AppLayout>
             <Head title="Edit Item" />
             <div className="h-full bg-gray-100 p-6">
-                <div className="h-full bg-white rounded-lg p-6">
-                    <PageHeader title="Edit Item" addLinkHref='/items' addLinkText="Back" />
+                <div className="h-full rounded-lg bg-white p-6">
+                    <PageHeader title="Edit Item" addLinkHref="/items" addLinkText="Back" />
                     <ItemForm
                         data={data}
                         setData={setData}

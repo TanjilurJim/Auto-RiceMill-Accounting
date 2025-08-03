@@ -163,15 +163,29 @@ class SaleController extends Controller
 
             /* --- detail lines (NO stock decrement yet) --- */
             foreach ($request->sale_items as $row) {
-                $sale->saleItems()->create([
-                    'product_id'    => $row['product_id'],
-                    'qty'           => $row['qty'],
-                    'main_price'    => $row['main_price'],
-                    'discount'      => $row['discount'] ?? 0,
-                    'discount_type' => $row['discount_type'],
-                    'subtotal'      => $row['subtotal'],
-                    'note'          => $row['note'] ?? null,
-                ]);
+                // break the row into FIFO lot-segments
+                $segments = $this->pickLots(
+                    $request->godown_id,
+                    $row['product_id'],
+                    $row['qty']
+                );
+
+                foreach ($segments as $seg) {
+                    $sale->saleItems()->create([
+                        'product_id'    => $row['product_id'],
+                        'lot_id'        => $seg['lot_id'],
+                        'qty'           => $seg['qty'],
+                        'main_price'    => $row['main_price'],
+                        'discount'      => $row['discount'] ?? 0,
+                        'discount_type' => $row['discount_type'],
+                        // proportional subtotal so the total stays identical
+                        'subtotal'      => round(
+                            ($row['subtotal'] / $row['qty']) * $seg['qty'],
+                            2
+                        ),
+                        'note'          => $row['note'] ?? null,
+                    ]);
+                }
             }
 
             DB::commit();
@@ -272,6 +286,7 @@ class SaleController extends Controller
                 Stock::where([
                     'item_id'   => $oldItem->product_id,
                     'godown_id' => $sale->godown_id,
+                    'lot_id'    => $oldItem->lot_id,
                     'created_by' => auth()->id(),
                 ])->increment('qty', $oldItem->qty);
             }
@@ -306,37 +321,60 @@ class SaleController extends Controller
                 'total_due'             => collect($request->sale_items)->sum('subtotal'), // full for now
             ]);
 
-            $sale->saleItems()->delete();
+            
 
             /* 3️⃣  নতুন সেল-আইটেম + স্টক কমানো ও COST হিসাব */
+            $sale->saleItems()->delete();
+
+            /* 3️⃣ Re-insert lines **split by lot** + adjust stock + recalc cost */
             $totalCost = 0;
+
             foreach ($request->sale_items as $row) {
-                $sale->saleItems()->create([
-                    'product_id'    => $row['product_id'],
-                    'qty'           => $row['qty'],
-                    'main_price'    => $row['main_price'],
-                    'discount'      => $row['discount'] ?? 0,
-                    'discount_type' => $row['discount_type'],
-                    'subtotal'      => $row['subtotal'],
-                    'note'          => $row['note'] ?? null,
-                ]);
 
-                Stock::where([
-                    'item_id'   => $row['product_id'],
-                    'godown_id' => $request->godown_id,
-                    'created_by' => auth()->id(),
-                ])->decrement('qty', $row['qty']);
+                foreach (
+                    $this->pickLots(
+                        $request->godown_id,
+                        $row['product_id'],
+                        $row['qty']
+                    ) as $seg
+                ) {
 
-                $unitCost = Stock::where([
-                    'item_id'   => $row['product_id'],
-                    'godown_id' => $request->godown_id,
-                    'created_by' => auth()->id(),
-                ])->value('avg_cost') ?? 0;
+                    // new detail row
+                    $sale->saleItems()->create([
+                        'product_id'    => $row['product_id'],
+                        'lot_id'        => $seg['lot_id'],
+                        'qty'           => $seg['qty'],
+                        'main_price'    => $row['main_price'],
+                        'discount'      => $row['discount'] ?? 0,
+                        'discount_type' => $row['discount_type'],
+                        'subtotal'      => round(
+                            ($row['subtotal'] / $row['qty']) * $seg['qty'],
+                            2
+                        ),
+                        'note'          => $row['note'] ?? null,
+                    ]);
 
-                if ($unitCost == 0) {
-                    $unitCost = Item::find($row['product_id'])->purchase_price ?? 0;
+                    // decrement that lot’s stock
+                    Stock::where([
+                        'item_id'    => $row['product_id'],
+                        'godown_id'  => $request->godown_id,
+                        'lot_id'     => $seg['lot_id'],
+                        'created_by' => auth()->id(),
+                    ])->decrement('qty', $seg['qty']);
+
+                    // accumulate cost
+                    $unitCost = Stock::where([
+                        'item_id'    => $row['product_id'],
+                        'godown_id'  => $request->godown_id,
+                        'lot_id'     => $seg['lot_id'],
+                        'created_by' => auth()->id(),
+                    ])->value('avg_cost') ?? 0;
+
+                    if ($unitCost == 0) {
+                        $unitCost = Item::find($row['product_id'])->purchase_price ?? 0;
+                    }
+                    $totalCost += $unitCost * $seg['qty'];
                 }
-                $totalCost += $unitCost * $row['qty'];
             }
 
             /* 4️⃣  নতুন জার্নাল হেডার */
@@ -621,7 +659,7 @@ class SaleController extends Controller
             ]);
             ApprovalCounter::broadcast($sale->sub_responsible_id);
             if ($sale->responsible_id)
-            ApprovalCounter::broadcast($sale->responsible_id);
+                ApprovalCounter::broadcast($sale->responsible_id);
 
             $this->logApproval($sale, 'rejected', $request->note);
         });
@@ -776,5 +814,42 @@ class SaleController extends Controller
 
         \Log::info($result);
         return response()->json($result);
+    }
+
+    private function pickLots(int $godownId, int $itemId, float $requestQty): array
+    {
+        $segments = [];
+        $remaining = $requestQty;
+
+        $fifoLots = \App\Models\Lot::where([
+            'godown_id' => $godownId,
+            'item_id'   => $itemId,
+        ])
+            ->orderBy('received_at')
+            ->get();
+
+        foreach ($fifoLots as $lot) {
+            if ($remaining <= 0) break;
+
+            $available = \App\Models\Stock::where([
+                'godown_id' => $godownId,
+                'item_id'   => $itemId,
+                'lot_id'    => $lot->id,
+            ])->value('qty') ?? 0;
+
+            if ($available <= 0) continue;
+
+            $take = min($available, $remaining);
+            $segments[] = ['lot_id' => $lot->id, 'qty' => $take];
+            $remaining -= $take;
+        }
+
+        if ($remaining > 0) {
+            throw \Illuminate\Validation\ValidationException::withMessages([
+                'sale_items' => ["Not enough stock (missing {$remaining} units)."],
+            ]);
+        }
+
+        return $segments;
     }
 }

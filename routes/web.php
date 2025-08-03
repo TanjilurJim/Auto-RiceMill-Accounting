@@ -22,6 +22,7 @@ use App\Http\Controllers\SalesManController;
 use App\Http\Controllers\ContraAddController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\PartyItemController;
+use App\Http\Controllers\StockMoveController;
 use App\Http\Controllers\DepartmentController;
 use App\Http\Controllers\JournalAddController;
 use App\Http\Controllers\PartyStockController;
@@ -53,11 +54,11 @@ use App\Http\Controllers\FinishedProductController;
 use App\Http\Controllers\PartyStockReportController;
 use App\Http\Controllers\PurchaseApprovalController;
 use App\Http\Controllers\ConversionVoucherController;
+
 use App\Http\Controllers\LedgerGroupReportController;
 
+
 use App\Http\Controllers\PartyStockDepositController;
-
-
 use App\Http\Controllers\PartyStockWithdrawController;
 use App\Http\Controllers\PartyStockAdjustmentController;
 use App\Http\Controllers\AllReceivedPaymentReportController;
@@ -209,7 +210,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('/purchases/inbox/sub',  [PurchaseController::class, 'inboxSub'])->name('purchases.inbox.sub');
     Route::get('/purchases/inbox/resp', [PurchaseController::class, 'inboxResp'])->name('purchases.inbox.resp');
     Route::get('approvals', [PurchaseApprovalController::class, 'index'])
-     ->name('purchases.approvals');
+        ->name('purchases.approvals');
 
     // ---------------------------
     // Approval actions
@@ -506,7 +507,10 @@ Route::middleware(['auth', 'verified'])->group(function () {
     // Dryer
     Route::resource('dryers', DryerController::class);
 
-
+    //Stock adding to inventory
+    Route::get('stock-moves',            [StockMoveController::class, 'index']);
+    Route::get('stock-moves/create',     [StockMoveController::class, 'create']);
+    Route::post('stock-moves',            [StockMoveController::class, 'store']);
 });
 //stock report pdf and excel
 Route::get('/reports/stock-summary/pdf', [ReportController::class, 'stockSummaryPDF'])

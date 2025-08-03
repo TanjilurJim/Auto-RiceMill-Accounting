@@ -9,6 +9,7 @@ use App\Models\User;
 use App\Services\FinalizePurchaseService;
 use App\Models\PurchaseApproval;
 use Inertia\Inertia;
+use App\Models\Lot;
 use App\Models\Stock;
 use App\Models\Godown;
 use App\Models\Journal;
@@ -158,6 +159,7 @@ class PurchaseController extends Controller
             'purchase_items.*.qty' => 'required|numeric|min:0.01',
             'purchase_items.*.price' => 'required|numeric|min:0',
             'purchase_items.*.discount' => 'nullable|numeric|min:0',
+            'purchase_items.*.lot_no' => 'required|string|max:50',
             'purchase_items.*.discount_type' => 'required|in:bdt,percent',
             'purchase_items.*.subtotal' => 'required|numeric|min:0',
             'received_mode_id' => 'nullable|exists:received_modes,id',
@@ -220,8 +222,21 @@ class PurchaseController extends Controller
             ]);
 
             foreach ($request->purchase_items as $row) {
+                $lot = Lot::firstOrCreate(
+                    [
+                        'godown_id' => $request->godown_id,
+                        'item_id'   => $row['product_id'],
+                        'lot_no'    => $row['lot_no'],           // ← comes from form
+                    ],
+                    [
+                        'received_at' => $request->date,
+                        'created_by'  => auth()->id(),
+                    ]
+                );
+
                 $purchase->purchaseItems()->create([
                     'product_id'    => $row['product_id'],
+                    'lot_id'        => $lot->id,                // ← NEW
                     'qty'           => $row['qty'],
                     'price'         => $row['price'],
                     'discount'      => $row['discount'] ?? 0,
@@ -309,7 +324,7 @@ class PurchaseController extends Controller
 
         return Inertia::render('purchases/edit', [
             'purchase' => $purchase->load([
-                'purchaseItems.item',
+                'purchaseItems.item','purchaseItems.lot',
                 'godown',
                 'salesman',
                 'accountLedger',
@@ -353,6 +368,7 @@ class PurchaseController extends Controller
             'purchase_items'              => 'required|array|min:1',
             'purchase_items.*.product_id' => 'required|exists:items,id',
             'purchase_items.*.qty'        => 'required|numeric|min:0.01',
+            'purchase_items.*.lot_no' => 'required|string|max:50',
             'purchase_items.*.price'      => 'required|numeric|min:0',
             'purchase_items.*.discount'   => 'nullable|numeric|min:0',
             'purchase_items.*.discount_type' => 'required|in:bdt,percent',
@@ -378,6 +394,7 @@ class PurchaseController extends Controller
             Stock::where([
                 'item_id'   => $old->product_id,
                 'godown_id' => $purchase->godown_id,
+                'lot_id'    => $old->lot_id,
                 'created_by' => $purchase->created_by,
             ])->decrement('qty', $old->qty);
             Item::where('id', $old->product_id)->decrement('previous_stock', $old->qty);
@@ -440,9 +457,26 @@ class PurchaseController extends Controller
         $purchase->purchaseItems()->delete();
 
         foreach ($request->purchase_items as $row) {
+
+
+            /* a.  make / fetch the lot */
+            $lot = Lot::firstOrCreate(
+                [
+                    'godown_id' => $request->godown_id,
+                    'item_id'   => $row['product_id'],
+                    'lot_no'    => $row['lot_no'],
+                ],
+                [
+                    'received_at' => $request->date,
+                    'created_by'  => auth()->id(),
+                ]
+            );
+
+
             $purchase->purchaseItems()->create([
                 'product_id'    => $row['product_id'],
                 'qty'           => $row['qty'],
+                'lot_id'        => $lot->id,    
                 'price'         => $row['price'],
                 'discount'      => $row['discount'] ?? 0,
                 'discount_type' => $row['discount_type'],
@@ -452,6 +486,7 @@ class PurchaseController extends Controller
             Stock::firstOrNew([
                 'item_id'   => $row['product_id'],
                 'godown_id' => $request->godown_id,
+                'lot_id'    => $lot->id,  
                 'created_by' => auth()->id(),
             ])->increment('qty', $row['qty']);
 

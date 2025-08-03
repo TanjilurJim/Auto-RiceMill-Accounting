@@ -21,6 +21,7 @@ interface Godown {
 
 export default function ItemCreate({ categories, units, godowns }: { categories: Category[]; units: Unit[]; godowns: Godown[] }) {
     const { data, setData, post, processing, errors } = useForm({
+        date: '',
         item_name: '',
         unit_id: '',
         category_id: '',
@@ -30,6 +31,8 @@ export default function ItemCreate({ categories, units, godowns }: { categories:
         previous_stock: '',
         total_previous_stock_value: '',
         description: '',
+        lot_no: '', // ← NEW
+        received_at: '',
     });
 
     const handleSubmit = (e: React.FormEvent) => {
@@ -41,8 +44,8 @@ export default function ItemCreate({ categories, units, godowns }: { categories:
         <AppLayout>
             <Head title="Create Item" />
             <div className="h-full bg-gray-100 p-6">
-                <div className="h-full bg-white rounded-lg p-6">
-                    <PageHeader title="Create Item" addLinkHref='/items' addLinkText="Back" />
+                <div className="h-full rounded-lg bg-white p-6">
+                    <PageHeader title="Create Item" addLinkHref="/items" addLinkText="Back" />
 
                     <ItemForm
                         data={data}

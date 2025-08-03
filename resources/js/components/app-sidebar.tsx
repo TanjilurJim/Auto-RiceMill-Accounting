@@ -127,6 +127,11 @@ const mainNavItems: NavItem[] = [
                 href: '/items',
                 icon: ClipboardList,
             },
+            {
+                title: 'Stock Add',
+                href: '/stock-moves',
+                icon: ClipboardList,
+            },
             // Later you can add more inventory-related items here (e.g., Products, Stock Transfers, etc.)
         ],
     },

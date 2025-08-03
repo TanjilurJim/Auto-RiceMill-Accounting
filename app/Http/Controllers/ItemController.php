@@ -8,6 +8,7 @@ use Illuminate\Validation\Rule;
 use App\Models\Category;
 use App\Models\Unit;
 use App\Models\Godown;
+use App\Models\Lot;
 use Illuminate\Support\Facades\DB;
 use App\Models\Stock;
 use Illuminate\Http\Request;
@@ -92,7 +93,7 @@ class ItemController extends Controller
         /* remove duplicates just in case */
         $extraUserIds = array_unique($extraUserIds);
 
-        /* -------------------------------------------------
+        /* --------------------------------------------------
        2️⃣  Build the form payload
         ------------------------------------------------- */
         return Inertia::render('items/create', [
@@ -112,68 +113,76 @@ class ItemController extends Controller
      */
     public function store(Request $request)
     {
-        // 🔥 Fix: Removed 'item_part' from validation & removed incorrect 'sales_price' field
+        /* 1️⃣ Validate -------------------------------------------------- */
         $validated = $request->validate([
-            'item_name' => [
+            'item_name'  => [
                 'required',
                 'string',
                 'max:255',
                 Rule::unique('items', 'item_name')
-                    ->whereIn('created_by', user_scope_ids()),   // 👈 only unique inside the group
+                    ->whereIn('created_by', user_scope_ids()),
             ],
-            'unit_id' => 'required|exists:units,id',
+            'unit_id'    => 'required|exists:units,id',
             'category_id' => 'required|exists:categories,id',
-            'godown_id' => 'required|exists:godowns,id',
+            'godown_id'  => 'required|exists:godowns,id',
 
-            'purchase_price' => 'nullable|numeric',
-            'sale_price' => 'nullable|numeric', // ✅ Fixed from 'sales_price' to 'sale_price'
-            'previous_stock' => 'nullable|numeric',
-            'total_previous_stock_value' => 'nullable|numeric',
-            'description' => 'nullable|string',
+            'purchase_price'               => 'nullable|numeric',
+            'sale_price'                   => 'nullable|numeric',
+            'previous_stock'               => 'nullable|numeric',
+            'total_previous_stock_value'   => 'nullable|numeric',
+            'description'                  => 'nullable|string',
+
+            /* new                                             */
+            'lot_no'      => 'required_with:previous_stock|string|max:50',
+            'received_at' => 'nullable|date',
         ]);
 
-        // Generate unique item code
+        /* 2️⃣ Generate a unique item_code ------------------ */
         do {
-            $nextId = Item::max('id') + 1;
+            $nextId   = Item::max('id') + 1;
             $itemCode = 'ITM' . str_pad($nextId, 4, '0', STR_PAD_LEFT);
-            $exists = Item::where('item_code', $itemCode)->exists();
-        } while ($exists);
-        // Check if same item_code exists with different name
-        $conflictingItem = Item::where('item_code', $itemCode)
-            ->where('item_name', '!=', $request->item_name)
-            ->first();
+        } while (Item::where('item_code', $itemCode)->exists());
 
-        if ($conflictingItem) {
-            return redirect()->back()->withErrors([
-                'item_code' => 'Item code already exists with a different item name.',
-            ])->withInput();
-        }
+        $validated += [
+            'item_code'   => $itemCode,
+            'created_by'  => auth()->id(),
+            'purchase_price' => $request->purchase_price ?? 0,
+            'sale_price'     => $request->sale_price     ?? 0,
+            'previous_stock' => $request->previous_stock ?? 0,
+            'total_previous_stock_value' => $request->total_previous_stock_value ?? 0,
+        ];
 
-        // Use same item_code if item_name is the same
-        $existingSameItem = Item::where('item_code', $itemCode)
-            ->where('item_name', $request->item_name)
-            ->first();
-
-        $validated['item_code'] = $existingSameItem ? $existingSameItem->item_code : $itemCode;
-        $validated['created_by'] = auth()->id();
-        $validated['purchase_price'] = $request->purchase_price ?? 0;
-        $validated['sale_price'] = $request->sale_price !== '' ? $request->sale_price : 0;
-        $validated['previous_stock'] = $request->previous_stock ?? 0;
-        $validated['total_previous_stock_value'] = $request->total_previous_stock_value ?? 0;
-
-        // ✅ Save the item
+        /* 3️⃣ Create the Item row --------------------------- */
         $item = Item::create($validated);
 
-        // ✅ Insert a stock record for this item
-        \App\Models\Stock::create([
-            'item_id'   => $item->id,
-            'godown_id' => $request->godown_id,
-            'qty'       => $request->previous_stock ?? 0,
-            'created_by' => auth()->id(),
-        ]);
+        /* 4️⃣ Opening stock → its own lot + stock row ------- */
+        $openingQty = (float) ($request->previous_stock ?? 0);
 
-        return redirect()->route('items.index')->with('success', 'Item created successfully!');
+        if ($openingQty > 0) {
+
+            $lot = \App\Models\Lot::create([
+                'godown_id'   => $request->godown_id,
+                'item_id'     => $item->id,
+                'lot_no'      => $request->lot_no,
+                'received_at' => $request->received_at ?? now(),
+                'created_by'  => auth()->id(),
+            ]);
+
+            \App\Models\Stock::create([
+                'item_id'   => $item->id,
+                'godown_id' => $request->godown_id,
+                'lot_id'    => $lot->id,               // ⭐
+                'qty'       => $openingQty,
+                'avg_cost'  => $request->purchase_price ?? 0,
+                'created_by' => auth()->id(),
+            ]);
+        }
+
+        return redirect()
+            ->route('items.index')
+            ->with('success', 'Item created successfully!');
     }
+
 
 
 
@@ -189,19 +198,31 @@ class ItemController extends Controller
         }
 
         $userId = auth()->id();
-        $stockQty = Stock::where([
-            'item_id' => $item->id,
+
+        $lot = Lot::where([
+            'item_id'   => $item->id,
             'godown_id' => $item->godown_id,
-            'created_by' => $userId,
+            'created_by' => auth()->id(),
+        ])
+            ->orderBy('received_at')   // opening stock = oldest
+            ->first();
+
+        $item->previous_stock = Stock::where([
+            'item_id'   => $item->id,
+            'godown_id' => $item->godown_id,
+            'created_by' => auth()->id(),
         ])->value('qty') ?? 0;
 
-        $item->previous_stock = $stockQty;
+        $item->lot_no      = $lot?->lot_no      ?? '';
+        $item->received_at = $lot?->received_at ?? '';
+
+
 
         return Inertia::render('items/edit', [
-            'item' => $item->load(['category', 'unit', 'godown']),
+            'item'       => $item->load(['category', 'unit', 'godown']),
             'categories' => Category::all(),
-            'units' => Unit::all(),
-            'godowns' => Godown::all(),
+            'units'      => Unit::all(),
+            'godowns'    => Godown::all(),
         ]);
     }
 

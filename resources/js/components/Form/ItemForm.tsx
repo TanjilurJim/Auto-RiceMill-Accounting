@@ -1,7 +1,9 @@
 import ActionFooter from '@/components/ActionFooter';
+import InputCalendar from '@/components/Btn&Link/InputCalendar';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { Info } from 'lucide-react';
 import React, { useEffect } from 'react';
+
 interface ItemFormProps {
     data: {
         item_name: string;
@@ -13,6 +15,8 @@ interface ItemFormProps {
         previous_stock: string | number;
         total_previous_stock_value: string | number;
         description: string;
+        lot_no: string; // ← NEW
+        received_at: string;
     };
     setData: (key: string, value: any) => void;
     handleSubmit: (e: React.FormEvent) => void;
@@ -96,6 +100,27 @@ const ItemForm: React.FC<ItemFormProps> = ({
                         ))}
                     </select>
                     {errors.godown_id && <p className="text-sm text-red-500">{errors.godown_id}</p>}
+                </div>
+                {/* Lot No */}
+                <div>
+                    <label className="mb-1 block font-medium">
+                        Lot / Batch&nbsp;No
+                        <span className="ml-0.5 text-red-500">*</span>
+                    </label>
+                    <input
+                        type="text"
+                        value={data.lot_no}
+                        onChange={(e) => setData('lot_no', e.target.value)}
+                        className="w-full rounded border p-2"
+                        placeholder="e.g. OPEN-STK-01"
+                    />
+                    {errors.lot_no && <p className="text-sm text-red-500">{errors.lot_no}</p>}
+                </div>
+
+                {/* Received-at */}
+                <div>
+                    <InputCalendar value={data.received_at} onChange={(val) => setData('received_at', val)} label="Received Date" required />
+                    {errors.received_at && <p className="text-sm text-red-500">{errors.received_at}</p>}
                 </div>
 
                 {/* Purchase Price */}

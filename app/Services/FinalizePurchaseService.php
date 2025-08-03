@@ -49,6 +49,7 @@ class FinalizePurchaseService
                 $stock = Stock::firstOrNew([
                     'item_id'    => $line->product_id,
                     'godown_id'  => $purchase->godown_id,
+                    'lot_id'     => $line->lot_id,  
                     'created_by' => $purchase->created_by,
                 ]);
 

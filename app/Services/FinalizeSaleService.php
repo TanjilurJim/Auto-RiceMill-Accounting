@@ -37,27 +37,35 @@ class FinalizeSaleService
             /* ------------------------------
              * 1️⃣  Reduce stock  +  collect COST
              * ----------------------------*/
-            $totalCost = 0;
+             $costByItem = [];            // [item_id => cost]
+
             foreach ($sale->saleItems as $row) {
-                // decrement stock now
+
+                // decrement that **exact lot**
                 Stock::where([
-                    'item_id'   => $row->product_id,
-                    'godown_id' => $sale->godown_id,
+                    'item_id'    => $row->product_id,
+                    'godown_id'  => $sale->godown_id,
+                    'lot_id'     => $row->lot_id,
                     'created_by' => $sale->created_by,
                 ])->decrement('qty', $row->qty);
 
-                // weighted-avg cost (same logic you have today)
+                // weighted-avg cost of that lot
                 $unitCost = Stock::where([
-                    'item_id'   => $row->product_id,
-                    'godown_id' => $sale->godown_id,
-                    'created_by' => $sale->created_by,
-                ])->value('avg_cost') ?? 0;
+                        'item_id'    => $row->product_id,
+                        'godown_id'  => $sale->godown_id,
+                        'lot_id'     => $row->lot_id,
+                        'created_by' => $sale->created_by,
+                    ])->value('avg_cost') ?? 0;
 
                 if ($unitCost == 0) {
                     $unitCost = Item::find($row->product_id)->purchase_price ?? 0;
                 }
-                $totalCost += $unitCost * $row->qty;
+
+                $costByItem[$row->product_id] = ($costByItem[$row->product_id] ?? 0)
+                                               + ($unitCost * $row->qty);
             }
+
+            $totalCost = array_sum($costByItem);
 
             /* ------------------------------
              * 2️⃣  Journal header
@@ -115,22 +123,27 @@ class FinalizeSaleService
             /* ------------------------------
              * 5️⃣  Inventory / COGS
              * ----------------------------*/
-            JournalEntry::insert([
-                [
+            foreach ($costByItem as $itemId => $cost) {
+                $note = 'Inventory out (Item #'.$itemId.')';
+
+                JournalEntry::create([
                     'journal_id'        => $journal->id,
                     'account_ledger_id' => $sale->inventory_ledger_id,
                     'type'              => 'credit',
-                    'amount'            => $totalCost,
-                    'note'              => 'Inventory out (at cost)',
-                ],
-                [
+                    'amount'            => $cost,
+                    'note'              => $note,
+                ]);
+
+                JournalEntry::create([
                     'journal_id'        => $journal->id,
                     'account_ledger_id' => $sale->cogs_ledger_id,
                     'type'              => 'debit',
-                    'amount'            => $totalCost,
-                    'note'              => 'Cost of Goods Sold',
-                ],
-            ]);
+                    'amount'            => $cost,
+                    'note'              => 'COGS – '.$note,
+                ]);
+            }
+
+            // adjust ledgers once with the total
             LedgerService::adjust($sale->inventory_ledger_id, 'credit', $totalCost);
             LedgerService::adjust($sale->cogs_ledger_id,      'debit',  $totalCost);
 
