@@ -47,13 +47,8 @@ export default function StockSummary({ stocks, filters, company }: Props) {
                 <Card className="shadow-lg">
                     <CardHeader className="bg-gray-50 py-6 text-center">
                         <div className="space-y-1">
-
                             {company?.logo_path && (
-                                <img
-                                    src={company?.logo_path}
-                                    alt="Company Logo"
-                                    className="mx-auto mb-2 h-16 w-16 object-cover"
-                                />
+                                <img src={company?.logo_path} alt="Company Logo" className="mx-auto mb-2 h-16 w-16 object-cover" />
                             )}
 
                             <h1 className="text-3xl font-bold uppercase">{company?.company_name ?? 'Company Name'}</h1>
@@ -95,6 +90,7 @@ export default function StockSummary({ stocks, filters, company }: Props) {
                                         <th className="border px-2 py-1 text-left">Item Name</th>
                                         <th className="border px-2 py-1 text-left">Godown</th>
                                         <th className="border px-2 py-1 text-left">Qty (Unit)</th>
+                                        <th className="border px-2 py-1 text-left">Lot_no</th>
                                         {/* <th className="border px-2 py-1 text-left">Total Purchase</th>
                                         <th className="border px-2 py-1 text-left">Total Sale</th>
                                         <th className="border px-2 py-1 text-left">Sale Qty (Unit)</th> */}
@@ -112,7 +108,10 @@ export default function StockSummary({ stocks, filters, company }: Props) {
                                                     <td className="border px-2 py-1">{stock.godown_name}</td>
                                                     <td className="border px-2 py-1">
                                                         {Number(stock.qty).toFixed(2)} <span className="text-xs text-gray-500">({stock.unit})</span>
+
                                                     </td>
+                                                    <td className="border px-2 py-1">{stock.lot_no || '-'}</td>
+                                                    
                                                     {/* <td className="border px-2 py-1">{Number(stock.total_purchase).toFixed(2)}</td>
                                                     <td className="border px-2 py-1">{Number(stock.total_sale).toFixed(2)}</td>
                                                     <td className="border px-2 py-1">
@@ -141,25 +140,24 @@ export default function StockSummary({ stocks, filters, company }: Props) {
                                                 <td className="border px-2 py-1">—</td>
                                             </tr>
                                             {/* --- Per-item stock summary --- */}
-<tr className="bg-gray-50 print:bg-white">
-  <td className="border px-2 py-2 text-sm font-medium" colSpan={9}>
-    <strong>Closing Stock&nbsp;by&nbsp;Item:</strong>
-    <ul className="mt-1 list-disc space-y-0.5 pl-5 text-sm text-gray-700">
-      {Object.entries(
-        stocks.reduce<Record<string, number>>((acc, s) => {
-          const key = `${s.item_name} (${s.unit})`;
-          acc[key] = (acc[key] || 0) + Number(s.qty || 0);
-          return acc;
-        }, {})
-      ).map(([item, qty]) => (
-        <li key={item}>
-          {item}: {qty.toFixed(2)}
-        </li>
-      ))}
-    </ul>
-  </td>
-</tr>
-
+                                            <tr className="bg-gray-50 print:bg-white">
+                                                <td className="border px-2 py-2 text-sm font-medium" colSpan={9}>
+                                                    <strong>Closing Stock&nbsp;by&nbsp;Item:</strong>
+                                                    <ul className="mt-1 list-disc space-y-0.5 pl-5 text-sm text-gray-700">
+                                                        {Object.entries(
+                                                            stocks.reduce<Record<string, number>>((acc, s) => {
+                                                                const key = `${s.item_name} (${s.unit})`;
+                                                                acc[key] = (acc[key] || 0) + Number(s.qty || 0);
+                                                                return acc;
+                                                            }, {}),
+                                                        ).map(([item, qty]) => (
+                                                            <li key={item}>
+                                                                {item}: {qty.toFixed(2)}
+                                                            </li>
+                                                        ))}
+                                                    </ul>
+                                                </td>
+                                            </tr>
                                         </>
                                     ) : (
                                         <tr>

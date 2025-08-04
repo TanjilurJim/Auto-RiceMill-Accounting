@@ -111,7 +111,7 @@ class ReportController extends Controller
             // Exclude admin-created employees for normal users
             $adminIds = User::role('admin')->pluck('id')->toArray();
             $employeeQuery->whereIn('created_by', $ids)
-                        ->whereNotIn('created_by', $adminIds);
+                ->whereNotIn('created_by', $adminIds);
         }
 
         $employees = $employeeQuery->get();
@@ -324,7 +324,7 @@ class ReportController extends Controller
         $user = auth()->user();
         $ids = user_scope_ids();
 
-        return Stock::with(['item.unit', 'godown'])
+        return Stock::with(['item.unit', 'godown', 'lot']) // 👈 add 'lot'
             ->when(!$user->hasRole('admin'), function ($q) use ($ids) {
                 $q->whereHas('item', function ($subQuery) use ($ids) {
                     $subQuery->whereIn('created_by', $ids);
@@ -335,10 +335,9 @@ class ReportController extends Controller
             ->map(function ($stock) {
                 return [
                     'item_name' => $stock->item->item_name,
-                    // 'godown_name' => $stock->godown->name,
                     'godown_name' => optional($stock->godown)->name,
-                    // 'unit' => $stock->item->unit->name,
                     'unit' => optional($stock->item->unit)->name ?? '',
+                    'lot_no' => optional($stock->lot)->lot_no ?? '', // 👈 ADD THIS
                     'qty' => (float) $stock->qty ?? 0,
                     'total_purchase' => (float) (PurchaseItem::where('product_id', $stock->item_id)->sum('subtotal') ?? 0),
                     'total_sale' => (float) (SaleItem::where('product_id', $stock->item_id)->sum('subtotal') ?? 0),
@@ -1413,11 +1412,11 @@ class ReportController extends Controller
         //     ->get();
 
         $ledgers = AccountLedger::select('id', 'account_ledger_name')
-        ->when(
-            !$user->hasRole('admin'),
-            fn($q) => $q->whereIn('created_by', $ids)
-        )
-        ->get();
+            ->when(
+                !$user->hasRole('admin'),
+                fn($q) => $q->whereIn('created_by', $ids)
+            )
+            ->get();
 
         // ── 2.  Show filter page if any field missing ───────────────────────────────
         if (
@@ -1641,6 +1640,4 @@ class ReportController extends Controller
             default => 'Journal',
         };
     }
-
-
 }

@@ -41,14 +41,27 @@ class ItemController extends Controller
     {
         $user = auth()->user();
 
+
         if ($user->hasRole('admin')) {
-            $items = Item::with(['category', 'unit', 'godown', 'creator'])
+            $items = Item::with([
+                'category',
+                'unit',
+                'godown',
+                'creator',
+                'stocks.lot' => fn($q) => $q->where('qty', '>', 0) // ✅ only active lots
+            ])
                 ->withSum('stocks as current_stock', 'qty')
                 ->orderBy('id', 'desc')
                 ->paginate(10);
         } else {
             $ids = godown_scope_ids();
-            $items = Item::with(['category', 'unit', 'godown', 'creator'])
+            $items = Item::with([
+                'category',
+                'unit',
+                'godown',
+                'creator',
+                'stocks' => fn($q) => $q->where('qty', '>', 0)->with('lot')
+            ])
                 ->whereIn('created_by', $ids)
                 ->withSum(['stocks as current_stock' => function ($q) use ($ids) {
                     $q->whereIn('created_by', $ids);
@@ -274,6 +287,74 @@ class ItemController extends Controller
         $stock->save();
 
         return redirect()->route('items.index')->with('success', 'Item updated successfully!');
+    }
+
+
+    public function show(Item $item, Request $request)
+    {
+        $user   = auth()->user();
+        $scope  = godown_scope_ids();
+        $gId    = $request->godown_id;
+
+        /* 1️⃣  Active stock rows (no N+1) */
+        $stocks = \App\Models\Stock::with(['lot', 'godown'])
+            ->where('item_id', $item->id)
+            ->where('qty', '>', 0)
+            ->when(!$user->hasRole('admin'), fn($q) => $q->whereIn('created_by', $scope))
+            ->when($gId,                       fn($q) => $q->where('godown_id', $gId))
+            ->orderByDesc('lot_id')
+            ->get();
+
+        /* 2️⃣  Fetch last IN-move costs for every lot_id in one query */
+        $lastRates = \App\Models\StockMove::select('lot_id', 'unit_cost')
+            ->where('type', 'in')
+            ->whereIn('lot_id', $stocks->pluck('lot_id'))
+            ->orderBy('lot_id')
+            ->orderByDesc('id')
+            ->get()
+            ->unique('lot_id')
+            ->keyBy('lot_id');   // => [lot_id => StockMove]
+
+        /* 3️⃣  Build lot-wise rows */
+        $stocks = $stocks->map(function ($s) use ($item, $lastRates) {
+            // Step 1: try purchase_price from items table
+            $rate = (float) ($item->purchase_price ?? 0);
+
+            // Step 2: if 0 → fallback to last IN move’s unit_cost for this lot
+            if ($rate == 0) {
+                $rate = (float) ($lastRates[$s->lot_id]->unit_cost ?? 0);
+            }
+
+            $value = round($s->qty * $rate, 2);
+
+            return [
+                'lot_no'      => $s->lot?->lot_no,
+                'received_at' => optional($s->lot)->received_at,
+                'godown'      => $s->godown?->name,
+                'qty'         => (float) $s->qty,
+                'rate'        => $rate,
+                'value'       => $value,
+            ];
+        });
+
+        /* 4️⃣  Summary bar */
+        $summary = [
+            'total_qty'   => $stocks->sum('qty'),
+            'total_value' => $stocks->sum('value'),
+            'last_in'     => $stocks->max('received_at'),
+            'unit'        => $item->unit?->name,
+        ];
+
+        /* 5️⃣  Render */
+        return Inertia::render('items/show', [
+            'item'    => $item->only('id', 'item_name', 'item_code') + ['unit' => $summary['unit']],
+            'stocks'  => $stocks,
+            'summary' => $summary,
+            'godowns' => $user->hasRole('admin')
+                ? \App\Models\Godown::select('id', 'name')->get()
+                : \App\Models\Godown::whereIn('created_by', $scope)->select('id', 'name')->get(),
+            'filters' => ['godown_id' => $gId],
+        ]);
     }
 
 

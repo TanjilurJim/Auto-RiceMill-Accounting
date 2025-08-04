@@ -5,6 +5,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import AppLayout from '@/layouts/app-layout';
 import { Head, useForm } from '@inertiajs/react';
 import { Plus, Trash2 } from 'lucide-react';
+import PageHeader from '@/components/PageHeader';
 
 interface Godown {
     id: number;
@@ -65,7 +66,11 @@ export default function StockMoveCreate({ godowns, items }: { godowns: Godown[];
     return (
         <AppLayout>
             <Head title="Add Stock" />
+             <div className="h-full bg-gray-100 p-6">
+                <div className="h-full rounded-lg bg-white p-6">
+                    <PageHeader title= "Add-Stock" addLinkHref="/stock-moves" addLinkText="Back" />
             <form onSubmit={handleSubmit} className="space-y-4 p-6">
+
                 <h1 className="text-xl font-semibold">Add Stock</h1>
 
                 <div className="space-y-4 rounded border bg-white p-4">
@@ -169,7 +174,10 @@ export default function StockMoveCreate({ godowns, items }: { godowns: Godown[];
                         <Button disabled={processing}>Save Stock Moves</Button>
                     </div>
                 </div>
+                
             </form>
+            </div>
+                </div>
         </AppLayout>
     );
 }
