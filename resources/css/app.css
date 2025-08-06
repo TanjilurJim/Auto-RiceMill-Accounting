@@ -143,7 +143,7 @@
     --radius:
         0.625rem;
     --sidebar:
-        oklch(0.985 0 0);
+        oklch(100% 0.00011 271.152);
     --sidebar-foreground:
         oklch(0.145 0 0);
     --sidebar-primary:
@@ -151,13 +151,13 @@
     --sidebar-primary-foreground:
         oklch(0.985 0 0);
     --sidebar-accent:
-        oklch(0.97 0 0);
+        oklch(84.662% 0.05123 213.708);
     --sidebar-accent-foreground:
         oklch(0.205 0 0);
     --sidebar-border:
-        oklch(0.922 0 0);
+        oklch(14.489% 0.05946 29.223);
     --sidebar-ring:
-        oklch(0.708 0 0);
+        oklch(34.27% 0.13392 28.187);
 
     /* custom properties */
     /* --primary: #8FB1E9; */

@@ -296,16 +296,20 @@ class ItemController extends Controller
         $scope  = godown_scope_ids();
         $gId    = $request->godown_id;
 
-        /* 1️⃣  Active stock rows (no N+1) */
+        /* 1️⃣ Active stock rows */
         $stocks = \App\Models\Stock::with(['lot', 'godown'])
             ->where('item_id', $item->id)
             ->where('qty', '>', 0)
             ->when(!$user->hasRole('admin'), fn($q) => $q->whereIn('created_by', $scope))
             ->when($gId,                       fn($q) => $q->where('godown_id', $gId))
-            ->orderByDesc('lot_id')
             ->get();
 
-        /* 2️⃣  Fetch last IN-move costs for every lot_id in one query */
+        /* 2️⃣ Lot id of the very first lot (opening) */
+        $openingLotId = \App\Models\Lot::where('item_id', $item->id)
+            ->orderBy('id')       // earliest = first
+            ->value('id');
+
+        /* 3️⃣ One query: latest IN-move cost for every lot */
         $lastRates = \App\Models\StockMove::select('lot_id', 'unit_cost')
             ->where('type', 'in')
             ->whereIn('lot_id', $stocks->pluck('lot_id'))
@@ -313,16 +317,22 @@ class ItemController extends Controller
             ->orderByDesc('id')
             ->get()
             ->unique('lot_id')
-            ->keyBy('lot_id');   // => [lot_id => StockMove]
+            ->keyBy('lot_id');  //  [lot_id => StockMove]
 
-        /* 3️⃣  Build lot-wise rows */
-        $stocks = $stocks->map(function ($s) use ($item, $lastRates) {
-            // Step 1: try purchase_price from items table
-            $rate = (float) ($item->purchase_price ?? 0);
+        /* 4️⃣ Build rows */
+        $rows = $stocks->map(function ($s) use ($item, $lastRates, $openingLotId) {
 
-            // Step 2: if 0 → fallback to last IN move’s unit_cost for this lot
-            if ($rate == 0) {
-                $rate = (float) ($lastRates[$s->lot_id]->unit_cost ?? 0);
+            // 4.1 newest IN move cost?
+            $rate = (float) ($lastRates[$s->lot_id]->unit_cost ?? 0);
+
+            // 4.2 else any stored avg_cost?
+            if ($rate == 0 && $s->avg_cost) {
+                $rate = (float) $s->avg_cost;
+            }
+
+            // 4.3 else if this is the opening lot → item’s purchase_price
+            if ($rate == 0 && $s->lot_id == $openingLotId) {
+                $rate = (float) ($item->purchase_price ?? 0);
             }
 
             $value = round($s->qty * $rate, 2);
@@ -337,18 +347,18 @@ class ItemController extends Controller
             ];
         });
 
-        /* 4️⃣  Summary bar */
+        /* 5️⃣ Summary */
         $summary = [
-            'total_qty'   => $stocks->sum('qty'),
-            'total_value' => $stocks->sum('value'),
-            'last_in'     => $stocks->max('received_at'),
+            'total_qty'   => $rows->sum('qty'),
+            'total_value' => $rows->sum('value'),
+            'last_in'     => $rows->max('received_at'),
             'unit'        => $item->unit?->name,
         ];
 
-        /* 5️⃣  Render */
+        /* 6️⃣ Render */
         return Inertia::render('items/show', [
             'item'    => $item->only('id', 'item_name', 'item_code') + ['unit' => $summary['unit']],
-            'stocks'  => $stocks,
+            'stocks'  => $rows,
             'summary' => $summary,
             'godowns' => $user->hasRole('admin')
                 ? \App\Models\Godown::select('id', 'name')->get()
@@ -356,6 +366,7 @@ class ItemController extends Controller
             'filters' => ['godown_id' => $gId],
         ]);
     }
+
 
 
 

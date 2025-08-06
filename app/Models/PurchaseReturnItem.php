@@ -10,6 +10,7 @@ class PurchaseReturnItem extends Model
         'purchase_return_id',
         'product_id',
         'qty',
+        'lot_id',
         'price',
         'subtotal',
     ];
@@ -22,5 +23,9 @@ class PurchaseReturnItem extends Model
     public function item()
     {
         return $this->belongsTo(Item::class, 'product_id');
+    }
+    public function lot()
+    {
+        return $this->belongsTo(Lot::class);
     }
 }

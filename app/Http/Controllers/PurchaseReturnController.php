@@ -25,15 +25,6 @@ class PurchaseReturnController extends Controller
     // 🟢 Index: List all returns
     public function index()
     {
-        // $returns = PurchaseReturn::with([
-        //     'godown',
-        //     'accountLedger',
-        //     'returnItems.item',
-        //     'creator'
-        // ])
-        //     ->where('created_by', auth()->id())
-        //     ->orderBy('id', 'desc')
-        //     ->paginate(10);
 
         $user = auth()->user(); // [multi-level access]
 
@@ -63,30 +54,6 @@ class PurchaseReturnController extends Controller
             'returns' => $returns
         ]);
     }
-
-    // 🟢 Create form
-    // public function create()
-    // {
-    //     // return Inertia::render('purchase_returns/create', [
-    //     //     'godowns' => Godown::where('created_by', auth()->id())->get(),
-    //     //     'ledgers' => AccountLedger::where('created_by', auth()->id())->get(),
-    //     //     'items' => Item::where('created_by', auth()->id())->get()->unique('item_name')->values(),
-    //     //     'receivedModes' => ReceivedMode::with('ledger') // 🆕 add this
-    //     //         ->where('created_by', auth()->id())
-    //     //         ->get(),
-    //     // ]);
-
-    //     $userIds = godown_scope_ids(); // [multi-level access]
-
-    //     return Inertia::render('purchase_returns/create', [
-    //         'godowns' => Godown::whereIn('created_by', $userIds)->get(), // [multi-level access]
-    //         'ledgers' => AccountLedger::whereIn('created_by', $userIds)->get(), // [multi-level access]
-    //         'items' => Item::whereIn('created_by', $userIds)->get()->unique('item_name')->values(), // [multi-level access]
-    //         'receivedModes' => ReceivedMode::with('ledger')
-    //             ->whereIn('created_by', $userIds) // [multi-level access]
-    //             ->get(),
-    //     ]);
-    // }
 
     public function create()
     {
@@ -129,6 +96,7 @@ class PurchaseReturnController extends Controller
             'account_ledger_id' => 'required|exists:account_ledgers,id',
             'return_items' => 'required|array|min:1',
             'return_items.*.product_id' => 'required|exists:items,id',
+            'return_items.*.lot_no' => 'required|string|max:50',
             'return_items.*.qty' => 'required|numeric|min:0.01',
             'return_items.*.price' => 'required|numeric|min:0',
             'return_items.*.subtotal' => 'required|numeric|min:0',
@@ -142,19 +110,47 @@ class PurchaseReturnController extends Controller
             'return_voucher_no' => $voucherNo,
             'godown_id' => $request->godown_id,
             'account_ledger_id' => $request->account_ledger_id,
-            'inventory_ledger_id'=> $request->inventory_ledger_id,
+            'inventory_ledger_id' => $request->inventory_ledger_id,
             'reason' => $request->reason,
             'total_qty' => collect($request->return_items)->sum('qty'),
             'grand_total' => collect($request->return_items)->sum('subtotal'),
             'created_by' => auth()->id(),
         ]);
 
-        foreach ($request->return_items as $item) {
-            $return->returnItems()->create($item);
-            $stock = Stock::where('item_id', $item['product_id'])->where('godown_id', $request->godown_id)->first();
-            if ($stock) {
-                $stock->decrement('qty', $item['qty']);
-            }
+        foreach ($request->return_items as $row) {
+
+            /* a) locate or create the lot */
+            $lot = \App\Models\Lot::firstOrCreate(
+                [
+                    'godown_id' => $request->godown_id,
+                    'item_id'   => $row['product_id'],
+                    'lot_no'    => $row['lot_no'],       // comes from form
+                ],
+                [
+                    'received_at' => $request->date,
+                    'created_by'  => auth()->id(),
+                ]
+            );
+
+            /* b) save return-item row with lot_id */
+            $return->returnItems()->create([
+                'product_id' => $row['product_id'],
+                'lot_id'     => $lot->id,               // ⭐ ties the return to that lot
+                'qty'        => $row['qty'],
+                'price'      => $row['price'],
+                'subtotal'   => $row['subtotal'],
+            ]);
+
+            /* c) decrement stock for that specific lot */
+            $stock = Stock::firstOrNew([
+                'item_id'    => $row['product_id'],
+                'godown_id'  => $request->godown_id,
+                'lot_id'     => $lot->id,               // ⭐ same lot
+                'created_by' => auth()->id(),
+            ]);
+
+            $stock->qty -= $row['qty'];
+            $stock->save();
         }
 
         $journal = Journal::firstOrCreate([
@@ -174,7 +170,7 @@ class PurchaseReturnController extends Controller
                 'note' => 'Reduce supplier payable (return) | রিটার্নের কারণে সরবরাহকারীর বাকি হ্রাস',
             ],
             [
-                'account_ledger_id' => $return->inventory_ledger_id, 
+                'account_ledger_id' => $return->inventory_ledger_id,
                 'type' => 'credit',
                 'amount' => $return->grand_total,
                 'note' => 'Inventory decreased (purchase return)',
@@ -182,7 +178,7 @@ class PurchaseReturnController extends Controller
         ]);
 
         $this->updateLedgerBalance($request->account_ledger_id, 'debit', $return->grand_total);
-        $this->updateLedgerBalance($return->inventory_ledger_id, 'credit', $return->grand_total); 
+        $this->updateLedgerBalance($return->inventory_ledger_id, 'credit', $return->grand_total);
 
         $return->journal_id = $journal->id;
         $return->save();
@@ -303,14 +299,12 @@ class PurchaseReturnController extends Controller
             'reason' => 'nullable|string|max:1000',
         ]);
 
-        foreach ($purchase_return->returnItems as $item) {
-            $stock = Stock::where('item_id', $item->product_id)
-                ->where('godown_id', $purchase_return->godown_id)
-                ->first();
-
-            if ($stock) {
-                $stock->increment('qty', $item->qty); // reverse
-            }
+        foreach ($purchase_return->returnItems as $old) {
+            Stock::where([
+                'item_id'   => $old->product_id,
+                'godown_id' => $purchase_return->godown_id,
+                'lot_id'    => $old->lot_id,        // 👈 reverse that exact lot
+            ])->increment('qty', $old->qty);
         }
 
         if ($purchase_return->journal_id) {
@@ -401,15 +395,39 @@ class PurchaseReturnController extends Controller
         ]);
 
         $purchase_return->returnItems()->delete();
-        foreach ($request->return_items as $item) {
-            $purchase_return->returnItems()->create($item);
 
+        foreach ($request->return_items as $row) {
+
+            /* a) locate / create lot */
+            $lot = Lot::firstOrCreate(
+                [
+                    'godown_id' => $request->godown_id,
+                    'item_id'   => $row['product_id'],
+                    'lot_no'    => $row['lot_no'],        // comes from form
+                ],
+                [
+                    'received_at' => $request->date,
+                    'created_by'  => auth()->id(),
+                ]
+            );
+
+            /* b) add return item with lot_id */
+            $purchase_return->returnItems()->create([
+                'product_id' => $row['product_id'],
+                'lot_id'     => $lot->id,                 // ⭐
+                'qty'        => $row['qty'],
+                'price'      => $row['price'],
+                'subtotal'   => $row['subtotal'],
+            ]);
+
+            /* c) decrement stock of that lot */
             $stock = Stock::firstOrNew([
-                'item_id' => $item['product_id'],
-                'godown_id' => $request->godown_id,
+                'item_id'    => $row['product_id'],
+                'godown_id'  => $request->godown_id,
+                'lot_id'     => $lot->id,                // ⭐ same lot
                 'created_by' => auth()->id(),
             ]);
-            $stock->qty -= $item['qty'];
+            $stock->qty -= $row['qty'];
             $stock->save();
         }
 

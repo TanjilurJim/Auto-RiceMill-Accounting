@@ -28,7 +28,17 @@ interface Item {
     item_name: string;
 }
 
-export default function PurchaseReturnCreate({ godowns, ledgers, items, receivedModes, }: { godowns: Godown[]; ledgers: Ledger[]; items: Item[]; receivedModes: ReceivedMode[]; }) {
+export default function PurchaseReturnCreate({
+    godowns,
+    ledgers,
+    items,
+    receivedModes,
+}: {
+    godowns: Godown[];
+    ledgers: Ledger[];
+    items: Item[];
+    receivedModes: ReceivedMode[];
+}) {
     const { data, setData, post, processing, errors } = useForm({
         date: '',
         return_voucher_no: '',
@@ -36,7 +46,7 @@ export default function PurchaseReturnCreate({ godowns, ledgers, items, received
         account_ledger_id: '',
         inventory_ledger_id: '', // 🆕 for journal credit
         reason: '',
-        return_items: [{ product_id: '', qty: '', price: '', subtotal: '' }],
+        return_items: [{ product_id: '', qty: '', lot_no: '', price: '', subtotal: '' }],
         refund_modes: [{ mode_name: '', phone_number: '', ledger_id: '', amount_paid: '' }], // 🆕 for optional refund flow
     });
 
@@ -70,8 +80,7 @@ export default function PurchaseReturnCreate({ godowns, ledgers, items, received
             const updated = [...data.return_items];
             updated.splice(index, 1);
             setData('return_items', updated);
-        }
-        );
+        });
     };
 
     const handleSubmit = (e: React.FormEvent, printAfter = false) => {
@@ -90,12 +99,12 @@ export default function PurchaseReturnCreate({ godowns, ledgers, items, received
     return (
         <AppLayout>
             <Head title="Add Purchase Return" />
-            <div className="bg-gray-100 p-6 h-full w-screen lg:w-full">
-                <div className="bg-white h-full rounded-lg p-6">
-                    <PageHeader title='Create Purchase Return' addLinkText='Back' addLinkHref='/purchase-returns' />
+            <div className="h-full w-screen bg-gray-100 p-6 lg:w-full">
+                <div className="h-full rounded-lg bg-white p-6">
+                    <PageHeader title="Create Purchase Return" addLinkText="Back" addLinkHref="/purchase-returns" />
 
                     {/* Form Card */}
-                    <form onSubmit={handleSubmit} className="space-y-6 rounded-lg bg-white p-6  border">
+                    <form onSubmit={handleSubmit} className="space-y-6 rounded-lg border bg-white p-6">
                         {/* Return Info */}
                         <div className="space-y-4">
                             <h2 className="border-b pb-1 text-lg font-semibold">Return Information</h2>
@@ -165,6 +174,7 @@ export default function PurchaseReturnCreate({ godowns, ledgers, items, received
                                     <thead className="bg-gray-50 text-sm">
                                         <tr>
                                             <th className="border px-2 py-1">Product</th>
+                                            <th className="border px-2 py-1">Lot No</th>
                                             <th className="border px-2 py-1">Qty</th>
                                             <th className="border px-2 py-1">Unit Price</th>
                                             <th className="border px-2 py-1">Subtotal</th>
@@ -188,6 +198,18 @@ export default function PurchaseReturnCreate({ godowns, ledgers, items, received
                                                         ))}
                                                     </select>
                                                 </td>
+
+                                                {/* Lot No */}
+                                                <td className="border px-2 py-1">
+                                                    <input
+                                                        type="text"
+                                                        className="w-full"
+                                                        value={item.lot_no}
+                                                        onChange={(e) => handleItemChange(index, 'lot_no', e.target.value)}
+                                                        required
+                                                    />
+                                                </td>
+
                                                 <td className="border px-2 py-1">
                                                     <input
                                                         type="number"
@@ -213,7 +235,7 @@ export default function PurchaseReturnCreate({ godowns, ledgers, items, received
                                                             <button
                                                                 type="button"
                                                                 onClick={() => removeProductRow(index)}
-                                                                className="rounded bg-danger px-2 py-1 text-white hover:bg-danger-hover"
+                                                                className="bg-danger hover:bg-danger-hover rounded px-2 py-1 text-white"
                                                             >
                                                                 &minus;
                                                             </button>
@@ -222,7 +244,7 @@ export default function PurchaseReturnCreate({ godowns, ledgers, items, received
                                                             <button
                                                                 type="button"
                                                                 onClick={addProductRow}
-                                                                className="rounded bg-primary hover:bg-primary-hover px-2 py-1 text-white"
+                                                                className="bg-primary hover:bg-primary-hover rounded px-2 py-1 text-white"
                                                             >
                                                                 +
                                                             </button>
@@ -238,12 +260,14 @@ export default function PurchaseReturnCreate({ godowns, ledgers, items, received
 
                         {/* Totals */}
                         <div className="mt-6 flex justify-between gap-4">
-                            <div className="w-full flex flex-col md:flex-row  gap-2.5">
-                                <div className="w-full flex justify-between rounded border bg-gray-50 p-3 shadow-sm">
+                            <div className="flex w-full flex-col gap-2.5 md:flex-row">
+                                <div className="flex w-full justify-between rounded border bg-gray-50 p-3 shadow-sm">
                                     <span className="font-semibold text-gray-700">Total Qty:</span>
-                                    <span className="font-semibold">{data.return_items.reduce((sum, item) => sum + (parseFloat(item.qty) || 0), 0)}</span>
+                                    <span className="font-semibold">
+                                        {data.return_items.reduce((sum, item) => sum + (parseFloat(item.qty) || 0), 0)}
+                                    </span>
                                 </div>
-                                <div className="w-full flex justify-between rounded border bg-gray-50 p-3 shadow-sm">
+                                <div className="flex w-full justify-between rounded border bg-gray-50 p-3 shadow-sm">
                                     <span className="font-semibold text-gray-700">Total Return Value:</span>
                                     <span className="font-semibold">
                                         {data.return_items.reduce((sum, item) => sum + (parseFloat(item.subtotal) || 0), 0)} Tk
@@ -307,7 +331,7 @@ export default function PurchaseReturnCreate({ godowns, ledgers, items, received
                                                     updated.splice(index, 1);
                                                     setData('refund_modes', updated);
                                                 }}
-                                                className="rounded bg-danger hover:bg-danger-hover px-3 py-1 text-white w-full md:w-fit"
+                                                className="bg-danger hover:bg-danger-hover w-full rounded px-3 py-1 text-white md:w-fit"
                                             >
                                                 &minus;
                                             </button>
@@ -321,7 +345,7 @@ export default function PurchaseReturnCreate({ godowns, ledgers, items, received
                                                         { mode_name: '', phone_number: '', ledger_id: '', amount_paid: '' },
                                                     ])
                                                 }
-                                                className="rounded bg-primary hover:bg-primary-hover px-3 py-1 text-white w-full md:w-fit"
+                                                className="bg-primary hover:bg-primary-hover w-full rounded px-3 py-1 text-white md:w-fit"
                                             >
                                                 +
                                             </button>

@@ -1,11 +1,11 @@
 import ActionFooter from '@/components/ActionFooter';
+import InputCalendar from '@/components/Btn&Link/InputCalendar';
 import { confirmDialog } from '@/components/confirmDialog';
 import PageHeader from '@/components/PageHeader';
 import AppLayout from '@/layouts/app-layout';
 import { Head, useForm } from '@inertiajs/react';
 import axios from 'axios';
 import { useEffect, useState } from 'react';
-import InputCalendar from '@/components/Btn&Link/InputCalendar';
 
 const scrollToFirstError = (errors: Record<string, any>) => {
     const firstField = Object.keys(errors)[0];
@@ -80,7 +80,7 @@ export default function PurchaseCreate({
         address: '',
         shipping_details: '',
         delivered_to: '',
-        purchase_items: [{ product_id: '', qty: '', price: '', discount: '', discount_type: 'bdt', subtotal: '' }],
+        purchase_items: [{ product_id: '', qty: '', price: '', lot_no: '', discount: '', discount_type: 'bdt', subtotal: '' }],
         received_mode_id: '', // 👈 new
         amount_paid: '',
     });
@@ -103,6 +103,8 @@ export default function PurchaseCreate({
             const randomId = Math.floor(1000 + Math.random() * 9000);
             const voucher = `PUR-${dateStr}-${randomId}`;
             setData('voucher_no', voucher);
+
+            setData('date', dateStr);
         }
     }, []);
 
@@ -151,7 +153,10 @@ export default function PurchaseCreate({
     const remainingDue = grandTotal - amountPaidNum;
 
     const addProductRow = () =>
-        setData('purchase_items', [...data.purchase_items, { product_id: '', qty: '', price: '', discount: '', discount_type: 'bdt', subtotal: '' }]);
+        setData('purchase_items', [
+            ...data.purchase_items,
+            { product_id: '', lot_no: '', qty: '', price: '', discount: '', discount_type: 'bdt', subtotal: '' },
+        ]);
 
     const removeProductRow = (index: number) => {
         if (data.purchase_items.length === 1) return;
@@ -205,25 +210,20 @@ export default function PurchaseCreate({
                         {/* Section 1 - Purchase Info */}
                         <div className="space-y-4">
                             <h2 className="border-b pb-1 text-lg font-semibold">Purchase Information</h2>
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
                                 {/* Date & Voucher No in same row */}
-                                <div className="flex flex-col md:flex-row gap-2 md:col-span-2">
+                                <div className="flex flex-col gap-2 md:col-span-2 md:flex-row">
                                     <div className="flex-1">
-                                        <InputCalendar
-                                            value={data.date}
-                                            onChange={val => setData('date', val)}
-                                            label="Date"
-                                            required
-                                        />
+                                        <InputCalendar value={data.date} onChange={(val) => setData('date', val)} label="Date" required />
                                     </div>
-                                    <div className="flex-1 flex flex-col justify-end">
-                                        <label className="block text-sm font-medium mb-1 invisible md:visible">Voucher No</label>
+                                    <div className="flex flex-1 flex-col justify-end">
+                                        <label className="invisible mb-1 block text-sm font-medium md:visible">Voucher No</label>
                                         <input
                                             type="text"
-                                            className="border p-2 w-full"
+                                            className="w-full border p-2"
                                             placeholder="Voucher No"
                                             value={data.voucher_no}
-                                            onChange={e => setData('voucher_no', e.target.value)}
+                                            onChange={(e) => setData('voucher_no', e.target.value)}
                                             readOnly
                                         />
                                         {errors.voucher_no && <p className="mt-1 text-sm text-red-500">{errors.voucher_no}</p>}
@@ -232,7 +232,7 @@ export default function PurchaseCreate({
 
                                 {/* Godown */}
                                 <div>
-                                    <label className="block text-sm font-medium mb-1 invisible md:visible">Godown</label>
+                                    <label className="invisible mb-1 block text-sm font-medium md:visible">Godown</label>
                                     <select
                                         name="godown_id" //  👈 name is important for scroll
                                         className={cn(
@@ -255,8 +255,12 @@ export default function PurchaseCreate({
 
                                 {/* Salesman */}
                                 <div>
-                                    <label className="block text-sm font-medium mb-1 invisible md:visible">Salesman</label>
-                                    <select className="border p-2 w-full" value={data.salesman_id} onChange={(e) => setData('salesman_id', e.target.value)}>
+                                    <label className="invisible mb-1 block text-sm font-medium md:visible">Salesman</label>
+                                    <select
+                                        className="w-full border p-2"
+                                        value={data.salesman_id}
+                                        onChange={(e) => setData('salesman_id', e.target.value)}
+                                    >
                                         <option value="">Select Salesman</option>
                                         {salesmen.map((s) => (
                                             <option key={s.id} value={s.id}>
@@ -268,7 +272,7 @@ export default function PurchaseCreate({
 
                                 <div>
                                     {/* Party Ledger */}
-                                    <label className="block text-sm font-medium mb-1 invisible md:visible">Party Ledger</label>
+                                    <label className="invisible mb-1 block text-sm font-medium md:visible">Party Ledger</label>
                                     <select
                                         className="h-fit w-full border p-2"
                                         value={data.account_ledger_id}
@@ -296,11 +300,9 @@ export default function PurchaseCreate({
 
                                 {/* Inventory Ledger */}
                                 <div>
-
-                                    <label className="block text-sm font-medium mb-1 invisible md:visible">Inventory Ledger</label>
+                                    <label className="invisible mb-1 block text-sm font-medium md:visible">Inventory Ledger</label>
 
                                     <div className="flex h-fit w-full flex-col items-center gap-2 md:flex-row">
-
                                         <select
                                             className={`${errors.godown_id ? 'border-red-500' : 'border-gray-300'} h-full w-full border p-2`}
                                             value={data.inventory_ledger_id}
@@ -331,20 +333,20 @@ export default function PurchaseCreate({
 
                                 {/* Phone and Address Inputs */}
                                 <div>
-                                    <label className="block text-sm font-medium mb-1 invisible md:visible">Phone</label>
-                                    <input
-                                    type="text"
-                                    className="border p-2 w-full"
-                                    placeholder="Phone"
-                                    value={data.phone}
-                                    onChange={(e) => setData('phone', e.target.value)}
-                                />
-                                </div>
-                                <div>
-                                    <label className="block text-sm font-medium mb-1 invisible md:visible">Address</label>
+                                    <label className="invisible mb-1 block text-sm font-medium md:visible">Phone</label>
                                     <input
                                         type="text"
-                                        className="border p-2 w-full"
+                                        className="w-full border p-2"
+                                        placeholder="Phone"
+                                        value={data.phone}
+                                        onChange={(e) => setData('phone', e.target.value)}
+                                    />
+                                </div>
+                                <div>
+                                    <label className="invisible mb-1 block text-sm font-medium md:visible">Address</label>
+                                    <input
+                                        type="text"
+                                        className="w-full border p-2"
                                         placeholder="Address"
                                         value={data.address}
                                         onChange={(e) => setData('address', e.target.value)}
@@ -361,6 +363,7 @@ export default function PurchaseCreate({
                                     <thead className="bg-gray-50 text-sm">
                                         <tr>
                                             <th className="border px-2 py-1">Product</th>
+                                            <th className="border px-2 py-1">Lot No</th>
                                             <th className="border px-2 py-1">Qty</th>
                                             <th className="border px-2 py-1">Price</th>
                                             <th className="border px-2 py-1">Discount</th>
@@ -396,6 +399,18 @@ export default function PurchaseCreate({
                                                         </div>
                                                     )}
                                                 </td>
+                                                {/* Lot No */}
+                                                <td className="border px-2 py-1">
+                                                    <input
+                                                        type="text"
+                                                        className="w-full"
+                                                        value={item.lot_no}
+                                                        onChange={(e) => handleItemChange(index, 'lot_no', e.target.value)}
+                                                        placeholder="e.g. BATCH-23"
+                                                        required
+                                                    />
+                                                </td>
+
                                                 <td className="border px-2 py-1">
                                                     <input
                                                         type="number"

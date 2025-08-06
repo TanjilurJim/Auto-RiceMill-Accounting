@@ -2,6 +2,7 @@ import { Breadcrumbs } from '@/components/breadcrumbs';
 import { Icon } from '@/components/icon';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
+import * as React from 'react';
 // New imports for Dialog and Calculator
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
@@ -23,6 +24,8 @@ import {
     Folder,
     Layers3,
     LayoutGrid,
+    Maximize,        // ⬅️  add these two lines
+   Minimize, 
     Menu,
     Package,
     Search,
@@ -72,6 +75,25 @@ export function AppHeader({ breadcrumbs = [] }: AppHeaderProps) {
     const page = usePage<SharedData>();
     const { auth } = page.props;
     const getInitials = useInitials();
+
+    const [isFullscreen, setIsFullscreen] = React.useState<boolean>(!!document.fullscreenElement);
+
+    // keep state in sync when user presses Esc, F11, etc.
+    React.useEffect(() => {
+        const handler = () => setIsFullscreen(Boolean(document.fullscreenElement));
+        document.addEventListener('fullscreenchange', handler);
+        return () => document.removeEventListener('fullscreenchange', handler);
+    }, []);
+
+    const toggleFullscreen = () => {
+        if (!document.fullscreenElement) {
+            void document.documentElement.requestFullscreen();
+        } else {
+            void document.exitFullscreen();
+        }
+        // state flips automatically in the event listener above
+    };
+
     return (
         <>
             <div className="border-sidebar-border/80 border-b">
@@ -152,26 +174,28 @@ export function AppHeader({ breadcrumbs = [] }: AppHeaderProps) {
 
                     {quickLinks.map(({ label, href, icon: Icon, color, isCalculator }) =>
                         isCalculator ? (
-                            <Dialog key={label}>
-                                <DialogTrigger asChild>
-                                    <button
-                                        className={cn(
-                                            'inline-flex items-center gap-1 rounded-md px-3 py-1.5 text-sm font-medium text-white',
-                                            'shadow transition hover:-translate-y-0.5 hover:shadow-md',
-                                            color,
-                                        )}
-                                    >
-                                        <Icon className="h-4 w-4" />
-                                        <span>{label}</span>
-                                    </button>
-                                </DialogTrigger>
-                                <DialogContent className="border-none bg-transparent p-0 sm:max-w-xs">
-                                    <DialogHeader className="sr-only">
-                                        <DialogTitle>{label}</DialogTitle>
-                                    </DialogHeader>
-                                    <Calculator />
-                                </DialogContent>
-                            </Dialog>
+                            <React.Fragment key={`${label}-dialog`}>
+                                <Dialog key={label}>
+                                    <DialogTrigger asChild>
+                                        <button
+                                            className={cn(
+                                                'inline-flex items-center gap-1 rounded-md px-3 py-1.5 text-sm font-medium text-white',
+                                                'shadow transition hover:-translate-y-0.5 hover:shadow-md',
+                                                color,
+                                            )}
+                                        >
+                                            <Icon className="h-4 w-4" />
+                                            <span>{label}</span>
+                                        </button>
+                                    </DialogTrigger>
+                                    <DialogContent className="border-none bg-transparent p-0 sm:max-w-xs">
+                                        <DialogHeader className="sr-only">
+                                            <DialogTitle>{label}</DialogTitle>
+                                        </DialogHeader>
+                                        <Calculator />
+                                    </DialogContent>
+                                </Dialog>
+                            </React.Fragment>
                         ) : (
                             <Link
                                 key={label}
@@ -187,6 +211,19 @@ export function AppHeader({ breadcrumbs = [] }: AppHeaderProps) {
                             </Link>
                         ),
                     )}
+                    <button
+                        onClick={toggleFullscreen}
+                        type="button"
+                        className={cn(
+                            'ml-2', 'inline-flex items-center gap-1 rounded-md px-3 py-1.5 text-sm font-medium text-black',
+                            'shadow transition hover:-translate-y-0.5 hover:shadow-md',
+                            'bg-slate-600',
+                        )}
+                        
+                    >
+                        {isFullscreen ? <Minimize className="h-4 w-4" /> : <Maximize className="h-4 w-4" />}
+                        <span className="hidden sm:inline">{isFullscreen ? 'Exit' : 'Full'}</span>
+                    </button>
 
                     <div className="ml-auto flex items-center space-x-2">
                         <div className="relative flex items-center space-x-1">

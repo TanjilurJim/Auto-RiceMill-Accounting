@@ -1,10 +1,22 @@
 import ActionFooter from '@/components/ActionFooter';
 import PageHeader from '@/components/PageHeader';
+import InputCalendar from '@/components/Btn&Link/InputCalendar';
 import AppLayout from '@/layouts/app-layout';
 import { Head, useForm } from '@inertiajs/react';
 import axios from 'axios';
 import { useEffect, useState } from 'react';
 
+
+const scrollToFirstError = (errors: Record<string, any>) => {
+    const firstField = Object.keys(errors)[0];
+    if (firstField) {
+        const el = document.querySelector(`[name="${firstField}"]`);
+        if (el && el.scrollIntoView) {
+            el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            (el as HTMLElement).focus?.();
+        }
+    }
+};
 interface Godown {
     id: number;
     name: string;
@@ -141,6 +153,7 @@ export default function SaleCreate({
             const randomId = Math.floor(1000 + Math.random() * 9000);
             const voucher = `SAL-${dateStr}-${randomId}`;
             setData('voucher_no', voucher);
+            setData('date', dateStr);
         }
     }, []);
 
@@ -217,13 +230,8 @@ export default function SaleCreate({
                             <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
                                 {/* Date */}
                                 <div>
-                                    <label className="mb-1 block text-sm font-medium text-gray-700">Date</label>
-                                    <input
-                                        type="date"
-                                        className="w-full rounded border p-2"
-                                        value={data.date}
-                                        onChange={(e) => setData('date', e.target.value)}
-                                    />
+                                    
+                                    <InputCalendar value={data.date} onChange={(val) => setData('date', val)} label="Date" required />
                                     {errors.date && <div className="mt-1 text-sm text-red-500">{errors.date}</div>}
                                 </div>
 

@@ -13,6 +13,7 @@ class PurchaseItem extends Model
         'price',
         'discount',
         'discount_type',
+        'lot_id',
         'subtotal',
         'note',
     ];

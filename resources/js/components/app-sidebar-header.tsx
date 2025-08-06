@@ -3,8 +3,9 @@ import  Calculator  from '@/components/calculator';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { SidebarTrigger } from '@/components/ui/sidebar';
 import { cn } from '@/lib/utils';
+import * as React from 'react'; 
 import { type BreadcrumbItem as BreadcrumbItemType } from '@/types';
-import { Banknote, BookOpenCheck, BookText, Calculator as CalculatorIcon, CreditCard, Layers3, Package, ShoppingCart } from 'lucide-react';
+import { Banknote, BookOpenCheck, BookText, Calculator as CalculatorIcon, CreditCard, Maximize, Minimize, Layers3, Package, ShoppingCart } from 'lucide-react';
 const quickLinks = [
     { label: 'Calculator', href: '#', icon: CalculatorIcon, color: 'bg-slate-700', isCalculator: true },
     { label: 'Received', href: '/received-add', icon: Banknote, color: 'bg-green-600' },
@@ -18,6 +19,26 @@ const quickLinks = [
 ];
 
 export function AppSidebarHeader({ breadcrumbs = [] }: { breadcrumbs?: BreadcrumbItemType[] }) {
+
+    /* ───────── Full-screen helper ───────── */
+  const [isFullscreen, setIsFullscreen] = React.useState<boolean>(
+    !!document.fullscreenElement,
+  );
+
+  React.useEffect(() => {
+    const h = () => setIsFullscreen(Boolean(document.fullscreenElement));
+    document.addEventListener('fullscreenchange', h);
+    return () => document.removeEventListener('fullscreenchange', h);
+  }, []);
+
+  const toggleFullscreen = () => {
+    if (!document.fullscreenElement) {
+      void document.documentElement.requestFullscreen();
+    } else {
+      void document.exitFullscreen();
+    }
+  };
+
     return (
         <header className="border-sidebar-border/50 flex h-16 shrink-0 items-center justify-between gap-2 border-b px-6 transition-[width,height] ease-linear group-has-data-[collapsible=icon]/sidebar-wrapper:h-12 md:px-4">
             {/* <div className="flex items-center gap-2"> */}
@@ -28,6 +49,24 @@ export function AppSidebarHeader({ breadcrumbs = [] }: { breadcrumbs?: Breadcrum
 
             {/* <div className="mb-4 flex flex-wrap items-center gap-2 ml-2"> */}
             <div className="mb-2 ml-0 hidden w-full flex-wrap items-center justify-center gap-2 sm:mb-0 sm:ml-2 sm:w-auto sm:justify-end md:flex">
+                <button
+              onClick={toggleFullscreen}
+              type="button"
+              className={cn(
+                'inline-flex items-center gap-1 rounded-md px-3 py-1.5 text-xl font-large text-black',
+                'shadow transition hover:shadow-md focus-visible:ring focus-visible:outline-none',
+                
+              )}
+            >
+              {isFullscreen ? (
+                <Minimize className="h-4 w-4" />
+              ) : (
+                <Maximize className="h-4 w-4" />
+              )}
+              <span className="hidden xl:inline">
+                {isFullscreen}
+              </span>
+            </button>
                 {quickLinks.map(({ label, href, icon: Icon, color, isCalculator }) =>
                     isCalculator ? (
                         <Dialog key={label}>

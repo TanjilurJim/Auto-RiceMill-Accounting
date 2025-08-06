@@ -6,6 +6,7 @@ import AppLayout from '@/layouts/app-layout';
 import { cn } from '@/lib/utils';
 import { Head, router } from '@inertiajs/react';
 import { useMemo } from 'react';
+import { fmtDate } from '@/utils/format';
 
 /* -------------------------------------------------------------------------- */
 /*  Types (mirror ItemController@show)                                        */
@@ -50,7 +51,7 @@ export default function ItemShow({ item, stocks, summary, godowns, filters }: It
         () => [
             { header: 'Lot #', accessor: 'lot_no' },
             { header: 'Godown', accessor: 'godown' },
-            { header: 'Received', accessor: 'received_at' },
+            { header: 'Received',  accessor: (r: StockRow) => (r.received_at ? fmtDate(r.received_at) : '—') },
             {
                 header: `Qty (${summary.unit ?? ''})`,
                 accessor: (r: StockRow) => (r.qty !== undefined ? r.qty.toLocaleString() : '0'),
@@ -103,7 +104,7 @@ export default function ItemShow({ item, stocks, summary, godowns, filters }: It
 
                                 <Snapshot label="Valuation">{summary.total_value.toFixed(2)}</Snapshot>
 
-                                <Snapshot label="Last Received">{summary.last_in ?? '—'}</Snapshot>
+                                <Snapshot label="Last Received">{summary.last_in ? fmtDate(summary.last_in) : '—'}</Snapshot>
 
                                 <Snapshot label="Active Lots">{stocks.length}</Snapshot>
                             </div>

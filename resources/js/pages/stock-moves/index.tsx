@@ -2,6 +2,7 @@
 import { Button } from '@/components/ui/button';
 import AppLayout from '@/layouts/app-layout';
 import { Head, Link, router } from '@inertiajs/react';
+import { fmtDate } from '@/utils/format';
 
 interface Move {
     id: number;
@@ -46,13 +47,13 @@ export default function StockMoveIndex({ moves }: { moves: Paginated<Move[]> }) 
                         <tbody>
                             {moves.data.map((m) => (
                                 <tr key={m.id} className="border-b last:border-0">
-                                    <td className="px-4 py-1">{m.created_at.slice(0, 10)}</td>
+                                    <td className="px-4 py-1">{fmtDate(m.created_at.slice(0, 10))}</td>
                                     <td className="px-4 py-1">{m.godown?.name}</td>
                                     <td className="px-4 py-1">{m.item?.item_name}</td>
                                     <td className="px-4 py-1">{m.lot?.lot_no ?? '—'}</td>
                                     <td className="px-4 py-1 capitalize">{m.type}</td>
-                                    <td className="px-4 py-1 text-right">{m.qty}</td>
-                                    <td className="px-4 py-1 text-right">{m.unit_cost ?? '—'}</td>
+                                    <td className="px-4 py-1 ">{m.qty}</td>
+                                    <td className="px-4 py-1 ">{m.unit_cost ?? '—'}</td>
                                     <td className="px-4 py-1">{m.reason ?? '—'}</td>
                                     <td className="px-4 py-1">{m.creator?.name}</td>
                                 </tr>
