@@ -1,11 +1,10 @@
 import ActionFooter from '@/components/ActionFooter';
-import PageHeader from '@/components/PageHeader';
 import InputCalendar from '@/components/Btn&Link/InputCalendar';
+import PageHeader from '@/components/PageHeader';
 import AppLayout from '@/layouts/app-layout';
 import { Head, useForm } from '@inertiajs/react';
 import axios from 'axios';
 import { useEffect, useState } from 'react';
-
 
 const scrollToFirstError = (errors: Record<string, any>) => {
     const firstField = Object.keys(errors)[0];
@@ -20,6 +19,13 @@ const scrollToFirstError = (errors: Record<string, any>) => {
 interface Godown {
     id: number;
     name: string;
+}
+
+interface ItemLot {
+    lot_id: number;
+    lot_no: string;
+    stock_qty: number;
+    received_at: string | null;
 }
 
 interface ReceivedMode {
@@ -42,6 +48,7 @@ interface Item {
     item_name: string;
     stock_qty: number;
     unit: string;
+    lots: ItemLot[];
 }
 
 export default function SaleCreate({
@@ -72,6 +79,7 @@ export default function SaleCreate({
         sale_items: [
             {
                 product_id: '',
+                lot_id: '',
                 qty: '',
                 main_price: '',
                 discount: '',
@@ -98,16 +106,31 @@ export default function SaleCreate({
 
         cogs_ledger_id: '',
     });
+    // useEffect(() => {
+    //     if (data.godown_id) {
+    //         axios.get(`/sales/items/by-godown/${data.godown_id}`).then((res) => {
+    //             // Update the state with the items and their stock quantities
+    //             setFilteredItems(res.data); // Ensure you get the correct stock quantities here
+    //         });
+    //     } else {
+    //         setFilteredItems([]); // Clear the items if no godown is selected
+    //     }
+    // }, [data.godown_id]);
+
+    /* ③ fetch items + lots from the new endpoint */
     useEffect(() => {
-        if (data.godown_id) {
-            axios.get(`/sales/items/by-godown/${data.godown_id}`).then((res) => {
-                // Update the state with the items and their stock quantities
-                setFilteredItems(res.data); // Ensure you get the correct stock quantities here
-            });
-        } else {
-            setFilteredItems([]); // Clear the items if no godown is selected
+        if (!data.godown_id) {
+            setFilteredItems([]);
+            return;
         }
-    }, [data.godown_id]); // Trigger this effect whenever the godown_id changes
+
+        axios
+            .get(`/godowns/${data.godown_id}/stocks-with-lots`)
+            .then((res) => setFilteredItems(res.data))
+            .catch(() => setFilteredItems([]));
+    }, [data.godown_id]);
+
+    // Trigger this effect whenever the godown_id changes
     const [filteredItems, setFilteredItems] = useState<Item[]>([]);
     const [modalTargetField, setModalTargetField] = useState<'inventory' | 'cogs'>('inventory');
 
@@ -164,11 +187,15 @@ export default function SaleCreate({
         setUiTotalDue((total - rec).toFixed(2));
     }, [data.sale_items, data.amount_received]);
 
+    /* ④ generic row-mutator so we can reuse for lot_id too */
     // Handle changes in each row's product fields
     const handleItemChange = (index: number, field: string, value: any) => {
         const updatedItems = [...data.sale_items];
         updatedItems[index][field] = value;
 
+        if (field === 'product_id') {
+            updatedItems[index].lot_id = '';
+        }
         // Recalculate subtotal
         const qty = parseFloat(updatedItems[index].qty) || 0;
         const price = parseFloat(updatedItems[index].main_price) || 0;
@@ -182,6 +209,13 @@ export default function SaleCreate({
         setData('sale_items', updatedItems);
     };
 
+    /* separate change handler for lot so we can show stock notice / skip recalculation */
+    const handleLotChange = (index: number, lotId: string) => {
+        const updated = [...data.sale_items];
+        updated[index].lot_id = lotId ? parseInt(lotId, 10) : '';
+        setData('sale_items', updated);
+    };
+
     // Add a new row
     const addProductRow = () => {
         setData('sale_items', [
@@ -189,6 +223,7 @@ export default function SaleCreate({
             {
                 product_id: '',
                 qty: '',
+                lot_id: '',  
                 main_price: '',
                 discount: '',
                 discount_type: 'bdt',
@@ -230,7 +265,6 @@ export default function SaleCreate({
                             <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
                                 {/* Date */}
                                 <div>
-                                    
                                     <InputCalendar value={data.date} onChange={(val) => setData('date', val)} label="Date" required />
                                     {errors.date && <div className="mt-1 text-sm text-red-500">{errors.date}</div>}
                                 </div>
@@ -336,6 +370,7 @@ export default function SaleCreate({
                                 // <div key={index} className="mb-3 grid grid-cols-12 items-end gap-2">
                                 <div key={index} className="mb-3 flex h-full w-full flex-col gap-2 md:flex-row">
                                     {/* Product */}
+                                    {/* ───────── Product ───────── */}
                                     <div className="h-full w-full">
                                         <label className="mb-1 block text-sm font-medium text-gray-700">Product</label>
                                         <select
@@ -346,13 +381,36 @@ export default function SaleCreate({
                                             <option value="">Select</option>
                                             {filteredItems.map((p) => (
                                                 <option key={p.id} value={p.id}>
-                                                    {p.item_name} ({p.stock_qty}
-                                                    {p.unit} in stock)
+                                                    {p.item_name}
                                                 </option>
                                             ))}
                                         </select>
                                         {errors[`sale_items.${index}.product_id`] && (
                                             <div className="mt-1 text-sm text-red-500">{errors[`sale_items.${index}.product_id`]}</div>
+                                        )}
+                                    </div>
+
+                                    {/* ───────── Lot ───────── */}
+                                    <div className="h-full w-full">
+                                        <label className="mb-1 block text-sm font-medium text-gray-700">Lot</label>
+                                        <select
+                                            className="h-fit w-full rounded border p-2"
+                                            value={item.lot_id}
+                                            onChange={(e) => handleLotChange(index, e.target.value)}
+                                            disabled={!item.product_id}
+                                        >
+                                            <option value="">Select Lot</option> 
+                                            {(() => {
+                                                const prod = filteredItems.find((p) => p.id == item.product_id);
+                                                return prod?.lots.map((l) => (
+                                                    <option key={l.lot_id} value={l.lot_id}>
+                                                        {l.lot_no} – {l.stock_qty} {prod.unit} left
+                                                    </option>
+                                                ));
+                                            })()}
+                                        </select>
+                                        {errors[`sale_items.${index}.lot_id`] && (
+                                            <div className="mt-1 text-sm text-red-500">{errors[`sale_items.${index}.lot_id`]}</div>
                                         )}
                                     </div>
 

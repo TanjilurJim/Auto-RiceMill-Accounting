@@ -311,13 +311,13 @@ class ItemController extends Controller
 
         /* 3️⃣ One query: latest IN-move cost for every lot */
         $lastRates = \App\Models\StockMove::select('lot_id', 'unit_cost')
-            ->where('type', 'in')
+            ->whereIn('type', ['in', 'purchase'])   // include manual “in” & purchases
             ->whereIn('lot_id', $stocks->pluck('lot_id'))
             ->orderBy('lot_id')
             ->orderByDesc('id')
             ->get()
             ->unique('lot_id')
-            ->keyBy('lot_id');  //  [lot_id => StockMove]
+            ->keyBy('lot_id'); //  [lot_id => StockMove]
 
         /* 4️⃣ Build rows */
         $rows = $stocks->map(function ($s) use ($item, $lastRates, $openingLotId) {

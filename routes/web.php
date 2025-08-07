@@ -200,6 +200,15 @@ Route::middleware(['auth', 'verified'])->group(function () {
 
     Route::resource('salesmen', SalesManController::class);
     Route::resource('godowns', GodownController::class);
+
+    // item lot shoho pick korar jonno
+    Route::get(
+        'godowns/{godown}/stocks-with-lots',
+        [SaleController::class, 'stocksWithLots']
+    )
+        ->name('godown.stocks-with-lots');
+
+
     Route::resource('units', UnitController::class);
     Route::resource('categories', CategoryController::class);
     Route::resource('items', ItemController::class);

@@ -9,7 +9,8 @@ use App\Models\{
     JournalEntry,
     ReceivedMode,
     AccountLedger,
-    Item
+    Item,
+    StockMove,
 };
 use Illuminate\Support\Facades\DB;
 
@@ -49,13 +50,25 @@ class FinalizePurchaseService
                 $stock = Stock::firstOrNew([
                     'item_id'    => $line->product_id,
                     'godown_id'  => $purchase->godown_id,
-                    'lot_id'     => $line->lot_id,  
+                    'lot_id'     => $line->lot_id,
                     'created_by' => $purchase->created_by,
                 ]);
 
                 // if new, qty may be null → normalise to 0
                 $stock->qty = ($stock->qty ?? 0) + $line->qty;
                 $stock->save();
+
+                /* ░░ 2-b) Log the purchase in stock_moves  ░░ */
+                StockMove::create([
+                    'godown_id'  => $purchase->godown_id,
+                    'item_id'    => $line->product_id,
+                    'lot_id'     => $line->lot_id,
+                    'type'       => 'purchase',                 // 👈 your new enum value
+                    'qty'        => $line->qty,
+                    'unit_cost'  => $line->price,
+                    'reason'     => 'auto-purchase',            // keep or drop as you prefer
+                    'created_by' => $purchase->created_by,
+                ]);
 
                 // ── b) items table – bump previous_stock ──────────
                 Item::where('id', $line->product_id)->increment('previous_stock', $line->qty);

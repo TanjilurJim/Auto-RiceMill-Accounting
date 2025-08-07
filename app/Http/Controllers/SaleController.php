@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Sale;
+use Illuminate\Validation\ValidationException;
 use App\Services\SalePaymentService;
 use App\Services\LedgerService;
 use App\Services\FinalizeSaleService;
@@ -26,6 +27,7 @@ use Illuminate\Support\Facades\DB;
 use App\Models\ReceivedMode;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
+use Illuminate\Support\Str;
 
 class SaleController extends Controller
 {
@@ -111,81 +113,82 @@ class SaleController extends Controller
         ]);
     }
 
-    // Store Sale
+
+
     public function store(Request $request, FinalizeSaleService $finalizer)
     {
+        /* 🔒 1. validate (now requires lot_id) */
         $this->validateRequest($request);
 
-        /* 0️⃣  Prepare helpers */
+        /* 🔧 2. helpers */
         $voucherNo = $request->voucher_no
             ?? 'SAL-' . now()->format('Ymd') . '-' . str_pad(Sale::max('id') + 1, 4, '0', STR_PAD_LEFT);
 
         $flow = auth()->user()->company->sale_approval_flow ?? self::FLOW_NONE;
 
-        /* ------------------------------------------------------------
-     | 1️⃣  Create the Sale + its line-items
-     * ------------------------------------------------------------ */
+        /* 📝 3. header + lines — all inside one TX */
         DB::beginTransaction();
         try {
-            /* --- header --- */
+            /* 3-a  Header */
             $sale = Sale::create([
-                'date'                 => $request->date,
-                'voucher_no'           => $voucherNo,
-                'godown_id'            => $request->godown_id,
-                'salesman_id'          => $request->salesman_id,
-                'account_ledger_id'    => $request->account_ledger_id,
-                'phone'                => $request->phone,
-                'address'              => $request->address,
-                'shipping_details'     => $request->shipping_details,
-                'delivered_to'         => $request->delivered_to,
-                'truck_rent'           => $request->truck_rent,
-                'rent_advance'         => $request->rent_advance,
-                'net_rent'             => $request->net_rent,
-                'inventory_ledger_id'  => $request->inventory_ledger_id,
-                'cogs_ledger_id'       => $request->cogs_ledger_id,
-                'truck_driver_name'    => $request->truck_driver_name,
-                'driver_address'       => $request->driver_address,
-                'driver_mobile'        => $request->driver_mobile,
-                'total_qty'            => collect($request->sale_items)->sum('qty'),
-                'total_discount'       => collect($request->sale_items)->sum('discount'),
-                'grand_total'          => collect($request->sale_items)->sum('subtotal'),
+                'date'                   => $request->date,
+                'voucher_no'             => $voucherNo,
+                'godown_id'              => $request->godown_id,
+                'salesman_id'            => $request->salesman_id,
+                'account_ledger_id'      => $request->account_ledger_id,
+                'phone'                  => $request->phone,
+                'address'                => $request->address,
+                'shipping_details'       => $request->shipping_details,
+                'delivered_to'           => $request->delivered_to,
+                'truck_rent'             => $request->truck_rent,
+                'rent_advance'           => $request->rent_advance,
+                'net_rent'               => $request->net_rent,
+                'inventory_ledger_id'    => $request->inventory_ledger_id,
+                'cogs_ledger_id'         => $request->cogs_ledger_id,
+                'truck_driver_name'      => $request->truck_driver_name,
+                'driver_address'         => $request->driver_address,
+                'driver_mobile'          => $request->driver_mobile,
+                'total_qty'              => collect($request->sale_items)->sum('qty'),
+                'total_discount'         => collect($request->sale_items)->sum('discount'),
+                'grand_total'            => collect($request->sale_items)->sum('subtotal'),
                 'other_expense_ledger_id' => $request->other_expense_ledger_id,
-                'other_amount'         => $request->other_amount ?? 0,
-                'total_due'            => collect($request->sale_items)->sum('subtotal'),
-                'status'               => $flow === self::FLOW_NONE
+                'other_amount'           => $request->other_amount ?? 0,
+                'total_due'              => collect($request->sale_items)->sum('subtotal'),
+                'status'                 => $flow === self::FLOW_NONE
                     ? Sale::STATUS_APPROVED
                     : Sale::STATUS_PENDING_SUB,
-                /* optional if you already collect these IDs in the form */
-                'sub_responsible_id' => $this->defaultSub(),
-                'responsible_id'     => $this->defaultResp(),
-                'created_by'           => auth()->id(),
+                'sub_responsible_id'     => $this->defaultSub(),
+                'responsible_id'         => $this->defaultResp(),
+                'created_by'             => auth()->id(),
             ]);
 
-            /* --- detail lines (NO stock decrement yet) --- */
+            /* 3-b  Detail rows (user-chosen lots) */
             foreach ($request->sale_items as $row) {
-                // break the row into FIFO lot-segments
-                $segments = $this->pickLots(
-                    $request->godown_id,
-                    $row['product_id'],
-                    $row['qty']
-                );
+                /* stock guard */
+                $available = Stock::where([
+                    'godown_id' => $request->godown_id,
+                    'item_id'   => $row['product_id'],
+                    'lot_id'    => $row['lot_id'],
+                    'created_by' => auth()->id(),
+                ])->value('qty') ?? 0;
 
-                foreach ($segments as $seg) {
-                    $sale->saleItems()->create([
-                        'product_id'    => $row['product_id'],
-                        'lot_id'        => $seg['lot_id'],
-                        'qty'           => $seg['qty'],
-                        'main_price'    => $row['main_price'],
-                        'discount'      => $row['discount'] ?? 0,
-                        'discount_type' => $row['discount_type'],
-                        // proportional subtotal so the total stays identical
-                        'subtotal'      => round(
-                            ($row['subtotal'] / $row['qty']) * $seg['qty'],
-                            2
-                        ),
-                        'note'          => $row['note'] ?? null,
+                if ($available < $row['qty']) {
+                    throw ValidationException::withMessages([
+                        'sale_items' => ["Lot {$row['lot_id']} has only {$available} in stock."],
                     ]);
                 }
+
+                /* create line */
+                $sale->saleItems()->create([
+                    'product_id'    => $row['product_id'],
+                    'lot_id'        => $row['lot_id'],
+                    'qty'           => $row['qty'],
+                    'main_price'    => $row['main_price'],
+                    'discount'      => $row['discount'] ?? 0,
+                    'discount_type' => $row['discount_type'],
+                    'subtotal'      => $row['subtotal'],
+                    'note'          => $row['note'] ?? null,
+                ]);
             }
 
             DB::commit();
@@ -193,13 +196,10 @@ class SaleController extends Controller
         } catch (\Throwable $e) {
             DB::rollBack();
             report($e);
-
             return back()->with('error', 'Failed to save sale.');
         }
 
-        /* ------------------------------------------------------------
-     | 2️⃣  Post immediately when no approval flow
-     * ------------------------------------------------------------ */
+        /* 4. post immediately if no approval flow */
         if ($flow === self::FLOW_NONE) {
             $finalizer->handle($sale, $request->only([
                 'amount_received',
@@ -213,6 +213,7 @@ class SaleController extends Controller
                 ? 'Sale saved & approved.'
                 : 'Sale saved and awaiting approval.');
     }
+
 
 
 
@@ -321,7 +322,7 @@ class SaleController extends Controller
                 'total_due'             => collect($request->sale_items)->sum('subtotal'), // full for now
             ]);
 
-            
+
 
             /* 3️⃣  নতুন সেল-আইটেম + স্টক কমানো ও COST হিসাব */
             $sale->saleItems()->delete();
@@ -570,7 +571,30 @@ class SaleController extends Controller
             'salesman_id' => 'required|exists:salesmen,id',
             'account_ledger_id' => 'required|exists:account_ledgers,id',
             'sale_items' => 'required|array|min:1',
-            'sale_items.*.product_id' => 'required|exists:items,id',
+            'sale_items.*.product_id' => [
+                'required',
+                'exists:items,id',
+
+                // ✅ make sure the chosen lot belongs to this item
+                function ($attr, $val, $fail) use ($request) {
+                    // attr looks like sale_items.3.product_id → capture “3”
+                    if (!preg_match('/sale_items\.(\d+)\./', $attr, $m)) {
+                        return $fail('Invalid attribute path.');
+                    }
+                    $idx    = (int) $m[1];
+                    $lotId  = $request->input("sale_items.$idx.lot_id");
+
+                    $ok = \App\Models\Lot::where('id', $lotId)
+                        ->where('item_id', $val)
+                        ->exists();
+
+                    if (! $ok) {
+                        $fail('Lot does not match item.');
+                    }
+                },
+            ],
+            'sale_items.*.lot_id'   => 'required|exists:lots,id',
+
             'sale_items.*.qty' => 'required|numeric|min:0.01',
             'sale_items.*.main_price' => 'required|numeric|min:0',
             'sale_items.*.discount' => 'nullable|numeric|min:0',
@@ -851,5 +875,37 @@ class SaleController extends Controller
         }
 
         return $segments;
+    }
+
+    public function stocksWithLots(int $godownId)
+    {
+        $ids = godown_scope_ids();
+
+        $stocks = Stock::with(['item.unit', 'lot:id,lot_no,received_at'])
+            ->where('godown_id', $godownId)
+            ->when($ids, fn($q) => $q->whereIn('created_by', $ids))
+            ->whereNotNull('lot_id')             // ⬅ ignore orphan rows
+            ->get()
+            ->filter(fn($s) => $s->lot);        // ⬅ keep only rows whose lot exists
+
+        $payload = $stocks
+            ->groupBy('item_id')
+            ->map(function ($rows) {
+                $item = $rows->first()->item;
+                return [
+                    'id'        => $item->id,
+                    'item_name' => $item->item_name,
+                    'unit'      => $item->unit->name ?? '',
+                    'lots'      => $rows->map(fn($s) => [
+                        'lot_id'      => $s->lot_id,
+                        'lot_no'      => $s->lot->lot_no,           // ← safe, lot exists
+                        'received_at' => optional($s->lot->received_at)->toDateString(),
+                        'stock_qty'   => $s->qty,
+                    ])->values(),
+                ];
+            })
+            ->values();
+
+        return response()->json($payload);
     }
 }

@@ -3,9 +3,10 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
-
+use App\Traits\BelongsToTenant;
 class Lot extends Model
 {
+    use BelongsToTenant;
     protected $fillable = [
         'godown_id','item_id','lot_no','received_at','created_by',
     ];

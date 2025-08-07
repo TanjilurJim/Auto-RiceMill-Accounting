@@ -102,7 +102,7 @@ export default function ItemShow({ item, stocks, summary, godowns, filters }: It
                                     {summary.total_qty.toLocaleString()} {summary.unit}
                                 </Snapshot>
 
-                                <Snapshot label="Valuation">{summary.total_value.toFixed(2)}</Snapshot>
+                                <Snapshot label="Valuation">{summary.total_value.toFixed(2)} TK</Snapshot>
 
                                 <Snapshot label="Last Received">{summary.last_in ? fmtDate(summary.last_in) : '—'}</Snapshot>
 

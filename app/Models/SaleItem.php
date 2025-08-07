@@ -3,15 +3,17 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
-
+use App\Traits\BelongsToTenant;
 class SaleItem extends Model
 {
+    
     protected $fillable = [
         'sale_id',
         'product_id',
         'qty',
         'main_price',
         'discount',
+        'lot_id',
         'discount_type',
         'subtotal',
         'note',
