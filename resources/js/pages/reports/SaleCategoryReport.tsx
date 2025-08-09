@@ -14,6 +14,7 @@ interface Row {
     qty: number;
     rate: number;
     amount: number;
+    lot_no?: string;
     month?: number; // for year-based summary
 }
 

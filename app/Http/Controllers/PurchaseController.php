@@ -40,6 +40,8 @@ class PurchaseController extends Controller
         return Stock::query()
             ->select('godown_id', 'item_id', DB::raw('SUM(qty) as qty'))
             ->whereIn('created_by', $visibleUserIds)
+            ->whereHas('item')
+            
             ->groupBy('godown_id', 'item_id')
             ->with('item.unit')                     // item & unit after groupBy is OK
             ->get()

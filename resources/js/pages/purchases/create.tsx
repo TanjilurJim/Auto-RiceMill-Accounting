@@ -229,7 +229,6 @@ export default function PurchaseCreate({
                                         {errors.voucher_no && <p className="mt-1 text-sm text-red-500">{errors.voucher_no}</p>}
                                     </div>
                                 </div>
-
                                 {/* Godown */}
                                 <div>
                                     <label className="invisible mb-1 block text-sm font-medium md:visible">Godown</label>

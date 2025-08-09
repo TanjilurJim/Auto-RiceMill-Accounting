@@ -172,11 +172,12 @@ export default function SaleCreate({
     useEffect(() => {
         if (!data.voucher_no) {
             const today = new Date();
-            const dateStr = today.toISOString().slice(0, 10).replace(/-/g, '');
+            const isoDate = today.toISOString().slice(0, 10); // 2025-08-07 ✅
+            const flatDate = isoDate.replace(/-/g, ''); // 20250807  (just for voucher)
             const randomId = Math.floor(1000 + Math.random() * 9000);
-            const voucher = `SAL-${dateStr}-${randomId}`;
-            setData('voucher_no', voucher);
-            setData('date', dateStr);
+
+            setData('voucher_no', `SAL-${flatDate}-${randomId}`);
+            setData('date', isoDate); // store a real date
         }
     }, []);
 
@@ -223,7 +224,7 @@ export default function SaleCreate({
             {
                 product_id: '',
                 qty: '',
-                lot_id: '',  
+                lot_id: '',
                 main_price: '',
                 discount: '',
                 discount_type: 'bdt',
@@ -399,7 +400,7 @@ export default function SaleCreate({
                                             onChange={(e) => handleLotChange(index, e.target.value)}
                                             disabled={!item.product_id}
                                         >
-                                            <option value="">Select Lot</option> 
+                                            <option value="">Select Lot</option>
                                             {(() => {
                                                 const prod = filteredItems.find((p) => p.id == item.product_id);
                                                 return prod?.lots.map((l) => (

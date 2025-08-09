@@ -15,6 +15,7 @@ interface Row {
     rate: number;
     amount: number;
     month?: number;
+      lot_no?: string; 
 }
 
 interface Company {
@@ -93,6 +94,7 @@ export default function SaleGodownReport({
                                                 <th className="border px-2 py-1">Vch No</th>
                                                 <th className="border px-2 py-1">Party</th>
                                                 <th className="border px-2 py-1">Godown</th>
+                                                <th className="border px-2 py-1">Lot</th>
                                                 <th className="border px-2 py-1">Item</th>
                                                 <th className="border px-2 py-1 text-right">Qty</th>
                                                 <th className="border px-2 py-1">Unit</th>
@@ -123,6 +125,8 @@ export default function SaleGodownReport({
                                                             <td className="border px-2 py-1">{r.voucher_no}</td>
                                                             <td className="border px-2 py-1">{r.party}</td>
                                                             <td className="border px-2 py-1">{r.godown_name}</td>
+                                                            <td className="border px-2 py-1">{r.lot_no ?? '-'}</td>
+
                                                             <td className="border px-2 py-1">{r.item_name}</td>
                                                             <td className="border px-2 py-1 text-right">{Number(r.qty ?? 0).toFixed(2)}</td>
                                                             <td className="border px-2 py-1">{r.unit_name}</td>

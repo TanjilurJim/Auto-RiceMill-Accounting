@@ -6,6 +6,7 @@ import TableComponent from '@/components/TableComponent';
 import AppLayout from '@/layouts/app-layout';
 import { Head, Link, router } from '@inertiajs/react';
 import React, { MouseEvent, useEffect, useState } from 'react';
+import { fmtDate } from '@/utils/format'; 
 
 const miniBtn = 'px-2 py-1 text-xs rounded font-medium text-white transition';
 
@@ -97,7 +98,7 @@ export default function SaleIndex({ sales }: { sales: PaginatedSales }) {
 
     const columns = [
         { header: 'SL', accessor: (_: Sale, index?: number) => <span>{(index ?? 0) + 1}</span>, className: 'text-center' },
-        { header: 'Date', accessor: 'date' },
+        { header: 'Date',  accessor: (row: Sale) => fmtDate(row.date), },
         { header: 'Vch. No', accessor: 'voucher_no' },
         { header: 'Ledger', accessor: (row: Sale) => row.account_ledger.account_ledger_name },
         {

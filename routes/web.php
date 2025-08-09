@@ -460,6 +460,16 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::get('convert/{id}/edit',      [PartyStockAdjustmentController::class, 'edit'])->name('party-stock.transfer.edit');
         Route::put('convert/{id}',           [PartyStockAdjustmentController::class, 'update'])->name('party-stock.transfer.update'); // PATCH also fine
         Route::delete('convert/{id}',           [PartyStockAdjustmentController::class, 'destroy'])->name('party-stock.transfer.destroy');
+        // Route::post('/crushing/jobs/start', [PartyStockAdjustmentController::class, 'jobStart'])->name('crushing.jobs.start');
+        // Route::post('/crushing/jobs/{job}/stop', [PartyStockAdjustmentController::class, 'jobStop'])->name('crushing.jobs.stop');
+
+        Route::get('/crushing/jobs', [PartyStockAdjustmentController::class, 'jobsIndex'])
+            ->name('crushing.jobs.index');
+        Route::post('/crushing/jobs/start', [PartyStockAdjustmentController::class, 'jobStart'])
+            ->name('crushing.jobs.start');
+        Route::post('/crushing/jobs/{job}/stop', [PartyStockAdjustmentController::class, 'jobStop'])
+            ->name('crushing.jobs.stop');
+            Route::get('/crushing/jobs/{job}', [PartyStockAdjustmentController::class, 'jobsShow'])->name('crushing.jobs.show');
 
         Route::prefix('conversion-voucher')->name('conversion.voucher.')->group(function () {
             Route::get('/',             [ConversionVoucherController::class, 'index'])->name('index');

@@ -226,6 +226,7 @@ class SaleReportController extends Controller
             return DB::table('sales')
                 ->join('sale_items', 'sale_items.sale_id', '=', 'sales.id')
                 ->join('items', 'items.id', '=', 'sale_items.product_id')
+                ->join('lots', 'lots.id', '=', 'sale_items.lot_id')
                 ->selectRaw('
                 MONTH(sales.date) as month,
                 SUM(sale_items.subtotal) as amount
@@ -243,11 +244,14 @@ class SaleReportController extends Controller
             ->join('items', 'items.id', '=', 'sale_items.product_id')
             ->join('account_ledgers', 'account_ledgers.id', '=', 'sales.account_ledger_id')
             ->join('units', 'units.id', '=', 'items.unit_id')
+            ->join('lots', 'lots.id', '=', 'sale_items.lot_id')
+
             ->selectRaw('
             sales.date,
             sales.voucher_no,
             account_ledgers.account_ledger_name as party,
             items.item_name,
+            lots.lot_no,
             units.name as unit_name,
             sale_items.qty,
             sale_items.main_price as rate,
@@ -314,6 +318,7 @@ class SaleReportController extends Controller
             ->join('sale_items', 'sale_items.sale_id', '=', 'sales.id')
             ->join('items', 'items.id', '=', 'sale_items.product_id')
             ->join('units', 'units.id', '=', 'items.unit_id')
+            ->join('lots',       'lots.id',            '=', 'sale_items.lot_id')     // 👈 NEW
             ->join('godowns', 'godowns.id', '=', 'sales.godown_id')
             ->join('account_ledgers', 'account_ledgers.id', '=', 'sales.account_ledger_id')
             ->selectRaw('
@@ -322,6 +327,7 @@ class SaleReportController extends Controller
             godowns.name as godown_name,
             account_ledgers.account_ledger_name as party,
             items.item_name,
+            lots.lot_no,  
             units.name as unit_name,
             sale_items.qty,
             sale_items.main_price as rate,
@@ -458,7 +464,7 @@ class SaleReportController extends Controller
             $headings = match ($tab) {
                 'category' => $isYearSelected
                     ? ['Month', 'Amount (Tk)']
-                    : ['Date', 'Voucher No', 'Party', 'Category', 'Item', 'Qty', 'Unit', 'Rate', 'Amount'],
+                    : ['Date', 'Voucher No', 'Party', 'Category', 'Item','Lot', 'Qty', 'Unit', 'Rate', 'Amount'],
 
                 'party' => ['Party', 'Qty', 'Amount'],
 
@@ -486,6 +492,7 @@ class SaleReportController extends Controller
                             $r->party,
                             $r->category_name,
                             $r->item_name,
+                            $r->lot_no,  
                             number_format($r->qty ?? 0, 2),
                             $r->unit_name,
                             number_format($r->rate ?? 0, 2),
