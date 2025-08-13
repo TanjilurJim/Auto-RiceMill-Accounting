@@ -412,10 +412,22 @@ const mainNavItems: NavItem[] = [
                 icon: Repeat,
             },
             {
-                title: 'পণ্য ট্রান্সফার তালিকা',
+                title: 'পার্টি পণ্য ট্রান্সফার তালিকা',
                 href: '/party-stock/convert-list',
                 icon: FileText,
             },
+            {
+                title: 'কম্পানি পণ্য ট্রান্সফার তালিকা',
+                href: route('company-conversions.index'),
+                icon: FileText,
+            },
+            
+            {
+                title: 'ক্রাশিং জবসমূহ তালিকা',
+                href: '/party-stock/crushing/jobs',
+                icon: FileText,
+            },
+           
             {
                 title: 'ক্রাশিং ভাউচারসমূহ',
                 href: '/party-stock/rent-voucher/',

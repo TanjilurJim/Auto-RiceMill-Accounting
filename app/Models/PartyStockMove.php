@@ -16,6 +16,7 @@ class PartyStockMove extends Model
         'godown_id_from',
         'godown_id_to',
         'qty',
+        'weight',
         'rate',
         'total',
         'move_type',

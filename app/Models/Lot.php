@@ -8,7 +8,7 @@ class Lot extends Model
 {
     use BelongsToTenant;
     protected $fillable = [
-        'godown_id','item_id','lot_no','received_at','created_by',
+        'godown_id','item_id','lot_no','unit_weight','received_at','created_by',
     ];
 
     public function item()   { return $this->belongsTo(Item::class); }

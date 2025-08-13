@@ -8,7 +8,7 @@ class ConversionLine extends Model
 {
     //
     protected $fillable = [
-        'voucher_id','party_item_id','line_type','qty','unit_name',
+        'voucher_id','party_item_id','line_type','qty','weight','unit_name',
     ];
 
     public function voucher()   { return $this->belongsTo(ConversionVoucher::class); }

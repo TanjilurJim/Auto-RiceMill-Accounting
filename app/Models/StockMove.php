@@ -14,8 +14,11 @@ class StockMove extends Model
         'lot_id',
         'type',
         'qty',
+        'weight',
         'unit_cost',
         'reason',
+        'ref_no',
+        
         'created_by',
     ];
 

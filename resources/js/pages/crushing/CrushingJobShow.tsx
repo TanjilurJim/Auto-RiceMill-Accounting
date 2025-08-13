@@ -1,5 +1,5 @@
 import AppLayout from '@/layouts/app-layout';
-import { Head, Link } from '@inertiajs/react';
+import { Head, Link, router } from '@inertiajs/react';
 import { ArrowLeft, Calendar, Clock3, Cpu, Warehouse } from 'lucide-react';
 
 type Line = {
@@ -27,6 +27,7 @@ type JobShowProps = {
         loaded?: number | null;
         utilization?: number | null;
         remarks?: string | null;
+        posted_ref_no?: string | null;
     };
     lines: Line[];
 };
@@ -54,6 +55,24 @@ export default function CrushingJobShow({ job, lines }: JobShowProps) {
                         >
                             Stop Job
                         </button>
+                    )}
+                    {job.status === 'stopped' && !job.posted_ref_no && (
+                        <Link
+                            href={route('party-stock.transfer.create', { job: job.id })}
+                            className="inline-flex items-center gap-2 rounded-md bg-indigo-600 px-4 py-2 text-sm font-semibold text-white hover:bg-indigo-500"
+                        >
+                            Enter generated items
+                        </Link>
+                    )}
+
+                    {job.posted_ref_no && (
+                        <Link
+                            // if you later add a "show by ref" route, point directly there.
+                            href={route('party-stock.transfer.index')}
+                            className="inline-flex items-center gap-2 rounded-md bg-green-600 px-4 py-2 text-sm font-semibold text-white hover:bg-green-500"
+                        >
+                            View conversion
+                        </Link>
                     )}
                 </div>
 

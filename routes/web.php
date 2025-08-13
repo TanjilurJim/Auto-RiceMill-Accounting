@@ -454,6 +454,12 @@ Route::middleware(['auth', 'verified'])->group(function () {
 
         // Transfer Routes/ Crushing
         Route::get('convert',        [PartyStockAdjustmentController::class, 'create'])->name('party-stock.transfer.create');
+
+         Route::get('/company/convert-list', [PartyStockAdjustmentController::class, 'companyIndex'])
+            ->name('company-conversions.index');
+        Route::get('/company-conversions/{id}', [\App\Http\Controllers\PartyStockAdjustmentController::class, 'companyShow'])
+    ->name('company-conversions.show');
+
         Route::post('convert',       [PartyStockAdjustmentController::class, 'transfer'])->name('party-stock.transfer.store');  // Change to 'transfer.store'
         Route::get('convert-list',       [PartyStockAdjustmentController::class, 'index'])->name('party-stock.transfer.index');  // Change to 'transfer.store'
         Route::get('convert/{id}',       [PartyStockAdjustmentController::class, 'show'])->name('party-stock.transfer.show');  // Change to 'transfer.store'
@@ -462,14 +468,19 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::delete('convert/{id}',           [PartyStockAdjustmentController::class, 'destroy'])->name('party-stock.transfer.destroy');
         // Route::post('/crushing/jobs/start', [PartyStockAdjustmentController::class, 'jobStart'])->name('crushing.jobs.start');
         // Route::post('/crushing/jobs/{job}/stop', [PartyStockAdjustmentController::class, 'jobStop'])->name('crushing.jobs.stop');
-
+        
         Route::get('/crushing/jobs', [PartyStockAdjustmentController::class, 'jobsIndex'])
             ->name('crushing.jobs.index');
         Route::post('/crushing/jobs/start', [PartyStockAdjustmentController::class, 'jobStart'])
             ->name('crushing.jobs.start');
         Route::post('/crushing/jobs/{job}/stop', [PartyStockAdjustmentController::class, 'jobStop'])
             ->name('crushing.jobs.stop');
-            Route::get('/crushing/jobs/{job}', [PartyStockAdjustmentController::class, 'jobsShow'])->name('crushing.jobs.show');
+        Route::get('/crushing/jobs/{job}', [PartyStockAdjustmentController::class, 'jobsShow'])->name('crushing.jobs.show');
+
+       
+
+        Route::post('convert/company', [PartyStockAdjustmentController::class, 'storeCompany'])
+            ->name('crushing.company.convert.store');
 
         Route::prefix('conversion-voucher')->name('conversion.voucher.')->group(function () {
             Route::get('/',             [ConversionVoucherController::class, 'index'])->name('index');

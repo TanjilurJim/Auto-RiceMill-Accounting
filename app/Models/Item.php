@@ -29,6 +29,25 @@ class Item extends Model
 
     ];
 
+    protected static function booted()
+    {
+        static::creating(function (Item $item) {
+            if (empty($item->item_code)) {
+                $item->item_code = self::nextItemCode();
+            }
+        });
+    }
+
+    public static function nextItemCode(): string
+    {
+        // Simple incrementing code like your controller
+        do {
+            $nextId   = (int) (self::max('id') ?? 0) + 1;
+            $code     = 'ITM' . str_pad((string)$nextId, 4, '0', STR_PAD_LEFT);
+            $exists   = self::where('item_code', $code)->exists();
+            if (!$exists) return $code;
+        } while (true);
+    }
     public function category()
     {
         return $this->belongsTo(Category::class);

@@ -177,7 +177,9 @@ class ItemController extends Controller
                 'godown_id'   => $request->godown_id,
                 'item_id'     => $item->id,
                 'lot_no'      => $request->lot_no,
-                'received_at' => $request->received_at ?? now(),
+                'received_at' => $request->received_at
+                    ? date('Y-m-d', strtotime($request->received_at))
+                    : now(),
                 'created_by'  => auth()->id(),
             ]);
 

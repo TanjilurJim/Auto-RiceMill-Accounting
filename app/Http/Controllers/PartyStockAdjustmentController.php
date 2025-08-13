@@ -21,10 +21,47 @@ use App\Models\{Item, Stock, StockMove, Lot};
 class PartyStockAdjustmentController extends Controller
 {
     /* ----------  FORM  ---------- */
-    public function create()
+    public function create(Request $request)
     {
         $dateStr = now()->format('Ymd');
         $ref = "CONV-$dateStr-" . random_int(1000, 9999);
+
+        $preset = null;
+        if ($request->filled('job')) {
+            $job = CrushingJob::with('consumptions')->findOrFail($request->job);
+
+            // Map consumptions to your form shape
+            $consumed = $job->consumptions->map(function ($c) {
+                if ($c->source === 'company') {
+                    return [
+                        'item_id'   => (string)$c->item_id,
+                        'lot_id'    => (string)$c->lot_id,
+                        'qty'       => (string)$c->qty,
+                        'unit_name' => (string)($c->unit_name ?? ''),
+                        'weight'    => $c->weight !== null ? (string)$c->weight : '',
+                    ];
+                }
+                return [
+                    'party_item_id' => (string)$c->party_item_id,
+                    'qty'           => (string)$c->qty,
+                    'unit_name'     => (string)($c->unit_name ?? ''),
+                    'weight'        => $c->weight !== null ? (string)$c->weight : '',
+                ];
+            })->values();
+
+            $preset = [
+                'date'            => $job->date ?? now()->toDateString(),
+                'ref_no'          => $ref, // a fresh ref for the conversion voucher
+                'owner'           => $job->owner,
+                'party_ledger_id' => $job->party_ledger_id,
+                'godown_id'       => $job->godown_id,
+                'dryer_id'        => $job->dryer_id,
+                'consumed'        => $consumed,
+                'generated'       => [], // empty; user will enter outputs
+                'remarks'         => $job->remarks,
+                'job_id'          => $job->id, // pass through so transfer() can mark posted
+            ];
+        }
 
         // Group party job stock by party -> godown, include godown_name
         $stocks = PartyJobStock::whereHas('partyItem')
@@ -63,7 +100,12 @@ class PartyStockAdjustmentController extends Controller
             'today'            => now()->toDateString(),
             'generated_ref_no' => $ref,
             'available_stock'  => $stocks,
-            'running_job_id'   => $runningJobId,                         // ✅ here
+            'running_job_id'   => $runningJobId,
+            'preset'          => $preset,                  // ✅ here
+            'items'            => Item::with('unit:id,name')
+                ->orderBy('item_name')
+                ->get(['id', 'item_name', 'unit_id']),
+            'units' => Unit::orderBy('name')->get(['id', 'name']),
         ]);
     }
 
@@ -75,108 +117,139 @@ class PartyStockAdjustmentController extends Controller
     /* ----------  STORE  ---------- */
     public function transfer(Request $request)
     {
-        /* 1️⃣  Whole-voucher validation */
         $validated = $request->validate([
             'date'            => ['required', 'date'],
             'ref_no'          => ['required', 'string', 'max:255', 'unique:party_stock_moves,ref_no'],
             'party_ledger_id' => ['required', 'exists:account_ledgers,id'],
             'godown_id'       => ['required', 'exists:godowns,id'],
-
-            /* arrays */
             'consumed'        => ['required', 'array', 'min:1'],
+            'consumed.*.weight'   => ['nullable', 'numeric', 'min:0'],
+            'generated.*.weight'  => ['nullable', 'numeric', 'min:0'],
             'generated'       => ['required', 'array', 'min:1'],
-
-            /* each consumed line */
             'consumed.*.party_item_id' => ['required', 'exists:party_items,id'],
             'consumed.*.qty'           => ['required', 'numeric', 'min:0.01'],
             'consumed.*.unit_name'     => ['nullable', 'string'],
-
-            /* each generated line */
             'generated.*.item_name'    => ['required', 'string', 'max:255'],
             'generated.*.qty'          => ['required', 'numeric', 'min:0.01'],
             'generated.*.unit_name'    => ['nullable', 'string'],
         ]);
 
-        /* 2️⃣  One transaction – lock + post both sides */
-        DB::transaction(function () use ($validated) {
+        $jobId = $request->input('job_id'); // ⬅️ receive job_id
 
-            /* -- CONSUMED (negative) -------------------------------- */
+        DB::transaction(function () use ($validated, $jobId, $request) {
+            $date       = $validated['date'];
+            $refNo      = $validated['ref_no'];
+            $partyId    = (int) $validated['party_ledger_id'];
+            $godownId   = (int) $validated['godown_id'];
+            $remarks    = $request->input('remarks'); // not in $validated, so pull from request
+
+            /* -------------------- CONSUMED (convert-out) -------------------- */
             foreach ($validated['consumed'] as $row) {
+                $partyItemId = (int) $row['party_item_id'];
+                $qty         = (float) $row['qty'];
+                $unitName    = $row['unit_name'] ?? null;
 
-                /* lock stock */
-                $stock = PartyJobStock::where('party_item_id', $row['party_item_id'])
-                    ->where('godown_id', $validated['godown_id'])
-                    ->lockForUpdate()
-                    ->first();
+                // Optional weight (store negative for out)
+                $weight = null;
+                if (array_key_exists('weight', $row) && $row['weight'] !== null && $row['weight'] !== '') {
+                    $weight = -abs((float) $row['weight']);
+                }
 
-                if (!$stock || $stock->qty < $row['qty']) {
+                // Lock stock and ensure enough qty
+                $pStock = \App\Models\PartyJobStock::where([
+                    'party_item_id' => $partyItemId,
+                    'godown_id'     => $godownId,
+                    'created_by'    => auth()->id(),
+                ])->lockForUpdate()->first();
+
+                if (!$pStock || $pStock->qty < $qty) {
                     throw \Illuminate\Validation\ValidationException::withMessages([
-                        'consumed' => ['Stock not enough for item #' . $row['party_item_id']],
+                        'consumed' => ["Not enough stock for party_item_id={$partyItemId} in this godown."],
                     ]);
                 }
 
-                /* movement */
-                PartyStockMove::create([
-                    'date'            => $validated['date'],
-                    'ref_no'          => $validated['ref_no'],
+                // Decrement balance
+                $pStock->decrement('qty', $qty);
+
+                // History (out)
+                \App\Models\PartyStockMove::create([
+                    'date'            => $date,
+                    'party_ledger_id' => $partyId,
+                    'party_item_id'   => $partyItemId,
+                    'godown_id_from'  => $godownId,
+                    'qty'             => -$qty,
+                    'unit_name'       => $unitName,
+                    'weight'          => $weight,                  // 👈 nullable negative
                     'move_type'       => 'convert-out',
-                    'party_ledger_id' => $validated['party_ledger_id'],
-                    'party_item_id'   => $row['party_item_id'],
-                    'godown_id_from'  => $validated['godown_id'],
-                    'godown_id_to'    => null,
-                    'qty'             => -$row['qty'],
-                    'unit_name'       => $row['unit_name'] ?? null,
-                    'total'           => 0,
+                    'ref_no'          => $refNo,
+                    'remarks'         => $remarks,
                     'created_by'      => auth()->id(),
                 ]);
-
-                /* decrement balance */
-                $stock->qty -= $row['qty'];
-                $stock->save();
             }
 
-            /* -- GENERATED (positive) ------------------------------- */
+            /* -------------------- GENERATED (convert-in) -------------------- */
             foreach ($validated['generated'] as $row) {
+                $itemName  = trim($row['item_name']);
+                $qty       = (float) $row['qty'];
+                $unitName  = $row['unit_name'] ?? null;
 
-                $partyItem = PartyItem::firstOrCreate(
+                // Optional weight (store positive for in)
+                $weight = null;
+                if (array_key_exists('weight', $row) && $row['weight'] !== null && $row['weight'] !== '') {
+                    $weight = abs((float) $row['weight']);
+                }
+
+                // Ensure PartyItem exists for this party + name
+                $partyItem = \App\Models\PartyItem::firstOrCreate(
                     [
-                        'party_ledger_id' => $validated['party_ledger_id'],
-                        'item_name'       => trim($row['item_name']),
+                        'party_ledger_id' => $partyId,
+                        'item_name'       => $itemName,
+                        'created_by'      => auth()->id(),
                     ],
-                    ['created_by' => auth()->id()]
+                    [
+                        'unit_id' => null, // keep null unless you want to infer from $unitName
+                    ]
                 );
 
-                PartyStockMove::create([
-                    'date'            => $validated['date'],
-                    'ref_no'          => $validated['ref_no'],
-                    'move_type'       => 'convert-in',
-                    'party_ledger_id' => $validated['party_ledger_id'],
+                // Upsert PartyJobStock (increase qty)
+                $pStock = \App\Models\PartyJobStock::lockForUpdate()->firstOrNew([
+                    'party_item_id' => $partyItem->id,
+                    'godown_id'     => $godownId,
+                    'created_by'    => auth()->id(),
+                ]);
+                $pStock->qty        = ($pStock->qty ?? 0) + $qty;
+                $pStock->unit_name  = $unitName ?? $pStock->unit_name;
+                $pStock->save();
+
+                // History (in)
+                \App\Models\PartyStockMove::create([
+                    'date'            => $date,
+                    'party_ledger_id' => $partyId,
                     'party_item_id'   => $partyItem->id,
-                    'godown_id_from'  => null,
-                    'godown_id_to'    => $validated['godown_id'],
-                    'qty'             =>  $row['qty'],
-                    'unit_name'       => $row['unit_name'] ?? null,
-                    'total'           => 0,
+                    'godown_id_to'    => $godownId,
+                    'qty'             => $qty,
+                    'unit_name'       => $unitName,
+                    'weight'          => $weight,                  // 👈 nullable positive
+                    'move_type'       => 'convert-in',
+                    'ref_no'          => $refNo,
+                    'remarks'         => $remarks,
                     'created_by'      => auth()->id(),
                 ]);
+            }
 
-                $stock = PartyJobStock::firstOrNew([
-                    'party_item_id' => $partyItem->id,
-                    'godown_id'     => $validated['godown_id'],
-                ]);
-                $stock->party_ledger_id = $validated['party_ledger_id'];
-                $stock->qty += $row['qty'];
-                $stock->unit_name = $row['unit_name'] ?? $stock->unit_name;
-                $stock->created_by = auth()->id();
-                $stock->save();
+            /* -------------------- Link posted job (if any) -------------------- */
+            if ($jobId) {
+                $job = \App\Models\CrushingJob::lockForUpdate()->find($jobId);
+                if ($job && $job->created_by === auth()->id()) {
+                    $job->update([
+                        'posted_ref_no' => $refNo,
+                        'posted_at'     => now(),
+                    ]);
+                }
             }
         });
 
-        // $voucher = app(\App\Http\Controllers\ConversionVoucherController::class)
-        //    ->storeFromValidated($validated);
-
-        return redirect()
-            ->route('party-stock.transfer.index')   // or separate convert list
+        return redirect()->route('party-stock.transfer.index')
             ->with('success', 'Conversion saved successfully');
     }
     public function jobsIndex()
@@ -246,6 +319,7 @@ class PartyStockAdjustmentController extends Controller
                 'loaded' => $job->total_loaded_qty,
                 'utilization' => ($job->dryer_capacity ? round($job->total_loaded_qty / $job->dryer_capacity, 3) : null),
                 'remarks' => $job->remarks,
+                'posted_ref_no' => $job->posted_ref_no,
             ],
             'lines' => $lines,
         ]);
@@ -273,6 +347,7 @@ class PartyStockAdjustmentController extends Controller
                 'consumed.*.item_id'     => ['required', 'exists:items,id'],
                 'consumed.*.lot_id'      => ['required', 'exists:lots,id'],
                 'consumed.*.qty'         => ['required', 'numeric', 'min:0.01'],
+                'consumed.*.weight' => ['nullable', 'numeric', 'min:0'],
                 'consumed.*.unit_name'   => ['nullable', 'string', 'max:50'],
             ]);
         } else { // party
@@ -281,6 +356,7 @@ class PartyStockAdjustmentController extends Controller
                 'consumed.*.party_item_id'    => ['required', 'exists:party_items,id'],
                 'consumed.*.qty'              => ['required', 'numeric', 'min:0.01'],
                 'consumed.*.unit_name'        => ['nullable', 'string', 'max:50'],
+                'consumed.*.weight' => ['nullable', 'numeric', 'min:0'],
             ]);
         }
 
@@ -308,6 +384,7 @@ class PartyStockAdjustmentController extends Controller
                     'source'          => $base['owner'],
                     'qty'             => $row['qty'],
                     'unit_name'       => $row['unit_name'] ?? null,
+                    'weight'          => (isset($row['weight']) && $row['weight'] !== '') ? (float)$row['weight'] : null, // ⬅️ save it
                     'created_by'      => auth()->id(),
                 ];
                 if ($base['owner'] === 'company') {
@@ -333,15 +410,19 @@ class PartyStockAdjustmentController extends Controller
 
     public function jobStop(CrushingJob $job)
     {
-        abort_if($job->created_by !== auth()->id(), 403);
-
-        if ($job->status === 'running') {
-            $job->status = 'stopped';
-            $job->stopped_at = now();
-            $job->save();
+        if ($job->status !== 'running') {
+            return back()->with('warning', 'Job already stopped.');
         }
 
-        return back()->with('success', 'Dryer job stopped.');
+        $job->update([
+            'status'     => 'stopped',
+            'stopped_at' => Carbon::now(),
+        ]);
+
+        // Redirect to convert form prefilled from this job
+        return redirect()
+            ->route('party-stock.transfer.create', ['job' => $job->id])
+            ->with('success', 'Dryer stopped. Enter generated items now.');
     }
 
     public function index()
@@ -377,6 +458,7 @@ class PartyStockAdjustmentController extends Controller
                         'item_name' => $item->partyItem->item_name ?? '',
                         'unit_name' => $item->unit_name ?? '',
                         'qty' => $item->qty,
+                        'weight'    => $item->weight !== null ? (float)$item->weight : null,
                         'move_type' => $item->move_type,
                     ];
                 })->values(),
@@ -424,6 +506,7 @@ class PartyStockAdjustmentController extends Controller
                 ->map(fn($m) => [
                     'item' => $m->partyItem->item_name ?? '',
                     'qty'  => $m->qty,
+                    'weight' => $m->weight !== null ? (float)$m->weight : null,
                     'unit' => $m->unit_name ?? '',
                 ]),
         ]);
@@ -503,29 +586,88 @@ class PartyStockAdjustmentController extends Controller
         return back()->with('success', 'Conversion deleted.');
     }
 
+    public function companyIndex()
+    {
+        $refNos = StockMove::select('ref_no')
+            ->whereNotNull('ref_no')
+            ->whereIn('type', ['in', 'out'])
+            ->where('created_by', auth()->id())
+            ->where(function ($q) {
+                $q->where('reason', 'Crushing')
+                    ->orWhere('reason', 'like', 'Crushing convert-%');
+            })
+            ->groupBy('ref_no')
+            ->orderByRaw('MAX(created_at) DESC')
+            ->paginate(10);
+
+        $moves = StockMove::with(['item:id,item_name', 'lot:id,lot_no', 'godown:id,name'])
+            ->whereIn('ref_no', $refNos->pluck('ref_no'))
+            ->orderBy('created_at', 'desc')
+            ->get();
+
+        $grouped = $moves->groupBy('ref_no')->map(function ($group) {
+            $first = $group->first();
+
+            return [
+                'id'         => $first->id,
+                'ref_no'     => $first->ref_no,
+                // if you have a `date` column on stock_moves, prefer it; otherwise use created_at
+                'date'       => optional($group->max('created_at'))->toDateString(),
+                'godown_name' => $first->godown?->name ?? '',   // ← keep key name consistent with your TSX
+                'remarks'    => 'Crushing',
+                'items'      => $group->map(fn($m) => [
+                    'item_name' => $m->item?->item_name ?? '',
+                    'unit_name' => $m->unit_name ?? '',       // if you store it
+                    'qty'       => (float) $m->qty,
+                    'weight'    => $m->weight !== null ? (float)$m->weight : null,
+                    'move_type' => $m->type === 'in' ? 'convert-in' : 'convert-out',
+                ])->values(),
+            ];
+        })->values();
+
+        return Inertia::render('crushing/CompanyConvertIndex', [
+            'conversions' => $grouped,
+            'pagination'  => [
+                'links'       => $refNos->linkCollection(),
+                'currentPage' => $refNos->currentPage(),
+                'lastPage'    => $refNos->lastPage(),
+                'total'       => $refNos->total(),
+            ],
+        ]);
+    }
+
+
     protected function storeCompany(Request $request)
     {
+        $refNo = 'CCONV-' . now()->format('Ymd') . '-' . random_int(1000, 9999);
         $v = $request->validate([
             'owner'      => ['required', 'in:company'],
             'date'       => ['required', 'date'],
             'godown_id'  => ['required', 'exists:godowns,id'],
 
+            // CONSUMED
             'consumed'               => ['required', 'array', 'min:1'],
             'consumed.*.item_id'     => ['required', 'exists:items,id'],
             'consumed.*.lot_id'      => ['required', 'exists:lots,id'],
             'consumed.*.qty'         => ['required', 'numeric', 'min:0.01'],
+            'consumed.*.weight'        => ['nullable', 'numeric', 'min:0'],
 
-            'generated'              => ['required', 'array', 'min:1'],
-            'generated.*.item_id'    => ['required', 'exists:items,id'],
-            'generated.*.lot_no'     => ['required', 'string', 'max:255'],
-            'generated.*.qty'        => ['required', 'numeric', 'min:0.01'],
+            // GENERATED (either item_id OR item_name)
+            'generated'                 => ['required', 'array', 'min:1'],
+            'generated.*.item_id'       => ['nullable', 'exists:items,id', 'required_without:generated.*.item_name'],
+            'generated.*.item_name'     => ['nullable', 'string', 'max:255', 'required_without:generated.*.item_id'],
+            'generated.*.unit_name'     => ['nullable', 'string', 'max:50'], // used only when creating a new item
+            'generated.*.lot_no'        => ['required', 'string', 'max:255'],
+            'generated.*.qty'           => ['required', 'numeric', 'min:0.01'],
+            'generated.*.weight'       => ['nullable', 'numeric', 'min:0'],
         ]);
 
-        DB::transaction(function () use ($v) {
+        $jobId = $request->input('job_id');
 
-            /* ---------- 1️⃣ CONSUME PADDY -------------------------------- */
+        DB::transaction(function () use ($v, $jobId, $refNo) {
+
+            /* ---------- 1) CONSUME (out) ------------------------------------ */
             foreach ($v['consumed'] as $row) {
-
                 $stock = Stock::where([
                     'item_id'   => $row['item_id'],
                     'lot_id'    => $row['lot_id'],
@@ -537,61 +679,158 @@ class PartyStockAdjustmentController extends Controller
                         'consumed' => ["Not enough qty for item #{$row['item_id']} lot #{$row['lot_id']}"],
                     ]);
                 }
-
-                /* history */
+                $w = null;
+                if (array_key_exists('weight', $row) && $row['weight'] !== null && $row['weight'] !== '') {
+                    $w = -abs((float)$row['weight']);
+                }
+                // history
                 StockMove::create([
-                    'godown_id' => $v['godown_id'],
-                    'item_id'   => $row['item_id'],
-                    'lot_id'    => $row['lot_id'],
-                    'type'      => 'convert-out',       // ◄— use your enum / string
-                    'qty'       => -$row['qty'],
-                    'reason'    => 'Crushing',
+                    'ref_no'    => $refNo,
+                    // 'date'       => $v['date'],
+                    'weight'     => $w,
+                    'godown_id'  => $v['godown_id'],
+                    'item_id'    => $row['item_id'],
+                    'lot_id'     => $row['lot_id'],
+                    'type'       => 'out',                 // ✅ valid value
+                    'qty'        => -$row['qty'],
+                    'reason'     => 'Crushing convert-out',
                     'created_by' => auth()->id(),
                 ]);
 
-                /* balance */
+                // balance
                 $stock->decrement('qty', $row['qty']);
             }
 
-            /* ---------- 2️⃣ GENERATE RICE / BRAN ------------------------- */
+            /* ---------- 2) GENERATE (in) ------------------------------------ */
             foreach ($v['generated'] as $row) {
 
-                /* create / reuse lot */
+                // Resolve or create item
+                if (!empty($row['item_id'])) {
+                    $itemId = (int) $row['item_id'];
+                } else {
+                    // optional unit mapping from name -> id
+                    $unitId = null;
+                    if (!empty($row['unit_name'])) {
+                        $unitId = Unit::where('name', $row['unit_name'])->value('id'); // null if not found
+                    }
+                    $categoryId = \App\Models\Category::firstOrCreate(
+                        [
+                            'name'       => 'Finished Goods',
+                            'created_by' => auth()->id(),
+                        ],
+                        []
+                    )->id;
+
+                    $defaultGodownId = $v['godown_id'];
+
+                    $item = Item::firstOrCreate(
+                        ['item_name' => trim($row['item_name'])],
+                        [
+                            'unit_id'    => $unitId,
+                            'category_id' => $categoryId,
+                            'godown_id'   => $v['godown_id'],  // save FK if we found it
+                            'created_by' => auth()->id(),
+                        ]
+                    );
+                    $itemId = $item->id;
+                }
+
+                // Create / reuse lot
                 $lot = Lot::firstOrCreate(
                     [
                         'godown_id' => $v['godown_id'],
-                        'item_id'   => $row['item_id'],
+                        'item_id'   => $itemId,
                         'lot_no'    => trim($row['lot_no']),
                     ],
                     [
-                        'received_at' => $v['date'],
-                        'created_by' => auth()->id(),
+                        'received_at' => date('Y-m-d', strtotime($v['date'])),
+                        'created_by'  => auth()->id(),
                     ]
                 );
 
-                /* stock balance */
-                $stock = Stock::firstOrNew([
-                    'item_id'   => $row['item_id'],
+                // Stock balance
+                $stock = Stock::lockForUpdate()->firstOrNew([
+                    'item_id'   => $itemId,
                     'lot_id'    => $lot->id,
                     'godown_id' => $v['godown_id'],
                 ]);
-                $stock->qty += $row['qty'];
+                $stock->qty = ($stock->qty ?? 0) + $row['qty'];
                 $stock->created_by = $stock->created_by ?: auth()->id();
                 $stock->save();
+                $w = null;
+                if (array_key_exists('weight', $row) && $row['weight'] !== null && $row['weight'] !== '') {
+                    $w = abs((float)$row['weight']);
+                }
 
-                /* history */
+                // History
                 StockMove::create([
-                    'godown_id' => $v['godown_id'],
-                    'item_id'   => $row['item_id'],
-                    'lot_id'    => $lot->id,
-                    'type'      => 'convert-in',
-                    'qty'       =>  $row['qty'],
-                    'reason'    => 'Crushing',
+                    'ref_no'    => $refNo,
+                    // 'date'       => $v['date'],
+                    'godown_id'  => $v['godown_id'],
+                    'item_id'    => $itemId,
+                    'lot_id'     => $lot->id,
+                    'type'       => 'in',                  // ✅ valid value
+                    'qty'        => $row['qty'],
+                    'weight'  => $w,
+                    'reason'     => 'Crushing convert-in',
                     'created_by' => auth()->id(),
                 ]);
             }
+
+            // Mark job posted (optional)
+            if ($jobId) {
+                $job = CrushingJob::lockForUpdate()->find($jobId);
+                if ($job && $job->created_by === auth()->id()) {
+                    $job->update([
+                        'posted_ref_no' => $v['date'] . '-company',
+                        'posted_at'     => now(),
+                    ]);
+                }
+            }
         });
 
-        return back()->with('success', 'Conversion saved (company stock).');
+        return redirect()->route('company-conversions.index')
+            ->with('success', 'Conversion saved (company stock).');
+    }
+
+    public function companyShow($id)
+    {
+        $refNo = \App\Models\StockMove::findOrFail($id)->ref_no;
+
+        $moves = \App\Models\StockMove::with([
+            'item:id,item_name,unit_id',
+            'item.unit:id,name',            // 👈 add this
+            'lot:id,lot_no',
+            'godown:id,name'
+        ])
+            ->where('ref_no', $refNo)
+            ->orderBy('type')
+            ->get();
+
+        $date  = optional($moves->max('created_at'))->toDateString();
+        $first = $moves->first();
+
+        return \Inertia\Inertia::render('crushing/CompanyConvertShow', [
+            'header' => [
+                'date'    => $date,
+                'ref_no'  => $refNo,
+                'godown'  => $first?->godown?->name ?? '',
+                'remarks' => 'Crushing',
+            ],
+            'consumed' => $moves->where('type', 'out')->values()->map(fn($m) => [
+                'item' => $m->item?->item_name ?? '',
+                'lot'  => $m->lot?->lot_no ?? '',
+                'qty'  => abs((float) $m->qty),
+                'weight' => $m->weight !== null ? abs((float)$m->weight) : null,
+                'unit' => $m->item?->unit?->name ?? ($m->unit_name ?? null), // 👈 now included
+            ]),
+            'generated' => $moves->where('type', 'in')->values()->map(fn($m) => [
+                'item' => $m->item?->item_name ?? '',
+                'lot'  => $m->lot?->lot_no ?? '',
+                'qty'  => (float) $m->qty,
+                'weight' => $m->weight !== null ? (float)$m->weight : null,
+                'unit' => $m->item?->unit?->name ?? ($m->unit_name ?? null), // 👈 now included
+            ]),
+        ]);
     }
 }

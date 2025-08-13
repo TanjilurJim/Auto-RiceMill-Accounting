@@ -4,6 +4,8 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use App\Traits\BelongsToTenant;
+use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class CrushingJob extends Model
 {
@@ -30,6 +32,12 @@ class CrushingJob extends Model
         'started_at' => 'datetime',
         'stopped_at' => 'datetime',
     ];
+    public function consumptions(): HasMany
+    {
+        return $this->hasMany(CrushingJobConsumption::class, 'crushing_job_id');
+    }
+
+    
 
     public function lines()
     {
