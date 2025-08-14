@@ -22,8 +22,14 @@ class PartyStockMove extends Model
         'move_type',
         'ref_no',
         'remarks',
+        'meta',      
         'created_by',
         'unit_name',
+    ];
+
+    protected $casts = [
+        
+        'meta' => 'array', // NEW: For additional metadata
     ];
 
     public function partyItem()

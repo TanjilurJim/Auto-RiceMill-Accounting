@@ -18,8 +18,12 @@ class StockMove extends Model
         'unit_cost',
         'reason',
         'ref_no',
-        
+        'meta',      
         'created_by',
+    ];
+
+    protected $casts = [
+        'meta' => 'array',
     ];
 
     public function item()

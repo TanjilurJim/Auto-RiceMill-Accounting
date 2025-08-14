@@ -312,8 +312,9 @@ class ItemController extends Controller
             ->value('id');
 
         /* 3️⃣ One query: latest IN-move cost for every lot */
-        $lastRates = \App\Models\StockMove::select('lot_id', 'unit_cost')
-            ->whereIn('type', ['in', 'purchase'])   // include manual “in” & purchases
+        /* 3️⃣ One query: latest IN or Purchase move cost for every lot */
+        $lastRates = \App\Models\StockMove::select('lot_id', 'unit_cost', 'meta')
+            ->whereIn('type', ['in', 'purchase'])   // ✅ include both
             ->whereIn('lot_id', $stocks->pluck('lot_id'))
             ->orderBy('lot_id')
             ->orderByDesc('id')
@@ -324,8 +325,18 @@ class ItemController extends Controller
         /* 4️⃣ Build rows */
         $rows = $stocks->map(function ($s) use ($item, $lastRates, $openingLotId) {
 
-            // 4.1 newest IN move cost?
-            $rate = (float) ($lastRates[$s->lot_id]->unit_cost ?? 0);
+            // 4.1 newest IN or purchase move cost?
+            $move = $lastRates[$s->lot_id] ?? null;
+            $rate = 0;
+
+            if ($move) {
+                // Prefer per_kg_rate from meta if present (conversion)
+                if (!empty($move->meta['per_kg_rate'])) {
+                    $rate = (float) $move->meta['per_kg_rate'];
+                } else {
+                    $rate = (float) $move->unit_cost;
+                }
+            }
 
             // 4.2 else any stored avg_cost?
             if ($rate == 0 && $s->avg_cost) {
@@ -348,6 +359,7 @@ class ItemController extends Controller
                 'value'       => $value,
             ];
         });
+
 
         /* 5️⃣ Summary */
         $summary = [

@@ -1,10 +1,13 @@
 /*  resources/js/pages/crushing/ConvertForm.tsx  */
+import ConsumedTable from '@/components/crushing/ConsumedTable';
+import GeneratedCompanyTable from '@/components/crushing/GeneratedCompanyTable';
+import GeneratedPartyTable from '@/components/crushing/GeneratedPartyTable';
+import type { ConsumedRow, GeneratedRow, Owner } from '@/components/crushing/types';
 import AppLayout from '@/layouts/app-layout';
 import { Head, Link, useForm } from '@inertiajs/react';
 import axios from 'axios';
 import React from 'react';
 import Select from 'react-select';
-import CreatableSelect from 'react-select/creatable';
 
 type ProductionCostRow = { id: string; label: string; amount: number | '' };
 type NewCosting = {
@@ -48,25 +51,6 @@ interface Stock {
     };
 }
 
-interface ConsumedRow {
-    party_item_id?: string; // party mode
-    item_id?: string; // company mode
-    lot_id?: string; // company mode
-    qty: string;
-    unit_name: string;
-    weight?: string;
-}
-interface GeneratedRow {
-    item_id?: string;
-    item_name: string;
-    qty: string;
-    unit_name: string;
-    lot_no?: string;
-    sale_value?: string; // ৳ expected from by-product
-    proc_cost?: string; // ৳ per-line processing cost (optional)
-    weight?: string;
-}
-
 interface Props {
     parties: Party[];
     godowns: Godown[];
@@ -85,7 +69,6 @@ const defaultCosting: NewCosting = {
     production_costs: [],
 };
 
-type Owner = 'company' | 'party';
 interface FormState {
     date: string;
     ref_no: string;
@@ -149,11 +132,134 @@ export default function ConvertForm({
         godown_id: '',
         dryer_id: '', //
         consumed: [{ party_item_id: '', item_id: '', lot_id: '', qty: '', unit_name: '', weight: '' } as any],
-        generated: [{ item_name: '', qty: '', unit_name: '', weight: '' }],
+        generated: [{ id: uid(), item_name: '', qty: '', unit_name: '', weight: '', is_main: false, per_kg_rate: '', sale_value: '' }],
         remarks: '',
         job_id: '',
         costing: defaultCosting,
     });
+    const [paddyTotalTk, setPaddyTotalTk] = React.useState<string>('');
+    const [flashMain, setFlashMain] = React.useState(false);
+    const [paddyBusy, setPaddyBusy] = React.useState(false);
+    const [flashPaddy, setFlashPaddy] = React.useState(false);
+    // helpers
+    const mainIdx = data.generated.findIndex((r) => r.is_main);
+    const mainRow = mainIdx >= 0 ? data.generated[mainIdx] : undefined;
+
+    const byProductTotal = data.generated.filter((r) => !r.is_main).reduce((sum, r) => sum + (parseFloat(r.sale_value || '0') || 0), 0);
+
+    const productionCostTotal = (data.costing?.production_costs ?? []).reduce((sum, r) => {
+        const n = typeof r.amount === 'string' ? parseFloat(r.amount) : r.amount;
+        return sum + (isNaN(n as number) ? 0 : (n as number));
+    }, 0);
+
+    // --- Yield helpers (bosta & weights) ---
+    const [dhanKgPerBosta, setDhanKgPerBosta] = React.useState<string>('75'); // typical default
+
+    // 1) How many বস্তা ধান? (try to read from consumed.qty if unit is 'bosta')
+    const dhaanBostaFromQty = React.useMemo(() => {
+        return (data.consumed ?? []).reduce((sum, r) => {
+            const u = (r.unit_name || '').toLowerCase().trim();
+            const qty = parseFloat(r.qty || '0') || 0;
+            return sum + (u === 'bosta' ? qty : 0);
+        }, 0);
+    }, [data.consumed]);
+
+    // 2) Total consumed weight (kg) – if weight filled on lines
+    const totalConsumedWeightKg = React.useMemo(() => {
+        return (data.consumed ?? []).reduce((sum, r) => {
+            const w = parseFloat((r as any).weight || '0') || 0;
+            return sum + w;
+        }, 0);
+    }, [data.consumed]);
+
+    // 3) Final bosta count: prefer explicit বস্তা qty; if absent, derive from weight ÷ kg/bosta
+    const dhaanBostaCount = React.useMemo(() => {
+        if (dhaanBostaFromQty > 0) return dhaanBostaFromQty;
+        const kgPerBosta = parseFloat(dhanKgPerBosta || '0') || 0;
+        if (kgPerBosta > 0 && totalConsumedWeightKg > 0) {
+            return totalConsumedWeightKg / kgPerBosta;
+        }
+        return 0;
+    }, [dhaanBostaFromQty, totalConsumedWeightKg, dhanKgPerBosta]);
+
+    // --- compute paddy total from main row and production costs ---
+    const computePaddyTotal = async () => {
+        setPaddyBusy(true);
+        try {
+            const payload = {
+                owner: data.owner,
+                godown_id: Number(data.godown_id),
+                consumed: data.consumed, // needs item_id/lot_id (company) OR party_item_id (party) + qty/weight
+            };
+            const res = await axios.post(route('crushing.compute-paddy-total'), payload);
+            const t = res.data?.total ?? 0;
+            setPaddyTotalTk(String(Number(t).toFixed(2)));
+            setFlashPaddy(true);
+            setTimeout(() => setFlashPaddy(false), 1000);
+        } finally {
+            setPaddyBusy(false);
+        }
+    };
+
+    const computeMainPerKg = () => {
+        if (mainIdx < 0) return;
+
+        const mainWeight = parseFloat(mainRow?.weight || '0'); // total চাল (kg)
+        const paddyTotal = parseFloat(paddyTotalTk || '0'); // total ধান cost (all বস্তা)
+        const bostaCount = dhaanBostaCount;
+
+        if (!mainWeight || mainWeight <= 0) {
+            alert('মেইন আইটেমের মোট কেজি (kg) দিন—এটা ছাড়া হিসাব হবে না।');
+            return;
+        }
+        if (!bostaCount || bostaCount <= 0) {
+            alert('ধানের মোট বস্তা সংখ্যা পাওয়া যায়নি। Consumed-এ unit=bosta দিয়ে qty দিন; না হলে নিচের kg/বস্তা দিয়ে weight থেকে বস্তা হিসাব করুন।');
+            return;
+        }
+
+        // 1) ধানের বস্তা-পিছু খরচ
+        const costPerBosta = paddyTotal / bostaCount; // tk / বস্তা ধান
+
+        // 2) ধান→চাল yield: প্রতি বস্তা ধান থেকে আসল চাল (kg)
+        const yieldKgPerBosta = mainWeight / bostaCount; // kg চাল / বস্তা ধান
+
+        if (!yieldKgPerBosta || yieldKgPerBosta <= 0) {
+            alert('Yield (kg/বস্তা) শূন্য পাওয়া গেছে। মেইন weight বা ধানের বস্তা সংখ্যা ঠিক করুন।');
+            return;
+        }
+
+        // 3) Base porta (tk/kg) = ধানের বস্তা খরচ ÷ ওই বস্তা থেকে পাওয়া চাল (kg)
+        const basePerKg = costPerBosta / yieldKgPerBosta; // tk / kg
+
+        // 4) মোট চালের মূল্য (base porta × মোট চাল kg)
+        const mainValue = basePerKg * mainWeight;
+
+        // 5) ফাইনাল: (base চাল-মূল্য + প্রোডাকশন কস্ট − বাইপ্রোডাক্ট) ÷ চাল kg
+        const netCost = mainValue + productionCostTotal - byProductTotal;
+        const finalPerKg = netCost / mainWeight;
+
+        // set & flash (value will persist; just a one-time highlight)
+        patchGenerated(mainIdx, { per_kg_rate: finalPerKg.toFixed(2), _justComputed: true } as any);
+    };
+
+    const patchConsumed = (idx: number, patch: Partial<ConsumedRow>) =>
+        setData(
+            'consumed',
+            data.consumed.map((r, i) => (i === idx ? { ...r, ...patch } : r)),
+        );
+
+    const patchGenerated = (idx: number, patch: Partial<GeneratedRow>) => {
+        setData(
+            'generated',
+            data.generated.map((r, i) => {
+                // If this patch makes a row "main", clear it on all others
+                if (patch.is_main === true) {
+                    return { ...r, is_main: i === idx, ...(i === idx ? patch : {}) };
+                }
+                return i === idx ? { ...r, ...patch } : r;
+            }),
+        );
+    };
     const unitMap = new Map(units.map((u) => [u.id, u.name]));
     const itemOptions = items.map((i) => ({
         value: i.id,
@@ -207,10 +313,21 @@ export default function ConvertForm({
 
     const addLine = (sec: 'consumed' | 'generated') => {
         if (sec === 'generated') {
+            const base = {
+                id: uid(),
+                item_name: '',
+                qty: '',
+                unit_name: '',
+                weight: '',
+                is_main: false,
+                per_kg_rate: '',
+                sale_value: '',
+            } as GeneratedRow;
+
             if (data.owner === 'party') {
-                setData('generated', [...data.generated, { item_name: '', qty: '', unit_name: '', weight: '' }]);
+                setData('generated', [...data.generated, base]);
             } else {
-                setData('generated', [...data.generated, { item_id: '', item_name: '', lot_no: '', qty: '', unit_name: '', weight: '' } as any]);
+                setData('generated', [...data.generated, { ...base, item_id: '', lot_no: '' }]);
             }
         } else {
             setData('consumed', [...data.consumed, { party_item_id: '', item_id: '', lot_id: '', qty: '', unit_name: '', weight: '' } as any]);
@@ -281,6 +398,39 @@ export default function ConvertForm({
             post(route('party-stock.transfer.store'), { onSuccess: () => reset() });
         }
     };
+
+    // ⬅️ put these just above the `return (...)` in ConvertForm.tsx
+    // const paddy = parseFloat(paddyTotalTk || '0');
+    // const prod = productionCostTotal;
+    // const byp = byProductTotal;
+    // const netCost = paddy + prod - byp; // মোট খরচ
+    // const mainKg = parseFloat(mainRow?.weight || '0');
+    // const perKgPreview = mainKg > 0 ? netCost / mainKg : 0;
+
+    // ---- Pricing preview (yield-based) ----
+    const paddy = parseFloat(paddyTotalTk || '0'); // ধানের মোট দাম (৳)
+    const mainKg = parseFloat(mainRow?.weight || '0'); // মোট উৎপাদিত চাল (kg)
+    const prod = productionCostTotal; // প্রোডাকশন কস্ট
+    const byp = byProductTotal; // বাই-প্রোডাক্ট মোট
+
+    const yieldKgPerBosta =
+        dhaanBostaCount > 0 && mainKg > 0
+            ? mainKg / dhaanBostaCount // প্রতি বস্তায় পাওয়া চাল (kg)
+            : 0;
+
+    const costPerBosta =
+        dhaanBostaCount > 0
+            ? paddy / dhaanBostaCount // ধানের বস্তা-পিছু খরচ (৳/বস্তা)
+            : 0;
+
+    const basePerKg =
+        yieldKgPerBosta > 0
+            ? costPerBosta / yieldKgPerBosta // বেস পোর্টা (৳/kg) = বস্তা খরচ ÷ yield/kg
+            : 0;
+
+    const mainValue = basePerKg * (mainKg || 0); // চালের বেস মূল্য (৳)
+    const netCost = mainValue + prod - byp; // মোট খরচ (৳)
+    const perKgPreview = mainKg > 0 ? netCost / mainKg : 0; // ফাইনাল প্রিভিউ (৳/kg)
 
     return (
         <AppLayout>
@@ -387,411 +537,159 @@ export default function ConvertForm({
                         </div>
 
                         {/* Consumed */}
-                        <h2 className="mt-6 mb-2 text-lg font-semibold">Consumed</h2>
-                        <table className="w-full border text-sm">
-                            <thead className="bg-gray-100">
-                                <tr>
-                                    <th className="border p-1">{data.owner === 'company' ? 'Item / Lot' : 'Item'}</th>
-                                    {data.owner === 'company' && <th className="border p-1">Lot</th>}
-                                    <th className="border p-1">Qty</th>
+                        <ConsumedTable
+                            owner={data.owner}
+                            rows={data.consumed}
+                            units={units}
+                            errors={errors as any}
+                            consumedOptsForParty={consumedOpts}
+                            companyItemOpts={companyItemOpts}
+                            lotOptionsForItem={lotOptionsForItem}
+                            onAdd={() => addLine('consumed')}
+                            onRemove={(i) => removeLine('consumed', i)}
+                            onPatch={patchConsumed}
+                        />
 
-                                    <th className="border p-1">Unit</th>
-                                    <th className="border p-1">Weight (kg)</th>
-                                    <th className="w-6 border p-1">✕</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {data.consumed.map((row, idx) => (
-                                    <tr key={idx}>
-                                        {data.owner === 'party' ? (
-                                            <td className="border p-1">
-                                                <Select
-                                                    classNamePrefix="rs"
-                                                    placeholder="Item"
-                                                    options={consumedOpts}
-                                                    value={consumedOpts.find((o) => o.value === String(row.party_item_id))}
-                                                    onChange={(sel) =>
-                                                        setData(
-                                                            'consumed',
-                                                            data.consumed.map((r, i) => (i === idx ? { ...r, party_item_id: sel?.value || '' } : r)),
-                                                        )
-                                                    }
-                                                />
-                                                {errors[`consumed.${idx}.party_item_id`] && (
-                                                    <p className="text-xs text-red-500">{errors[`consumed.${idx}.party_item_id`]}</p>
-                                                )}
-                                            </td>
-                                        ) : (
-                                            <>
-                                                <td className="border p-1">
-                                                    <Select
-                                                        classNamePrefix="rs"
-                                                        placeholder="Item"
-                                                        options={companyItemOpts}
-                                                        value={companyItemOpts.find((o) => o.value === Number((row as any).item_id))}
-                                                        onChange={(sel) =>
-                                                            setData(
-                                                                'consumed',
-                                                                data.consumed.map((r, i) =>
-                                                                    i === idx ? { ...r, item_id: sel?.value || '', lot_id: '' } : r,
-                                                                ),
-                                                            )
-                                                        }
-                                                    />
-                                                </td>
-                                                <td className="border p-1">
-                                                    <Select
-                                                        classNamePrefix="rs"
-                                                        placeholder="Lot"
-                                                        options={lotOptionsForItem((row as any).item_id!)}
-                                                        value={lotOptionsForItem((row as any).item_id!).find(
-                                                            (o) => o.value === Number((row as any).lot_id),
-                                                        )}
-                                                        isDisabled={!(row as any).item_id}
-                                                        onChange={(sel) =>
-                                                            setData(
-                                                                'consumed',
-                                                                data.consumed.map((r, i) => (i === idx ? { ...r, lot_id: sel?.value || '' } : r)),
-                                                            )
-                                                        }
-                                                    />
-                                                </td>
-                                            </>
-                                        )}
-
-                                        <td className="border p-1">
-                                            <input
-                                                type="number"
-                                                className="w-full rounded border px-1 text-right"
-                                                value={row.qty}
-                                                onChange={(e) =>
-                                                    setData(
-                                                        'consumed',
-                                                        data.consumed.map((r, i) => (i === idx ? { ...r, qty: e.target.value } : r)),
-                                                    )
-                                                }
-                                            />
-                                        </td>
-
-                                        <td className="border p-1">
-                                            <select
-                                                className="w-full rounded border"
-                                                value={row.unit_name}
-                                                onChange={(e) =>
-                                                    setData(
-                                                        'consumed',
-                                                        data.consumed.map((r, i) => (i === idx ? { ...r, unit_name: e.target.value } : r)),
-                                                    )
-                                                }
-                                            >
-                                                <option value=""></option>
-                                                {units.map((u) => (
-                                                    <option key={u.id} value={u.name}>
-                                                        {u.name}
-                                                    </option>
-                                                ))}
-                                            </select>
-                                        </td>
-                                        <td className="border p-1">
-                                            <input
-                                                type="number"
-                                                step="0.001"
-                                                className="w-full rounded border px-1 text-right"
-                                                value={(row as any).weight || ''}
-                                                onChange={(e) =>
-                                                    setData(
-                                                        'consumed',
-                                                        data.consumed.map((r, i) => (i === idx ? { ...r, weight: e.target.value } : r)),
-                                                    )
-                                                }
-                                                // Optionally disable unless unit is 'bosta'
-                                                // disabled={row.unit_name?.toLowerCase() !== 'bosta'}
-                                            />
-                                        </td>
-
-                                        <td className="border text-center">
-                                            <button type="button" onClick={() => removeLine('consumed', idx)} className="font-bold text-red-600">
-                                                ✕
-                                            </button>
-                                        </td>
-                                    </tr>
-                                ))}
-                            </tbody>
-                        </table>
-                        <button type="button" onClick={() => addLine('consumed')} className="mt-1 text-sm text-blue-600">
-                            + line
-                        </button>
-
-                        {/* Generated (party output) */}
-                        {data.owner === 'party' && (
-                            <>
-                                <h2 className="mt-8 mb-2 text-lg font-semibold">Generated</h2>
-                                <table className="w-full border text-sm">
-                                    <thead className="bg-gray-100">
-                                        <tr>
-                                            <th className="border p-1">Item name</th>
-                                            <th className="border p-1">Qty</th>
-                                            <th className="border p-1">Unit</th>
-                                            <th className="border p-1">Weight (kg)</th>
-
-                                            <th className="w-6 border p-1">✕</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-                                        {data.generated.map((row, idx) => (
-                                            <tr key={idx}>
-                                                <td className="border p-1">
-                                                    <input
-                                                        className="w-full rounded border px-2 py-1"
-                                                        value={row.item_name}
-                                                        onChange={(e) =>
-                                                            setData(
-                                                                'generated',
-                                                                data.generated.map((r, i) => (i === idx ? { ...r, item_name: e.target.value } : r)),
-                                                            )
-                                                        }
-                                                        placeholder="e.g. Rice (Miniket)"
-                                                    />
-                                                    {errors[`generated.${idx}.item_name`] && (
-                                                        <p className="text-xs text-red-500">{errors[`generated.${idx}.item_name`]}</p>
-                                                    )}
-                                                </td>
-
-                                                <td className="border p-1">
-                                                    <input
-                                                        type="number"
-                                                        className="w-full rounded border px-1 text-right"
-                                                        value={row.qty}
-                                                        onChange={(e) =>
-                                                            setData(
-                                                                'generated',
-                                                                data.generated.map((r, i) => (i === idx ? { ...r, qty: e.target.value } : r)),
-                                                            )
-                                                        }
-                                                    />
-                                                    {errors[`generated.${idx}.qty`] && (
-                                                        <p className="text-xs text-red-500">{errors[`generated.${idx}.qty`]}</p>
-                                                    )}
-                                                </td>
-
-                                                <td className="border p-1">
-                                                    <select
-                                                        className="w-full rounded border"
-                                                        value={row.unit_name}
-                                                        onChange={(e) =>
-                                                            setData(
-                                                                'generated',
-                                                                data.generated.map((r, i) => (i === idx ? { ...r, unit_name: e.target.value } : r)),
-                                                            )
-                                                        }
-                                                    >
-                                                        <option value=""></option>
-                                                        {units.map((u) => (
-                                                            <option key={u.id} value={u.name}>
-                                                                {u.name}
-                                                            </option>
-                                                        ))}
-                                                    </select>
-                                                    {errors[`generated.${idx}.unit_name`] && (
-                                                        <p className="text-xs text-red-500">{errors[`generated.${idx}.unit_name`]}</p>
-                                                    )}
-                                                </td>
-                                                <td className="border p-1">
-                                                    <input
-                                                        type="number"
-                                                        step="0.001"
-                                                        className="w-full rounded border px-1 text-right"
-                                                        value={(row as any).weight || ''}
-                                                        onChange={(e) =>
-                                                            setData(
-                                                                'generated',
-                                                                data.generated.map((r: any, i: number) =>
-                                                                    i === idx ? { ...r, weight: e.target.value } : r,
-                                                                ),
-                                                            )
-                                                        }
-                                                        // disabled={(row as any).unit_name?.toLowerCase() !== 'bosta'}
-                                                    />
-                                                </td>
-
-                                                <td className="border text-center">
-                                                    <button
-                                                        type="button"
-                                                        onClick={() => removeLine('generated', idx)}
-                                                        className="font-bold text-red-600"
-                                                    >
-                                                        ✕
-                                                    </button>
-                                                </td>
-                                            </tr>
-                                        ))}
-                                    </tbody>
-                                </table>
-                                <button type="button" onClick={() => addLine('generated')} className="mt-1 text-sm text-blue-600">
-                                    + line
-                                </button>
-                            </>
+                        {data.owner === 'party' ? (
+                            <GeneratedPartyTable
+                                rows={data.generated}
+                                units={units}
+                                errors={errors as any}
+                                onAdd={() => addLine('generated')}
+                                onRemove={(i) => removeLine('generated', i)}
+                                onPatch={patchGenerated}
+                                flashMain={flashMain}
+                            />
+                        ) : (
+                            <GeneratedCompanyTable
+                                rows={data.generated}
+                                units={units}
+                                errors={errors as any}
+                                allItemOpts={allItemOpts}
+                                godownSelected={!!data.godown_id}
+                                onAdd={() => addLine('generated')}
+                                onRemove={(i) => removeLine('generated', i)}
+                                onPatch={patchGenerated}
+                                flashMain={flashMain}
+                            />
                         )}
 
-                        {/* Generated (company output) */}
-                        {data.owner === 'company' && (
-                            <>
-                                <h2 className="mt-8 mb-2 text-lg font-semibold">Generated</h2>
-                                <table className="w-full border text-sm">
-                                    <thead className="bg-gray-100">
-                                        <tr>
-                                            <th className="border p-1">Item</th>
-                                            <th className="border p-1">New Lot No</th>
-                                            <th className="border p-1">Qty</th>
-                                            <th className="border p-1">Unit</th>
-                                            <th className="border p-1">Weight (kg)</th>
-                                            <th className="w-6 border p-1">✕</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-                                        {data.generated.map((row: any, idx: number) => (
-                                            <tr key={idx}>
-                                                <td className="border p-1">
-                                                    <CreatableSelect
-                                                        classNamePrefix="rs"
-                                                        placeholder="Item"
-                                                        options={allItemOpts}
-                                                        value={
-                                                            allItemOpts.find((o) => o.value === Number(row.item_id)) ||
-                                                            (row.item_name ? { value: 0, label: row.item_name } : null)
-                                                        }
-                                                        onChange={(sel) => {
-                                                            const match = allItemOpts.find((o) => o.value === Number(sel?.value));
-                                                            setData(
-                                                                'generated',
-                                                                data.generated.map((r: any, i: number) =>
-                                                                    i === idx
-                                                                        ? {
-                                                                              ...r,
-                                                                              item_id: sel?.value || '',
-                                                                              item_name: '',
-                                                                              unit_name: match?.unit_name || r.unit_name || '',
-                                                                          }
-                                                                        : r,
-                                                                ),
-                                                            );
-                                                        }}
-                                                        onCreateOption={(name) => {
-                                                            setData(
-                                                                'generated',
-                                                                data.generated.map((r: any, i: number) =>
-                                                                    i === idx ? { ...r, item_id: '', item_name: name } : r,
-                                                                ),
-                                                            );
-                                                        }}
-                                                        isDisabled={!data.godown_id}
-                                                    />
-                                                    {errors[`generated.${idx}.item_id`] && (
-                                                        <p className="text-xs text-red-500">{errors[`generated.${idx}.item_id`]}</p>
-                                                    )}
-                                                    {errors[`generated.${idx}.item_name`] && (
-                                                        <p className="text-xs text-red-500">{errors[`generated.${idx}.item_name`]}</p>
-                                                    )}
-                                                </td>
+                        <div className="mt-4 rounded-xl border bg-white p-4 shadow-sm">
+                            {/* Header */}
+                            <div className="mb-3 flex items-center justify-between">
+                                <h3 className="text-base font-semibold">দর নির্ধারণ</h3>
+                                <span className="rounded-md bg-amber-50 px-2 py-1 text-[12px] font-medium text-black">
+                                    ফর্মুলা: <b>(বেস চালমূল্য + প্রোডাকশন কস্ট − বাই-প্রোডাক্ট)</b> ÷ <b>মোট চাল (কেজি)</b>
+                                </span>
+                            </div>
 
-                                                <td className="border p-1">
-                                                    <input
-                                                        className="w-full rounded border px-2 py-1"
-                                                        value={row.lot_no || ''}
-                                                        onChange={(e) =>
-                                                            setData(
-                                                                'generated',
-                                                                data.generated.map((r: any, i: number) =>
-                                                                    i === idx ? { ...r, lot_no: e.target.value } : r,
-                                                                ),
-                                                            )
-                                                        }
-                                                        placeholder="e.g. A-15"
-                                                    />
-                                                    {errors[`generated.${idx}.lot_no`] && (
-                                                        <p className="text-xs text-red-500">{errors[`generated.${idx}.lot_no`]}</p>
-                                                    )}
-                                                </td>
+                            {/* Compact stats row */}
+                            <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
+                                {/* Paddy total */}
+                                <div className="rounded-lg border bg-gray-50 p-3">
+                                    <div className="text-[11px] text-gray-500">ধানের মোট দাম (৳)</div>
+                                    <div
+                                        className={`mt-1 text-lg font-semibold tabular-nums ${
+                                            flashPaddy ? 'animate-pulse rounded px-1 ring-2 ring-green-500' : ''
+                                        }`}
+                                        title="Consumed রেট থেকে অটো-ক্যালকুলেটেড"
+                                    >
+                                        {paddy.toFixed(2)}
+                                    </div>
+                                    <div className="mt-1 text-[11px] text-gray-500">
+                                        মোট ধান: <b>{dhaanBostaCount > 0 ? dhaanBostaCount.toFixed(2) : '—'}</b> বস্তা
+                                    </div>
+                                </div>
 
-                                                <td className="border p-1">
-                                                    <input
-                                                        type="number"
-                                                        className="w-full rounded border px-1 text-right"
-                                                        value={row.qty || ''}
-                                                        onChange={(e) =>
-                                                            setData(
-                                                                'generated',
-                                                                data.generated.map((r: any, i: number) =>
-                                                                    i === idx ? { ...r, qty: e.target.value } : r,
-                                                                ),
-                                                            )
-                                                        }
-                                                    />
-                                                    {errors[`generated.${idx}.qty`] && (
-                                                        <p className="text-xs text-red-500">{errors[`generated.${idx}.qty`]}</p>
-                                                    )}
-                                                </td>
+                                {/* Ratio & base porta */}
+                                <div className="rounded-lg border bg-gray-50 p-3">
+                                    <div className="text-[11px] text-gray-500">ধান→চাল রেশিও ও বেস দর</div>
 
-                                                <td className="border p-1">
-                                                    <select
-                                                        className="w-full rounded border"
-                                                        value={row.unit_name || ''}
-                                                        onChange={(e) =>
-                                                            setData(
-                                                                'generated',
-                                                                data.generated.map((r: any, i: number) =>
-                                                                    i === idx ? { ...r, unit_name: e.target.value } : r,
-                                                                ),
-                                                            )
-                                                        }
-                                                    >
-                                                        <option value=""></option>
-                                                        {units.map((u) => (
-                                                            <option key={u.id} value={u.name}>
-                                                                {u.name}
-                                                            </option>
-                                                        ))}
-                                                    </select>
-                                                    {errors[`generated.${idx}.unit_name`] && (
-                                                        <p className="text-xs text-red-500">{errors[`generated.${idx}.unit_name`]}</p>
-                                                    )}
-                                                </td>
-                                                <td className="border p-1">
-                                                    <input
-                                                        type="number"
-                                                        step="0.001"
-                                                        className="w-full rounded border px-1 text-right"
-                                                        value={row.weight || ''}
-                                                        onChange={(e) =>
-                                                            setData(
-                                                                'generated',
-                                                                data.generated.map((r: any, i: number) =>
-                                                                    i === idx ? { ...r, weight: e.target.value } : r,
-                                                                ),
-                                                            )
-                                                        }
-                                                    />
-                                                </td>
+                                    <div className="mt-1 text-sm tabular-nums">
+                                        ধান→চাল রেশিও:{' '}
+                                        <b className="rounded bg-emerald-50 px-1 text-emerald-700">
+                                            {yieldKgPerBosta > 0 ? yieldKgPerBosta.toFixed(2) : '—'}
+                                        </b>{' '}
+                                        <span className="text-gray-600">কেজি/বস্তা</span>
+                                    </div>
 
-                                                <td className="border text-center">
-                                                    <button
-                                                        type="button"
-                                                        onClick={() => removeLine('generated', idx)}
-                                                        className="font-bold text-red-600"
-                                                    >
-                                                        ✕
-                                                    </button>
-                                                </td>
-                                            </tr>
-                                        ))}
-                                    </tbody>
-                                </table>
+                                    <div className="mt-1 text-sm tabular-nums">
+                                        বস্তা-পিছু ধানের দাম: <b>{costPerBosta.toFixed(2)}</b> <span className="text-gray-600">৳/বস্তা</span>
+                                    </div>
 
-                                <button type="button" onClick={() => addLine('generated')} className="mt-1 text-sm text-blue-600">
-                                    + line
+                                    <div className="mt-1 text-sm tabular-nums">
+                                        ভিত্তি দর (৳/কেজি):{' '}
+                                        <b className="rounded bg-indigo-50 px-1 text-indigo-700">{basePerKg > 0 ? basePerKg.toFixed(2) : '—'}</b>{' '}
+                                        <span className="text-gray-600">৳/কেজি</span>
+                                    </div>
+                                </div>
+
+                                {/* Production cost */}
+                                <div className="rounded-lg border bg-gray-50 p-3">
+                                    <div className="text-[11px] text-gray-500">প্রোডাকশন কস্ট (৳)</div>
+                                    <div className="mt-1 text-lg font-semibold tabular-nums">{prod.toFixed(2)}</div>
+                                </div>
+
+                                {/* By-product total */}
+                                <div className="rounded-lg border bg-gray-50 p-3">
+                                    <div className="text-[11px] text-gray-500">বাই-প্রোডাক্ট (৳)</div>
+                                    <div className="mt-1 text-lg font-semibold tabular-nums">{byp.toFixed(2)}</div>
+                                </div>
+                            </div>
+
+                            {/* Main kg & final preview */}
+                            <div className="mt-3 grid grid-cols-1 gap-3 lg:grid-cols-3">
+                                <div className="rounded-lg border bg-gray-50 p-3">
+                                    <div className="text-[11px] text-gray-500">উৎপাদিত চাল (মেইন) – মোট ওজন</div>
+                                    <div className="mt-1 text-lg font-semibold tabular-nums">
+                                        {mainKg || 0} <span className="text-sm">কেজি</span>
+                                    </div>
+                                    <div className="mt-1 text-[11px] text-gray-500">মেইন রো-তে weight দিন</div>
+                                </div>
+
+                                <div className="rounded-lg border bg-gray-50 p-3">
+                                    <div className="text-[11px] text-gray-500">বেস চালমূল্য (৳)</div>
+                                    <div className="mt-1 text-lg font-semibold tabular-nums">{mainValue.toFixed(2)}</div>
+                                    <div className="mt-1 text-[11px] text-gray-500">= ভিত্তি দর (৳/কেজি) × মোট চাল (কেজি)</div>
+                                </div>
+
+                                <div className="rounded-lg border bg-gray-50 p-3">
+                                    <div className="text-[11px] text-gray-500">প্রতি কেজি (ফাইনাল প্রিভিউ)</div>
+                                    <div className="mt-1 tabular-nums">
+                                        <span className="text-sm text-gray-600">
+                                            ({mainValue.toFixed(2)} + {prod.toFixed(2)} − {byp.toFixed(2)}) ÷ {mainKg || 0} ={' '}
+                                        </span>
+                                        <span className="rounded bg-emerald-50 px-2 py-[2px] text-lg font-semibold text-emerald-700">
+                                            {mainKg > 0 ? perKgPreview.toFixed(2) : '—'}
+                                        </span>
+                                        <span className="text-sm text-gray-600"> ৳/কেজি</span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            {/* Actions */}
+                            <div className="mt-3 flex flex-wrap gap-2">
+                                <button
+                                    type="button"
+                                    onClick={computePaddyTotal}
+                                    className="rounded-sm bg-slate-800 px-3 py-2 text-sm text-white hover:bg-slate-700 disabled:opacity-50"
+                                    disabled={paddyBusy || !data.consumed.length || !data.godown_id}
+                                    title="Consumed লাইন থেকে ধানের মোট দাম বের করবে"
+                                >
+                                    {paddyBusy ? 'হিসাব হচ্ছে…' : 'ধানের মোট দাম বের করুন'}
                                 </button>
-                            </>
-                        )}
+
+                                <button
+                                    type="button"
+                                    onClick={computeMainPerKg}
+                                    className="rounded-sm bg-indigo-600 px-3 py-2 text-sm text-white hover:bg-indigo-500 disabled:opacity-50"
+                                    disabled={mainIdx < 0}
+                                    title="মেইন রো-তে প্রতি কেজির দর বসাবে"
+                                >
+                                    মেইন আইটেমে প্রতি কেজি সেট করুন
+                                </button>
+                            </div>
+                        </div>
 
                         <div className="mt-8 rounded border bg-slate-50 p-4">
                             <div className="mb-3 flex items-center justify-between">

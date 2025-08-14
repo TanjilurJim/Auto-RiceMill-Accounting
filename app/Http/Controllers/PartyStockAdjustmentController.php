@@ -132,6 +132,9 @@ class PartyStockAdjustmentController extends Controller
             'generated.*.item_name'    => ['required', 'string', 'max:255'],
             'generated.*.qty'          => ['required', 'numeric', 'min:0.01'],
             'generated.*.unit_name'    => ['nullable', 'string'],
+            'generated.*.is_main'     => ['nullable', 'boolean'],
+            'generated.*.per_kg_rate' => ['nullable', 'numeric', 'min:0'],
+            'generated.*.sale_value'  => ['nullable', 'numeric', 'min:0'],
         ]);
 
         $jobId = $request->input('job_id'); // ⬅️ receive job_id
@@ -183,6 +186,7 @@ class PartyStockAdjustmentController extends Controller
                     'move_type'       => 'convert-out',
                     'ref_no'          => $refNo,
                     'remarks'         => $remarks,
+
                     'created_by'      => auth()->id(),
                 ]);
             }
@@ -233,6 +237,11 @@ class PartyStockAdjustmentController extends Controller
                     'move_type'       => 'convert-in',
                     'ref_no'          => $refNo,
                     'remarks'         => $remarks,
+                    'meta' => [
+                        'is_main'     => (bool)($row['is_main'] ?? false),
+                        'per_kg_rate' => isset($row['per_kg_rate']) ? (float)$row['per_kg_rate'] : null,
+                        'sale_value'  => isset($row['sale_value']) ? (float)$row['sale_value'] : null,
+                    ],
                     'created_by'      => auth()->id(),
                 ]);
             }
@@ -508,6 +517,9 @@ class PartyStockAdjustmentController extends Controller
                     'qty'  => $m->qty,
                     'weight' => $m->weight !== null ? (float)$m->weight : null,
                     'unit' => $m->unit_name ?? '',
+                    'is_main'     => (bool)($m->meta['is_main'] ?? false),
+                    'per_kg_rate' => $m->meta['per_kg_rate'] ?? null,
+                    'sale_value'  => $m->meta['sale_value'] ?? null,
                 ]),
         ]);
     }
@@ -660,6 +672,9 @@ class PartyStockAdjustmentController extends Controller
             'generated.*.lot_no'        => ['required', 'string', 'max:255'],
             'generated.*.qty'           => ['required', 'numeric', 'min:0.01'],
             'generated.*.weight'       => ['nullable', 'numeric', 'min:0'],
+            'generated.*.is_main'     => ['nullable', 'boolean'],
+            'generated.*.per_kg_rate' => ['nullable', 'numeric', 'min:0'],
+            'generated.*.sale_value'  => ['nullable', 'numeric', 'min:0'],
         ]);
 
         $jobId = $request->input('job_id');
@@ -773,6 +788,11 @@ class PartyStockAdjustmentController extends Controller
                     'qty'        => $row['qty'],
                     'weight'  => $w,
                     'reason'     => 'Crushing convert-in',
+                    'meta'      => [
+                        'is_main'     => (bool)($row['is_main'] ?? false),
+                        'per_kg_rate' => isset($row['per_kg_rate']) ? (float)$row['per_kg_rate'] : null,
+                        'sale_value'  => isset($row['sale_value']) ? (float)$row['sale_value'] : null,
+                    ],
                     'created_by' => auth()->id(),
                 ]);
             }
@@ -799,16 +819,109 @@ class PartyStockAdjustmentController extends Controller
 
         $moves = \App\Models\StockMove::with([
             'item:id,item_name,unit_id',
-            'item.unit:id,name',            // 👈 add this
+            'item.unit:id,name',
             'lot:id,lot_no',
             'godown:id,name'
         ])
             ->where('ref_no', $refNo)
-            ->orderBy('type')
+            ->orderBy('type') // out first, then in
             ->get();
 
         $date  = optional($moves->max('created_at'))->toDateString();
         $first = $moves->first();
+
+        // ---------- Build price reference maps (for consumed/out) ----------
+        $lotIds  = $moves->pluck('lot_id')->filter()->unique()->values();
+        $itemIds = $moves->pluck('item_id')->filter()->unique()->values();
+
+        // Latest IN/purchase unit_cost per lot
+        $lastRates = \App\Models\StockMove::select('lot_id', 'unit_cost')
+            ->whereIn('type', ['in', 'purchase'])
+            ->whereIn('lot_id', $lotIds)
+            ->orderBy('lot_id')
+            ->orderByDesc('id')
+            ->get()
+            ->unique('lot_id')
+            ->keyBy('lot_id'); // [lot_id => StockMove]
+
+        // avg_cost from stock per lot (any godown is fine for a fallback)
+        $avgCosts = \App\Models\Stock::select('lot_id', 'avg_cost')
+            ->whereIn('lot_id', $lotIds)
+            ->get()
+            ->keyBy('lot_id'); // [lot_id => Stock]
+
+        // opening lot id per item
+        $openingLots = \App\Models\Lot::selectRaw('MIN(id) as id, item_id')
+            ->whereIn('item_id', $itemIds)
+            ->groupBy('item_id')
+            ->pluck('id', 'item_id'); // [item_id => opening_lot_id]
+
+        // item.purchase_price
+        $itemPurchase = \App\Models\Item::whereIn('id', $itemIds)
+            ->pluck('purchase_price', 'id'); // [item_id => price]
+
+        // Helper: compute unit rate for an OUT move (qty-basis)
+        $computeRate = function ($m) use ($lastRates, $avgCosts, $openingLots, $itemPurchase) {
+            $rate = (float) ($lastRates[$m->lot_id]->unit_cost ?? 0);
+            if ($rate == 0 && isset($avgCosts[$m->lot_id])) {
+                $rate = (float) ($avgCosts[$m->lot_id]->avg_cost ?? 0);
+            }
+            if ($rate == 0 && isset($openingLots[$m->item_id]) && $openingLots[$m->item_id] == $m->lot_id) {
+                $rate = (float) ($itemPurchase[$m->item_id] ?? 0);
+            }
+            return $rate;
+        };
+
+        // ---------- Transform for UI ----------
+        $consumed = $moves->where('type', 'out')->values()->map(function ($m) use ($computeRate) {
+            // qty basis: if unit is explicitly 'kg' use weight; else use qty
+            $basis   = (strtolower($m->unit_name ?? '') === 'kg') ? 'weight' : 'qty';
+            $qtyLike = $basis === 'weight' ? abs((float) $m->weight) : abs((float) $m->qty);
+            $rate    = $computeRate($m);
+            $amount  = round($qtyLike * $rate, 2);
+
+            return [
+                'item'       => $m->item?->item_name ?? '',
+                'lot'        => $m->lot?->lot_no ?? '',
+                'qty'        => abs((float) $m->qty),
+                'weight'     => $m->weight !== null ? abs((float)$m->weight) : null,
+                'unit'       => $m->item?->unit?->name ?? ($m->unit_name ?? null),
+                'unit_rate'  => $rate ?: null,        // ← reconstructed input rate
+                'basis'      => $basis,               // 'qty' or 'weight' (for your table badge, if needed)
+                'amount'     => $amount,              // ← rate × (qty|weight)
+            ];
+        });
+
+        $generated = $moves->where('type', 'in')->values()->map(function ($m) {
+            $meta     = is_array($m->meta) ? $m->meta : (json_decode($m->meta ?? '{}', true) ?: []);
+            $isMain   = (bool)($meta['is_main'] ?? false);
+            $perKg    = $meta['per_kg_rate'] ?? null;
+            $saleVal  = $meta['sale_value'] ?? null;
+
+            // Amount for display:
+            // - main: per-kg × weight (if both present)
+            // - by-product: sale_value
+            $amount = null;
+            if ($isMain && $perKg !== null && $m->weight !== null) {
+                $amount = round(((float)$perKg) * ((float)$m->weight), 2);
+            } elseif (!$isMain && $saleVal !== null) {
+                $amount = (float)$saleVal;
+            }
+
+            return [
+                'item'        => $m->item?->item_name ?? '',
+                'lot'         => $m->lot?->lot_no ?? '',
+                'qty'         => (float) $m->qty,
+                'weight'      => $m->weight !== null ? (float)$m->weight : null,
+                'unit'        => $m->item?->unit?->name ?? ($m->unit_name ?? null),
+
+                // Pricing bits for UI:
+                'is_main'     => $isMain,
+                'per_kg_rate' => $perKg !== null ? (float)$perKg : null,  // show for main
+                'sale_value'  => $saleVal !== null ? (float)$saleVal : null, // show for by-products
+                'amount'      => $amount, // derived line total
+            ];
+        });
 
         return \Inertia\Inertia::render('crushing/CompanyConvertShow', [
             'header' => [
@@ -817,20 +930,144 @@ class PartyStockAdjustmentController extends Controller
                 'godown'  => $first?->godown?->name ?? '',
                 'remarks' => 'Crushing',
             ],
-            'consumed' => $moves->where('type', 'out')->values()->map(fn($m) => [
-                'item' => $m->item?->item_name ?? '',
-                'lot'  => $m->lot?->lot_no ?? '',
-                'qty'  => abs((float) $m->qty),
-                'weight' => $m->weight !== null ? abs((float)$m->weight) : null,
-                'unit' => $m->item?->unit?->name ?? ($m->unit_name ?? null), // 👈 now included
-            ]),
-            'generated' => $moves->where('type', 'in')->values()->map(fn($m) => [
-                'item' => $m->item?->item_name ?? '',
-                'lot'  => $m->lot?->lot_no ?? '',
-                'qty'  => (float) $m->qty,
-                'weight' => $m->weight !== null ? (float)$m->weight : null,
-                'unit' => $m->item?->unit?->name ?? ($m->unit_name ?? null), // 👈 now included
-            ]),
+            'consumed'  => $consumed,
+            'generated' => $generated,
+        ]);
+    }
+
+
+    public function computePaddyTotal(Request $request)
+    {
+        $v = $request->validate([
+            'owner'      => ['required', 'in:company,party'],
+            'godown_id'  => ['required', 'integer'],
+            'consumed'   => ['required', 'array', 'min:1'],
+
+            // company rows
+            'consumed.*.item_id'     => ['nullable', 'integer'],
+            'consumed.*.lot_id'      => ['nullable', 'integer'],
+
+            // party rows
+            'consumed.*.party_item_id' => ['nullable', 'integer'],
+
+            // common
+            'consumed.*.qty'         => ['required', 'numeric', 'min:0.0001'],
+            'consumed.*.weight'      => ['nullable', 'numeric', 'min:0'],
+            'consumed.*.unit_name'   => ['nullable', 'string', 'max:50'],
+        ]);
+
+        $owner    = $v['owner'];
+        $godownId = (int) $v['godown_id'];
+        $rows     = collect($v['consumed']);
+
+        $breakdown = [];
+        $total = 0.0;
+
+        if ($owner === 'company') {
+            // ---------- COMPANY: use ItemController@show logic, but batched ----------
+            $lotIds  = $rows->pluck('lot_id')->filter()->unique()->values();
+            $itemIds = $rows->pluck('item_id')->filter()->unique()->values();
+
+            // last IN/purchase unit_cost per lot
+            $lastRates = \App\Models\StockMove::select('lot_id', 'unit_cost')
+                ->whereIn('type', ['in', 'purchase'])
+                ->whereIn('lot_id', $lotIds)
+                ->orderBy('lot_id')
+                ->orderByDesc('id')
+                ->get()
+                ->unique('lot_id')
+                ->keyBy('lot_id'); // [lot_id => StockMove]
+
+            // avg_cost from stock row (per lot in the selected godown)
+            $avgCosts = \App\Models\Stock::select('lot_id', 'avg_cost')
+                ->whereIn('lot_id', $lotIds)
+                ->where('godown_id', $godownId)
+                ->get()
+                ->keyBy('lot_id'); // [lot_id => Stock]
+
+            // opening lot id per item (earliest lot)
+            $openingLots = \App\Models\Lot::selectRaw('MIN(id) as id, item_id')
+                ->whereIn('item_id', $itemIds)
+                ->groupBy('item_id')
+                ->pluck('id', 'item_id'); // [item_id => opening_lot_id]
+
+            // purchase_price per item
+            $itemPurchase = \App\Models\Item::whereIn('id', $itemIds)
+                ->pluck('purchase_price', 'id'); // [item_id => price]
+
+            foreach ($rows as $i => $r) {
+                $lotId  = (int) ($r['lot_id'] ?? 0);
+                $itemId = (int) ($r['item_id'] ?? 0);
+
+                // 1) latest IN unit_cost
+                $rate = (float) ($lastRates[$lotId]->unit_cost ?? 0);
+
+                // 2) fallback: avg_cost
+                if ($rate == 0 && isset($avgCosts[$lotId])) {
+                    $rate = (float) ($avgCosts[$lotId]->avg_cost ?? 0);
+                }
+
+                // 3) fallback: if this is the opening lot for the item → item.purchase_price
+                if ($rate == 0 && $itemId && isset($openingLots[$itemId]) && $openingLots[$itemId] == $lotId) {
+                    $rate = (float) ($itemPurchase[$itemId] ?? 0);
+                }
+
+                // Quantity basis:
+                // If you want to price by kg whenever unit_name == 'kg', switch to weight.
+                $basis = 'qty';
+                $qtyLike = (float) ($r['qty'] ?? 0);
+                if (isset($r['unit_name']) && strtolower((string)$r['unit_name']) === 'kg') {
+                    $basis = 'weight';
+                    $qtyLike = (float) ($r['weight'] ?? 0);
+                }
+
+                $lineTotal = round($qtyLike * $rate, 2);
+                $total += $lineTotal;
+
+                $breakdown[] = [
+                    'index'      => $i,
+                    'item_id'    => $itemId,
+                    'lot_id'     => $lotId,
+                    'rate'       => $rate,
+                    'basis'      => $basis,           // 'qty' or 'weight'
+                    'quantity'   => $qtyLike,
+                    'line_total' => $lineTotal,
+                ];
+            }
+        } else {
+            // ---------- PARTY: use PartyItem rate (rename the column if different) ----------
+            $partyIds = $rows->pluck('party_item_id')->filter()->unique()->values();
+            $partyRates = \App\Models\PartyItem::whereIn('id', $partyIds)
+                ->pluck('rate_per_unit', 'id'); // <-- change if your field has another name
+
+            foreach ($rows as $i => $r) {
+                $pid  = (int) ($r['party_item_id'] ?? 0);
+                $rate = (float) ($partyRates[$pid] ?? 0);
+
+                $basis = 'qty';
+                $qtyLike = (float) ($r['qty'] ?? 0);
+                if (isset($r['unit_name']) && strtolower((string)$r['unit_name']) === 'kg') {
+                    $basis = 'weight';
+                    $qtyLike = (float) ($r['weight'] ?? 0);
+                }
+
+                $lineTotal = round($qtyLike * $rate, 2);
+                $total += $lineTotal;
+
+                $breakdown[] = [
+                    'index'      => $i,
+                    'party_item_id' => $pid,
+                    'rate'       => $rate,
+                    'basis'      => $basis,
+                    'quantity'   => $qtyLike,
+                    'line_total' => $lineTotal,
+                ];
+            }
+        }
+
+        return response()->json([
+            'total'     => round($total, 2),
+            'breakdown' => $breakdown,
         ]);
     }
 }

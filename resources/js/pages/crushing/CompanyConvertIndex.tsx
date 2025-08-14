@@ -99,21 +99,21 @@ export default function CompanyConvertIndex({ conversions, pagination }: Props) 
                                                 <div className="flex items-center justify-end gap-2">
                                                     <Link
                                                         href={route('company-conversions.show', c.id)} // 👈 go to show page
-                                                        className="inline-flex items-center rounded border px-2 py-1 text-xs hover:bg-slate-50"
+                                                        className="inline-flex items-center rounded bg-blue-600 border px-2 py-1 text-white hover:bg-blue-500"
                                                         title="View"
                                                     >
-                                                        <Eye size={14} />
+                                                        View
                                                     </Link>
 
-                                                    <button
+                                                    {/* <button
                                                         type="button"
                                                         onClick={() => window.print()}
-                                                        className="inline-flex items-center rounded border px-2 py-1 text-xs hover:bg-slate-50"
+                                                        className="inline-flex items-center rounded border px-2 py-1 text-sm hover:bg-slate-50"
                                                         title="Print"
                                                         
                                                     >
-                                                        <Printer size={14} />
-                                                    </button>
+                                                        <Printer size={18} />
+                                                    </button> */}
                                                 </div>
                                             </td>
                                         </tr>
@@ -127,7 +127,7 @@ export default function CompanyConvertIndex({ conversions, pagination }: Props) 
                                                                 <tr>
                                                                     <th className="p-2 text-left">Type</th>
                                                                     <th className="p-2 text-left">Item</th>
-                                                                    <th className="p-2 text-left">Lot</th>
+                                                                    {/* <th className="p-2 text-left">Lot</th> */}
                                                                     <th className="p-2 text-right">Qty</th>
                                                                 </tr>
                                                             </thead>
@@ -138,7 +138,7 @@ export default function CompanyConvertIndex({ conversions, pagination }: Props) 
                                                                             {it.move_type === 'convert-in' ? 'Generated (+)' : 'Consumed (−)'}
                                                                         </td>
                                                                         <td className="p-2">{it.item_name}</td>
-                                                                        <td className="p-2">{it.lot || '—'}</td>
+                                                                        {/* <td className="p-2">{it.lot_ || '—'}</td> */}
                                                                         <td className="p-2 text-right">
                                                                             {it.move_type === 'convert-out' ? '-' : ''}
                                                                             {Math.abs(it.qty).toLocaleString()}
