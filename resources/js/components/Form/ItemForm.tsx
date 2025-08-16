@@ -14,6 +14,8 @@ interface ItemFormProps {
         sale_price: string | number;
         previous_stock: string | number;
         total_previous_stock_value: string | number;
+        weight: string | number;
+        total_weight: string | number;
         description: string;
         lot_no: string; // ← NEW
         received_at: string;
@@ -46,6 +48,13 @@ const ItemForm: React.FC<ItemFormProps> = ({
         const qty = Number(data.previous_stock) || 0;
         setData('total_previous_stock_value', rate * qty);
     }, [data.purchase_price, data.previous_stock]);
+
+    useEffect(() => {
+        const qty = Number(data.previous_stock) || 0;
+        const w = Number(data.weight) || 0;
+        const total = qty * w;
+        setData('total_weight', Number.isFinite(total) ? total : 0);
+    }, [data.previous_stock, data.weight]);
 
     return (
         <form onSubmit={handleSubmit} className="space-y-4 rounded border bg-white p-6">
@@ -148,8 +157,35 @@ const ItemForm: React.FC<ItemFormProps> = ({
                     {errors.purchase_price && <p className="text-sm text-red-500">{errors.purchase_price}</p>}
                 </div>
 
-                {/* Sales Price */}
+                {/* 🆕 Weight per Unit */}
                 <div>
+                    <label className="mb-1 block flex items-center gap-1 font-medium">
+                        Weight per Unit (Bag)
+                        <TooltipProvider>
+                            <Tooltip>
+                                <TooltipTrigger asChild>
+                                    <Info className="h-4 w-4 cursor-pointer text-gray-500" />
+                                </TooltipTrigger>
+                                <TooltipContent className="max-w-xs text-sm">
+                                    If unit is a bag/sack, enter weight per bag in kg. If the unit itself is kg, you can set this to 1.
+                                </TooltipContent>
+                            </Tooltip>
+                        </TooltipProvider>
+                    </label>
+                    <input
+                        type="number"
+                        value={data.weight}
+                        onChange={(e) => setData('weight', e.target.value)}
+                        className="w-full rounded border p-2"
+                        placeholder="e.g. 50"
+                        min="0"
+                        step="any"
+                    />
+                    {errors.weight && <p className="text-sm text-red-500">{errors.weight}</p>}
+                </div>
+
+                {/* Sales Price */}
+                {/* <div>
                     <label className="mb-1 block font-medium">Sales Price</label>
                     <input
                         type="number"
@@ -158,7 +194,7 @@ const ItemForm: React.FC<ItemFormProps> = ({
                         className="w-full rounded border p-2"
                     />
                     {errors.sale_price && <p className="text-sm text-red-500">{errors.sale_price}</p>}
-                </div>
+                </div> */}
             </div>
 
             {/* Previous Stock Section */}
@@ -185,6 +221,17 @@ const ItemForm: React.FC<ItemFormProps> = ({
                     />
                     {errors.total_previous_stock_value && <p className="text-sm text-red-500">{errors.total_previous_stock_value}</p>}
                 </div>
+            </div>
+            <div>
+                <label className="mb-1 block font-medium">Total Weight (kg)</label>
+                <input
+                    type="number"
+                    value={data.total_weight}
+                    onChange={(e) => setData('total_weight', e.target.value)}
+                    className="w-full cursor-not-allowed rounded border p-2"
+                    readOnly
+                />
+                {errors.total_weight && <p className="text-sm text-red-500">{errors.total_weight}</p>}
             </div>
 
             {/* Description */}

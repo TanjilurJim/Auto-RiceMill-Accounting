@@ -16,6 +16,10 @@ interface Item {
     previous_stock: number;
     total_previous_stock_value: number;
     description?: string;
+    weight?: number | null;
+    total_weight?: number | null;
+    lot_no?: string;
+    received_at?: string;
 }
 
 interface Category {
@@ -44,6 +48,8 @@ export default function EditItem({ item, categories, units, godowns }: { item: I
         sale_price: item.sale_price,
         previous_stock: item.previous_stock,
         total_previous_stock_value: item.total_previous_stock_value,
+        weight: item.weight ?? '',
+        total_weight: item.total_weight ?? '',
         description: item.description || '',
         lot_no: item.lot_no || '',
         received_at: item.received_at || '',

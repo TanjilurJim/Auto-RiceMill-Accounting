@@ -4,9 +4,9 @@ import TableComponent from '@/components/TableComponent';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import AppLayout from '@/layouts/app-layout';
 import { cn } from '@/lib/utils';
+import { fmtDate } from '@/utils/format';
 import { Head, router } from '@inertiajs/react';
 import { useMemo } from 'react';
-import { fmtDate } from '@/utils/format';
 
 /* -------------------------------------------------------------------------- */
 /*  Types (mirror ItemController@show)                                        */
@@ -16,7 +16,7 @@ interface StockRow {
     godown: string;
     received_at: string | null;
     qty: number;
-    avg_cost: number;
+    rate: number;
     value: number;
 }
 
@@ -26,6 +26,7 @@ interface ItemShowProps {
         item_name: string;
         item_code: string;
         unit: string | null;
+        weight?: number | null; // we'll use this to compute weights client-side
     };
     stocks: StockRow[];
     summary: {
@@ -33,6 +34,7 @@ interface ItemShowProps {
         total_value: number;
         last_in: string | null;
         unit: string | null;
+        total_weight?: number | null;
     };
     godowns: { id: number; name: string }[];
     filters: {
@@ -47,14 +49,27 @@ export default function ItemShow({ item, stocks, summary, godowns, filters }: It
     /* ---------------------------------------------------------------------- */
     /*  Memoised columns for the lot-wise table                               */
     /* ---------------------------------------------------------------------- */
+
+    const computedTotalWeight =
+        typeof summary.total_weight === 'number'
+            ? summary.total_weight
+            : item.weight
+              ? stocks.reduce((acc, r) => acc + r.qty * (item.weight as number), 0)
+              : null;
+
     const columns = useMemo(
         () => [
             { header: 'Lot #', accessor: 'lot_no' },
             { header: 'Godown', accessor: 'godown' },
-            { header: 'Received',  accessor: (r: StockRow) => (r.received_at ? fmtDate(r.received_at) : '—') },
+            { header: 'Received', accessor: (r: StockRow) => (r.received_at ? fmtDate(r.received_at) : '—') },
             {
                 header: `Qty (${summary.unit ?? ''})`,
                 accessor: (r: StockRow) => (r.qty !== undefined ? r.qty.toLocaleString() : '0'),
+                className: 'text-right',
+            },
+            {
+                header: 'Weight (kg)',
+                accessor: (r: StockRow) => (item.weight ? (r.qty * (item.weight as number)).toFixed(2) : '—'),
                 className: 'text-right',
             },
             {
@@ -68,7 +83,7 @@ export default function ItemShow({ item, stocks, summary, godowns, filters }: It
                 className: 'text-right font-medium',
             },
         ],
-        [summary.unit],
+        [summary.unit,  item.weight],
     );
 
     /* ---------------------------------------------------------------------- */
@@ -107,6 +122,9 @@ export default function ItemShow({ item, stocks, summary, godowns, filters }: It
                                 <Snapshot label="Last Received">{summary.last_in ? fmtDate(summary.last_in) : '—'}</Snapshot>
 
                                 <Snapshot label="Active Lots">{stocks.length}</Snapshot>
+                                <Snapshot label="Total Weight (kg)">
+                                {computedTotalWeight !== null ? computedTotalWeight.toFixed(2) : '—'}
+                              </Snapshot>
                             </div>
                         </div>
 

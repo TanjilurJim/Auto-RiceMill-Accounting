@@ -104,8 +104,8 @@ export default function JobsIndex(props: JobsPageProps) {
                                             <td className="border p-2">{j.started_at || '—'}</td>
                                             <td className="border p-2">{j.stopped_at || '—'}</td>
                                             <td className="border p-2 text-right">{j.duration_min ?? '—'}</td>
-                                            <td className="border p-2 text-right">{j.loaded ?? 0}</td>
-                                            <td className="border p-2 text-right">{j.capacity ?? '—'}</td>
+                                            <td className="border p-2 text-right">{j.loaded ?? 0} </td>
+                                            <td className="border p-2 text-right">{j.capacity ?? '—'} </td>
                                             <td className="border p-2 text-right">
                                                 {j.utilization != null ? `${Math.round(j.utilization * 100)}%` : '—'}
                                             </td>

@@ -22,6 +22,8 @@ class Item extends Model
         'godown_id',
         'purchase_price',
         'sale_price',
+        'weight',
+        'total_weight',
         'previous_stock',
         'total_previous_stock_value',
         'description',

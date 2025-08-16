@@ -126,77 +126,74 @@ class ItemController extends Controller
      */
     public function store(Request $request)
     {
-        /* 1️⃣ Validate -------------------------------------------------- */
         $validated = $request->validate([
             'item_name'  => [
                 'required',
                 'string',
                 'max:255',
-                Rule::unique('items', 'item_name')
-                    ->whereIn('created_by', user_scope_ids()),
+                Rule::unique('items', 'item_name')->whereIn('created_by', user_scope_ids()),
             ],
-            'unit_id'    => 'required|exists:units,id',
+            'unit_id'     => 'required|exists:units,id',
             'category_id' => 'required|exists:categories,id',
-            'godown_id'  => 'required|exists:godowns,id',
-
+            'godown_id'   => 'required|exists:godowns,id',
+            'weight'      => 'nullable|numeric|min:0',
             'purchase_price'               => 'nullable|numeric',
             'sale_price'                   => 'nullable|numeric',
-            'previous_stock'               => 'nullable|numeric',
+            'previous_stock'               => 'nullable|numeric|min:0',
             'total_previous_stock_value'   => 'nullable|numeric',
             'description'                  => 'nullable|string',
-
-            /* new                                             */
             'lot_no'      => 'required_with:previous_stock|string|max:50',
             'received_at' => 'nullable|date',
         ]);
 
-        /* 2️⃣ Generate a unique item_code ------------------ */
+        // 2) Generate code (unchanged)
         do {
             $nextId   = Item::max('id') + 1;
             $itemCode = 'ITM' . str_pad($nextId, 4, '0', STR_PAD_LEFT);
         } while (Item::where('item_code', $itemCode)->exists());
 
+        // 3) Normalize + compute totals
+        $openingQty = (float) ($request->previous_stock ?? 0);
+        $weight     = $request->filled('weight') ? (float)$request->weight : null;
+        $totalWeight = $weight !== null ? round($openingQty * $weight, 2) : null;
+
         $validated += [
-            'item_code'   => $itemCode,
-            'created_by'  => auth()->id(),
-            'purchase_price' => $request->purchase_price ?? 0,
-            'sale_price'     => $request->sale_price     ?? 0,
-            'previous_stock' => $request->previous_stock ?? 0,
-            'total_previous_stock_value' => $request->total_previous_stock_value ?? 0,
+            'item_code'                    => $itemCode,
+            'created_by'                   => auth()->id(),
+            'purchase_price'               => $request->purchase_price ?? 0,
+            'sale_price'                   => $request->sale_price     ?? 0,
+            'previous_stock'               => $openingQty,
+            'total_previous_stock_value'   => $request->total_previous_stock_value ?? 0,
+            'weight'                       => $weight,
+            // 🆕 save computed total_weight on create
+            'total_weight'                 => $totalWeight,
         ];
 
-        /* 3️⃣ Create the Item row --------------------------- */
         $item = Item::create($validated);
 
-        /* 4️⃣ Opening stock → its own lot + stock row ------- */
-        $openingQty = (float) ($request->previous_stock ?? 0);
-
+        // 4) Opening stock + lot (unchanged)
         if ($openingQty > 0) {
-
             $lot = \App\Models\Lot::create([
                 'godown_id'   => $request->godown_id,
                 'item_id'     => $item->id,
                 'lot_no'      => $request->lot_no,
-                'received_at' => $request->received_at
-                    ? date('Y-m-d', strtotime($request->received_at))
-                    : now(),
+                'received_at' => $request->received_at ? date('Y-m-d', strtotime($request->received_at)) : now(),
                 'created_by'  => auth()->id(),
             ]);
 
             \App\Models\Stock::create([
-                'item_id'   => $item->id,
-                'godown_id' => $request->godown_id,
-                'lot_id'    => $lot->id,               // ⭐
-                'qty'       => $openingQty,
-                'avg_cost'  => $request->purchase_price ?? 0,
+                'item_id'    => $item->id,
+                'godown_id'  => $request->godown_id,
+                'lot_id'     => $lot->id,
+                'qty'        => $openingQty,
+                'avg_cost'   => $request->purchase_price ?? 0,
                 'created_by' => auth()->id(),
             ]);
         }
 
-        return redirect()
-            ->route('items.index')
-            ->with('success', 'Item created successfully!');
+        return redirect()->route('items.index')->with('success', 'Item created successfully!');
     }
+
 
 
 
@@ -246,7 +243,6 @@ class ItemController extends Controller
     public function update(Request $request, Item $item)
     {
         $user = auth()->user();
-
         if (!$user->hasRole('admin')) {
             $ids = godown_scope_ids();
             if (!in_array($item->created_by, $ids)) {
@@ -255,41 +251,57 @@ class ItemController extends Controller
         }
 
         $validated = $request->validate([
-            'item_name' => [
+            'item_name'  => [
                 'required',
                 'string',
                 'max:255',
-                Rule::unique('items', 'item_name')
-                    ->whereIn('created_by', user_scope_ids())
-                    ->ignore($item->id),                         // 👈 ignore current row
+                Rule::unique('items', 'item_name')->whereIn('created_by', user_scope_ids())->ignore($item->id),
             ],
-            'unit_id' => 'required|exists:units,id',
+            'unit_id'    => 'required|exists:units,id',
             'category_id' => 'required|exists:categories,id',
-            'godown_id' => 'required|exists:godowns,id',
-            'purchase_price' => 'nullable|numeric',
-            'sale_price' => 'nullable|numeric',
-            'previous_stock' => 'nullable|numeric',
+            'godown_id'  => 'required|exists:godowns,id',
+
+            'purchase_price'             => 'nullable|numeric',
+            'sale_price'                 => 'nullable|numeric',
+            'previous_stock'             => 'nullable|numeric|min:0',
             'total_previous_stock_value' => 'nullable|numeric',
-            'description' => 'nullable|string',
+            'description'                => 'nullable|string',
+
+            // 🆕
+            'weight' => 'nullable|numeric|min:0',
         ]);
 
-        $validated['purchase_price'] = $request->purchase_price ?? 0;
-        $validated['sale_price'] = $request->sale_price ?? 0;
+        // normalize numeric fields
+        $validated['purchase_price']             = $request->purchase_price ?? 0;
+        $validated['sale_price']                 = $request->sale_price ?? 0;
         $validated['total_previous_stock_value'] = $request->total_previous_stock_value ?? 0;
 
-        $item->update($validated);
+        // Apply scalar updates first
+        $item->fill($validated);
 
+        // 🆕 recompute total_weight from current (or incoming) values
+        $weight = $request->filled('weight') ? (float)$request->weight : $item->weight;
+        // if previous_stock is not sent, keep existing (or compute from stock if you prefer)
+        $prev   = $request->filled('previous_stock')
+            ? (float)$request->previous_stock
+            : (float)($item->previous_stock ?? 0);
+
+        $item->weight       = $weight;
+        $item->total_weight = $weight !== null ? round($prev * $weight, 2) : null;
+        $item->save();
+
+        // keep your stock opening row in sync (unchanged logic)
         $stock = \App\Models\Stock::firstOrNew([
-            'item_id' => $item->id,
-            'godown_id' => $request->godown_id,
+            'item_id'    => $item->id,
+            'godown_id'  => $request->godown_id,
             'created_by' => auth()->id(),
         ]);
-
         $stock->qty = $request->previous_stock ?? 0;
         $stock->save();
 
         return redirect()->route('items.index')->with('success', 'Item updated successfully!');
     }
+
 
 
     public function show(Item $item, Request $request)
@@ -360,6 +372,8 @@ class ItemController extends Controller
             ];
         });
 
+        $totalWeight = $item->weight ? $rows->sum(fn($r) => $r['qty'] * (float)$item->weight) : null;
+
 
         /* 5️⃣ Summary */
         $summary = [
@@ -367,11 +381,12 @@ class ItemController extends Controller
             'total_value' => $rows->sum('value'),
             'last_in'     => $rows->max('received_at'),
             'unit'        => $item->unit?->name,
+            'total_weight' => $totalWeight,
         ];
 
         /* 6️⃣ Render */
         return Inertia::render('items/show', [
-            'item'    => $item->only('id', 'item_name', 'item_code') + ['unit' => $summary['unit']],
+            'item'    => $item->only('id', 'item_name', 'item_code', 'weight') + ['unit' => $summary['unit']],
             'stocks'  => $rows,
             'summary' => $summary,
             'godowns' => $user->hasRole('admin')
