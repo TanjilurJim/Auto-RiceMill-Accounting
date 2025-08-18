@@ -18,6 +18,8 @@ interface StockRow {
     qty: number;
     rate: number;
     value: number;
+    weight_per_unit?: number | null; // 🆕
+    lot_weight?: number | null; // 🆕
 }
 
 interface ItemShowProps {
@@ -68,22 +70,35 @@ export default function ItemShow({ item, stocks, summary, godowns, filters }: It
                 className: 'text-right',
             },
             {
-                header: 'Weight (kg)',
-                accessor: (r: StockRow) => (item.weight ? (r.qty * (item.weight as number)).toFixed(2) : '—'),
+                header: 'Weight / Unit (kg)',
+                accessor: (r: StockRow) => {
+                    const per = r.weight_per_unit ?? (typeof item.weight === 'number' ? item.weight : null);
+                    return per !== null ? per.toFixed(2) : '—';
+                },
                 className: 'text-right',
             },
             {
-                header: 'Rate',
+                header: 'Total Weight (kg)',
+                accessor: (r: StockRow) => {
+                    const per = r.weight_per_unit ?? (typeof item.weight === 'number' ? item.weight : null);
+                    const lot = r.lot_weight ?? (per !== null ? r.qty * per : null);
+                    return lot !== null ? lot.toFixed(2) : '—';
+                },
+                className: 'text-right',
+            },
+
+            {
+                header: 'Rate (TK)',
                 accessor: (r: StockRow) => (r.rate ?? 0).toFixed(2),
                 className: 'text-right',
             },
             {
-                header: 'Value',
+                header: 'Value (TK)',
                 accessor: (r: StockRow) => (r.value ?? 0).toFixed(2),
                 className: 'text-right font-medium',
             },
         ],
-        [summary.unit,  item.weight],
+        [summary.unit, item.weight],
     );
 
     /* ---------------------------------------------------------------------- */
@@ -122,9 +137,8 @@ export default function ItemShow({ item, stocks, summary, godowns, filters }: It
                                 <Snapshot label="Last Received">{summary.last_in ? fmtDate(summary.last_in) : '—'}</Snapshot>
 
                                 <Snapshot label="Active Lots">{stocks.length}</Snapshot>
-                                <Snapshot label="Total Weight (kg)">
-                                {computedTotalWeight !== null ? computedTotalWeight.toFixed(2) : '—'}
-                              </Snapshot>
+                                {/* <Snapshot label="Weight / Unit (kg)">{typeof item.weight === 'number' ? item.weight.toFixed(2) : '—'}</Snapshot> */}
+                                <Snapshot label="Total Weight (kg)">{computedTotalWeight !== null ? computedTotalWeight.toFixed(2) : '—'}</Snapshot>
                             </div>
                         </div>
 
@@ -140,7 +154,7 @@ export default function ItemShow({ item, stocks, summary, godowns, filters }: It
                                 </SelectTrigger>
 
                                 <SelectContent>
-                                    {/* remove the <SelectItem value=""> … */}
+                                    <SelectItem value="all">All Godowns</SelectItem>
                                     {godowns.map((g) => (
                                         <SelectItem key={g.id} value={String(g.id)}>
                                             {g.name}

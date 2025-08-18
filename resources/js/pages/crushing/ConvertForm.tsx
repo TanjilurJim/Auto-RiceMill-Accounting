@@ -242,24 +242,95 @@ export default function ConvertForm({
         patchGenerated(mainIdx, { per_kg_rate: finalPerKg.toFixed(2), _justComputed: true } as any);
     };
 
-    const patchConsumed = (idx: number, patch: Partial<ConsumedRow>) =>
+    const patchConsumed = (idx: number, patch: Partial<ConsumedRow>) => {
         setData(
             'consumed',
-            data.consumed.map((r, i) => (i === idx ? { ...r, ...patch } : r)),
+            data.consumed.map((r, i) => {
+                if (i !== idx) return r;
+
+                let next = { ...r, ...patch };
+
+                // On item change → autofill unit, reset lot & weight
+                if (data.owner === 'company' && 'item_id' in patch) {
+                    const item = companyItemOpts.find((o) => o.value === Number(patch.item_id));
+                    next.unit_name = item?.unit ?? '';
+                    next.lot_id = '';
+                    next.weight = '';
+                }
+
+                // Recompute weight when qty/unit/lot changes
+                const chg = 'qty' in patch || 'unit_name' in patch || 'lot_id' in patch || 'item_id' in patch;
+                if (data.owner === 'company' && chg) {
+                    const itemId = Number(next.item_id || 0);
+                    const lotId = Number(next.lot_id || 0);
+                    const qtyNum = parseFloat(String(next.qty || '0')) || 0;
+                    const unitNm = (next.unit_name || '').toLowerCase();
+
+                    const itm = companyItemOpts.find((o) => o.value === itemId);
+                    const lot = itm?.lots?.find((l: any) => Number(l.lot_id) === lotId);
+
+                    // per-unit in kg
+                    let perUnitKg = 0;
+                    if (unitNm === 'kg') perUnitKg = 1;
+                    else if ((itm?.item_weight ?? 0) > 0) perUnitKg = Number(itm!.item_weight);
+                    else if ((lot?.unit_weight ?? 0) > 0) perUnitKg = Number(lot!.unit_weight);
+
+                    if (qtyNum > 0 && perUnitKg > 0) {
+                        next.weight = String((qtyNum * perUnitKg).toFixed(3));
+                    }
+                }
+                return next;
+            }),
         );
+    };
 
     const patchGenerated = (idx: number, patch: Partial<GeneratedRow>) => {
         setData(
             'generated',
             data.generated.map((r, i) => {
-                // If this patch makes a row "main", clear it on all others
+                // keep the "only one main" behavior
                 if (patch.is_main === true) {
                     return { ...r, is_main: i === idx, ...(i === idx ? patch : {}) };
                 }
-                return i === idx ? { ...r, ...patch } : r;
+                if (i !== idx) return r;
+
+                let next = { ...r, ...patch };
+
+                // If unit changed away from Bosta, clear bosta_weight (optional)
+                if ('unit_name' in patch) {
+                    const u = (patch.unit_name || '').toLowerCase();
+                    if (u !== 'bosta') next.bosta_weight = '';
+                }
+
+                // ---- Auto compute WEIGHT (kg) ----
+                const qtyNum = parseFloat(String(next.qty || '0')) || 0;
+                const unitNm = (next.unit_name || '').toLowerCase();
+                const bw = parseFloat(String((next as any).bosta_weight || '0')) || 0;
+
+                if (qtyNum > 0) {
+                    if (unitNm === 'kg') {
+                        next.weight = String(qtyNum.toFixed(3));
+                    } else if (unitNm === 'bosta' && bw > 0) {
+                        next.weight = String((qtyNum * bw).toFixed(3));
+                    }
+                }
+
+                // ---- Auto compute BY-PRODUCT TOTAL (৳) = qty × per-unit rate ----
+                const rate = parseFloat(String(next.byproduct_unit_rate || '0')) || 0;
+                if (!next.is_main) {
+                    if (qtyNum > 0 && rate > 0) {
+                        next.sale_value = (qtyNum * rate).toFixed(2);
+                    } else if ('byproduct_unit_rate' in patch || 'qty' in patch) {
+                        // if user cleared qty or rate, clear total to avoid stale numbers
+                        next.sale_value = '';
+                    }
+                }
+
+                return next;
             }),
         );
     };
+
     const unitMap = new Map(units.map((u) => [u.id, u.name]));
     const itemOptions = items.map((i) => ({
         value: i.id,
@@ -310,6 +381,12 @@ export default function ConvertForm({
             .then((res) => setLotStock(res.data))
             .finally(() => setStockBusy(false));
     }, [data.owner, data.godown_id]);
+
+    // React.useEffect(() => {
+    //     if (lotStock?.length) {
+    //         console.log('lotStock payload →', lotStock);
+    //     }
+    // }, [lotStock]);
 
     const addLine = (sec: 'consumed' | 'generated') => {
         if (sec === 'generated') {
@@ -365,13 +442,19 @@ export default function ConvertForm({
         value: itm.id,
         label: itm.item_name,
         unit: itm.unit,
+        item_weight: itm.item_weight ?? 0,
         lots: itm.lots,
     }));
 
     const lotOptionsForItem = (itemId: string | number) => {
         const itm = companyItemOpts.find((o) => o.value === Number(itemId));
         if (!itm) return [];
-        return itm.lots.map((l: any) => ({ value: l.lot_id, label: `${l.lot_no} – ${l.stock_qty} ${itm.unit}` }));
+        return itm.lots.map((l: any) => ({
+            value: l.lot_id,
+            label: `${l.lot_no} – ${l.stock_qty} ${itm.unit}`,
+            // carry meta so we can read unit_weight if you want inside the table as well
+            ...l,
+        }));
     };
 
     const partyItemOptions = (partyId: string | number) => {

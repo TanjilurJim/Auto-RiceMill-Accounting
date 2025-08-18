@@ -29,8 +29,10 @@ const GeneratedCompanyTable: React.FC<Props> = React.memo(
                             <th className="border p-1">New Lot No</th>
                             <th className="border p-1">Qty</th>
                             <th className="border p-1">Unit</th>
-                            <th className="border p-1">প্রতি কেজি পরতা টাকায়</th>
+                            <th className="border p-1">Bosta weight (kg)</th> {/* ⬅ NEW */}
+                            <th className="border p-1">প্রতি কেজি পরতা </th>
                             <th className="border p-1">Weight (kg)</th>
+                            <th className="border p-1">By-product rate (৳/unit)</th>
                             <th className="border p-1">By-product value (৳)</th>
                             <th className="w-6 border p-1">✕</th>
                         </tr>
@@ -113,6 +115,26 @@ const GeneratedCompanyTable: React.FC<Props> = React.memo(
                                     {err(`generated.${idx}.unit_name`) && <p className="text-xs text-red-500">{err(`generated.${idx}.unit_name`)}</p>}
                                 </td>
 
+                                {/* ⬇ NEW: Bosta weight selector */}
+                                <td className="border p-1">
+                                    {String(row.unit_name || '').toLowerCase() === 'bosta' ? (
+                                        <select
+                                            className="w-full rounded border"
+                                            value={row.bosta_weight ?? ''}
+                                            onChange={(e) => onPatch(idx, { bosta_weight: e.target.value })}
+                                        >
+                                            <option value="">Select…</option>
+                                            {[10, 20, 25, 50, 75].map((k) => (
+                                                <option key={k} value={k}>
+                                                    {k}
+                                                </option>
+                                            ))}
+                                        </select>
+                                    ) : (
+                                        <span className="text-gray-400">—</span>
+                                    )}
+                                </td>
+
                                 {/* Per-kg rate (main only) */}
                                 <td className="border p-1">
                                     {row.is_main ? (
@@ -137,7 +159,13 @@ const GeneratedCompanyTable: React.FC<Props> = React.memo(
                                         value={row.weight || ''}
                                         onChange={(e) => onPatch(idx, { weight: e.target.value })}
                                     />
+                                    {String(row.unit_name || '').toLowerCase() === 'bosta' && row.bosta_weight ? (
+                                        <div className="mt-1 text-[11px] text-[tomato]">
+                                            1 <b>Bosta</b> = <b>{row.bosta_weight}</b> kg
+                                        </div>
+                                    ) : null}
                                 </td>
+                                {/* By-product rate (৳/unit) */}
                                 <td className="border p-1">
                                     {row.is_main ? (
                                         <span className="text-gray-400">—</span>
@@ -146,9 +174,25 @@ const GeneratedCompanyTable: React.FC<Props> = React.memo(
                                             type="number"
                                             step="0.01"
                                             className="w-full rounded border px-1 text-right"
-                                            value={row.sale_value || ''}
-                                            onChange={(e) => onPatch(idx, { sale_value: e.target.value })}
+                                            value={(row as any).byproduct_unit_rate || ''}
+                                            onChange={(e) => onPatch(idx, { byproduct_unit_rate: e.target.value })}
                                             placeholder="0.00"
+                                            title="৳ per selected unit (e.g., per kg or per bosta)"
+                                        />
+                                    )}
+                                </td>
+
+                                {/* By-product total (৳) – auto computed */}
+                                <td className="border p-1">
+                                    {row.is_main ? (
+                                        <span className="text-gray-400">—</span>
+                                    ) : (
+                                        <input
+                                            readOnly
+                                            className="w-full cursor-not-allowed rounded border bg-gray-50 px-1 text-right"
+                                            value={row.sale_value || ''}
+                                            placeholder="0.00"
+                                            title="Auto: qty × rate"
                                         />
                                     )}
                                 </td>

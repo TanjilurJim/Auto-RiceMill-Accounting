@@ -881,27 +881,37 @@ class SaleController extends Controller
     {
         $ids = godown_scope_ids();
 
-        $stocks = Stock::with(['item.unit', 'lot:id,lot_no,received_at'])
+        $stocks = Stock::with([
+            'item:id,item_name,unit_id,weight',
+            'item.unit:id,name',
+            // ⬇ include unit_weight so the UI can compute weight from বস্তা
+            'lot:id,lot_no,unit_weight,received_at',
+        ])
             ->where('godown_id', $godownId)
             ->when($ids, fn($q) => $q->whereIn('created_by', $ids))
-            ->whereNotNull('lot_id')             // ⬅ ignore orphan rows
+            ->whereNotNull('lot_id')      // ignore orphan rows
             ->get()
-            ->filter(fn($s) => $s->lot);        // ⬅ keep only rows whose lot exists
+            ->filter(fn($s) => $s->lot); // keep only rows whose lot exists
 
         $payload = $stocks
             ->groupBy('item_id')
             ->map(function ($rows) {
                 $item = $rows->first()->item;
+
                 return [
                     'id'        => $item->id,
                     'item_name' => $item->item_name,
-                    'unit'      => $item->unit->name ?? '',
-                    'lots'      => $rows->map(fn($s) => [
-                        'lot_id'      => $s->lot_id,
-                        'lot_no'      => $s->lot->lot_no,           // ← safe, lot exists
-                        'received_at' => optional($s->lot->received_at)->toDateString(),
-                        'stock_qty'   => $s->qty,
-                    ])->values(),
+                    'unit'      => $item->unit?->name ?? '', // safe access
+                    'item_weight' => (float) ($item->weight ?? 0),
+                    'lots'      => $rows->map(function ($s) {
+                        return [
+                            'lot_id'      => $s->lot_id,
+                            'lot_no'      => $s->lot->lot_no,
+                            'received_at' => optional($s->lot->received_at)->toDateString(),
+                            'stock_qty'   => (float) $s->qty,                          // cast for UI
+                            'unit_weight' => (float) ($s->lot->unit_weight ?? 0.0),    // ⬅ NEW: kg per বস্তা
+                        ];
+                    })->values(),
                 ];
             })
             ->values();

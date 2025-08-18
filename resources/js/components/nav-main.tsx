@@ -1,5 +1,6 @@
 import { Badge } from '@/components/ui/badge';
-import { SidebarMenu, SidebarMenuButton, SidebarMenuItem } from '@/components/ui/sidebar';
+import { SidebarMenu, SidebarMenuButton, SidebarMenuItem, SidebarMenuSub } from '@/components/ui/sidebar';
+
 import type { NavItem } from '@/types';
 import { Link, usePage } from '@inertiajs/react';
 import { ChevronDown, ChevronRight } from 'lucide-react';
@@ -77,9 +78,11 @@ export function NavMain({ items = [], counters = {} }: { items: NavItem[]; count
                 const gCount = groupCount(item.title, counters); // 🔹 new
 
                 return (
-                    <SidebarMenuItem key={item.title}>
+                    <SidebarMenuItem key={item.href ?? item.title}>
                         <SidebarMenuButton
                             onClick={() => toggle(item.title)}
+                            data-state={open ? 'open' : 'closed'} // ✅ let CSS know it's open
+                            aria-expanded={open} // ✅ a11y
                             className={`flex items-center gap-2 rounded-md px-3 py-2 text-sm font-medium ${
                                 depth === 0
                                     ? 'text-[color:var(--color-sidebar-foreground)] hover:bg-[color:var(--color-sidebar-accent)]'
@@ -90,30 +93,26 @@ export function NavMain({ items = [], counters = {} }: { items: NavItem[]; count
                             {icon}
                             <span className="truncate">{item.title}</span>
 
-                            {/* badge on group */}
                             {gCount !== null && <Badge className="ml-auto rounded-full bg-red-600 px-2 text-xs text-white">{gCount}</Badge>}
 
-                            {/* chevron (pushes right when no badge) */}
-                            {gCount !== null ? (
-                                open ? (
-                                    <ChevronDown className="ml-1 h-4 w-4" />
-                                ) : (
-                                    <ChevronRight className="ml-1 h-4 w-4" />
-                                )
-                            ) : open ? (
-                                <ChevronDown className="ml-auto h-4 w-4" />
+                            {open ? (
+                                <ChevronDown className={gCount !== null ? 'ml-1 h-4 w-4' : 'ml-auto h-4 w-4'} />
                             ) : (
-                                <ChevronRight className="ml-auto h-4 w-4" />
+                                <ChevronRight className={gCount !== null ? 'ml-1 h-4 w-4' : 'ml-auto h-4 w-4'} />
                             )}
                         </SidebarMenuButton>
 
-                        {open && (
-                            <div className="overflow-hidden transition-all">
-                                <SidebarMenu className="space-y-1 py-1">
+                        <div
+                            className={`grid transition-[grid-template-rows] duration-350 ease-linear ${
+                                open ? 'grid-rows-[1fr]' : 'grid-rows-[0fr]'
+                            }`}
+                        >
+                            <div className="overflow-hidden">
+                                <SidebarMenuSub>
                                     {render(item.children!, depth + 1, colourVar, [...parents, item.title.toLowerCase()])}
-                                </SidebarMenu>
+                                </SidebarMenuSub>
                             </div>
-                        )}
+                        </div>
                     </SidebarMenuItem>
                 );
             }

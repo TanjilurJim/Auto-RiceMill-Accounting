@@ -4,11 +4,12 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use App\Traits\BelongsToTenant;
+
 class Stock extends Model
 {
-    use BelongsToTenant;  
+    use BelongsToTenant;
 
-    protected $fillable = ['item_id','lot_id', 'godown_id', 'qty', 'created_by'];
+    protected $fillable = ['item_id', 'lot_id', 'godown_id', 'qty', 'created_by'];
 
     public function item()
     {
@@ -28,19 +29,23 @@ class Stock extends Model
     {
         return $this->belongsTo(Lot::class);
     }
-    
+
     // ─── Scopes ──────────────────────────────────────────
-    public function scopeForLot   ($q,$lotId)  { return $q->where('lot_id',   $lotId); }
-    public function scopeForItem  ($q,$itemId) { return $q->where('item_id',  $itemId); }
+    public function scopeForLot($q, $lotId)
+    {
+        return $q->where('lot_id',   $lotId);
+    }
+    public function scopeForItem($q, $itemId)
+    {
+        return $q->where('item_id',  $itemId);
+    }
 
     // ─── Convenience accessor (history) ─────────────────
     public function moves()
     {
-        return StockMove::where([
-            'item_id'   => $this->item_id,
-            'godown_id' => $this->godown_id,
-            'lot_id'    => $this->lot_id,
-        ]);
+        return $this->hasMany(StockMove::class)
+            ->where('item_id', $this->item_id)
+            ->where('godown_id', $this->godown_id)
+            ->where('lot_id', $this->lot_id);
     }
-
 }

@@ -323,10 +323,9 @@ class ItemController extends Controller
             ->orderBy('id')       // earliest = first
             ->value('id');
 
-        /* 3️⃣ One query: latest IN-move cost for every lot */
-        /* 3️⃣ One query: latest IN or Purchase move cost for every lot */
+        /* 3️⃣ Latest IN or Purchase move cost for every lot */
         $lastRates = \App\Models\StockMove::select('lot_id', 'unit_cost', 'meta')
-            ->whereIn('type', ['in', 'purchase'])   // ✅ include both
+            ->whereIn('type', ['in', 'purchase'])
             ->whereIn('lot_id', $stocks->pluck('lot_id'))
             ->orderBy('lot_id')
             ->orderByDesc('id')
@@ -334,10 +333,10 @@ class ItemController extends Controller
             ->unique('lot_id')
             ->keyBy('lot_id'); //  [lot_id => StockMove]
 
-        /* 4️⃣ Build rows */
+        /* 4️⃣ Build rows (+ weight fields) */
         $rows = $stocks->map(function ($s) use ($item, $lastRates, $openingLotId) {
 
-            // 4.1 newest IN or purchase move cost?
+            // newest IN/purchase move cost?
             $move = $lastRates[$s->lot_id] ?? null;
             $rate = 0;
 
@@ -350,41 +349,46 @@ class ItemController extends Controller
                 }
             }
 
-            // 4.2 else any stored avg_cost?
+            // else any stored avg_cost?
             if ($rate == 0 && $s->avg_cost) {
                 $rate = (float) $s->avg_cost;
             }
 
-            // 4.3 else if this is the opening lot → item’s purchase_price
+            // else if this is the opening lot → item’s purchase_price
             if ($rate == 0 && $s->lot_id == $openingLotId) {
                 $rate = (float) ($item->purchase_price ?? 0);
             }
 
             $value = round($s->qty * $rate, 2);
 
+            // 🆕 weight bits
+            $unitWeight = is_null($item->weight) ? null : (float) $item->weight; // kg per unit/bag
+            $lotWeight  = is_null($unitWeight) ? null : round($s->qty * $unitWeight, 3); // kg
+
             return [
-                'lot_no'      => $s->lot?->lot_no,
-                'received_at' => optional($s->lot)->received_at,
-                'godown'      => $s->godown?->name,
-                'qty'         => (float) $s->qty,
-                'rate'        => $rate,
-                'value'       => $value,
+                'lot_no'          => $s->lot?->lot_no,
+                'received_at'     => optional($s->lot)->received_at,
+                'godown'          => $s->godown?->name,
+                'qty'             => (float) $s->qty,
+                'rate'            => $rate,
+                'value'           => $value,
+
+                // 🆕 expose both for the UI
+                'weight_per_unit' => $unitWeight,   // kg
+                'lot_weight'      => $lotWeight,    // kg
             ];
         });
 
-        $totalWeight = $item->weight ? $rows->sum(fn($r) => $r['qty'] * (float)$item->weight) : null;
-
-
-        /* 5️⃣ Summary */
+        /* 5️⃣ Summary (now includes total_weight from rows) */
         $summary = [
-            'total_qty'   => $rows->sum('qty'),
-            'total_value' => $rows->sum('value'),
-            'last_in'     => $rows->max('received_at'),
-            'unit'        => $item->unit?->name,
-            'total_weight' => $totalWeight,
+            'total_qty'    => $rows->sum('qty'),
+            'total_value'  => $rows->sum('value'),
+            'last_in'      => $rows->max('received_at'),
+            'unit'         => $item->unit?->name,
+            'total_weight' => $rows->sum(fn($r) => $r['lot_weight'] ?? 0), // kg
         ];
 
-        /* 6️⃣ Render */
+        /* 6️⃣ Render (keep weight on the item payload too) */
         return Inertia::render('items/show', [
             'item'    => $item->only('id', 'item_name', 'item_code', 'weight') + ['unit' => $summary['unit']],
             'stocks'  => $rows,
@@ -395,6 +399,7 @@ class ItemController extends Controller
             'filters' => ['godown_id' => $gId],
         ]);
     }
+
 
 
 

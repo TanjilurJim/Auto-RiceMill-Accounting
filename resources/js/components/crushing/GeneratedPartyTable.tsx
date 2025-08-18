@@ -24,7 +24,8 @@ const GeneratedPartyTable: React.FC<Props> = React.memo(({ rows, units, errors, 
                         <th className="border p-1">Item name</th>
                         <th className="border p-1">Qty</th>
                         <th className="border p-1">Unit</th>
-                        <th className="border p-1">প্রতি কেজি পরতা টাকায়</th>
+                        <th className="border p-1">Bosta weight (kg)</th> {/* ⬅ NEW */}
+                        <th className="border p-1">প্রতি কেজি পরতা </th>
                         <th className="border p-1">Weight (kg)</th>
                         <th className="border p-1">By-product value (৳)</th>
                         <th className="w-6 border p-1">✕</th>
@@ -67,10 +68,11 @@ const GeneratedPartyTable: React.FC<Props> = React.memo(({ rows, units, errors, 
                             </td>
 
                             {/* Unit */}
+                            {/* Unit */}
                             <td className="border p-1">
                                 <select
                                     className="w-full rounded border"
-                                    value={row.unit_name}
+                                    value={row.unit_name || ''}
                                     onChange={(e) => onPatch(idx, { unit_name: e.target.value })}
                                 >
                                     <option value=""></option>
@@ -81,6 +83,26 @@ const GeneratedPartyTable: React.FC<Props> = React.memo(({ rows, units, errors, 
                                     ))}
                                 </select>
                                 {err(`generated.${idx}.unit_name`) && <p className="text-xs text-red-500">{err(`generated.${idx}.unit_name`)}</p>}
+                            </td>
+
+                            {/* ⬇ NEW: Bosta weight selector */}
+                            <td className="border p-1">
+                                {String(row.unit_name || '').toLowerCase() === 'bosta' ? (
+                                    <select
+                                        className="w-full rounded border"
+                                        value={row.bosta_weight ?? ''}
+                                        onChange={(e) => onPatch(idx, { bosta_weight: e.target.value })}
+                                    >
+                                        <option value="">Select…</option>
+                                        {[10, 20, 25, 50, 75].map((k) => (
+                                            <option key={k} value={k}>
+                                                {k}
+                                            </option>
+                                        ))}
+                                    </select>
+                                ) : (
+                                    <span className="text-gray-400">—</span>
+                                )}
                             </td>
 
                             {/* Per-kg rate (main only) */}
@@ -107,6 +129,11 @@ const GeneratedPartyTable: React.FC<Props> = React.memo(({ rows, units, errors, 
                                     value={row.weight || ''}
                                     onChange={(e) => onPatch(idx, { weight: e.target.value })}
                                 />
+                                {String(row.unit_name || '').toLowerCase() === 'bosta' && row.bosta_weight ? (
+                                    <div className="mt-1 text-[11px] text-[tomato]">
+                                        1 <b>Bosta</b> = <b>{row.bosta_weight}</b> kg
+                                    </div>
+                                ) : null}
                             </td>
                             <td className="border p-1">
                                 {row.is_main ? (
