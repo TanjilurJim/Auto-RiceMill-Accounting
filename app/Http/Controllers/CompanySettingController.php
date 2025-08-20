@@ -6,6 +6,8 @@ use Intervention\Image\ImageManager;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
+use Illuminate\Support\Str;
+use App\Models\User;
 use App\Models\CompanySetting;
 use App\Models\FinancialYear;
 use Illuminate\Support\Facades\Auth;
@@ -14,8 +16,9 @@ class CompanySettingController extends Controller
 {
     public function edit()
     {
-        $setting = CompanySetting::where('created_by', Auth::id())->first();
-        $financialYears = FinancialYear::where('created_by', Auth::id())->get();
+        $tenantId = auth()->user()->tenant_id;
+        $setting = CompanySetting::where('created_by', $tenantId)->first();
+        $financialYears = FinancialYear::where('created_by', $tenantId)->get();
 
         return Inertia::render('company-settings/edit', [
             'setting' => $setting,
@@ -39,6 +42,7 @@ class CompanySettingController extends Controller
 
     public function update(Request $request, ImageManager $manager)
     {
+        $tenantId = auth()->user()->tenant_id;
         $validated = $request->validate([
             'company_name' => 'nullable|string|max:255',
             'mailing_name' => 'nullable|string|max:255',
@@ -65,7 +69,7 @@ class CompanySettingController extends Controller
         // 🟢 normalise checkbox
         $validated['apply_interest'] = $request->boolean('apply_interest');
 
-        $setting = CompanySetting::firstOrNew(['created_by' => auth()->id()]);
+         $setting = CompanySetting::firstOrNew(['created_by' => $tenantId]);
 
         if (!$setting->exists) {
             $setting->created_by = auth()->id(); // ✅ Ensure this is set for new rows
@@ -116,5 +120,55 @@ class CompanySettingController extends Controller
         \Log::info('✅ Saved CompanySetting ID: ' . $setting->id);
 
         return redirect()->route('company-settings.edit')->with('success', 'Company info updated.');
+    }
+
+    public function editCostings()
+    {
+        $tenantId = auth()->user()->tenant_id;
+        $setting = CompanySetting::firstOrCreate(['created_by' => $tenantId], [
+            'company_name' => null,
+        ]);
+
+        $presets = data_get($setting, 'costings.items', []);
+
+        $basisOptions = [
+            ['value' => 'per_bosta',  'label' => 'Per Bosta '],
+            ['value' => 'per_kg_main', 'label' => 'Per kg '],
+            ['value' => 'fixed',      'label' => 'Fixed (flat amount)'],
+        ];
+
+        return Inertia::render('company-settings/ProductionCostSetting', [
+            'presets'       => $presets,
+            'basisOptions'  => $basisOptions,
+        ]);
+    }
+
+    public function updateCostings(Request $request)
+    {
+        $tenantId = auth()->user()->tenant_id;
+        $validated = $request->validate([
+            'items'                 => ['required', 'array'],
+            'items.*.label'         => ['required', 'string', 'max:255'],
+            'items.*.rate'          => ['required', 'numeric', 'min:0'],
+            'items.*.basis'         => ['required', 'in:per_bosta,per_kg_main,fixed'],
+            'items.*.id'            => ['nullable', 'string', 'max:100'],
+        ]);
+
+        // Normalize: ensure each row has a stable id (slug of label)
+        $items = collect($validated['items'])->map(function ($r) {
+            $id = $r['id'] ?? Str::slug($r['label'], '_');
+            return [
+                'id'    => $id,
+                'label' => $r['label'],
+                'rate'  => (float) $r['rate'],
+                'basis' => $r['basis'],
+            ];
+        })->values()->all();
+
+        $setting = CompanySetting::firstOrCreate(['created_by' =>$tenantId]);
+        $setting->costings = ['items' => $items];
+        $setting->save();
+
+        return back()->with('success', 'Production cost presets updated.');
     }
 }

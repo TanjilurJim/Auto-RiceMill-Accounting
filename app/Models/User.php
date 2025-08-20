@@ -54,15 +54,13 @@ class User extends Authenticatable
             'password' => 'hashed',
         ];
     }
-    public function createdBy()
+    public function company()
     {
-        return $this->belongsTo(User::class, 'created_by');
+        return $this->hasOne(CompanySetting::class, 'created_by', 'tenant_id');
     }
 
-    public function company(){
-        $headId = get_top_parent_id($this);
-        return $this->hasOne(CompanySetting::class, 'created_by')
-            ->where('created_by', $headId);
+    public function getTenantIdAttribute()
+    {
+        return get_top_parent_id($this);
     }
-
 }

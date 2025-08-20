@@ -14,8 +14,12 @@ interface Props {
 const GeneratedPartyTable: React.FC<Props> = React.memo(({ rows, units, errors, onAdd, onRemove, onPatch, flashMain }) => {
     const err = (p: string) => (errors?.[p] as string) || undefined;
 
+    
+
     return (
         <>
+
+            
             <h2 className="mt-8 mb-2 text-lg font-semibold">Generated</h2>
             <table className="w-full border text-sm">
                 <thead className="bg-gray-100">

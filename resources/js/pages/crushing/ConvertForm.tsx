@@ -1,5 +1,6 @@
 /*  resources/js/pages/crushing/ConvertForm.tsx  */
 import ConsumedTable from '@/components/crushing/ConsumedTable';
+import CostingSection from '@/components/crushing/CostingSection';
 import GeneratedCompanyTable from '@/components/crushing/GeneratedCompanyTable';
 import GeneratedPartyTable from '@/components/crushing/GeneratedPartyTable';
 import type { ConsumedRow, GeneratedRow, Owner } from '@/components/crushing/types';
@@ -9,10 +10,26 @@ import axios from 'axios';
 import React from 'react';
 import Select from 'react-select';
 
-type ProductionCostRow = { id: string; label: string; amount: number | '' };
+type Basis = 'per_bosta' | 'per_kg_main' | 'fixed';
+type ProductionCostRow = {
+    id: string;
+    label: string;
+    amount: number | '';
+    // ⬇ optional metadata if the row came from a preset
+    preset_id?: string;
+    basis?: Basis;
+    rate?: number;
+};
 type NewCosting = {
     market_rate: string | number | '';
     production_costs: ProductionCostRow[];
+};
+
+type CostingPreset = {
+    id: string;
+    label: string;
+    rate: number;
+    basis: Basis;
 };
 
 // simple id generator
@@ -54,6 +71,7 @@ interface Stock {
 interface Props {
     parties: Party[];
     godowns: Godown[];
+    costing_presets: CostingPreset[];
     units: Unit[];
     dryers: Dryer[]; // ✅ keep!
     today: string;
@@ -87,34 +105,35 @@ interface FormState {
 const normalizeCosting = (c: any | undefined): NewCosting => {
     if (!c) return { market_rate: '', production_costs: [] };
     if (Array.isArray(c.production_costs)) {
-        // already in new shape
         return {
             market_rate: c.market_rate ?? '',
             production_costs: c.production_costs.map((r: any) => ({
                 id: r.id ?? uid(),
                 label: r.label ?? '',
                 amount: r.amount ?? '',
+                // preserve optional preset metadata if they exist
+                preset_id: r.preset_id,
+                basis: r.basis,
+                rate: typeof r.rate === 'number' ? r.rate : r.rate ? Number(r.rate) : undefined,
             })),
         };
     }
-    // legacy → migrate everything except market_rate into rows
+    // legacy shape: turn keys into rows
     const rows: ProductionCostRow[] = Object.entries(c)
         .filter(([k]) => k !== 'market_rate')
         .map(([k, v]) => ({
             id: uid(),
-            label: k.replace(/_/g, ' ').replace(/\b\w/g, (m) => m.toUpperCase()), // load_unload → Load Unload
+            label: k.replace(/_/g, ' ').replace(/\b\w/g, (m) => m.toUpperCase()),
             amount: v === undefined || v === null ? '' : Number(v),
         }));
 
-    return {
-        market_rate: c.market_rate ?? '',
-        production_costs: rows,
-    };
+    return { market_rate: c.market_rate ?? '', production_costs: rows };
 };
 
 export default function ConvertForm({
     parties,
     godowns,
+    costing_presets,
     units,
     dryers,
     today,
@@ -186,10 +205,20 @@ export default function ConvertForm({
     const computePaddyTotal = async () => {
         setPaddyBusy(true);
         try {
+            const consumed = (data.consumed ?? []).map((r) => ({
+                ...r,
+                qty: r.qty === '' ? 0 : Number(r.qty),
+                weight: (r as any).weight === '' ? 0 : Number((r as any).weight),
+                item_id: r.item_id ? Number(r.item_id) : undefined,
+                party_item_id: (r as any).party_item_id ? Number((r as any).party_item_id) : undefined,
+                lot_id: r.lot_id ? Number(r.lot_id) : undefined,
+            }));
             const payload = {
                 owner: data.owner,
                 godown_id: Number(data.godown_id),
-                consumed: data.consumed, // needs item_id/lot_id (company) OR party_item_id (party) + qty/weight
+                
+                party_ledger_id: data.owner === 'party' ? Number(data.party_ledger_id || 0) : undefined,
+                consumed,
             };
             const res = await axios.post(route('crushing.compute-paddy-total'), payload);
             const t = res.data?.total ?? 0;
@@ -304,6 +333,8 @@ export default function ConvertForm({
 
                 // ---- Auto compute WEIGHT (kg) ----
                 const qtyNum = parseFloat(String(next.qty || '0')) || 0;
+                const weightNum = parseFloat(String(next.weight || '0')) || 0;
+
                 const unitNm = (next.unit_name || '').toLowerCase();
                 const bw = parseFloat(String((next as any).bosta_weight || '0')) || 0;
 
@@ -318,8 +349,8 @@ export default function ConvertForm({
                 // ---- Auto compute BY-PRODUCT TOTAL (৳) = qty × per-unit rate ----
                 const rate = parseFloat(String(next.byproduct_unit_rate || '0')) || 0;
                 if (!next.is_main) {
-                    if (qtyNum > 0 && rate > 0) {
-                        next.sale_value = (qtyNum * rate).toFixed(2);
+                    if (weightNum > 0 && rate > 0) {
+                        next.sale_value = (weightNum * rate).toFixed(2);
                     } else if ('byproduct_unit_rate' in patch || 'qty' in patch) {
                         // if user cleared qty or rate, clear total to avoid stale numbers
                         next.sale_value = '';
@@ -481,14 +512,6 @@ export default function ConvertForm({
             post(route('party-stock.transfer.store'), { onSuccess: () => reset() });
         }
     };
-
-    // ⬅️ put these just above the `return (...)` in ConvertForm.tsx
-    // const paddy = parseFloat(paddyTotalTk || '0');
-    // const prod = productionCostTotal;
-    // const byp = byProductTotal;
-    // const netCost = paddy + prod - byp; // মোট খরচ
-    // const mainKg = parseFloat(mainRow?.weight || '0');
-    // const perKgPreview = mainKg > 0 ? netCost / mainKg : 0;
 
     // ---- Pricing preview (yield-based) ----
     const paddy = parseFloat(paddyTotalTk || '0'); // ধানের মোট দাম (৳)
@@ -774,84 +797,14 @@ export default function ConvertForm({
                             </div>
                         </div>
 
-                        <div className="mt-8 rounded border bg-slate-50 p-4">
-                            <div className="mb-3 flex items-center justify-between">
-                                <h3 className="text-lg font-semibold">Production Cost</h3>
-                                <button
-                                    type="button"
-                                    onClick={addCostRow}
-                                    className="rounded bg-slate-800 px-3 py-1 text-sm text-white hover:bg-slate-700"
-                                    title="Add row"
-                                >
-                                    + Add row
-                                </button>
-                            </div>
-
-                            <div className="space-y-3">
-                                {(data.costing?.production_costs ?? []).map((row) => (
-                                    <div key={row.id} className="grid grid-cols-12 items-end gap-3">
-                                        <label className="col-span-6 block">
-                                            <span className="mb-1 block text-sm">Header</span>
-                                            <input
-                                                type="text"
-                                                className="w-full rounded border p-2"
-                                                placeholder="e.g., Load–Unload"
-                                                value={row.label}
-                                                onChange={(e) => updateRow(row.id, { label: e.target.value })}
-                                            />
-                                        </label>
-
-                                        <label className="col-span-4 block">
-                                            <span className="mb-1 block text-sm">Costing (৳)</span>
-                                            <input
-                                                type="number"
-                                                className="w-full rounded border p-2"
-                                                placeholder="0.00"
-                                                value={row.amount}
-                                                onChange={(e) => updateRow(row.id, { amount: e.target.value === '' ? '' : Number(e.target.value) })}
-                                            />
-                                        </label>
-
-                                        <div className="col-span-2">
-                                            <button
-                                                type="button"
-                                                onClick={() => removeRow(row.id)}
-                                                className="w-full rounded border border-red-300 px-3 py-2 text-sm text-red-600 hover:bg-red-50"
-                                                title="Remove"
-                                            >
-                                                Remove
-                                            </button>
-                                        </div>
-                                    </div>
-                                ))}
-
-                                {/* Market rate (optional) */}
-                                {/* <label className="block">
-                                    <span className="mb-1 block text-sm">Market rate (৳ / unit, optional)</span>
-                                    <input
-                                        type="number"
-                                        className="w-full rounded border p-2"
-                                        value={data.costing?.market_rate ?? ''}
-                                        onChange={(e) =>
-                                            setData('costing', {
-                                                ...(data.costing ?? { production_costs: [] }),
-                                                market_rate: e.target.value,
-                                            })
-                                        }
-                                    />
-                                </label> */}
-
-                                {/* Total */}
-                                <div className="mt-2 flex items-center justify-end">
-                                    <div className="text-sm">
-                                        <span className="font-medium">Total Production Cost:</span>{' '}
-                                        <span>
-                                            ৳ {totalProductionCost.toLocaleString('en-BD', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-                                        </span>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
+                        {/* Production Cost (preset‑aware) */}
+                        <CostingSection
+                            value={data.costing.production_costs}
+                            presets={costing_presets}
+                            dhaanBostaCount={dhaanBostaCount}
+                            mainKg={parseFloat(mainRow?.weight || '0')}
+                            onChange={(rows) => setData('costing', { ...(data.costing ?? { market_rate: '' }), production_costs: rows })}
+                        />
 
                         {/* remarks + footer buttons */}
                         <div>

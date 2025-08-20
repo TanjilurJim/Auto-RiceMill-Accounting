@@ -12,6 +12,7 @@ use Illuminate\Http\Request;
 use App\Models\CrushingJob;
 use App\Models\CrushingJobConsumption;
 use App\Models\Dryer;
+use App\Models\CompanySetting;
 use Carbon\Carbon;
 use Inertia\Inertia;
 use Illuminate\Support\Facades\DB;
@@ -92,6 +93,13 @@ class PartyStockAdjustmentController extends Controller
             ->where('status', 'running')
             ->value('id');
 
+        $tenantId = auth()->user()->tenant_id;
+        
+        $setting = CompanySetting::firstOrCreate(['created_by' => $tenantId], [
+            'company_name' => null,
+        ]);
+        $costingPresets = data_get($setting, 'costings.items', []);
+
         return Inertia::render('crushing/ConvertForm', [
             'parties'          => AccountLedger::whereIn('ledger_type', ['sales', 'income'])->get(['id', 'account_ledger_name']),
             'units'            => Unit::all(['id', 'name']),
@@ -101,6 +109,7 @@ class PartyStockAdjustmentController extends Controller
             'generated_ref_no' => $ref,
             'available_stock'  => $stocks,
             'running_job_id'   => $runningJobId,
+            'costing_presets' => $costingPresets,
             'preset'          => $preset,                  // ✅ here
             'items'            => Item::with('unit:id,name')
                 ->orderBy('item_name')

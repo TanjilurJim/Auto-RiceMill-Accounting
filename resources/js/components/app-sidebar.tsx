@@ -468,6 +468,11 @@ const mainNavItems: NavItem[] = [
                 href: '/company-settings',
                 icon: Building2, // 👈 This icon works well for users
             },
+            {
+                title: 'Production Cost Setting',
+                href: '/company-settings/costings',
+                icon: Building2, // 👈 This icon works well for users
+            },
 
             // Later you can add more inventory-related items here (e.g., Products, Stock Transfers, etc.)
         ],

@@ -35,6 +35,7 @@ class CompanySetting extends Model
 
     protected $casts = [
         'apply_interest'  => 'boolean',
+        'costings'  => 'array',
     ];
 
     public function getLogoUrlAttribute(): ?string

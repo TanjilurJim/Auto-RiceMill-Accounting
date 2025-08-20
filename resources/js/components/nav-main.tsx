@@ -3,7 +3,7 @@ import { SidebarMenu, SidebarMenuButton, SidebarMenuItem, SidebarMenuSub } from 
 
 import type { NavItem } from '@/types';
 import { Link, usePage } from '@inertiajs/react';
-import { ChevronDown, ChevronRight } from 'lucide-react';
+import { ChevronRight } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { sectionColor } from './app-sidebar';
 
@@ -81,8 +81,8 @@ export function NavMain({ items = [], counters = {} }: { items: NavItem[]; count
                     <SidebarMenuItem key={item.href ?? item.title}>
                         <SidebarMenuButton
                             onClick={() => toggle(item.title)}
-                            data-state={open ? 'open' : 'closed'} // ✅ let CSS know it's open
-                            aria-expanded={open} // ✅ a11y
+                            data-state={open ? 'open' : 'closed'}
+                            aria-expanded={open}
                             className={`flex items-center gap-2 rounded-md px-3 py-2 text-sm font-medium ${
                                 depth === 0
                                     ? 'text-[color:var(--color-sidebar-foreground)] hover:bg-[color:var(--color-sidebar-accent)]'
@@ -95,11 +95,8 @@ export function NavMain({ items = [], counters = {} }: { items: NavItem[]; count
 
                             {gCount !== null && <Badge className="ml-auto rounded-full bg-red-600 px-2 text-xs text-white">{gCount}</Badge>}
 
-                            {open ? (
-                                <ChevronDown className={gCount !== null ? 'ml-1 h-4 w-4' : 'ml-auto h-4 w-4'} />
-                            ) : (
-                                <ChevronRight className={gCount !== null ? 'ml-1 h-4 w-4' : 'ml-auto h-4 w-4'} />
-                            )}
+                            {/* ✅ single chevron, rotates on open */}
+                            <ChevronRight className={`ml-auto h-4 w-4 transform transition-transform duration-200 ${open ? 'rotate-90' : ''}`} />
                         </SidebarMenuButton>
 
                         <div
