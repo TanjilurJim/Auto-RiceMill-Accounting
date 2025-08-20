@@ -94,7 +94,7 @@ class PartyStockAdjustmentController extends Controller
             ->value('id');
 
         $tenantId = auth()->user()->tenant_id;
-        
+
         $setting = CompanySetting::firstOrCreate(['created_by' => $tenantId], [
             'company_name' => null,
         ]);
@@ -681,6 +681,7 @@ class PartyStockAdjustmentController extends Controller
             'generated.*.lot_no'        => ['required', 'string', 'max:255'],
             'generated.*.qty'           => ['required', 'numeric', 'min:0.01'],
             'generated.*.weight'       => ['nullable', 'numeric', 'min:0'],
+            'generated.*.bosta_weight' => ['nullable', 'numeric', 'min:0'],
             'generated.*.is_main'     => ['nullable', 'boolean'],
             'generated.*.per_kg_rate' => ['nullable', 'numeric', 'min:0'],
             'generated.*.sale_value'  => ['nullable', 'numeric', 'min:0'],
@@ -726,40 +727,72 @@ class PartyStockAdjustmentController extends Controller
             }
 
             /* ---------- 2) GENERATE (in) ------------------------------------ */
+            
             foreach ($v['generated'] as $row) {
+                // ---- derive unit weight (kg per unit) & movement total weight ----
+                $unitName   = strtolower(trim($row['unit_name'] ?? ''));  // 'kg' | 'bosta' | ...
+                $qty        = (float) $row['qty'];
+                $bostaW     = isset($row['bosta_weight']) && $row['bosta_weight'] !== '' ? (float)$row['bosta_weight'] : null;
+                $moveWeight = isset($row['weight']) && $row['weight'] !== '' ? (float)$row['weight'] : null;
 
-                // Resolve or create item
-                if (!empty($row['item_id'])) {
-                    $itemId = (int) $row['item_id'];
+                $unitWeightKg = null; // kg per 1 inventory unit
+                if ($unitName === 'kg') {
+                    $unitWeightKg = 1.0;
+                    if ($moveWeight === null) $moveWeight = $qty; // qty already in kg
+                } elseif ($unitName === 'bosta') {
+                    if ($bostaW && $bostaW > 0) {
+                        $unitWeightKg = $bostaW;
+                    } elseif ($moveWeight && $qty > 0) {
+                        $unitWeightKg = $moveWeight / $qty; // infer
+                    }
+                    if ($moveWeight === null && $unitWeightKg) {
+                        $moveWeight = $qty * $unitWeightKg;
+                    }
                 } else {
-                    // optional unit mapping from name -> id
+                    // other unit: infer if possible
+                    if ($moveWeight && $qty > 0) {
+                        $unitWeightKg = $moveWeight / $qty;
+                    }
+                }
+
+                // ---- resolve/create Item (catalog), fill per-unit kg into items.weight (if empty) ----
+                if (!empty($row['item_id'])) {
+                    $itemId = (int)$row['item_id'];
+                    $item   = Item::find($itemId);
+                    if ($item && ($item->weight === null || (float)$item->weight == 0) && $unitWeightKg) {
+                        $item->weight = $unitWeightKg;          // ⬅ catalog-level per-unit weight
+                        $item->save();
+                    }
+                } else {
                     $unitId = null;
                     if (!empty($row['unit_name'])) {
-                        $unitId = Unit::where('name', $row['unit_name'])->value('id'); // null if not found
+                        $unitId = Unit::where('name', $row['unit_name'])->value('id');
                     }
                     $categoryId = \App\Models\Category::firstOrCreate(
-                        [
-                            'name'       => 'Finished Goods',
-                            'created_by' => auth()->id(),
-                        ],
+                        ['name' => 'Finished Goods', 'created_by' => auth()->id()],
                         []
                     )->id;
-
-                    $defaultGodownId = $v['godown_id'];
 
                     $item = Item::firstOrCreate(
                         ['item_name' => trim($row['item_name'])],
                         [
-                            'unit_id'    => $unitId,
+                            'unit_id'     => $unitId,
                             'category_id' => $categoryId,
-                            'godown_id'   => $v['godown_id'],  // save FK if we found it
-                            'created_by' => auth()->id(),
+                            'godown_id'   => $v['godown_id'],
+                            'weight'      => $unitWeightKg,      // ⬅ set on create
+                            'created_by'  => auth()->id(),
                         ]
                     );
                     $itemId = $item->id;
+
+                    // if existed and empty weight → backfill once
+                    if (!$item->wasRecentlyCreated && ($item->weight === null || (float)$item->weight == 0) && $unitWeightKg) {
+                        $item->weight = $unitWeightKg;
+                        $item->save();
+                    }
                 }
 
-                // Create / reuse lot
+                // ---- create/reuse Lot, snapshot per-unit weight on lot (batch-level) ----
                 $lot = Lot::firstOrCreate(
                     [
                         'godown_id' => $v['godown_id'],
@@ -768,43 +801,73 @@ class PartyStockAdjustmentController extends Controller
                     ],
                     [
                         'received_at' => date('Y-m-d', strtotime($v['date'])),
+                        'unit_weight' => $unitWeightKg,         // ⬅ per-unit kg on this batch
                         'created_by'  => auth()->id(),
                     ]
                 );
+                if (($lot->unit_weight === null || (float)$lot->unit_weight == 0) && $unitWeightKg) {
+                    $lot->unit_weight = $unitWeightKg;
+                    $lot->save();
+                }
 
-                // Stock balance
+                // ---- valuation for stock value (unit_cost) ----
+                // MAIN: prefer per_kg_rate from UI; for kg items it's tk/kg; for bosta items make it tk/bosta.
+                // BYPRODUCT: if sale_value given, set unit_cost = sale_value/qty so value carries.
+                $isMain       = (bool)($row['is_main'] ?? false);
+                $perKgRate    = isset($row['per_kg_rate']) && $row['per_kg_rate'] !== '' ? (float)$row['per_kg_rate'] : null;
+                $saleValue    = isset($row['sale_value']) && $row['sale_value'] !== '' ? (float)$row['sale_value'] : null;
+
+                $unitCost = null; // cost per inventory unit (per kg OR per bosta, matching the unit)
+                if ($isMain && $perKgRate !== null) {
+                    $unitCost = ($unitName === 'kg')
+                        ? $perKgRate                         // tk/kg
+                        : (($unitWeightKg ?: 0) > 0 ? $perKgRate * $unitWeightKg : null); // tk/bosta
+                } elseif (!$isMain && $saleValue !== null && $qty > 0) {
+                    $unitCost = $saleValue / $qty;           // tk per unit for byproducts
+                }
+
+                // ---- stock balance & average cost update ----
                 $stock = Stock::lockForUpdate()->firstOrNew([
                     'item_id'   => $itemId,
                     'lot_id'    => $lot->id,
                     'godown_id' => $v['godown_id'],
                 ]);
-                $stock->qty = ($stock->qty ?? 0) + $row['qty'];
+
+                $oldQty = (float)($stock->exists ? $stock->qty : 0);
+                $oldAvg = (float)($stock->avg_cost ?? 0);
+
+                $newQty = $oldQty + $qty;
+                if ($unitCost !== null && $newQty > 0) {
+                    $newAvg = (($oldQty * $oldAvg) + ($qty * $unitCost)) / $newQty;
+                    $stock->avg_cost = round($newAvg, 6);
+                }
+                $stock->qty = $newQty;
                 $stock->created_by = $stock->created_by ?: auth()->id();
                 $stock->save();
-                $w = null;
-                if (array_key_exists('weight', $row) && $row['weight'] !== null && $row['weight'] !== '') {
-                    $w = abs((float)$row['weight']);
-                }
 
-                // History
+                // ---- movement history (IN) with weight + unit_cost for downstream costing ----
+                $w = $moveWeight !== null ? abs($moveWeight) : null;
+
                 StockMove::create([
-                    'ref_no'    => $refNo,
-                    // 'date'       => $v['date'],
+                    'ref_no'     => $refNo,
+                    // 'date'    => $v['date'],
                     'godown_id'  => $v['godown_id'],
                     'item_id'    => $itemId,
                     'lot_id'     => $lot->id,
-                    'type'       => 'in',                  // ✅ valid value
-                    'qty'        => $row['qty'],
-                    'weight'  => $w,
+                    'type'       => 'in',
+                    'qty'        => $qty,
+                    'weight'     => $w,             // total kg moved in
+                    'unit_cost'  => $unitCost,      // ⬅ key for valuation
                     'reason'     => 'Crushing convert-in',
-                    'meta'      => [
-                        'is_main'     => (bool)($row['is_main'] ?? false),
-                        'per_kg_rate' => isset($row['per_kg_rate']) ? (float)$row['per_kg_rate'] : null,
-                        'sale_value'  => isset($row['sale_value']) ? (float)$row['sale_value'] : null,
+                    'meta'       => [
+                        'is_main'     => $isMain,
+                        'per_kg_rate' => $perKgRate,
+                        'sale_value'  => $saleValue,
                     ],
                     'created_by' => auth()->id(),
                 ]);
             }
+
 
             // Mark job posted (optional)
             if ($jobId) {

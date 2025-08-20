@@ -156,6 +156,13 @@ export default function ConvertForm({
         job_id: '',
         costing: defaultCosting,
     });
+    // --- job state flags (UI gating) ---
+    const hasRunning = !!running_job_id; // there is a running job
+    const hasStoppedJob = !!(preset && preset.job_id) && !hasRunning; // came from Stop redirect
+    const canStart = !hasRunning && !hasStoppedJob;
+    const canStop = hasRunning;
+    const canSave = hasStoppedJob && !processing;
+
     const [paddyTotalTk, setPaddyTotalTk] = React.useState<string>('');
     const [flashMain, setFlashMain] = React.useState(false);
     const [paddyBusy, setPaddyBusy] = React.useState(false);
@@ -216,7 +223,7 @@ export default function ConvertForm({
             const payload = {
                 owner: data.owner,
                 godown_id: Number(data.godown_id),
-                
+
                 party_ledger_id: data.owner === 'party' ? Number(data.party_ledger_id || 0) : undefined,
                 consumed,
             };
@@ -505,8 +512,8 @@ export default function ConvertForm({
 
     const submit = (e: React.FormEvent) => {
         e.preventDefault();
+        if (!canSave) return; // ⬅️ block save unless stopped state
         if (data.owner === 'company') {
-            // ⬇️ use your actual route name for storeCompany()
             post(route('crushing.company.convert.store'), { onSuccess: () => reset() });
         } else {
             post(route('party-stock.transfer.store'), { onSuccess: () => reset() });
@@ -679,6 +686,14 @@ export default function ConvertForm({
                                 flashMain={flashMain}
                             />
                         )}
+                        {/* Production Cost (preset‑aware) */}
+                        <CostingSection
+                            value={data.costing.production_costs}
+                            presets={costing_presets}
+                            dhaanBostaCount={dhaanBostaCount}
+                            mainKg={parseFloat(mainRow?.weight || '0')}
+                            onChange={(rows) => setData('costing', { ...(data.costing ?? { market_rate: '' }), production_costs: rows })}
+                        />
 
                         <div className="mt-4 rounded-xl border bg-white p-4 shadow-sm">
                             {/* Header */}
@@ -797,15 +812,6 @@ export default function ConvertForm({
                             </div>
                         </div>
 
-                        {/* Production Cost (preset‑aware) */}
-                        <CostingSection
-                            value={data.costing.production_costs}
-                            presets={costing_presets}
-                            dhaanBostaCount={dhaanBostaCount}
-                            mainKg={parseFloat(mainRow?.weight || '0')}
-                            onChange={(rows) => setData('costing', { ...(data.costing ?? { market_rate: '' }), production_costs: rows })}
-                        />
-
                         {/* remarks + footer buttons */}
                         <div>
                             <label className="mt-6 block font-medium">মন্তব্য</label>
@@ -826,11 +832,18 @@ export default function ConvertForm({
                             </div>
 
                             <div className="space-x-2">
-                                {!running_job_id ? (
+                                {/* Start vs Stop */}
+                                {!hasRunning ? (
                                     <button
                                         type="button"
                                         className="rounded bg-indigo-600 px-4 py-2 text-white disabled:opacity-50"
-                                        disabled={processing || !data.dryer_id || !data.godown_id || data.consumed.length === 0}
+                                        disabled={
+                                            !canStart || // ⬅️ disabled if a stopped job is awaiting save
+                                            processing ||
+                                            !data.dryer_id ||
+                                            !data.godown_id ||
+                                            data.consumed.length === 0
+                                        }
                                         onClick={() => post(route('crushing.jobs.start'), { preserveScroll: true })}
                                     >
                                         Start
@@ -839,14 +852,15 @@ export default function ConvertForm({
                                     <button
                                         type="button"
                                         className="rounded bg-orange-600 px-4 py-2 text-white disabled:opacity-50"
-                                        disabled={processing}
+                                        disabled={!canStop || processing}
                                         onClick={() => post(route('crushing.jobs.stop', running_job_id), { preserveScroll: true })}
                                     >
                                         Stop
                                     </button>
                                 )}
 
-                                <button className="rounded bg-green-600 px-4 py-2 text-white disabled:opacity-50" disabled={processing}>
+                                {/* Save */}
+                                <button className="rounded bg-green-600 px-4 py-2 text-white disabled:opacity-50" disabled={!canSave}>
                                     {processing ? 'সেভ হচ্ছে…' : 'রূপান্তর সেভ করুন'}
                                 </button>
                             </div>

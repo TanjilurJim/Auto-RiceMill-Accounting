@@ -84,7 +84,7 @@ const ConsumedTable: React.FC<Props> = React.memo(
                                 <td className="border p-1">
                                     <input
                                         type="number"
-                                        className="w-full rounded border px-1 text-right"
+                                        className="w-full rounded border px-1 py-1.5 text-right"
                                         value={row.qty}
                                         onChange={(e) => onPatch(idx, { qty: e.target.value })}
                                     />
@@ -92,7 +92,7 @@ const ConsumedTable: React.FC<Props> = React.memo(
 
                                 <td className="border p-1">
                                     <select
-                                        className="w-full rounded border"
+                                        className="w-full rounded border py-1.5"
                                         value={row.unit_name}
                                         onChange={(e) => onPatch(idx, { unit_name: e.target.value })}
                                     >
@@ -109,7 +109,7 @@ const ConsumedTable: React.FC<Props> = React.memo(
                                     <input
                                         type="number"
                                         step="0.001"
-                                        className="w-full rounded border px-1 text-right"
+                                        className="w-full rounded border px-1 py-1.5 text-right"
                                         value={row.weight || ''}
                                         onChange={(e) => onPatch(idx, { weight: e.target.value })}
                                     />

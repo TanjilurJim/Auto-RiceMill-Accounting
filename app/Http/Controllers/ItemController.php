@@ -310,6 +310,8 @@ class ItemController extends Controller
         $scope  = godown_scope_ids();
         $gId    = $request->godown_id;
 
+
+
         /* 1️⃣ Active stock rows */
         $stocks = \App\Models\Stock::with(['lot', 'godown'])
             ->where('item_id', $item->id)
@@ -333,51 +335,97 @@ class ItemController extends Controller
             ->unique('lot_id')
             ->keyBy('lot_id'); //  [lot_id => StockMove]
 
-        /* 4️⃣ Build rows (+ weight fields) */
-        $rows = $stocks->map(function ($s) use ($item, $lastRates, $openingLotId) {
 
-            // newest IN/purchase move cost?
+
+        /* 4️⃣ Build rows (+ weight fields) */
+        $unitName = strtolower($item->unit?->name ?? '');
+
+        $rows = $stocks->map(function ($s) use ($item, $lastRates, $openingLotId, $unitName) {
+            // 1) Per-unit kg for this lot (prefer lot, then item, then 1 for kg)
+            $perUnitKg = null;
+            if (!is_null($s->lot?->unit_weight)) {
+                $perUnitKg = (float) $s->lot->unit_weight;
+            } elseif (!is_null($item->weight)) {
+                $perUnitKg = (float) $item->weight;
+            } elseif ($unitName === 'kg') {
+                $perUnitKg = 1.0;
+            }
+
+            // 2) Find latest IN/Purchase move for this lot
             $move = $lastRates[$s->lot_id] ?? null;
-            $rate = 0;
+
+            // 3) Derive a per-kg rate
+            $perKgRate = 0.0;
 
             if ($move) {
-                // Prefer per_kg_rate from meta if present (conversion)
-                if (!empty($move->meta['per_kg_rate'])) {
-                    $rate = (float) $move->meta['per_kg_rate'];
-                } else {
-                    $rate = (float) $move->unit_cost;
+                // (a) Prefer per_kg_rate saved in meta (conversions)
+                $meta = is_array($move->meta) ? $move->meta : (json_decode($move->meta ?? '{}', true) ?: []);
+                if (!empty($meta['per_kg_rate'])) {
+                    $perKgRate = (float) $meta['per_kg_rate'];
+                }
+
+                // (b) Else use unit_cost, but convert per-unit → per-kg when needed
+                if ($perKgRate == 0.0 && !is_null($move->unit_cost)) {
+                    $unitCost = (float) $move->unit_cost; // typically per inventory unit
+                    if ($unitName === 'kg' || ($perUnitKg !== null && $perUnitKg == 1.0)) {
+                        $perKgRate = $unitCost; // already per-kg
+                    } elseif ($perUnitKg && $perUnitKg > 0) {
+                        $perKgRate = $unitCost / $perUnitKg; // convert unit → kg
+                    } else {
+                        // no way to convert; leave 0 and fall through to other fallbacks
+                    }
                 }
             }
 
-            // else any stored avg_cost?
-            if ($rate == 0 && $s->avg_cost) {
-                $rate = (float) $s->avg_cost;
+            // (c) Fallback: avg_cost on stock (per unit) → convert to per-kg
+            if ($perKgRate == 0.0 && !is_null($s->avg_cost)) {
+                $avg = (float) $s->avg_cost;
+                if ($unitName === 'kg' || ($perUnitKg !== null && $perUnitKg == 1.0)) {
+                    $perKgRate = $avg;
+                } elseif ($perUnitKg && $perUnitKg > 0) {
+                    $perKgRate = $avg / $perUnitKg;
+                }
             }
 
-            // else if this is the opening lot → item’s purchase_price
-            if ($rate == 0 && $s->lot_id == $openingLotId) {
-                $rate = (float) ($item->purchase_price ?? 0);
+            // (d) Fallback: opening lot → item.purchase_price (per unit) → per-kg
+            if ($perKgRate == 0.0 && $s->lot_id == $openingLotId) {
+                $pp = (float) ($item->purchase_price ?? 0);
+                if ($unitName === 'kg' || ($perUnitKg !== null && $perUnitKg == 1.0)) {
+                    $perKgRate = $pp;
+                } elseif ($perUnitKg && $perUnitKg > 0) {
+                    $perKgRate = $pp / $perUnitKg;
+                }
             }
 
-            $value = round($s->qty * $rate, 2);
+            // 4) Total lot weight (kg)
+            $lotWeight = null;
+            if ($unitName === 'kg') {
+                $lotWeight = (float) $s->qty; // qty is already kg
+            } elseif ($perUnitKg && $perUnitKg > 0) {
+                $lotWeight = (float) $s->qty * $perUnitKg;
+            }
 
-            // 🆕 weight bits
-            $unitWeight = is_null($item->weight) ? null : (float) $item->weight; // kg per unit/bag
-            $lotWeight  = is_null($unitWeight) ? null : round($s->qty * $unitWeight, 3); // kg
+            // 5) Value = total weight (kg) × per-kg rate
+            $value = ($lotWeight !== null && $perKgRate > 0)
+                ? round($lotWeight * $perKgRate, 2)
+                : 0.0;
 
             return [
                 'lot_no'          => $s->lot?->lot_no,
                 'received_at'     => optional($s->lot)->received_at,
                 'godown'          => $s->godown?->name,
                 'qty'             => (float) $s->qty,
-                'rate'            => $rate,
-                'value'           => $value,
 
-                // 🆕 expose both for the UI
-                'weight_per_unit' => $unitWeight,   // kg
-                'lot_weight'      => $lotWeight,    // kg
+                // expose per-kg rate & computed value
+                'rate'            => $perKgRate,       // TK/kg
+                'value'           => $value,           // TK
+
+                // weight fields for UI
+                'weight_per_unit' => $perUnitKg,       // kg per unit/bosta
+                'lot_weight'      => $lotWeight,       // kg
             ];
         });
+
 
         /* 5️⃣ Summary (now includes total_weight from rows) */
         $summary = [
@@ -399,6 +447,7 @@ class ItemController extends Controller
             'filters' => ['godown_id' => $gId],
         ]);
     }
+
 
 
 
