@@ -1,6 +1,8 @@
 /*  resources/js/pages/crushing/ConvertForm.tsx  */
+import InputCalendar from '@/components/Btn&Link/InputCalendar';
 import ConsumedTable from '@/components/crushing/ConsumedTable';
 import CostingSection from '@/components/crushing/CostingSection';
+
 import GeneratedCompanyTable from '@/components/crushing/GeneratedCompanyTable';
 import GeneratedPartyTable from '@/components/crushing/GeneratedPartyTable';
 import type { ConsumedRow, GeneratedRow, Owner } from '@/components/crushing/types';
@@ -562,14 +564,9 @@ export default function ConvertForm({
                         {/* Header grid */}
                         <div className="grid grid-cols-2 gap-4">
                             {/* date */}
+                            {/* date */}
                             <div>
-                                <label className="mb-1 block font-medium">তারিখ</label>
-                                <input
-                                    type="date"
-                                    className="w-full rounded border p-2"
-                                    value={data.date}
-                                    onChange={(e) => setData('date', e.target.value)}
-                                />
+                                <InputCalendar label="তারিখ" value={data.date} onChange={(val) => setData('date', val)} required />
                                 {errors.date && <p className="text-xs text-red-500">{errors.date}</p>}
                             </div>
 

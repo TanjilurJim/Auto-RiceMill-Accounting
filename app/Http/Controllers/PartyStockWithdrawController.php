@@ -10,6 +10,11 @@ use App\Models\Item;
 use App\Models\Unit;
 use App\Models\Godown;
 use App\Models\PartyItem;
+use Throwable;
+use Illuminate\Validation\ValidationException;
+use Illuminate\Database\QueryException;
+use Illuminate\Support\Str;
+
 
 
 use Inertia\Inertia;
@@ -61,53 +66,74 @@ class PartyStockWithdrawController extends Controller
     // Withdraw Method
     public function create(Request $request)
     {
-        // Generate the reference number
-        $dateStr = now()->format('Ymd');
-        $random = random_int(1000, 9999);
-        $generatedRefNo = "PWD-$dateStr-$random"; // Prefix can be changed
+        try {
+            // 1) Generate a unique reference no (avoid race with unique rule)
+            do {
+                $dateStr         = now()->format('Ymd');
+                $random          = random_int(1000, 9999);
+                $generatedRefNo  = "PWD-$dateStr-$random";
+            } while (PartyStockMove::where('ref_no', $generatedRefNo)->exists());
 
-        // Fetch godowns, units, and items
-        // ➋ CREATE – fetch look-up lists ------------------------------------------
-        $godowns = Godown::whereIn('created_by', user_scope_ids())
-            ->get(['id', 'name']);
+            // 2) Lookups
+            $godowns = Godown::whereIn('created_by', user_scope_ids())
+                ->get(['id', 'name']);
 
-        $units   = Unit::whereIn('created_by', user_scope_ids())
-            ->get(['id', 'name']);
+            $units   = Unit::whereIn('created_by', user_scope_ids())
+                ->get(['id', 'name']);
 
-        $parties = AccountLedger::whereIn('ledger_type', ['sales', 'income'])
-            ->whereIn('created_by', user_scope_ids())
-            ->get(['id', 'account_ledger_name']);
+            $parties = AccountLedger::whereIn('ledger_type', ['sales', 'income'])
+                ->whereIn('created_by', user_scope_ids())
+                ->get(['id', 'account_ledger_name']);
 
-        $items   = PartyItem::whereIn('created_by', user_scope_ids())
-            ->get(['id', 'item_name', 'party_ledger_id']);
+            $items   = PartyItem::whereIn('created_by', user_scope_ids())
+                ->get(['id', 'item_name', 'party_ledger_id']);
 
-        $stocks  = PartyJobStock::with(['partyItem', 'godown'])
-            ->whereIn('created_by', user_scope_ids())
-            ->get();
+            $stocks  = PartyJobStock::with(['partyItem:id,item_name', 'godown:id,name'])
+                ->whereIn('created_by', user_scope_ids())
+                ->get(['id', 'party_ledger_id', 'party_item_id', 'godown_id', 'qty', 'unit_name']);
 
-        foreach ($stocks as $stock) {
-            // 1️⃣ Ensure the godown node exists
-            $availableStock[$stock->party_ledger_id][$stock->godown_id]['godown_name']
-                = $stock->godown->name ?? '';
+            // 3) Build available stock map (party -> godown -> items[])
+            $availableStock = [];   // ✅ initialize
 
-            // 2️⃣ Push each item row under that godown
-            $availableStock[$stock->party_ledger_id][$stock->godown_id]['items'][] = [
-                'qty'       => (float) $stock->qty,
-                'unit_name' => $stock->unit_name ?? '',
-                'item_name' => $stock->partyItem->item_name ?? '',
-            ];
+            foreach ($stocks as $stock) {
+                $partyId  = (int) $stock->party_ledger_id;
+                $godownId = (int) $stock->godown_id;
+
+                if (!isset($availableStock[$partyId])) {
+                    $availableStock[$partyId] = [];
+                }
+                if (!isset($availableStock[$partyId][$godownId])) {
+                    $availableStock[$partyId][$godownId] = [
+                        'godown_id'   => $godownId,
+                        'godown_name' => $stock->godown->name ?? '',
+                        'items'       => [],
+                    ];
+                }
+
+                $availableStock[$partyId][$godownId]['items'][] = [
+                    'party_item_id' => (int) $stock->party_item_id,
+                    'item_name'     => $stock->partyItem->item_name ?? '',
+                    'qty'           => (float) $stock->qty,
+                    'unit_name'     => $stock->unit_name ?? '',
+                ];
+            }
+
+            return Inertia::render('crushing/WithdrawForm', [
+                'parties'          => $parties,
+                'items'            => $items,
+                'godowns'          => $godowns,
+                'units'            => $units,
+                'today'            => now()->toDateString(),
+                'generated_ref_no' => $generatedRefNo,
+                'available_stock'  => $availableStock,  // ✅ now defined
+            ]);
+        } catch (Throwable $e) {
+            // Optional: log($e);
+            // Fail soft: return form with minimal data + error flash
+            return back()->with('error', 'ফর্ম লোড করতে সমস্যা হয়েছে। অনুগ্রহ করে আবার চেষ্টা করুন।');
         }
-
-        return Inertia::render('crushing/WithdrawForm', [
-            'parties' => $parties,
-            'items' => $items,
-            'godowns' => $godowns,
-            'units' => $units,
-            'today' => now()->toDateString(),
-            'generated_ref_no' => $generatedRefNo,
-            'available_stock' => $availableStock, // Only pass data from PartyStockMove
-        ]);
     }
+
 
 
 
@@ -117,7 +143,6 @@ class PartyStockWithdrawController extends Controller
 
     public function withdraw(Request $request)
     {
-        /* 1️⃣  Validate the whole voucher + each line */
         $validated = $request->validate([
             'date'            => ['required', 'date'],
             'party_ledger_id' => ['required', 'exists:account_ledgers,id'],
@@ -132,50 +157,62 @@ class PartyStockWithdrawController extends Controller
             'withdraws.*.rate'          => ['nullable', 'numeric', 'min:0'],
         ]);
 
-        /* 2️⃣  Process every line in a DB transaction */
-        DB::transaction(function () use ($validated) {
+        try {
+            DB::transaction(function () use ($validated) {
+                foreach ($validated['withdraws'] as $row) {
+                    // row-level lock for accurate stock check
+                    $stock = PartyJobStock::whereIn('created_by', user_scope_ids())
+                        ->where('party_ledger_id', $validated['party_ledger_id'])
+                        ->where('party_item_id',   $row['party_item_id'])
+                        ->where('godown_id',       $validated['godown_id_from'])
+                        ->lockForUpdate()
+                        ->first();
 
-            foreach ($validated['withdraws'] as $row) {
+                    if (!$stock || $stock->qty < $row['qty']) {
+                        throw ValidationException::withMessages([
+                            'withdraws' => ["Insufficient stock for item {$row['party_item_id']}"],
+                        ]);
+                    }
 
-                /* --- stock check (with row-level lock) --- */
-                $stock = PartyJobStock::whereIn('created_by', user_scope_ids())   // 👈 add
-                    ->where('party_ledger_id', $validated['party_ledger_id'])
-                    ->where('party_item_id',   $row['party_item_id'])
-                    ->where('godown_id',       $validated['godown_id_from'])
-                    ->lockForUpdate()
-                    ->first();
-
-                if (!$stock || $stock->qty < $row['qty']) {
-                    throw \Illuminate\Validation\ValidationException::withMessages([
-                        'withdraws' => ["Insufficient stock for item {$row['party_item_id']}"],
+                    PartyStockMove::create([
+                        'date'            => $validated['date'],
+                        'party_ledger_id' => $validated['party_ledger_id'],
+                        'party_item_id'   => $row['party_item_id'],
+                        'godown_id_from'  => $validated['godown_id_from'],
+                        'godown_id_to'    => null,
+                        'qty'             => -$row['qty'],
+                        'rate'            => $row['rate'] ?? 0,
+                        'total'           => -$row['qty'] * ($row['rate'] ?? 0),
+                        'move_type'       => 'withdraw',
+                        'ref_no'          => $validated['ref_no'] ?? null,
+                        'remarks'         => $validated['remarks'] ?? null,
+                        'unit_name'       => $row['unit_name'] ?? null,
+                        'created_by'      => auth()->id(),
                     ]);
+
+                    $stock->qty -= $row['qty'];
+                    $stock->save();
                 }
+            });
 
-                /* --- record movement --- */
-                PartyStockMove::create([
-                    'date'            => $validated['date'],
-                    'party_ledger_id' => $validated['party_ledger_id'],
-                    'party_item_id'   => $row['party_item_id'],
-                    'godown_id_from'  => $validated['godown_id_from'],
-                    'godown_id_to'    => null,
-                    'qty'             => -$row['qty'],
-                    'rate'            => $row['rate'] ?? 0,
-                    'total'           => -$row['qty'] * ($row['rate'] ?? 0),
-                    'move_type'       => 'withdraw',
-                    'ref_no'          => $validated['ref_no'] ?? null,
-                    'remarks'         => $validated['remarks'] ?? null,
-                    'unit_name'       => $row['unit_name'] ?? null,
-                    'created_by'      => auth()->id(),
+            return redirect()
+                ->route('party-stock.withdraw.index')
+                ->with('success', 'মাল উত্তোলন সফলভাবে সম্পন্ন হয়েছে।');
+        } catch (ValidationException $ve) {
+            // Propagate field errors back to the form
+            throw $ve;
+        } catch (QueryException $qe) {
+            // Handle duplicate ref_no or other DB constraint issues gracefully
+            if (str_contains(strtolower($qe->getMessage()), 'unique') && str_contains($qe->getMessage(), 'party_stock_moves_ref_no')) {
+                throw ValidationException::withMessages([
+                    'ref_no' => ['এই রেফারেন্স নম্বরটি ইতিমধ্যেই ব্যবহৃত হয়েছে। আবার চেষ্টা করুন।'],
                 ]);
-
-                /* --- decrement stock balance --- */
-                $stock->qty -= $row['qty'];
-                $stock->save();
             }
-        });
-
-        return redirect()
-            ->route('party-stock.withdraw.index')
-            ->with('success', 'মাল উত্তোলন সফলভাবে সম্পন্ন হয়েছে।');
+            // Optional: log($qe);
+            return back()->with('error', 'ডাটাবেজ ত্রুটি ঘটেছে। দয়া করে আবার চেষ্টা করুন।')->withInput();
+        } catch (Throwable $e) {
+            // Optional: log($e);
+            return back()->with('error', 'অপ্রত্যাশিত ত্রুটি ঘটেছে। দয়া করে আবার চেষ্টা করুন।')->withInput();
+        }
     }
 }

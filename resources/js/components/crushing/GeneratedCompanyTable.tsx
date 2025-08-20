@@ -56,7 +56,7 @@ const GeneratedCompanyTable: React.FC<Props> = React.memo(
                                 {/* Item */}
                                 <td className="border p-1">
                                     <CreatableSelect
-                                        classNamePrefix="rs"
+                                        classNamePrefix="rs py-1.5"
                                         placeholder="Item"
                                         options={allItemOpts}
                                         value={
@@ -81,7 +81,7 @@ const GeneratedCompanyTable: React.FC<Props> = React.memo(
                                 {/* Lot */}
                                 <td className="border p-1">
                                     <input
-                                        className="w-full rounded border px-2 py-1"
+                                        className="w-full rounded border px-2 py-1.5"
                                         value={row.lot_no || ''}
                                         onChange={(e) => onPatch(idx, { lot_no: e.target.value })}
                                         placeholder="e.g. A-15"
@@ -93,7 +93,7 @@ const GeneratedCompanyTable: React.FC<Props> = React.memo(
                                 <td className="border p-1">
                                     <input
                                         type="number"
-                                        className="w-full rounded border px-1 text-right"
+                                        className="w-full rounded border px-1 py-1.5 text-right"
                                         value={row.qty || ''}
                                         onChange={(e) => onPatch(idx, { qty: e.target.value })}
                                     />
@@ -103,7 +103,7 @@ const GeneratedCompanyTable: React.FC<Props> = React.memo(
                                 {/* Unit */}
                                 <td className="border p-1">
                                     <select
-                                        className="w-full rounded border"
+                                        className="w-full rounded border py-1.5"
                                         value={row.unit_name || ''}
                                         onChange={(e) => onPatch(idx, { unit_name: e.target.value })}
                                     >
@@ -121,7 +121,7 @@ const GeneratedCompanyTable: React.FC<Props> = React.memo(
                                 <td className="border p-1">
                                     {String(row.unit_name || '').toLowerCase() === 'bosta' ? (
                                         <select
-                                            className="w-full rounded border"
+                                            className="w-full rounded border py-1.5"
                                             value={row.bosta_weight ?? ''}
                                             onChange={(e) => onPatch(idx, { bosta_weight: e.target.value })}
                                         >
@@ -157,12 +157,12 @@ const GeneratedCompanyTable: React.FC<Props> = React.memo(
                                     <input
                                         type="number"
                                         step="0.001"
-                                        className="w-full rounded border px-1 text-right"
+                                        className="w-full rounded border px-1 py-1.5 text-right"
                                         value={row.weight || ''}
                                         onChange={(e) => onPatch(idx, { weight: e.target.value })}
                                     />
                                     {String(row.unit_name || '').toLowerCase() === 'bosta' && row.bosta_weight ? (
-                                        <div className="mt-1 text-[11px] text-[tomato]">
+                                        <div className="mt-1 text-[8px] text-[tomato]">
                                             1 <b>Bosta</b> = <b>{row.bosta_weight}</b> kg
                                         </div>
                                     ) : null}
@@ -175,7 +175,7 @@ const GeneratedCompanyTable: React.FC<Props> = React.memo(
                                         <input
                                             type="number"
                                             step="0.01"
-                                            className="w-full rounded border px-1 text-right"
+                                            className="w-full rounded border px-1 text-right py-1.5"
                                             value={(row as any).byproduct_unit_rate || ''}
                                             onChange={(e) => onPatch(idx, { byproduct_unit_rate: e.target.value })}
                                             placeholder="0.00"
@@ -191,7 +191,7 @@ const GeneratedCompanyTable: React.FC<Props> = React.memo(
                                     ) : (
                                         <input
                                             readOnly
-                                            className="w-full cursor-not-allowed rounded border bg-gray-50 px-1 text-right"
+                                            className="w-full cursor-not-allowed rounded border bg-gray-50 px-1 py-1.5 text-right"
                                             value={row.sale_value || ''}
                                             placeholder="0.00"
                                             title="Auto: qty × rate"
