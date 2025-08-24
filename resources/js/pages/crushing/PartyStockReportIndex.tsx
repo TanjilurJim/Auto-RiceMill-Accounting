@@ -1,4 +1,5 @@
 /* resources/js/pages/crushing/PartyStockReportIndex.tsx */
+import InputCalendar from '@/components/Btn&Link/InputCalendar';
 import PageHeader from '@/components/PageHeader';
 import TableComponent from '@/components/TableComponent';
 import AppLayout from '@/layouts/app-layout';
@@ -6,7 +7,6 @@ import { Head, router } from '@inertiajs/react';
 import dayjs from 'dayjs';
 import React from 'react';
 import Select from 'react-select';
-
 /* ---------- types ---------- */
 interface Row {
     party: string;
@@ -31,7 +31,7 @@ export default function PartyStockReportIndex({ parties, items, rows, totals, fi
     const [partyId, setPartyId] = React.useState(filters.party_id || '');
     const [itemId, setItemId] = React.useState(filters.item_id || '');
     const [dateFrom, setDateFrom] = React.useState(filters.date_from || '');
-    const [dateTo, setDateTo] = React.useState(filters.date_to);
+    const [dateTo, setDateTo] = React.useState(filters.date_to || dayjs().format('YYYY-MM-DD'));
 
     const buildParams = () => {
         const p: Record<string, string> = {};
@@ -98,15 +98,20 @@ export default function PartyStockReportIndex({ parties, items, rows, totals, fi
 
                     {/* filter bar */}
                     <div className="mb-6 grid w-full grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 print:hidden">
-                        <Select
-                            options={partyOpts}
-                            classNamePrefix="rs"
-                            placeholder="All Parties"
-                            value={partyOpts.find((o) => o.value === partyId) || null}
-                            onChange={(o) => setPartyId(o?.value ?? '')}
-                            isClearable
-                            className="min-w-[180px]"
-                        />
+                        <div className="space-y-1">
+                            <label htmlFor="">Party</label>
+                            <Select
+                                options={partyOpts}
+                                classNamePrefix="rs"
+                                placeholder="All Parties"
+                                value={partyOpts.find((o) => o.value === partyId) || null}
+                                onChange={(o) => setPartyId(o?.value ?? '')}
+                                isClearable
+                                className="min-w-[180px]"
+                            />
+                        </div>
+                        <div className="space-y-1">
+                            <label htmlFor="">Items</label>
                         <Select
                             options={itemOpts}
                             classNamePrefix="rs"
@@ -116,25 +121,26 @@ export default function PartyStockReportIndex({ parties, items, rows, totals, fi
                             isClearable
                             className="min-w-[180px]"
                         />
-                        <input
-                            type="date"
-                            value={dateFrom}
-                            onChange={(e) => setDateFrom(e.target.value)}
-                            className="rounded border px-3 py-2"
-                            placeholder="From"
-                        />
-                        <input
-                            type="date"
+                        </div>
+
+                        {/* From */}
+                        <InputCalendar label="From" value={dateFrom} onChange={setDateFrom} max={dateTo || dayjs().format('YYYY-MM-DD')} />
+
+                        {/* To */}
+                        
+                        <InputCalendar
+                            label="To"
                             value={dateTo}
+                            onChange={setDateTo}
+                            min={dateFrom || undefined}
                             max={dayjs().format('YYYY-MM-DD')}
-                            onChange={(e) => setDateTo(e.target.value)}
-                            className="rounded border px-3 py-2"
                         />
-                        <div className="flex gap-2">
-                            <button onClick={apply} className="flex-1 rounded bg-purple-600 px-4 py-2 text-white hover:bg-purple-700">
+                        
+                        <div className="flex gap-2 self-end">
+                            <button onClick={apply} className="inline-flex items-center rounded-md bg-purple-600 px-3 py-1 text-sm font-medium text-white shadow-sm hover:bg-purple-700">
                                 Apply
                             </button>
-                            <button onClick={reset} className="flex-1 rounded border px-4 py-2 hover:bg-gray-100">
+                            <button onClick={reset} className="inline-flex items-center rounded-md border bg-white px-4 py-2 text-sm text-gray-700 shadow-sm hover:bg-gray-50">
                                 Reset
                             </button>
                         </div>

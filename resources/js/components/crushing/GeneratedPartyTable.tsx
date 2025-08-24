@@ -64,7 +64,7 @@ const GeneratedPartyTable: React.FC<Props> = React.memo(({ rows, units, errors, 
                             <td className="border p-1">
                                 <input
                                     type="number"
-                                    className="w-full rounded border px-1 text-right"
+                                    className="w-full rounded border px-1 py-1.5 text-right"
                                     value={row.qty}
                                     onChange={(e) => onPatch(idx, { qty: e.target.value })}
                                 />
@@ -75,7 +75,7 @@ const GeneratedPartyTable: React.FC<Props> = React.memo(({ rows, units, errors, 
                             {/* Unit */}
                             <td className="border p-1">
                                 <select
-                                    className="w-full rounded border"
+                                    className="w-full rounded border py-1.5"
                                     value={row.unit_name || ''}
                                     onChange={(e) => onPatch(idx, { unit_name: e.target.value })}
                                 >
@@ -93,7 +93,7 @@ const GeneratedPartyTable: React.FC<Props> = React.memo(({ rows, units, errors, 
                             <td className="border p-1">
                                 {String(row.unit_name || '').toLowerCase() === 'bosta' ? (
                                     <select
-                                        className="w-full rounded border"
+                                        className="w-full rounded border py-1.5 "
                                         value={row.bosta_weight ?? ''}
                                         onChange={(e) => onPatch(idx, { bosta_weight: e.target.value })}
                                     >
@@ -114,7 +114,7 @@ const GeneratedPartyTable: React.FC<Props> = React.memo(({ rows, units, errors, 
                                 {row.is_main ? (
                                     <input
                                         readOnly
-                                        className={`w-full cursor-not-allowed rounded border bg-gray-50 px-1 text-right transition ${row._justComputed ? 'animate-pulse ring-2 ring-green-500' : ''}`}
+                                        className={`w-full cursor-not-allowed rounded border bg-gray-50 px-1 py-1.5 text-right transition ${row._justComputed ? 'animate-pulse ring-2 ring-green-500' : ''}`}
                                         value={(row as any).per_kg_rate || ''}
                                         placeholder="—"
                                         title="Computed from total cost ÷ main weight"
@@ -129,7 +129,7 @@ const GeneratedPartyTable: React.FC<Props> = React.memo(({ rows, units, errors, 
                                 <input
                                     type="number"
                                     step="0.001"
-                                    className="w-full rounded border px-1 text-right"
+                                    className="w-full rounded border py-1.5 px-1 text-right"
                                     value={row.weight || ''}
                                     onChange={(e) => onPatch(idx, { weight: e.target.value })}
                                 />
@@ -146,7 +146,7 @@ const GeneratedPartyTable: React.FC<Props> = React.memo(({ rows, units, errors, 
                                     <input
                                         type="number"
                                         step="0.01"
-                                        className="w-full rounded border px-1 text-right"
+                                        className="w-full rounded border px-1 py-1.5 text-right"
                                         value={row.sale_value || ''}
                                         onChange={(e) => onPatch(idx, { sale_value: e.target.value })}
                                         placeholder="0.00"

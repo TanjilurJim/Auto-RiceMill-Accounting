@@ -51,7 +51,7 @@ export default function CompanyConvertIndex({ conversions, pagination }: Props) 
 
                     <Link
                         href={route('party-stock.transfer.create')}
-                        className="rounded-md bg-indigo-600 px-4 py-2 text-sm font-semibold text-white shadow hover:bg-indigo-500"
+                        className="rounded-sm bg-indigo-600 px-4 py-2 text-sm font-semibold text-white shadow hover:bg-indigo-500"
                     >
                         New Conversion
                     </Link>

@@ -57,7 +57,7 @@ export default function PartyStockConvertIndex({ conversions, pagination }: Prop
                     <h1 className="text-2xl font-bold text-slate-800">Stock Conversions</h1>
                     <Link
                         href={route('party-stock.transfer.create')}
-                        className="rounded-md bg-indigo-600 px-4 py-2 text-sm font-semibold text-white shadow hover:bg-indigo-500"
+                        className="rounded-sm bg-indigo-600 px-4 py-2 text-sm font-semibold text-white shadow hover:bg-indigo-500"
                     >
                         New Conversion
                     </Link>

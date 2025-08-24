@@ -418,7 +418,7 @@ const mainNavItems: NavItem[] = [
             },
             {
                 title: 'কম্পানি পণ্য ট্রান্সফার তালিকা',
-                href: route('company-conversions.index'),
+                href: '/party-stock/company/convert-list',
                 icon: FileText,
             },
             

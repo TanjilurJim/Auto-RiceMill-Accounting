@@ -3,6 +3,8 @@ import { Head, useForm } from '@inertiajs/react';
 import axios from 'axios';
 import React from 'react';
 import Select from 'react-select';
+import InputCalendar from '@/components/Btn&Link/InputCalendar';
+
 import CreatableSelect from 'react-select/creatable';
 interface Props {
     parties: { id: number; account_ledger_name: string }[];
@@ -86,16 +88,14 @@ export default function PartyStockDepositForm({ parties, godowns, units, today, 
                     <h1 className="mb-4 text-xl font-bold">পার্টির পণ্য জমা ফর্ম</h1>
 
                     <form onSubmit={handleSubmit} className="space-y-6">
-                        <div className="grid grid-cols-2 gap-4">
+                        <div className="grid grid-cols-2 gap-4 items-end">
                             <div>
-                                <label className="mb-1 block font-medium">তারিখ</label>
-                                <input
-                                    type="date"
-                                    value={data.date}
-                                    onChange={(e) => setData('date', e.target.value)}
-                                    className="w-full rounded border p-2"
-                                />
-                                {errors.date && <p className="text-sm text-red-500">{errors.date}</p>}
+                                <InputCalendar
+                                label ='তারিখ'
+                                value={data.date}
+                                onChange={(e) => setData('date', e.target.value)}
+                                className="w-full rounded border p-2"/>
+                                {errors.date && <p className="text-sm text-red-500 ">{errors.date}</p>}
                             </div>
 
                             <div>

@@ -277,24 +277,57 @@ class PartyStockAdjustmentController extends Controller
             ->orderByDesc('started_at')
             ->paginate(12);
 
+        // gather posted voucher refs for this page
+        $postedRefs = $jobs->getCollection()->pluck('posted_ref_no')->filter()->unique();
+
+        // ref_no => sum(abs(weight)) for convert-out lines only
+        $loadedByRef = DB::table('party_stock_moves')
+            ->selectRaw('ref_no, SUM(ABS(weight)) AS loaded_kg')
+            ->whereIn('ref_no', $postedRefs)
+            ->where('move_type', 'convert-out')
+            ->groupBy('ref_no')
+            ->pluck('loaded_kg', 'ref_no');
+
         return Inertia::render('crushing/JobsIndex', [
-            'jobs' => $jobs->through(function ($j) {
-                $mins = ($j->started_at && $j->stopped_at) ? $j->stopped_at->diffInMinutes($j->started_at) : null;
+            'jobs' => $jobs->through(function ($j) use ($loadedByRef) {
+                $mins = ($j->started_at && $j->stopped_at)
+                    ? $j->stopped_at->diffInMinutes($j->started_at)
+                    : null;
+
+                // Loaded from moves if posted; else fallback to job field
+                $loadedKg = 0.0;
+
+                if ($j->posted_ref_no) {
+                    $loadedKg = (float) DB::table('party_stock_moves')
+                        ->where('ref_no', $j->posted_ref_no)
+                        ->where('move_type', 'convert-out')
+                        ->sum(DB::raw('ABS(weight)'));
+                }
+
+                // Fallback to snapshot captured at Start (we store kg there now)
+                if ($loadedKg <= 0) {
+                    $loadedKg = (float) $j->total_loaded_qty;
+                }
+
+
+                $capacityTon = $j->dryer_capacity !== null ? (float) $j->dryer_capacity : null;
+                $capacityKg  = $capacityTon !== null ? $capacityTon * 1000.0 : null;
+
                 return [
-                    'id' => $j->id,
-                    'ref_no' => $j->ref_no,
-                    'date' => optional($j->date)->toDateString(),
-                    'status' => $j->status,
-                    'dryer' => $j->dryer?->dryer_name ?? '',
-                    'godown' => $j->godown?->name ?? '',
-                    'party' => $j->party?->account_ledger_name ?? null,
-                    'started_at' => optional($j->started_at)->toDateTimeString(),
-                    'stopped_at' => optional($j->stopped_at)->toDateTimeString(),
-                    'capacity' => $j->dryer_capacity,
-                    'loaded' => $j->total_loaded_qty,
+                    'id'           => $j->id,
+                    'ref_no'       => $j->ref_no,
+                    'date'         => optional($j->date)->toDateString(),
+                    'status'       => $j->status,
+                    'dryer'        => $j->dryer?->dryer_name ?? '',
+                    'godown'       => $j->godown?->name ?? '',
+                    'party'        => $j->party?->account_ledger_name ?? null,
+                    'started_at'   => optional($j->started_at)->toDateTimeString(),
+                    'stopped_at'   => optional($j->stopped_at)->toDateTimeString(),
+                    'capacity'     => $capacityTon,                       // ton
+                    'loaded'       => $loadedKg,                          // kg (absolute already summed)
                     'duration_min' => $mins,
-                    'utilization' => ($j->dryer_capacity ? round($j->total_loaded_qty / $j->dryer_capacity, 3) : null),
-                    'remarks' => $j->remarks,
+                    'utilization'  => ($capacityKg && $capacityKg > 0) ? round($loadedKg / $capacityKg, 3) : null, 
+                    'remarks'      => $j->remarks,
                 ];
             }),
         ]);
@@ -347,26 +380,26 @@ class PartyStockAdjustmentController extends Controller
 
     public function jobStart(Request $request)
     {
-        // validate header
+        // -------- Header validation --------
         $base = $request->validate([
-            'date'       => ['required', 'date'],
-            'ref_no'     => ['required', 'string', 'max:255'],
-            'owner'      => ['required', 'in:company,party'],
+            'date'            => ['required', 'date'],
+            'ref_no'          => ['required', 'string', 'max:255'],
+            'owner'           => ['required', 'in:company,party'],
             'party_ledger_id' => ['nullable', 'required_if:owner,party', 'exists:account_ledgers,id'],
-            'godown_id'  => ['required', 'exists:godowns,id'],
-            'dryer_id'   => ['required', 'exists:dryers,id'],
-            'remarks'    => ['nullable', 'string', 'max:500'],
+            'godown_id'       => ['required', 'exists:godowns,id'],
+            'dryer_id'        => ['required', 'exists:dryers,id'],
+            'remarks'         => ['nullable', 'string', 'max:500'],
         ]);
 
-        // validate lines based on owner
+        // -------- Line validation --------
         if ($base['owner'] === 'company') {
             $request->validate([
                 'consumed'               => ['required', 'array', 'min:1'],
                 'consumed.*.item_id'     => ['required', 'exists:items,id'],
                 'consumed.*.lot_id'      => ['required', 'exists:lots,id'],
                 'consumed.*.qty'         => ['required', 'numeric', 'min:0.01'],
-                'consumed.*.weight' => ['nullable', 'numeric', 'min:0'],
                 'consumed.*.unit_name'   => ['nullable', 'string', 'max:50'],
+                'consumed.*.weight'      => ['nullable', 'numeric', 'min:0'],
             ]);
         } else { // party
             $request->validate([
@@ -374,13 +407,17 @@ class PartyStockAdjustmentController extends Controller
                 'consumed.*.party_item_id'    => ['required', 'exists:party_items,id'],
                 'consumed.*.qty'              => ['required', 'numeric', 'min:0.01'],
                 'consumed.*.unit_name'        => ['nullable', 'string', 'max:50'],
-                'consumed.*.weight' => ['nullable', 'numeric', 'min:0'],
+                'consumed.*.weight'           => ['nullable', 'numeric', 'min:0'],
             ]);
         }
 
         $dryer = Dryer::findOrFail($base['dryer_id']);
 
         $job = DB::transaction(function () use ($base, $request, $dryer) {
+            // NOTE: If your dryer capacity is stored in TON, convert to KG here (× 1000).
+            // $capacityKg = ((float)$dryer->capacity) * 1000;
+            $capacityKg = (float) $dryer->capacity;
+
             $job = CrushingJob::create([
                 'ref_no'          => $base['ref_no'],
                 'date'            => $base['date'],
@@ -390,19 +427,49 @@ class PartyStockAdjustmentController extends Controller
                 'dryer_id'        => $base['dryer_id'],
                 'status'          => 'running',
                 'started_at'      => Carbon::now(),
-                'dryer_capacity'  => $dryer->capacity,   // snapshot
+                'dryer_capacity'  => $capacityKg,    // snapshot in KG
                 'remarks'         => $base['remarks'] ?? null,
                 'created_by'      => auth()->id(),
             ]);
 
-            $total = 0;
+            $totalQty    = 0.0;  // optional: keep if you still want the count of units
+            $totalWeight = 0.0;  // primary metric: total loaded weight in KG
+
             foreach ($request->input('consumed', []) as $row) {
+                $unitName = strtolower(trim($row['unit_name'] ?? ''));
+                $qty      = (float) $row['qty'];
+
+                // 1) Take provided weight if present
+                $w = (isset($row['weight']) && $row['weight'] !== '') ? (float)$row['weight'] : null;
+
+                // 2) Infer weight when missing
+                if ($w === null) {
+                    if ($unitName === 'kg') {
+                        $w = $qty; // qty already in KG
+                    } elseif ($base['owner'] === 'company') {
+                        // derive from item.weight or lot.unit_weight when available
+                        $perUnitKg = null;
+
+                        if (!empty($row['item_id'])) {
+                            $perUnitKg = (float) \App\Models\Item::whereKey($row['item_id'])->value('weight');
+                        }
+                        if ((!$perUnitKg || $perUnitKg <= 0) && !empty($row['lot_id'])) {
+                            $perUnitKg = (float) \App\Models\Lot::whereKey($row['lot_id'])->value('unit_weight');
+                        }
+                        if ($perUnitKg && $perUnitKg > 0) {
+                            $w = $qty * $perUnitKg;
+                        }
+                    }
+                    // (party owner: leave null if not derivable)
+                }
+
+                // 3) Persist the line
                 $line = [
                     'crushing_job_id' => $job->id,
                     'source'          => $base['owner'],
-                    'qty'             => $row['qty'],
+                    'qty'             => $qty,
                     'unit_name'       => $row['unit_name'] ?? null,
-                    'weight'          => (isset($row['weight']) && $row['weight'] !== '') ? (float)$row['weight'] : null, // ⬅️ save it
+                    'weight'          => $w, // nullable
                     'created_by'      => auth()->id(),
                 ];
                 if ($base['owner'] === 'company') {
@@ -412,10 +479,16 @@ class PartyStockAdjustmentController extends Controller
                     $line['party_item_id'] = $row['party_item_id'];
                 }
                 CrushingJobConsumption::create($line);
-                $total += (float) $row['qty'];
+
+                // 4) Totals
+                $totalQty    += $qty;
+                $totalWeight += (float) ($w ?? 0);
             }
 
-            $job->update(['total_loaded_qty' => $total]);
+            // 5) Store total loaded *weight* (KG) on the job
+            $job->update([
+                'total_loaded_qty' => $totalWeight, // treat as KG
+            ]);
 
             return $job;
         });
@@ -425,6 +498,7 @@ class PartyStockAdjustmentController extends Controller
             ->with('success', 'Dryer started.')
             ->with('running_job_id', $job->id);
     }
+
 
     public function jobStop(CrushingJob $job)
     {
@@ -727,7 +801,7 @@ class PartyStockAdjustmentController extends Controller
             }
 
             /* ---------- 2) GENERATE (in) ------------------------------------ */
-            
+
             foreach ($v['generated'] as $row) {
                 // ---- derive unit weight (kg per unit) & movement total weight ----
                 $unitName   = strtolower(trim($row['unit_name'] ?? ''));  // 'kg' | 'bosta' | ...

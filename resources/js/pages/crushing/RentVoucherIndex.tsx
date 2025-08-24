@@ -26,14 +26,16 @@ export default function RentVoucherIndex({ vouchers, pagination }: Props) {
     return (
         <AppLayout>
             <Head title="Rent Vouchers" />
-
-            <div className="p-6">
+            
+            <div className="h-full w-screen bg-gray-100 p-6 lg:w-full">
+                <div className="h-full rounded-lg bg-white p-6">
+                
                 <div className="mb-4 flex items-center justify-between">
-                    <h1 className="text-xl font-bold">Rent Vouchers</h1>
+                    <h1 className="text-2xl font-bold">Rent Vouchers</h1>
 
                     <a
                         href={route('party-stock.rent-voucher.create')}
-                        className="inline-flex items-center rounded bg-green-600 px-3 py-1 text-white hover:bg-green-700"
+                        className="inline-flex items-center bg-indigo-600 px-4 py-2 text-white rounded-sm hover:bg-indigo-700"
                     >
                         + New Voucher
                     </a>
@@ -80,6 +82,8 @@ export default function RentVoucherIndex({ vouchers, pagination }: Props) {
                     total={pagination.total}
                 />
             </div>
+            </div>
+            
         </AppLayout>
     );
 }

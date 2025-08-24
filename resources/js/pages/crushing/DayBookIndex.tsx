@@ -1,4 +1,5 @@
 /* DayBookIndex – “Day-Book / মিল-ডাইরি” */
+import InputCalendar from '@/components/Btn&Link/InputCalendar';
 import PageHeader from '@/components/PageHeader';
 import TableComponent from '@/components/TableComponent';
 import AppLayout from '@/layouts/app-layout';
@@ -43,22 +44,23 @@ const FilterBar: React.FC<{
         <div className="flex flex-wrap items-end gap-4 rounded-lg border border-gray-200 bg-gray-50 p-4 print:hidden">
             {/* dates */}
             <div className="flex-grow">
-                <label className="block text-sm font-medium text-gray-700">From</label>
-                <input
-                    type="date"
+                <InputCalendar
+                    label="From"
+                    required
                     value={from}
-                    onChange={(e) => setFrom(e.target.value)}
-                    className="mt-1 block w-full rounded-md border-gray-300 shadow-sm sm:text-sm"
+                    onChange={setFrom}
+                    max={to || undefined} // prevent selecting after "to"
                 />
             </div>
+
             <div className="flex-grow">
-                <label className="block text-sm font-medium text-gray-700">To</label>
-                <input
-                    type="date"
+                <InputCalendar
+                    label="To"
+                    required
                     value={to}
-                    max={dayjs().format('YYYY-MM-DD')}
-                    onChange={(e) => setTo(e.target.value)}
-                    className="mt-1 block w-full rounded-md border-gray-300 shadow-sm sm:text-sm"
+                    onChange={setTo}
+                    min={from || undefined} // prevent selecting before "from"
+                    max={dayjs().format('YYYY-MM-DD')} // don't allow future dates
                 />
             </div>
 

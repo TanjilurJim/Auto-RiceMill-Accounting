@@ -23,9 +23,9 @@ type JobShowProps = {
         started_at?: string | null;
         stopped_at?: string | null;
         duration_min?: number | null;
-        capacity?: number | string | null;
-        loaded?: number | null;
-        utilization?: number | null;
+        capacity?: number | string | null; // TON in DB
+        loaded?: number | null; // KG
+        utilization?: number | null; // (ignored here; we recalc client-side)
         remarks?: string | null;
         posted_ref_no?: string | null;
     };
@@ -34,6 +34,11 @@ type JobShowProps = {
 
 export default function CrushingJobShow({ job, lines }: JobShowProps) {
     const totalQty = lines.reduce((s, l) => s + (Number(l.qty) || 0), 0);
+
+    // ---- Derived metrics (capacity in TON, loaded in KG) ----
+    const loadedKg = Math.abs(Number(job.loaded ?? 0));
+    const capacityTon = job.capacity != null ? Number(job.capacity) : null;
+    const utilizationPct = capacityTon && isFinite(capacityTon) && capacityTon > 0 ? (loadedKg / (capacityTon * 1000)) * 100 : null;
 
     return (
         <AppLayout>
@@ -67,7 +72,6 @@ export default function CrushingJobShow({ job, lines }: JobShowProps) {
 
                     {job.posted_ref_no && (
                         <Link
-                            // if you later add a "show by ref" route, point directly there.
                             href={route('party-stock.transfer.index')}
                             className="inline-flex items-center gap-2 rounded-md bg-green-600 px-4 py-2 text-sm font-semibold text-white hover:bg-green-500"
                         >
@@ -84,13 +88,13 @@ export default function CrushingJobShow({ job, lines }: JobShowProps) {
                         <Meta icon={<Warehouse size={18} />} label="Godown" value={job.godown} />
                         <Meta icon={<Clock3 size={18} />} label="Started" value={job.started_at ?? '—'} />
                         <Meta icon={<Clock3 size={18} />} label="Stopped" value={job.stopped_at ?? '—'} />
-                        <Meta icon={<Clock3 size={18} />} label="Duration" value={job.duration_min != null ? `${job.duration_min} min` : '—'} />
+                        <Meta icon={<Clock3 size={18} />} label="Duration" value={formatDuration(job.started_at, job.stopped_at)} />
                     </div>
 
                     <div className="mt-4 grid grid-cols-1 gap-4 sm:grid-cols-3">
-                        <Stat label="Loaded Qty" value={fmt(job.loaded)} />
-                        <Stat label="Capacity" value={fmt(job.capacity)} />
-                        <Stat label="Utilization" value={job.utilization != null ? `${Math.round(job.utilization * 100)}%` : '—'} />
+                        <Stat label="Loaded" value={fmtKg(loadedKg)} />
+                        <Stat label="Capacity" value={fmtTon(capacityTon)}  />
+                        <Stat label="Utilization" value={utilizationPct != null ? `${utilizationPct.toFixed(0)}%` : '—'} />
                     </div>
 
                     {job.remarks && (
@@ -167,4 +171,29 @@ function Stat({ label, value }: { label: string; value: string }) {
 }
 function fmt(v: any) {
     return (v ?? v === 0) ? String(v) : '—';
+}
+function fmtKg(kg: number | null) {
+    if (kg == null || !isFinite(kg) || kg === 0) return '—';
+    const t = kg / 1000;
+    return `${kg.toFixed(3)} kg (${t.toFixed(3)} Ton)`;
+}
+function fmtTon(t: number | null) {
+    if (t == null || !isFinite(t)) return '—';
+    return `${t.toFixed(3)} Ton`;
+}
+function formatDuration(start?: string | null, stop?: string | null) {
+  if (!start || !stop) return '—';
+  const s = new Date(start).getTime();
+  const e = new Date(stop).getTime();
+  if (!isFinite(s) || !isFinite(e)) return '—';
+
+  let seconds = Math.abs(Math.round((e - s) / 1000));
+  const h = Math.floor(seconds / 3600); seconds -= h * 3600;
+  const m = Math.floor(seconds / 60);   seconds -= m * 60;
+
+  const parts: string[] = [];
+  if (h) parts.push(`${h} hour${h === 1 ? '' : 's'}`);
+  parts.push(`${m} minute${m === 1 ? '' : 's'}`);
+  parts.push(`${seconds} second${seconds === 1 ? '' : 's'}`);
+  return parts.join(' ');
 }

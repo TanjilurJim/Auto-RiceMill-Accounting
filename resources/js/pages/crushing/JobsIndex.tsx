@@ -1,7 +1,8 @@
 import PageHeader from '@/components/PageHeader';
 import Pagination from '@/components/Pagination';
 import AppLayout from '@/layouts/app-layout';
-import { Head, Link, router, usePage } from '@inertiajs/react';
+import { Head, Link, router } from '@inertiajs/react';
+import React from 'react';
 
 type Job = {
     id: number;
@@ -13,27 +14,26 @@ type Job = {
     party?: string | null;
     started_at?: string | null;
     stopped_at?: string | null;
-    capacity?: number | string | null;
-    loaded?: number | null;
+    capacity?: number | string | null; // expected kg
+    loaded?: number | null; // summed from party_stock_moves (convert-out), kg
     duration_min?: number | null;
     utilization?: number | null; // 0..1
 };
 
+type PaginatedJobs = {
+    data?: Job[];
+    links?: any[];
+    current_page?: number;
+    last_page?: number;
+    total?: number;
+};
+
 type JobsPageProps = {
-    jobs:
-        | {
-              data?: Job[];
-              links?: any[];
-              current_page?: number;
-              last_page?: number;
-              total?: number;
-          }
-        | Job[];
+    jobs: PaginatedJobs | Job[];
 };
 
 export default function JobsIndex(props: JobsPageProps) {
-    const page = usePage();
-    const jobs = Array.isArray(props.jobs) ? props.jobs : (props.jobs.data ?? []);
+    const jobs: Job[] = Array.isArray(props.jobs) ? props.jobs : (props.jobs.data ?? []);
     const pagination = Array.isArray(props.jobs)
         ? { links: [], currentPage: 1, lastPage: 1, total: jobs.length }
         : {
@@ -43,8 +43,19 @@ export default function JobsIndex(props: JobsPageProps) {
               total: props.jobs.total ?? jobs.length,
           };
 
+    const [stoppingJobId, setStoppingJobId] = React.useState<number | null>(null);
+
     const stopJob = (id: number) => {
-        router.post(route('crushing.jobs.stop', id), {}, { preserveScroll: true });
+        setStoppingJobId(id);
+        router.post(
+            route('crushing.jobs.stop', id),
+            {},
+            {
+                preserveScroll: true,
+                onFinish: () => setStoppingJobId(null),
+                onError: () => setStoppingJobId(null),
+            },
+        );
     };
 
     const StatusBadge = ({ s }: { s: Job['status'] }) => (
@@ -60,37 +71,50 @@ export default function JobsIndex(props: JobsPageProps) {
     return (
         <AppLayout>
             <Head title="Crushing Jobs" />
+
             <div className="h-full w-screen bg-gray-100 p-6 lg:w-full">
                 <div className="h-full rounded-lg bg-white p-6">
-                    <PageHeader title="Crushing Jobs" addLinkHref="/party-stock/convert" addLinkText="+ New Job" />
+                    {/* Header: title left, action right */}
+                    <div className="mb-4 flex items-center justify-between">
+                        <PageHeader title="Crushing Jobs" />
+                        <Link
+                            href={route('party-stock.transfer.create')}
+                            className="rounded-sm bg-indigo-600 px-4 py-2 text-sm font-semibold text-white shadow hover:bg-indigo-500"
+                        >
+                            New Crushing Job
+                        </Link>
+                    </div>
 
-                    <div className="p-6">
-                        <div className="rounded-t bg-indigo-600 px-4 py-2 text-white">
-                            <h1 className="text-lg font-semibold">Dryer Runs (Live & History)</h1>
-                        </div>
+                    {/* Table */}
+                    <div className="overflow-x-auto">
+                        <table className="w-full border text-sm">
+                            <thead className="bg-gray-100">
+                                <tr>
+                                    <th className="w-12 border p-2">#</th>
+                                    <th className="w-24 border p-2">Status</th>
+                                    <th className="w-24 border p-2">Date</th>
+                                    <th className="w-28 border p-2">Ref</th>
+                                    <th className="w-32 border p-2">Dryer</th>
+                                    <th className="w-32 border p-2">Godown</th>
+                                    <th className="w-32 border p-2">Party</th>
+                                    <th className="w-36 border p-2">Started</th>
+                                    <th className="w-36 border p-2">Stopped</th>
+                                    <th className="w-32 border p-2 text-right">Duration </th>
+                                    <th className="w-40 border p-2 text-right">Loaded (kg / t)</th>
+                                    <th className="w-28 border p-2 text-right">Capacity (Ton)</th>
+                                    <th className="w-28 border p-2 text-right">Utilization</th>
+                                    <th className="w-32 border p-2">Action</th>
+                                </tr>
+                            </thead>
 
-                        <div className="overflow-x-auto">
-                            <table className="mb-6 w-full border text-sm">
-                                <thead className="bg-gray-100">
-                                    <tr>
-                                        <th className="border p-2">#</th>
-                                        <th className="border p-2">Status</th>
-                                        <th className="border p-2">Date</th>
-                                        <th className="border p-2">Ref</th>
-                                        <th className="border p-2">Dryer</th>
-                                        <th className="border p-2">Godown</th>
-                                        <th className="border p-2">Party</th>
-                                        <th className="border p-2">Started</th>
-                                        <th className="border p-2">Stopped</th>
-                                        <th className="border p-2 text-right">Duration (min)</th>
-                                        <th className="border p-2 text-right">Loaded</th>
-                                        <th className="border p-2 text-right">Capacity</th>
-                                        <th className="border p-2 text-right">Utilization</th>
-                                        <th className="border p-2">Action</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    {jobs.map((j, i) => (
+                            <tbody>
+                                {jobs.map((j, i) => {
+                                    const kg = Math.abs(Number(j.loaded ?? 0));
+                                    const ton = kg / 1000;
+                                    const cap = j.capacity != null ? Number(j.capacity) : null;
+                                    const util = j.utilization != null ? j.utilization * 100 : null;
+
+                                    return (
                                         <tr key={j.id}>
                                             <td className="border p-2 text-center">{i + 1}</td>
                                             <td className="border p-2">
@@ -103,12 +127,29 @@ export default function JobsIndex(props: JobsPageProps) {
                                             <td className="border p-2">{j.party || 'self'}</td>
                                             <td className="border p-2">{j.started_at || '—'}</td>
                                             <td className="border p-2">{j.stopped_at || '—'}</td>
-                                            <td className="border p-2 text-right">{j.duration_min ?? '—'}</td>
-                                            <td className="border p-2 text-right">{j.loaded ?? 0} </td>
-                                            <td className="border p-2 text-right">{j.capacity ?? '—'} </td>
-                                            <td className="border p-2 text-right">
-                                                {j.utilization != null ? `${Math.round(j.utilization * 100)}%` : '—'}
+                                            <td className="border p-2 text-right">{formatDuration(j.started_at, j.stopped_at)}</td>
+
+                                            {/* Loaded */}
+                                            <td className="border p-2 text-right font-mono whitespace-nowrap" title={`${kg.toFixed(3)} kg`}>
+                                                {kg ? (
+                                                    <>
+                                                        {kg.toFixed(3)} kg
+                                                        <span className="ml-1 text-xs text-slate-500">({ton.toFixed(3)} t)</span>
+                                                    </>
+                                                ) : (
+                                                    '—'
+                                                )}
                                             </td>
+
+                                            {/* Capacity */}
+                                            <td className="border p-2 text-right font-mono">{cap != null && isFinite(cap) ? cap.toFixed(3) : '—'}</td>
+
+                                            {/* Utilization */}
+                                            <td className="border p-2 text-right font-mono">
+                                                {util != null && isFinite(util) ? `${util.toFixed(0)}%` : '—'}
+                                            </td>
+
+                                            {/* Actions */}
                                             <td className="border p-2">
                                                 <div className="flex items-center justify-center gap-2">
                                                     <Link
@@ -117,38 +158,65 @@ export default function JobsIndex(props: JobsPageProps) {
                                                     >
                                                         View
                                                     </Link>
+
                                                     {j.status === 'running' && (
                                                         <button
                                                             onClick={() => stopJob(j.id)}
-                                                            className="inline-flex items-center rounded bg-orange-600 px-3 py-1 text-white hover:bg-orange-700"
+                                                            disabled={stoppingJobId === j.id}
+                                                            className={
+                                                                'inline-flex items-center rounded px-3 py-1 text-white ' +
+                                                                (stoppingJobId === j.id
+                                                                    ? 'cursor-not-allowed bg-orange-400'
+                                                                    : 'bg-orange-600 hover:bg-orange-700')
+                                                            }
                                                         >
-                                                            Stop
+                                                            {stoppingJobId === j.id ? 'Stopping...' : 'Stop'}
                                                         </button>
                                                     )}
                                                 </div>
                                             </td>
                                         </tr>
-                                    ))}
-                                    {jobs.length === 0 && (
-                                        <tr>
-                                            <td colSpan={14} className="p-4 text-center text-slate-500">
-                                                No jobs found.
-                                            </td>
-                                        </tr>
-                                    )}
-                                </tbody>
-                            </table>
-                        </div>
+                                    );
+                                })}
 
-                        <Pagination
-                            links={pagination.links}
-                            currentPage={pagination.currentPage}
-                            lastPage={pagination.lastPage}
-                            total={pagination.total}
-                        />
+                                {jobs.length === 0 && (
+                                    <tr>
+                                        <td colSpan={14} className="p-4 text-center text-slate-500">
+                                            No jobs found.
+                                        </td>
+                                    </tr>
+                                )}
+                            </tbody>
+                        </table>
                     </div>
+
+                    {/* Pagination */}
+                    <Pagination
+                        links={pagination.links}
+                        currentPage={pagination.currentPage}
+                        lastPage={pagination.lastPage}
+                        total={pagination.total}
+                    />
                 </div>
             </div>
         </AppLayout>
     );
+}
+function formatDuration(start?: string | null, stop?: string | null) {
+    if (!start || !stop) return '—';
+    const s = new Date(start).getTime();
+    const e = new Date(stop).getTime();
+    if (!isFinite(s) || !isFinite(e)) return '—';
+
+    let seconds = Math.abs(Math.round((e - s) / 1000));
+    const h = Math.floor(seconds / 3600);
+    seconds -= h * 3600;
+    const m = Math.floor(seconds / 60);
+    seconds -= m * 60;
+
+    const parts: string[] = [];
+    if (h) parts.push(`${h} hour${h === 1 ? '' : 's'}`);
+    parts.push(`${m} minute${m === 1 ? '' : 's'}`);
+    parts.push(`${seconds} second${seconds === 1 ? '' : 's'}`);
+    return parts.join(' ');
 }
