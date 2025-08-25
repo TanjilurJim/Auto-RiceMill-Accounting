@@ -8,7 +8,8 @@ use Inertia\Inertia;
 // use Illuminate\Foundation\Auth\User;
 use App\Models\Purchase;
 use Illuminate\Support\Facades\DB;
-
+use App\Models\AccountLedger;
+use App\Models\AccountGroup;
 use App\Models\SalePayment;
 use App\Models\PaymentAdd;
 use App\Models\SalesOrder;
@@ -24,81 +25,7 @@ use function user_scope_ids; // <-- Add this line
 
 class DashboardController extends Controller
 {
-    // public function index()
-    // {
 
-    //     // $userIds = user_scope_ids(); // <-- Use multi-level user ids
-
-
-    //     $user = Auth::user();
-
-    //     if ($user->hasRole('admin')) {
-    //     // Admin: see all users' data
-    //     $userIds = User::pluck('id')->toArray();
-    //     } else {
-    //         $myId = $user->id;
-    //         $myUsers = User::where('created_by', $myId)->pluck('id')->toArray();
-
-    //         // Only include your creator if they are NOT admin
-    //         $parentId = $user->created_by;
-    //         $parentUsers = [];
-    //         if ($parentId) {
-    //             $parent = User::find($parentId);
-    //             if ($parent && !$parent->hasRole('admin')) {
-    //                 $parentUsers[] = $parentId;
-    //             }
-    //         }
-
-    //         $userIds = array_unique(array_merge([$myId], $myUsers, $parentUsers));
-    //     }
-
-    //     // $myId = $user->id;
-
-    //     // // Users you created
-    //     // $myUsers = User::where('created_by', $myId)->pluck('id')->toArray();
-
-    //     // // Only include your creator if they are NOT admin
-    //     // $parentId = $user->created_by;
-    //     // $parentUsers = [];
-    //     // if ($parentId) {
-    //     //     $parent = User::find($parentId);
-    //     //     if ($parent && !$parent->hasRole('admin')) {
-    //     //         $parentUsers[] = $parentId;
-    //     //     }
-    //     // }
-
-    //     // // Merge all relevant user IDs
-    //     // $userIds = array_unique(array_merge([$myId], $myUsers, $parentUsers));
-
-
-    //     // Sum sales for these users
-    //     $totalSales = Sale::whereIn('created_by', $userIds)->sum('grand_total');
-    //     $totalPurchases = Purchase::whereIn('created_by', $userIds)->sum('grand_total');
-    //     $totalPurchaseReturns = PurchaseReturn::whereIn('created_by', $userIds)->sum('grand_total');
-    //     $totalSalesReturns = SalesReturn::whereIn('created_by', $userIds)->sum('total_return_amount');
-    //     $totalSalesOrders = SalesOrder::whereIn('created_by', $userIds)->sum('total_amount');
-    //     $totalReceived = ReceivedAdd::whereIn('created_by', $userIds)->sum('amount');
-    //     $totalPayment = PaymentAdd::whereIn('created_by', $userIds)->sum('amount');
-    //     $totalWorkOrders = WorkingOrder::whereIn('created_by', $userIds)->count();
-    //     // Work orders with production_status = 'completed'
-    //     $completedWorkOrders = WorkingOrder::whereIn('created_by', $userIds)
-    //         ->where('production_status', 'completed')
-    //         ->count();
-
-
-    //     return Inertia::render('dashboard', [
-    //         'totalSales' => $totalSales,
-    //         'totalPurchases' => $totalPurchases,
-    //         'totalPurchaseReturns' => $totalPurchaseReturns,
-    //         'totalSalesReturns' => $totalSalesReturns,
-    //         'totalSalesOrders' => $totalSalesOrders,
-    //         'totalReceived' => $totalReceived,
-    //         'totalPayment' => $totalPayment,
-    //         'totalWorkOrders' => $totalWorkOrders,
-    //         'completedWorkOrders' => $completedWorkOrders,
-
-    //     ]);
-    // }
 
     public function index()
     {
@@ -164,7 +91,38 @@ class DashboardController extends Controller
                 !$isAdmin,
                 fn($qq) => $qq->whereIn('created_by', $userIds)
             ))
-            ->sum('interest_amount');         // use the colu
+            ->sum('interest_amount');
+        // use the colu
+
+        $supplierLedgers = AccountLedger::select(
+            'id',
+            'account_ledger_name',
+            'opening_balance',
+            'closing_balance'
+        )
+            ->where('ledger_type', 'purchase')
+            ->when(!$isAdmin, fn($q) => $q->whereIn('created_by', $userIds))
+            ->get();
+
+        // Compute payable: if balance < 0, we owe them
+        $mapped = $supplierLedgers->map(function ($l) {
+            $closing = $l->closing_balance ?? ($l->opening_balance ?? 0);
+            // if you store supplier balances as negative = payable, flip it:
+            $payable = $closing < 0 ? abs($closing) : 0;
+            return [
+                'id'      => $l->id,
+                'name'    => $l->account_ledger_name,
+                'payable' => round($payable, 2),
+            ];
+        });
+
+        $topPayables = $mapped->filter(fn($x) => $x['payable'] > 0)
+            ->sortByDesc('payable')
+            ->take(5)
+            ->values();
+
+        $totalPurchaseDue = $mapped->sum('payable');
+
 
         return Inertia::render('dashboard', [
             'totalSales' => $totalSales,
@@ -178,7 +136,9 @@ class DashboardController extends Controller
             'completedWorkOrders' => $completedWorkOrders,
 
             'totalDues'             => $totalDues,
-            'clearedDuesCount'   => $totalClearedDues,   
+            'clearedDuesCount'   => $totalClearedDues,
+            'purchasePayableTotal' => $totalPurchaseDue,
+            'topPurchaseSuppliers' => $topPayables,
         ]);
     }
 }
