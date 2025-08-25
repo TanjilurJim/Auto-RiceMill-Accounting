@@ -8,7 +8,7 @@ use App\Models\AccountLedger;
 use App\Models\Journal;
 use App\Models\JournalEntry;
 // use App\Models\ReceivedMode;
-
+use App\Models\Purchase;
 use function godown_scope_ids;
 
 
@@ -77,6 +77,46 @@ class PaymentAddController extends Controller
                 ->get(),
         ]);
     }
+
+    public function supplierDues($ledgerId)
+    {
+        // multi-level access guard (mirror your other pages)
+        $ids = godown_scope_ids();
+
+        // Pull purchases for this supplier that the current user can see
+        $q = \App\Models\Purchase::query()
+            ->where('account_ledger_id', $ledgerId)
+            ->where('status', \App\Models\Purchase::STATUS_APPROVED)
+            ->withSum('payments as extra_paid', 'amount');
+
+        if ($ids !== null && !empty($ids)) {
+            $q->whereIn('created_by', $ids);
+        }
+
+        $purchases = $q->get()->map(function ($p) {
+            $initial = (float) ($p->amount_paid ?? 0);
+            $extra   = (float) ($p->extra_paid ?? 0);
+            $remaining = max(0, (float) $p->grand_total - ($initial + $extra));
+
+            return [
+                'id'           => $p->id,
+                'voucher_no'   => $p->voucher_no,
+                'date'         => optional($p->date)->toDateString(),
+                'grand_total'  => (float) $p->grand_total,
+                'initial_paid' => $initial,
+                'extra_paid'   => $extra,
+                'remaining'    => $remaining,
+            ];
+        })->filter(fn($row) => $row['remaining'] > 0)->values();
+
+        $total_due = round($purchases->sum('remaining'), 2);
+
+        return response()->json([
+            'total_due' => $total_due,
+            'open_purchases' => $purchases->take(10), // keep it light; show top 10
+        ]);
+    }
+
 
 
 
@@ -430,5 +470,109 @@ class PaymentAddController extends Controller
             'previous_balance' => $previousBalance,
             'closing_balance' => $closingBalance,
         ]);
+    }
+
+    public function createForPurchase(Purchase $purchase)
+    {
+        // remaining due = grand_total - sum(existing payments) - initial amount_paid on the purchase
+        $alreadyPaid = (float) $purchase->amount_paid;
+        $extraPayments = PaymentAdd::where('purchase_id', $purchase->id)->sum('amount');
+        $remaining = max(0, $purchase->grand_total - $alreadyPaid - $extraPayments);
+
+        $ids = godown_scope_ids();
+
+        return Inertia::render('payment-add/create-for-purchase', [
+            'purchase'       => $purchase->only(['id', 'voucher_no', 'date', 'grand_total', 'account_ledger_id']),
+            'remaining_due'  => $remaining,
+            'supplierLedger' => $purchase->accountLedger()->select('id', 'account_ledger_name', 'closing_balance')->first(),
+            'paymentModes'   => ReceivedMode::with('ledger:id,account_ledger_name,closing_balance')
+                ->when($ids, fn($q) => $q->whereIn('created_by', $ids))->get(),
+        ]);
+    }
+
+    public function storeForPurchase(Request $request, Purchase $purchase)
+    {
+        $request->validate([
+            'date'             => 'required|date',
+            'voucher_no'       => 'required|string',
+            'payment_mode_id'  => 'required|exists:received_modes,id',
+            // lock to supplier’s ledger of this purchase:
+            'account_ledger_id' => ['required', 'exists:account_ledgers,id', function ($attr, $val, $fail) use ($purchase) {
+                if ((int)$val !== (int)$purchase->account_ledger_id) {
+                    $fail('Selected ledger does not match the supplier of this purchase.');
+                }
+            }],
+            'amount'           => ['required', 'numeric', 'min:0.01', function ($attr, $val, $fail) use ($purchase) {
+                $alreadyPaid    = (float) $purchase->amount_paid;
+                $extraPayments  = (float) PaymentAdd::where('purchase_id', $purchase->id)->sum('amount');
+                $remaining      = max(0, $purchase->grand_total - $alreadyPaid - $extraPayments);
+                if ($val > $remaining) $fail('Amount exceeds remaining due (' . number_format($remaining, 2) . ').');
+            }],
+            'description'      => 'nullable|string',
+            'send_sms'         => 'boolean',
+        ]);
+
+        // Post like your existing payment logic, but bind to the purchase
+        $receivedMode = ReceivedMode::findOrFail($request->payment_mode_id);
+        $supplier     = AccountLedger::findOrFail($request->account_ledger_id);
+
+        // Journal header (reuse voucher_no if you like that grouping)
+        $journal = Journal::create([
+            'date'         => $request->date,
+            'voucher_no'   => $request->voucher_no,
+            'narration'    => $request->description ?: 'Payment for Purchase #' . $purchase->id,
+            'created_by'   => auth()->id(),
+            'voucher_type' => 'Payment',
+        ]);
+
+        // Entries: Debit Supplier (reduce payable), Credit Cash/Bank
+        JournalEntry::insert([
+            [
+                'journal_id'        => $journal->id,
+                'account_ledger_id' => $supplier->id,
+                'type'              => 'debit',
+                'amount'            => $request->amount,
+                'note'              => 'Settle due for purchase #' . $purchase->id,
+                'created_at'        => now(),
+                'updated_at' => now(),
+            ],
+            [
+                'journal_id'        => $journal->id,
+                'account_ledger_id' => $receivedMode->ledger_id,
+                'type'              => 'credit',
+                'amount'            => $request->amount,
+                'note'              => 'Paid via ' . $receivedMode->mode_name,
+                'created_at'        => now(),
+                'updated_at' => now(),
+            ],
+        ]);
+
+        // Update ledger balances (same convention you already use)
+        // Supplier is debited → balance decreases for payables
+        $supplier->closing_balance = ($supplier->closing_balance ?? $supplier->opening_balance ?? 0) - $request->amount;
+        $supplier->save();
+
+        $paymodeLedger = AccountLedger::find($receivedMode->ledger_id);
+        if ($paymodeLedger) {
+            // Credit → cash/bank down
+            $paymodeLedger->closing_balance = ($paymodeLedger->closing_balance ?? $paymodeLedger->opening_balance ?? 0) - $request->amount;
+            $paymodeLedger->save();
+        }
+
+        // Persist the payment row, linked to purchase
+        PaymentAdd::create([
+            'date'             => $request->date,
+            'voucher_no'       => $request->voucher_no,
+            'purchase_id'      => $purchase->id,                // 👈 link it
+            'payment_mode_id'  => $request->payment_mode_id,
+            'account_ledger_id' => $supplier->id,
+            'amount'           => $request->amount,
+            'description'      => $request->description,
+            'send_sms'         => (bool)$request->send_sms,
+            'created_by'       => auth()->id(),
+        ]);
+
+        return redirect()->route('purchases.show', $purchase->id)
+            ->with('success', 'Payment recorded and due reduced.');
     }
 }

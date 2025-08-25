@@ -12,6 +12,7 @@ class PaymentAdd extends Model
     protected $fillable = [
         'date',
         'voucher_no',
+        'purchase_id',
         'payment_mode_id',
         'account_ledger_id',
         'amount',
@@ -32,5 +33,8 @@ class PaymentAdd extends Model
     public function creator()
     {
         return $this->belongsTo(User::class, 'created_by');
+    }
+    public function purchase() {
+        return $this->belongsTo(Purchase::class);
     }
 }

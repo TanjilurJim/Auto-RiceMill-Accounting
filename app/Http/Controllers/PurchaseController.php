@@ -15,10 +15,9 @@ use App\Models\Godown;
 use App\Models\Journal;
 use App\Models\Purchase;
 use App\Services\ApprovalCounter;
-
+use app\Models\PaymentAdd;
 use App\Models\Salesman;
 use function numberToWords;
-
 use App\Models\AccountGroup;
 use App\Models\JournalEntry;
 use App\Models\PurchaseItem;
@@ -41,7 +40,7 @@ class PurchaseController extends Controller
             ->select('godown_id', 'item_id', DB::raw('SUM(qty) as qty'))
             ->whereIn('created_by', $visibleUserIds)
             ->whereHas('item')
-            
+
             ->groupBy('godown_id', 'item_id')
             ->with('item.unit')                     // item & unit after groupBy is OK
             ->get()
@@ -61,42 +60,46 @@ class PurchaseController extends Controller
     }
     // Show list of purchases
     public function index()
-    {
-        $user = auth()->user(); // [multi-level access]
+{
+    $user = auth()->user(); // [multi-level access]
 
-        if ($user->hasRole('admin')) { // [multi-level access]
-            $purchases = Purchase::with([
-                'godown',
-                'salesman',
-                'accountLedger',
-                'purchaseItems.item',
-                'creator'
-            ])
-                ->orderBy('id', 'desc')
-                ->paginate(10);
-        } else { // [multi-level access]
-            $ids = godown_scope_ids(); // [multi-level access]
-            $purchases = Purchase::with([
-                'godown',
-                'salesman',
-                'accountLedger',
-                'purchaseItems.item',
-                'creator'
-            ])
-                ->whereIn('created_by', $ids) // [multi-level access]
-                ->orderBy('id', 'desc')
-                ->paginate(10);
-        }
+    $base = Purchase::with([
+        'godown',
+        'salesman',
+        'accountLedger',
+        'purchaseItems.item',
+        'creator',
+    ])
+    // sum of additional settlements linked via PaymentAdd.purchase_id
+    ->withSum('payments as extra_paid', 'amount');
 
-        $purchases->getCollection()->transform(function ($p) {
-            $p->due = $p->grand_total - $p->amount_paid;
-            return $p;
-        });
-
-        return Inertia::render('purchases/index', [
-            'purchases' => $purchases
-        ]);
+    if ($user->hasRole('admin')) {
+        $purchases = $base->orderByDesc('id')->paginate(10);
+    } else {
+        $ids = godown_scope_ids(); // [multi-level access]
+        $purchases = $base
+            ->whereIn('created_by', $ids)
+            ->orderByDesc('id')
+            ->paginate(10);
     }
+
+    $purchases->getCollection()->transform(function ($p) {
+        $initialPaid = (float) ($p->amount_paid ?? 0);
+        $extraPaid   = (float) ($p->extra_paid ?? 0); // from withSum alias
+        $paidTotal   = $initialPaid + $extraPaid;
+
+        // expose both for the frontend
+        $p->paid_total = $paidTotal;
+        $p->due        = max(0, (float) $p->grand_total - $paidTotal);
+
+        return $p;
+    });
+
+    return Inertia::render('purchases/index', [
+        'purchases' => $purchases,
+    ]);
+}
+
 
 
 
@@ -326,7 +329,8 @@ class PurchaseController extends Controller
 
         return Inertia::render('purchases/edit', [
             'purchase' => $purchase->load([
-                'purchaseItems.item','purchaseItems.lot',
+                'purchaseItems.item',
+                'purchaseItems.lot',
                 'godown',
                 'salesman',
                 'accountLedger',
@@ -478,7 +482,7 @@ class PurchaseController extends Controller
             $purchase->purchaseItems()->create([
                 'product_id'    => $row['product_id'],
                 'qty'           => $row['qty'],
-                'lot_id'        => $lot->id,    
+                'lot_id'        => $lot->id,
                 'price'         => $row['price'],
                 'discount'      => $row['discount'] ?? 0,
                 'discount_type' => $row['discount_type'],
@@ -488,7 +492,7 @@ class PurchaseController extends Controller
             Stock::firstOrNew([
                 'item_id'   => $row['product_id'],
                 'godown_id' => $request->godown_id,
-                'lot_id'    => $lot->id,  
+                'lot_id'    => $lot->id,
                 'created_by' => auth()->id(),
             ])->increment('qty', $row['qty']);
 
@@ -582,13 +586,27 @@ class PurchaseController extends Controller
             'godown',
             'salesman',
             'accountLedger',
-            'approvals.user',   // to see who approved / rejected
+            'approvals.user',   
+            'payments.paymentMode',
+            'payments.accountLedger' 
         ]);
+
+        $initialPaid = (float) ($purchase->amount_paid ?? 0);
+        $extraPaid     = (float) $purchase->payments->sum('amount');
+        $paidTotal     = $initialPaid + $extraPaid;
+        $remainingDue  = max(0, (float) $purchase->grand_total - $paidTotal);
 
         $purchase->setAttribute('me', auth()->id());
 
         return Inertia::render('purchases/show', [
             'purchase' => $purchase,
+            'paid_summary'  => [
+            'grand_total'   => (float) $purchase->grand_total,
+            'initial_paid'  => $initialPaid,
+            'extra_paid'    => $extraPaid,
+            'paid_total'    => $paidTotal,
+            'remaining_due' => $remainingDue,
+        ],
         ]);
     }
 

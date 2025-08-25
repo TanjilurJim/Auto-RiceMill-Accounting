@@ -108,4 +108,10 @@ class Purchase extends Model
     {
         return $this->belongsTo(User::class, 'approved_by');
     }
+    public function payments()
+    {
+        // uses payment_adds.purchase_id by convention
+        return $this->hasMany(\App\Models\PaymentAdd::class)->orderBy('date');
+    }
+
 }

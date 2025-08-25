@@ -221,6 +221,9 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('approvals', [PurchaseApprovalController::class, 'index'])
         ->name('purchases.approvals');
 
+
+
+
     // ---------------------------
     // Approval actions
     // ---------------------------
@@ -262,6 +265,12 @@ Route::middleware(['auth', 'verified'])->group(function () {
         'destroy' => 'sales.destroy',
     ]);
 
+
+    // api routes for supplier/web.php
+    Route::get('/api/suppliers/{ledger}/dues', [\App\Http\Controllers\PaymentAddController::class, 'supplierDues'])
+        ->name('suppliers.dues');
+
+
     Route::prefix('sales')->name('sales.')->middleware('permission:sales.view')->group(function () {
         Route::get('{sale}/invoice', [SaleController::class, 'invoice'])->name('invoice');
         Route::get('{sale}/truck-chalan', [SaleController::class, 'truckChalan'])->name('truck-chalan');
@@ -287,6 +296,11 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('/received-add/{receivedAdd}/print', [ReceivedAddController::class, 'print'])->name('received-add.print');
     Route::resource('payment-add', PaymentAddController::class);
     Route::get('/payment-add/{paymentAdd}/print', [PaymentAddController::class, 'print'])->name('payment-add.print');
+
+    Route::get('/purchases/{purchase}/payments/create', [PaymentAddController::class, 'createForPurchase'])
+        ->name('purchase.payments.create');
+    Route::post('/purchases/{purchase}/payments', [PaymentAddController::class, 'storeForPurchase'])
+        ->name('purchase.payments.store');
 
     Route::get('company-settings', [CompanySettingController::class, 'edit'])->name('company-settings.edit');
     Route::put('company-settings', [CompanySettingController::class, 'update'])->name('company-settings.update');
