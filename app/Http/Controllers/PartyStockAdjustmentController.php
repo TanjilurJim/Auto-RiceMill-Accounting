@@ -65,23 +65,50 @@ class PartyStockAdjustmentController extends Controller
         }
 
         // Group party job stock by party -> godown, include godown_name
-        $stocks = PartyJobStock::whereHas('partyItem')
-            ->with(['partyItem', 'godown'])
-            ->where('created_by', auth()->id()) // tenant safety if not global scoped
+        $stocksRaw = \App\Models\PartyJobStock::whereHas('partyItem')
+            ->with(['partyItem:id,party_ledger_id,item_name', 'godown:id,name'])
+            ->where('created_by', auth()->id())
+            ->get();
+
+        $partyItemIds = $stocksRaw->pluck('party_item_id')->filter()->unique()->values();
+
+        $lastDeposits = \App\Models\PartyStockMove::select('id', 'party_item_id', 'unit_name', 'meta')
+            ->whereIn('party_item_id', $partyItemIds)
+            ->where('move_type', 'deposit')
+            ->where('created_by', auth()->id())
+            ->orderBy('id', 'desc')
             ->get()
-            ->groupBy(fn($s) => (string)$s->partyItem->party_ledger_id)
-            ->map(function ($group) {
-                return $group->groupBy(fn($s) => (string)$s->godown_id)
-                    ->map(function ($items) {
-                        $g = $items->first()->godown ?? null;               // ✅ define $g
+            ->groupBy('party_item_id')
+            ->map->first();
+
+        $stocks = $stocksRaw
+            ->groupBy(fn($s) => (string) $s->partyItem->party_ledger_id)
+            ->map(function ($group) use ($lastDeposits) {
+                return $group->groupBy(fn($s) => (string) $s->godown_id)
+                    ->map(function ($items) use ($lastDeposits) {
+                        $g = $items->first()->godown ?? null;
+
                         return [
-                            'godown_name' => $g?->name ?? '',                // ✅ works now
-                            'items' => $items->map(function ($stock) {
+                            'godown_name' => $g?->name ?? '',
+                            'items' => $items->map(function ($stock) use ($lastDeposits) {
+                                $unit = strtolower((string) ($stock->unit_name ?? ''));
+                                $perUnitKg = null;
+
+                                if ($unit === 'kg') {
+                                    $perUnitKg = 1;
+                                } elseif ($unit === 'bosta') {
+                                    $last = $lastDeposits->get($stock->party_item_id);
+                                    $meta = $last?->meta;
+                                    if (is_string($meta)) $meta = json_decode($meta, true) ?: [];
+                                    $perUnitKg = $meta['bosta_weight'] ?? null;
+                                }
+
                                 return [
-                                    'party_item_id' => $stock->party_item_id,
+                                    'party_item_id' => (int) $stock->party_item_id,
                                     'item_name'     => $stock->partyItem->item_name,
-                                    'qty'           => $stock->qty,
+                                    'qty'           => (float) $stock->qty,
                                     'unit_name'     => $stock->unit_name,
+                                    'per_unit_kg'   => $perUnitKg, // NEW
                                 ];
                             })->values(),
                         ];
@@ -145,6 +172,7 @@ class PartyStockAdjustmentController extends Controller
             'generated.*.per_kg_rate' => ['nullable', 'numeric', 'min:0'],
             'generated.*.sale_value'  => ['nullable', 'numeric', 'min:0'],
         ]);
+        $validated['date'] = \Carbon\Carbon::parse($validated['date'])->toDateString();
 
         $jobId = $request->input('job_id'); // ⬅️ receive job_id
 
@@ -169,9 +197,10 @@ class PartyStockAdjustmentController extends Controller
 
                 // Lock stock and ensure enough qty
                 $pStock = \App\Models\PartyJobStock::where([
-                    'party_item_id' => $partyItemId,
-                    'godown_id'     => $godownId,
-                    'created_by'    => auth()->id(),
+                    'party_item_id'   => $partyItemId,
+                    'godown_id'       => $godownId,
+                    'party_ledger_id' => $partyId,   // 👈 add this
+                    'created_by'      => auth()->id(),
                 ])->lockForUpdate()->first();
 
                 if (!$pStock || $pStock->qty < $qty) {
@@ -226,9 +255,10 @@ class PartyStockAdjustmentController extends Controller
 
                 // Upsert PartyJobStock (increase qty)
                 $pStock = \App\Models\PartyJobStock::lockForUpdate()->firstOrNew([
-                    'party_item_id' => $partyItem->id,
-                    'godown_id'     => $godownId,
-                    'created_by'    => auth()->id(),
+                    'party_item_id'   => $partyItem->id,
+                    'godown_id'       => $godownId,
+                    'party_ledger_id' => $partyId,   // 👈 add this
+                    'created_by'      => auth()->id(),
                 ]);
                 $pStock->qty        = ($pStock->qty ?? 0) + $qty;
                 $pStock->unit_name  = $unitName ?? $pStock->unit_name;
@@ -326,7 +356,7 @@ class PartyStockAdjustmentController extends Controller
                     'capacity'     => $capacityTon,                       // ton
                     'loaded'       => $loadedKg,                          // kg (absolute already summed)
                     'duration_min' => $mins,
-                    'utilization'  => ($capacityKg && $capacityKg > 0) ? round($loadedKg / $capacityKg, 3) : null, 
+                    'utilization'  => ($capacityKg && $capacityKg > 0) ? round($loadedKg / $capacityKg, 3) : null,
                     'remarks'      => $j->remarks,
                 ];
             }),
@@ -647,6 +677,7 @@ class PartyStockAdjustmentController extends Controller
             foreach (PartyStockMove::where('ref_no', $refNo)->lockForUpdate()->get() as $move) {
                 $stock = PartyJobStock::where('party_item_id', $move->party_item_id)
                     ->where('godown_id', $move->godown_id_from ?: $move->godown_id_to)
+                    ->where('party_ledger_id', $move->party_ledger_id)   // 👈 add
                     ->first();
                 if ($stock) {
                     $stock->qty -= $move->qty;   // because convert-out had negative qty
@@ -669,6 +700,7 @@ class PartyStockAdjustmentController extends Controller
             foreach (PartyStockMove::where('ref_no', $refNo)->lockForUpdate()->get() as $move) {
                 $stock = PartyJobStock::where('party_item_id', $move->party_item_id)
                     ->where('godown_id', $move->godown_id_from ?: $move->godown_id_to)
+                    ->where('party_ledger_id', $move->party_ledger_id)   // 👈 add
                     ->first();
                 if ($stock) {
                     $stock->qty -= $move->qty;   // reverse the movement
@@ -1181,36 +1213,87 @@ class PartyStockAdjustmentController extends Controller
                 ];
             }
         } else {
-            // ---------- PARTY: use PartyItem rate (rename the column if different) ----------
+            // ---------- PARTY: catalog rate -> latest DEPOSIT rate -> latest any rate ----------
             $partyIds = $rows->pluck('party_item_id')->filter()->unique()->values();
-            $partyRates = \App\Models\PartyItem::whereIn('id', $partyIds)
-                ->pluck('rate_per_unit', 'id'); // <-- change if your field has another name
+            $creatorId = auth()->id();
+
+
+
+
+            // 1) Latest DEPOSIT with non-null rate per party_item_id
+            $lastDeposits = \App\Models\PartyStockMove::select('party_item_id', 'unit_name', 'rate', 'meta')
+                ->whereIn('party_item_id', $partyIds)
+                ->where('created_by', $creatorId)
+                ->where('move_type', 'deposit')
+                ->whereNotNull('rate')
+                ->orderBy('party_item_id')
+                ->orderByDesc('id')
+                ->get()
+                ->unique('party_item_id')
+                ->keyBy('party_item_id');
+
+            // 2) Fallback: latest ANY move with non-null rate per party_item_id
+            $lastAnyRated = \App\Models\PartyStockMove::select('party_item_id', 'unit_name', 'rate', 'meta')
+                ->whereIn('party_item_id', $partyIds)
+                ->where('created_by', $creatorId)
+                ->whereIn('move_type', ['deposit', 'withdraw', 'convert-in', 'convert-out'])
+                ->whereNotNull('rate')
+                ->orderBy('party_item_id')
+                ->orderByDesc('id')
+                ->get()
+                ->unique('party_item_id')
+                ->keyBy('party_item_id');
+
 
             foreach ($rows as $i => $r) {
-                $pid  = (int) ($r['party_item_id'] ?? 0);
+                $pid      = (int) ($r['party_item_id'] ?? 0);
+                $uiUnit   = strtolower((string) ($r['unit_name'] ?? ''));
+                $uiQty    = (float) ($r['qty'] ?? 0);
+                $uiWeight = (float) ($r['weight'] ?? 0);
+
+                // Base catalog rate
                 $rate = (float) ($partyRates[$pid] ?? 0);
 
-                $basis = 'qty';
-                $qtyLike = (float) ($r['qty'] ?? 0);
-                if (isset($r['unit_name']) && strtolower((string)$r['unit_name']) === 'kg') {
-                    $basis = 'weight';
-                    $qtyLike = (float) ($r['weight'] ?? 0);
+                // ✅ SAFE get() instead of [$pid]
+                $move = $lastDeposits->get($pid) ?? $lastAnyRated->get($pid);
+
+                if ($rate <= 0 && $move && $move->rate !== null) {
+                    $rate = (float) $move->rate;
+                }
+
+                // ✅ NULLSAFE property access
+                $moveUnit = strtolower((string) ($move?->unit_name ?? ''));
+                $metaRaw  = $move?->meta;
+                $meta     = is_string($metaRaw) ? (json_decode($metaRaw, true) ?: []) : ((array) $metaRaw);
+
+                $hasPerKgRate = isset($meta['per_kg_rate']) && (float) $meta['per_kg_rate'] > 0;
+
+                $basis   = 'qty';
+                $qtyLike = $uiQty;
+
+                if ($uiUnit === 'kg' || $moveUnit === 'kg' || $hasPerKgRate) {
+                    $basis   = 'weight';
+                    $qtyLike = $uiWeight;
+
+                    if ($qtyLike <= 0 && $uiQty > 0) {
+                        $bw = isset($meta['bosta_weight']) ? (float) $meta['bosta_weight'] : 0;
+                        if ($bw > 0) $qtyLike = $uiQty * $bw; // derive kg from বস্তা
+                    }
                 }
 
                 $lineTotal = round($qtyLike * $rate, 2);
                 $total += $lineTotal;
 
                 $breakdown[] = [
-                    'index'      => $i,
+                    'index'         => $i,
                     'party_item_id' => $pid,
-                    'rate'       => $rate,
-                    'basis'      => $basis,
-                    'quantity'   => $qtyLike,
-                    'line_total' => $lineTotal,
+                    'rate'          => $rate,
+                    'basis'         => $basis,
+                    'quantity'      => $qtyLike,
+                    'line_total'    => $lineTotal,
                 ];
             }
         }
-
         return response()->json([
             'total'     => round($total, 2),
             'breakdown' => $breakdown,

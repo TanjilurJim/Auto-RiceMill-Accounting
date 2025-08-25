@@ -1,9 +1,9 @@
+import InputCalendar from '@/components/Btn&Link/InputCalendar';
 import AppLayout from '@/layouts/app-layout';
 import { Head, useForm } from '@inertiajs/react';
 import axios from 'axios';
 import React from 'react';
 import Select from 'react-select';
-import InputCalendar from '@/components/Btn&Link/InputCalendar';
 
 import CreatableSelect from 'react-select/creatable';
 interface Props {
@@ -16,12 +16,17 @@ interface Props {
 }
 
 interface DepositRow {
-    item_name: string; // 🔄
-    unit_name: string; // 🔄
+    item_name: string;
+    unit_name: string;
     qty: string;
     rate: string;
     total: number;
+    bosta_weight?: string; // NEW: per-bosta kg
+    weight?: number; // NEW: computed total kg (sent to backend)
 }
+
+// default state:
+// Remove this stray line, as it is not valid TypeScript/JS code and is not used.
 
 export default function PartyStockDepositForm({ parties, godowns, units, today, generated_ref_no }: Props) {
     const { data, setData, post, processing, errors, reset } = useForm({
@@ -30,8 +35,15 @@ export default function PartyStockDepositForm({ parties, godowns, units, today, 
         godown_id_to: '',
         ref_no: generated_ref_no,
         remarks: '',
-        deposits: [{ item_name: '', unit_name: '', qty: '', rate: '', total: 0 }],
+        deposits: [{ item_name: '', unit_name: '', qty: '', rate: '', total: 0, bosta_weight: '', weight: 0 }],
     });
+
+    // --- small helper: normalize unit ---
+    const isBosta = (u?: string) => (u || '').toLowerCase().trim() === 'bosta';
+    const isKg = (u?: string) => (u || '').toLowerCase().trim() === 'kg';
+
+    // --- options for per-bosta kg ---
+    const bostaKgOptions = [10, 20, 25, 30, 50, 75].map((n) => ({ value: String(n), label: String(n) }));
 
     const [itemOptions, setItemOptions] = React.useState<{ value: string; label: string }[]>([]);
 
@@ -54,13 +66,25 @@ export default function PartyStockDepositForm({ parties, godowns, units, today, 
 
         const qty = parseFloat(updated[index].qty) || 0;
         const rate = parseFloat(updated[index].rate) || 0;
+        const unit = updated[index].unit_name;
+        const per = parseFloat(updated[index].bosta_weight || '') || 0;
+
+        // compute total amount
         updated[index].total = qty * rate;
+
+        // compute weight (kg)
+        let w = 0;
+        if (isKg(unit)) w = qty;
+        else if (isBosta(unit) && per > 0) w = qty * per;
+        // else leave 0 (unknown)
+
+        updated[index].weight = w;
 
         setData('deposits', updated);
     };
 
     const addRow = () => {
-        setData('deposits', [...data.deposits, { item_name: '', unit_name: '', qty: '', rate: '', total: 0 }]);
+        setData('deposits', [...data.deposits, { item_name: '', unit_name: '', qty: '', rate: '', total: 0, bosta_weight: '', weight: 0 }]);
     };
 
     const removeRow = (index: number) => {
@@ -80,6 +104,14 @@ export default function PartyStockDepositForm({ parties, godowns, units, today, 
         });
     };
 
+    const onUnitChange = (index: number, newUnit: string) => {
+        const updated = [...data.deposits];
+        updated[index].unit_name = newUnit;
+        // reset bosta_weight if leaving/entering bosta
+        if (!isBosta(newUnit)) updated[index].bosta_weight = '';
+        handleFieldChange(index, 'unit_name', newUnit);
+    };
+
     return (
         <AppLayout>
             <Head title="পার্টি মাল জমা ফর্ম" />
@@ -88,14 +120,15 @@ export default function PartyStockDepositForm({ parties, godowns, units, today, 
                     <h1 className="mb-4 text-xl font-bold">পার্টির পণ্য জমা ফর্ম</h1>
 
                     <form onSubmit={handleSubmit} className="space-y-6">
-                        <div className="grid grid-cols-2 gap-4 items-end">
+                        <div className="grid grid-cols-2 items-end gap-4">
                             <div>
                                 <InputCalendar
-                                label ='তারিখ'
-                                value={data.date}
-                                onChange={(e) => setData('date', e.target.value)}
-                                className="w-full rounded border p-2"/>
-                                {errors.date && <p className="text-sm text-red-500 ">{errors.date}</p>}
+                                    label="তারিখ"
+                                    value={data.date}
+                                    onChange={(e) => setData('date', e.target.value)}
+                                    className="w-full rounded border p-2"
+                                />
+                                {errors.date && <p className="text-sm text-red-500">{errors.date}</p>}
                             </div>
 
                             <div>
@@ -150,27 +183,34 @@ export default function PartyStockDepositForm({ parties, godowns, units, today, 
                                         <th className="border p-2">পরিমাণ</th>
                                         <th className="border p-2">রেট</th>
                                         <th className="border p-2">মোট</th>
+                                        <th className="border p-2">ওজন (কেজি)</th>
                                         <th className="border p-2">✕</th>
                                     </tr>
                                 </thead>
                                 <tbody>
                                     {data.deposits.map((row, index) => (
                                         <tr key={index}>
+                                            {/* Product */}
                                             <td className="border p-2">
                                                 <CreatableSelect
-                                                    isDisabled={!data.party_ledger_id} // block until party chosen
+                                                    isDisabled={!data.party_ledger_id}
                                                     options={itemOptions}
                                                     value={row.item_name ? { value: row.item_name, label: row.item_name } : null}
                                                     onChange={(sel) => handleFieldChange(index, 'item_name', sel?.value ?? '')}
                                                     placeholder="পণ্য"
                                                     isClearable
+                                                    menuPortalTarget={typeof window !== 'undefined' ? document.body : undefined}
+                                                    menuPosition="fixed"
+                                                    styles={{ menuPortal: (base) => ({ ...base, zIndex: 9999 }) }}
                                                 />
                                             </td>
+
+                                            {/* Unit */}
                                             <td className="border p-2">
                                                 <select
                                                     className="w-full rounded border p-1"
                                                     value={row.unit_name}
-                                                    onChange={(e) => handleFieldChange(index, 'unit_name', e.target.value)}
+                                                    onChange={(e) => onUnitChange(index, e.target.value)}
                                                 >
                                                     <option value="">-- একক নির্বাচন করুন --</option>
                                                     {units.map((u) => (
@@ -179,24 +219,51 @@ export default function PartyStockDepositForm({ parties, godowns, units, today, 
                                                         </option>
                                                     ))}
                                                 </select>
+
+                                                {/* When unit = Bosta, show per-bosta kg picker */}
+                                                {isBosta(row.unit_name) && (
+                                                    <div className="mt-1">
+                                                        <Select
+                                                            classNamePrefix="rs"
+                                                            placeholder="বস্তা প্রতি (কেজি)"
+                                                            options={bostaKgOptions}
+                                                            value={bostaKgOptions.find((o) => o.value === (row.bosta_weight || '')) || null}
+                                                            onChange={(o) => handleFieldChange(index, 'bosta_weight', o?.value || '')}
+                                                            menuPortalTarget={typeof window !== 'undefined' ? document.body : undefined}
+                                                            menuPosition="fixed"
+                                                            styles={{ menuPortal: (base) => ({ ...base, zIndex: 9999 }) }}
+                                                        />
+                                                    </div>
+                                                )}
                                             </td>
+
+                                            {/* Qty */}
                                             <td className="border p-2">
                                                 <input
                                                     type="number"
                                                     value={row.qty}
                                                     onChange={(e) => handleFieldChange(index, 'qty', e.target.value)}
-                                                    className="w-full rounded border p-1"
+                                                    className="w-full rounded border p-1 text-right"
                                                 />
                                             </td>
+
+                                            {/* Rate */}
                                             <td className="border p-2">
                                                 <input
                                                     type="number"
                                                     value={row.rate}
                                                     onChange={(e) => handleFieldChange(index, 'rate', e.target.value)}
-                                                    className="w-full rounded border p-1"
+                                                    className="w-full rounded border p-1 text-right"
                                                 />
                                             </td>
-                                            <td className="border p-2">{row.total.toFixed(2)}</td>
+
+                                            {/* Total */}
+                                            <td className="border p-2 text-right">{row.total.toFixed(2)}</td>
+
+                                            {/* NEW: Weight (kg) display */}
+                                            <td className="border p-2 text-right">{row.weight != null ? Number(row.weight).toFixed(3) : '—'}</td>
+
+                                            {/* Remove */}
                                             <td className="border p-2 text-center">
                                                 <button type="button" onClick={() => removeRow(index)} className="font-bold text-red-600">
                                                     ✕

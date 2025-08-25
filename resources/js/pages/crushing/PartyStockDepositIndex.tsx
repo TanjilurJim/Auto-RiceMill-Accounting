@@ -1,9 +1,9 @@
-import React from 'react';
+import DeleteBtn from '@/components/Btn&Link/DeleteBtn'; // Assuming the path for DeleteBtn
+import EditBtn from '@/components/Btn&Link/EditBtn'; // Assuming the path for EditBtn
+import Pagination from '@/components/Pagination'; // Assuming the path for Pagination
 import AppLayout from '@/layouts/app-layout';
-import { Head } from '@inertiajs/react';
-import EditBtn from '@/components/Btn&Link/EditBtn';  // Assuming the path for EditBtn
-import DeleteBtn from '@/components/Btn&Link/DeleteBtn';  // Assuming the path for DeleteBtn
-import Pagination from '@/components/Pagination';  // Assuming the path for Pagination
+import { Head, Link } from '@inertiajs/react';
+import React from 'react';
 
 interface Props {
     deposits: {
@@ -34,13 +34,11 @@ export default function PartyStockDepositIndex({ deposits, pagination }: Props) 
         <AppLayout>
             <Head title="পার্টির পণ্য জমা তালিকা" />
             <div className="h-full w-screen bg-gray-100 p-6 lg:w-full">
-                <div className="space-y-6">
+                <div className="h-full space-y-6 rounded-sm bg-white p-6">
                     <h1 className="text-xl font-bold">পার্টির পন্য জমা তালিকা</h1>
 
                     {deposits.length === 0 && (
-                        <div className="rounded bg-yellow-50 p-4 text-center text-sm text-yellow-700 shadow">
-                            কোন ডেটা পাওয়া যায়নি।
-                        </div>
+                        <div className="rounded bg-yellow-50 p-4 text-center text-sm text-yellow-700 shadow">কোন ডেটা পাওয়া যায়নি।</div>
                     )}
 
                     <div className="overflow-x-auto">
@@ -76,9 +74,16 @@ export default function PartyStockDepositIndex({ deposits, pagination }: Props) 
                                                 {/* Date */}
                                                 <td className="border p-2 text-center">{deposit.date}</td>
                                                 {/* Action Buttons (Edit and Delete) */}
-                                                <td className="border p-2 text-center">
-                                                    <EditBtn editbtnclick={() => console.log('Edit clicked for', deposit.id)} className="mr-2" />
+                                                <td className="border p-2 text-center gap-2 flex justify-center">
+                                                    <Link
+                                                        href={route('party-stock.deposit.show', deposit.id)}
+                                                        className="rounded bg-blue-600 px-3 py-1 text-white hover:bg-blue-700"
+                                                    >
+                                                        View
+                                                    </Link>
+                                                    <EditBtn editbtnclick={() => console.log('Edit clicked for', deposit.id)} className="px-3 py-1" />
                                                     <DeleteBtn handleDelete={() => console.log('Delete clicked for', deposit.id)} delId={deposit} />
+                                                    
                                                 </td>
                                             </tr>
                                         ))}

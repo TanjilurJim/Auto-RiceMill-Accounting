@@ -10,13 +10,21 @@ type CompanyItemOpt = {
     lots: Array<{ lot_id: number; lot_no: string; stock_qty: number; unit_weight?: number }>;
 };
 
+type PartyOpt = {
+    value: string;
+    label: string;
+    unit_name: string;
+    per_unit_kg?: number;
+};
+
 interface Props {
     owner: Owner;
     rows: ConsumedRow[];
     units: UnitLite[];
     errors: ErrorsBag;
-    consumedOptsForParty: RSOption<string>[];
+    // consumedOptsForParty: RSOption<string>[];
     companyItemOpts: CompanyItemOpt[];
+    consumedOptsForParty: PartyOpt[];
     lotOptionsForItem: (itemId: string | number) => RSOption<number>[];
     onAdd: () => void;
     onRemove: (idx: number) => void;
@@ -51,7 +59,23 @@ const ConsumedTable: React.FC<Props> = React.memo(
                                             placeholder="Item"
                                             options={consumedOptsForParty}
                                             value={consumedOptsForParty.find((o) => o.value === String(row.party_item_id))}
-                                            onChange={(sel) => onPatch(idx, { party_item_id: sel?.value || '' })}
+                                            onChange={(sel) => {
+                                                const unit = (sel as PartyOpt | null)?.unit_name || '';
+                                                const puk = (sel as PartyOpt | null)?.per_unit_kg;
+
+                                                // compute weight using current qty if possible
+                                                const qtyNum = parseFloat(String(row.qty || '0')) || 0;
+                                                const perKg = typeof puk === 'number' ? puk : unit.toLowerCase() === 'kg' ? 1 : undefined;
+                                                const nextWeight = qtyNum > 0 && perKg ? String((qtyNum * perKg).toFixed(3)) : row.weight || '';
+
+                                                onPatch(idx, {
+                                                    party_item_id: sel?.value || '',
+                                                    unit_name: unit,
+                                                    per_unit_kg: perKg,
+                                                    weight: nextWeight,
+                                                });
+                                            }}
+                                            isClearable
                                         />
                                         {err(`consumed.${idx}.party_item_id`) && (
                                             <p className="text-xs text-red-500">{err(`consumed.${idx}.party_item_id`)}</p>
@@ -82,13 +106,26 @@ const ConsumedTable: React.FC<Props> = React.memo(
                                 )}
 
                                 <td className="border p-1">
-                                    <input
-                                        type="number"
-                                        className="w-full rounded border px-1 py-1.5 text-right"
-                                        value={row.qty}
-                                        onChange={(e) => onPatch(idx, { qty: e.target.value })}
-                                    />
-                                </td>
+  <input
+    type="number"
+    className="w-full rounded border px-1 py-1.5 text-right"
+    value={row.qty}
+    onChange={(e) => {
+      const qty = e.target.value;
+      const qtyNum = parseFloat(qty || '0') || 0;
+      const unitNm = String(row.unit_name || '').toLowerCase();
+      const perKg = typeof row.per_unit_kg === 'number'
+        ? row.per_unit_kg
+        : (unitNm === 'kg' ? 1 : undefined);
+
+      const nextWeight = qtyNum > 0 && perKg
+        ? String((qtyNum * perKg).toFixed(3))
+        : (row.weight || '');
+
+      onPatch(idx, { qty, weight: nextWeight });
+    }}
+  />
+</td>
 
                                 <td className="border p-1">
                                     <select

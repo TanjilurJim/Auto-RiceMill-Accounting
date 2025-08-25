@@ -7,6 +7,7 @@ export interface ConsumedRow {
     qty: string;
     unit_name: string;
     weight?: string;
+    per_unit_kg?: number; 
 }
 
 export interface GeneratedRow {

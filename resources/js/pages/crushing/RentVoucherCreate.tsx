@@ -5,6 +5,7 @@ import axios from 'axios';
 import React from 'react';
 import Select from 'react-select';
 import { route } from 'ziggy-js';
+import InputCalendar from '@/components/Btn&Link/InputCalendar';
 /* ---------- types ---------- */
 interface Party {
     id: number;
@@ -20,7 +21,6 @@ interface ReceivedMode {
     mode_name: string;
     phone_number: string | null;
 }
-
 interface Props {
     today: string;
     generated_vch_no: string;
@@ -29,21 +29,19 @@ interface Props {
     modes: ReceivedMode[];
     units: { id: number; name: string }[];
 }
-
 interface Line {
     party_item_id: string;
     qty: string;
     unit_name: string;
-    // unit: string;
     rate: string;
     amount: number;
 }
 
 /* ---------- helper for summary rows ---------- */
 const SummaryRow = ({ label, value, bold = false }: { label: string; value: number; bold?: boolean }) => (
-    <div className="flex justify-between">
+    <div className="flex justify-between text-sm">
         <span className={bold ? 'font-semibold' : ''}>{label}</span>
-        <span className={bold ? 'font-semibold' : ''}>{value.toFixed(2)}</span>
+        <span className={'tabular-nums ' + (bold ? 'font-semibold' : '')}>{value.toFixed(2)}</span>
     </div>
 );
 
@@ -77,12 +75,10 @@ export default function RentVoucherCreate({ today, generated_vch_no, parties, it
             setPrevBal(0);
             return;
         }
-
         axios
             .get(route('account-ledgers.balance', data.party_ledger_id))
             .then((res) => {
                 let bal = Number(res.data.closing_balance ?? 0);
-                // if (res.data.debit_credit === 'credit') bal = -bal; // sign flip on credit
                 setPrevBal(bal);
             })
             .catch(() => setPrevBal(0));
@@ -97,6 +93,7 @@ export default function RentVoucherCreate({ today, generated_vch_no, parties, it
     };
 
     const addLine = () => setData('lines', [...data.lines, { party_item_id: '', qty: '', unit_name: '', rate: '', amount: 0 }]);
+
     const removeLine = (idx: number) => {
         if (data.lines.length === 1) return;
         setData(
@@ -106,11 +103,10 @@ export default function RentVoucherCreate({ today, generated_vch_no, parties, it
     };
 
     /* ---------- computed totals ---------- */
-    const billTotal = data.lines.reduce((s, l) => s + l.amount, 0); // today’s invoice
-    const received = Number(data.received_amount || 0); // cash today
-
-    const subTotal = prevBal - billTotal; // balance *before* today’s payment
-    const newBalance = subTotal + received; // balance *after* payment
+    const billTotal = data.lines.reduce((s, l) => s + l.amount, 0);
+    const received = Number(data.received_amount || 0);
+    const subTotal = prevBal - billTotal;
+    const newBalance = subTotal + received;
 
     /* ---------- dropdown options ---------- */
     const partyOpts = parties.map((p) => ({ value: String(p.id), label: p.account_ledger_name }));
@@ -129,182 +125,221 @@ export default function RentVoucherCreate({ today, generated_vch_no, parties, it
     /* ---------- JSX ---------- */
     return (
         <AppLayout>
-            <Head title="Rent Voucher Create" />
-            <Link
-                href={route('party-stock.rent-voucher.index')}
-                className="items- inline-flex rounded-lg border border-gray-300 bg-white px-6 py-3 text-base font-medium text-gray-700 transition-colors hover:bg-gray-50 focus:ring-2 focus:ring-gray-500 focus:ring-offset-2 focus:outline-none"
-            >
-                <svg className="mr-2 h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" />
-                </svg>
-                Back to List
-            </Link>
-
-            <form onSubmit={submit} className="mx-auto max-w-6xl space-y-6 p-6">
-                <div className="rounded-t bg-purple-600 px-4 py-2 text-white">
-                    <h1 className="text-lg font-semibold">Rent Voucher Create</h1>
+            <Head title="Rent Voucher" />
+            <div className="h-full w-screen bg-gray-100 p-6 lg:w-full">
+                <div className="mb-4">
+                    <Link href={route('party-stock.rent-voucher.index')} className="text-blue-600 hover:underline">
+                        ← Back to list
+                    </Link>
                 </div>
 
-                {/* header */}
-                <div className="grid gap-4 md:grid-cols-3">
-                    <div>
-                        <label className="font-medium">Date*</label>
-                        <input
-                            type="date"
-                            className="w-full rounded border p-2"
-                            value={data.date}
-                            onChange={(e) => setData('date', e.target.value)}
-                        />
-                        {errors.date && <p className="text-sm text-red-500">{errors.date}</p>}
-                    </div>
-                    <div>
-                        <label className="font-medium">Vch No</label>
-                        <input className="w-full rounded border p-2" value={data.vch_no} onChange={(e) => setData('vch_no', e.target.value)} />
-                        {errors.vch_no && <p className="text-sm text-red-500">{errors.vch_no}</p>}
-                    </div>
-                    <div>
-                        <label className="font-medium">Account Ledger*</label>
-                        <Select
-                            options={partyOpts}
-                            classNamePrefix="rs"
-                            value={partyOpts.find((o) => o.value === data.party_ledger_id) || null}
-                            onChange={(o) => setData('party_ledger_id', o?.value || '')}
-                            placeholder="Select Account Ledger"
-                        />
-                        {errors.party_ledger_id && <p className="text-sm text-red-500">{errors.party_ledger_id}</p>}
-                    </div>
-                </div>
+                <div className="rounded-lg bg-white p-6">
+                    <h1 className="mb-4 text-xl font-bold">Rent Voucher</h1>
 
-                {/* quick-entry strip */}
-                {/*  */}
-
-                {/* detail table */}
-                <table className="w-full border text-sm">
-                    <thead className="bg-gray-100">
-                        <tr>
-                            <th className="border p-2">Product Name</th>
-                            <th className="border p-2">Qty</th>
-                            <th className="border p-2">Unit</th>
-                            <th className="border p-2">Rate</th>
-                            <th className="border p-2">Amount</th>
-                            <th className="border p-2">✕</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {data.lines.map((l, idx) => (
-                            <tr key={idx} className="divide-x">
-                                <td className="p-1">
-                                    <Select
-                                        options={itemOpts}
-                                        classNamePrefix="rs"
-                                        value={itemOpts.find((o) => o.value === l.party_item_id) || null}
-                                        onChange={(o) => {
-                                            updateLine(idx, 'party_item_id', o?.value || '');
-                                        }}
-                                    />
-                                    {errors[`lines.${idx}.party_item_id`] && (
-                                        <small className="text-red-500">{errors[`lines.${idx}.party_item_id`]}</small>
-                                    )}
-                                </td>
-                                <td>
-                                    <input
-                                        type="number"
-                                        className="w-full border p-1"
-                                        value={l.qty}
-                                        onChange={(e) => updateLine(idx, 'qty', e.target.value)}
-                                    />
-                                </td>
-                                <td>
-                                    <Select
-                                        options={unitOpts}
-                                        classNamePrefix="rs"
-                                        value={unitOpts.find((o) => o.value === l.unit_name) || null}
-                                        onChange={(o) => updateLine(idx, 'unit_name', o?.value || '')}
-                                    />
-                                </td>
-
-                                <td>
-                                    <input
-                                        type="number"
-                                        className="w-full border p-1"
-                                        value={l.rate}
-                                        onChange={(e) => updateLine(idx, 'rate', e.target.value)}
-                                    />
-                                </td>
-                                <td className="px-2 text-right">{l.amount.toFixed(2)}</td>
-                                <td className="text-center">
-                                    <button type="button" className="font-bold text-red-600" onClick={() => removeLine(idx)}>
-                                        ✕
-                                    </button>
-                                </td>
-                            </tr>
-                        ))}
-                    </tbody>
-                </table>
-                <div className="mt-2">
-                    <button
-                        type="button"
-                        className="rounded bg-purple-600 px-4 py-1 text-sm font-semibold text-white hover:bg-purple-700"
-                        onClick={addLine}
-                    >
-                        + New Product
-                    </button>
-                </div>
-
-                {/* voucher summary */}
-                <div className="rounded border bg-gray-50 p-4">
-                    <div className="grid gap-6 sm:grid-cols-2">
-                        {/* left */}
-                        <div className="space-y-2">
-                            <SummaryRow label="Previous Balance" value={prevBal} />
-                            <SummaryRow label="Bill Amount" value={billTotal} />
-                            <hr />
-                            <SummaryRow label="Sub-total" value={subTotal} bold />
-                        </div>
-
-                        {/* right */}
-                        <div className="space-y-4">
-                            <div className="flex items-center justify-between">
-                                <Select
-                                    options={modeOpts}
-                                    classNamePrefix="rs"
-                                    className="mr-2 flex-1"
-                                    placeholder="Received Mode*"
-                                    value={modeOpts.find((o) => o.value === data.received_mode_id) || null}
-                                    onChange={(o) => setData('received_mode_id', o?.value || '')}
-                                />
-                                <input
-                                    type="number"
-                                    className="w-32 border p-1 text-right"
-                                    value={data.received_amount}
-                                    onChange={(e) => setData('received_amount', e.target.value)}
-                                />
+                    <form onSubmit={submit} className="space-y-6">
+                        {/* header */}
+                        <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
+                            <div>
+                               
+                                <InputCalendar label="Date" value={data.date} onChange={(val) => setData('date', val)} required />
+                                {errors.date && <p className="text-xs text-red-500">{errors.date}</p>}
+                                {/* {errors.date && <p className="text-xs text-red-500">{errors.date}</p>} */}
                             </div>
-                            {errors.received_mode_id && <p className="mt-1 text-sm text-red-500">{errors.received_mode_id}</p>}
-                            <SummaryRow label="New Balance" value={newBalance} bold />
+
+                            <div>
+                                <label className="mb-1 block font-medium">Voucher No</label>
+                                <input
+                                    className="w-full rounded border p-2"
+                                    value={data.vch_no}
+                                    onChange={(e) => setData('vch_no', e.target.value)}
+                                />
+                                {errors.vch_no && <p className="text-xs text-red-500">{errors.vch_no}</p>}
+                            </div>
+
+                            <div>
+                                <label className="mb-1 block font-medium">Account Ledger*</label>
+                                <Select
+                                    classNamePrefix="rs"
+                                    options={partyOpts}
+                                    value={partyOpts.find((o) => o.value === data.party_ledger_id) || null}
+                                    onChange={(o) => setData('party_ledger_id', o?.value || '')}
+                                    placeholder="Select Account Ledger"
+                                />
+                                {errors.party_ledger_id && <p className="text-xs text-red-500">{errors.party_ledger_id}</p>}
+                            </div>
                         </div>
-                    </div>
-                </div>
 
-                {/* remarks */}
-                <div>
-                    <label className="font-medium">Remarks</label>
-                    <textarea
-                        className="w-full rounded border p-2"
-                        rows={3}
-                        value={data.remarks}
-                        onChange={(e) => setData('remarks', e.target.value)}
-                    />
-                </div>
+                        {/* detail table */}
+                        <div className="overflow-x-auto">
+                            <table className="w-full border text-sm">
+                                <thead className="bg-gray-100">
+                                    <tr>
+                                        <th className="border p-2 text-left">Product Name</th>
+                                        <th className="border p-2 text-right">Qty</th>
+                                        <th className="border p-2">Unit</th>
+                                        <th className="border p-2 text-right">Rate</th>
+                                        <th className="border p-2 text-right">Amount</th>
+                                        <th className="border p-2">✕</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {data.lines.map((l, idx) => (
+                                        <tr key={idx} className="divide-x">
+                                            {/* Product */}
+                                            <td className="p-1">
+                                                <Select
+                                                    classNamePrefix="rs"
+                                                    options={itemOpts}
+                                                    value={itemOpts.find((o) => o.value === l.party_item_id) || null}
+                                                    onChange={(o) => {
+                                                        updateLine(idx, 'party_item_id', o?.value || '');
+                                                        // auto-fill unit from item selection if empty
+                                                        if (o?.value) {
+                                                            const u = itemOpts.find((x) => x.value === o.value)?.unit_name || '';
+                                                            if (!l.unit_name) updateLine(idx, 'unit_name', u);
+                                                        }
+                                                    }}
+                                                    /** 🔧 prevent clipping inside table/overflow */
+                                                    menuPortalTarget={typeof window !== 'undefined' ? document.body : undefined}
+                                                    menuPosition="fixed"
+                                                    menuPlacement="auto"
+                                                    menuShouldScrollIntoView={false}
+                                                    maxMenuHeight={280}
+                                                    styles={{
+                                                        menuPortal: (base) => ({ ...base, zIndex: 9999 }),
+                                                        menu: (base) => ({ ...base, zIndex: 9999 }),
+                                                    }}
+                                                />
+                                                {errors[`lines.${idx}.party_item_id`] && (
+                                                    <small className="text-red-500">{errors[`lines.${idx}.party_item_id`]}</small>
+                                                )}
+                                            </td>
 
-                <button
-                    type="submit"
-                    disabled={processing}
-                    className="rounded bg-green-600 px-6 py-2 text-white hover:bg-green-700 disabled:opacity-50"
-                >
-                    {processing ? 'Saving…' : 'Save Voucher'}
-                </button>
-            </form>
+                                            {/* Qty */}
+                                            <td className="p-1">
+                                                <input
+                                                    type="number"
+                                                    className="w-full rounded border p-1 text-right tabular-nums"
+                                                    value={l.qty}
+                                                    onChange={(e) => updateLine(idx, 'qty', e.target.value)}
+                                                />
+                                            </td>
+
+                                            {/* Unit */}
+                                            <td className="p-1">
+                                                <Select
+                                                    classNamePrefix="rs"
+                                                    options={unitOpts}
+                                                    value={unitOpts.find((o) => o.value === l.unit_name) || null}
+                                                    onChange={(o) => updateLine(idx, 'unit_name', o?.value || '')}
+                                                    /** 🔧 same anti-clipping treatment */
+                                                    menuPortalTarget={typeof window !== 'undefined' ? document.body : undefined}
+                                                    menuPosition="fixed"
+                                                    menuPlacement="auto"
+                                                    menuShouldScrollIntoView={false}
+                                                    maxMenuHeight={280}
+                                                    styles={{
+                                                        menuPortal: (base) => ({ ...base, zIndex: 9999 }),
+                                                        menu: (base) => ({ ...base, zIndex: 9999 }),
+                                                    }}
+                                                />
+                                            </td>
+
+                                            {/* Rate */}
+                                            <td className="p-1">
+                                                <input
+                                                    type="number"
+                                                    className="w-full rounded border p-1 text-right tabular-nums"
+                                                    value={l.rate}
+                                                    onChange={(e) => updateLine(idx, 'rate', e.target.value)}
+                                                />
+                                            </td>
+
+                                            {/* Amount */}
+                                            <td className="p-1 text-right tabular-nums">{l.amount.toFixed(2)}</td>
+
+                                            {/* Remove */}
+                                            <td className="p-1 text-center">
+                                                <button type="button" className="font-bold text-red-600" onClick={() => removeLine(idx)}>
+                                                    ✕
+                                                </button>
+                                            </td>
+                                        </tr>
+                                    ))}
+                                </tbody>
+                            </table>
+
+                            <div className="mt-2">
+                                <button
+                                    type="button"
+                                    className="rounded bg-indigo-600 px-4 py-1 text-sm font-semibold text-white hover:bg-indigo-500"
+                                    onClick={addLine}
+                                >
+                                    + Add line
+                                </button>
+                            </div>
+                        </div>
+
+                        {/* voucher summary */}
+                        <div className="mt-4 rounded-xl border bg-white p-4 shadow-sm">
+                            <div className="grid gap-6 sm:grid-cols-2">
+                                {/* left */}
+                                <div className="space-y-2">
+                                    <SummaryRow label="Previous Balance" value={prevBal} />
+                                    <SummaryRow label="Bill Amount" value={billTotal} />
+                                    <hr />
+                                    <SummaryRow label="Sub-total" value={subTotal} bold />
+                                </div>
+
+                                {/* right */}
+                                <div className="space-y-3">
+                                    <div className="flex items-center gap-2">
+                                        <div className="flex-1">
+                                            <Select
+                                                classNamePrefix="rs"
+                                                options={modeOpts}
+                                                placeholder="Received Mode*"
+                                                value={modeOpts.find((o) => o.value === data.received_mode_id) || null}
+                                                onChange={(o) => setData('received_mode_id', o?.value || '')}
+                                            />
+                                        </div>
+                                        <input
+                                            type="number"
+                                            className="w-40 rounded border p-2 text-right tabular-nums"
+                                            value={data.received_amount}
+                                            onChange={(e) => setData('received_amount', e.target.value)}
+                                        />
+                                    </div>
+                                    {errors.received_mode_id && <p className="text-xs text-red-500">{errors.received_mode_id}</p>}
+                                    <SummaryRow label="New Balance" value={newBalance} bold />
+                                </div>
+                            </div>
+                        </div>
+
+                        {/* remarks */}
+                        <div>
+                            <label className="mb-1 block font-medium">Remarks</label>
+                            <textarea
+                                className="w-full rounded border p-2"
+                                rows={3}
+                                value={data.remarks}
+                                onChange={(e) => setData('remarks', e.target.value)}
+                            />
+                        </div>
+
+                        {/* footer actions */}
+                        <div className="flex items-center justify-end">
+                            <button
+                                type="submit"
+                                disabled={processing}
+                                className="rounded bg-green-600 px-6 py-2 text-white hover:bg-green-700 disabled:opacity-50"
+                            >
+                                {processing ? 'Saving…' : 'Save Voucher'}
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
         </AppLayout>
     );
 }

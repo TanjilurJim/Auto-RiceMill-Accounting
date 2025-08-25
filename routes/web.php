@@ -290,8 +290,8 @@ Route::middleware(['auth', 'verified'])->group(function () {
 
     Route::get('company-settings', [CompanySettingController::class, 'edit'])->name('company-settings.edit');
     Route::put('company-settings', [CompanySettingController::class, 'update'])->name('company-settings.update');
-    Route::get ('company-settings/costings', [CompanySettingController::class, 'editCostings'])->name('company-settings.costings.edit');
-    Route::put ('company-settings/costings', [CompanySettingController::class, 'updateCostings'])->name('company-settings.costings.update');
+    Route::get('company-settings/costings', [CompanySettingController::class, 'editCostings'])->name('company-settings.costings.edit');
+    Route::put('company-settings/costings', [CompanySettingController::class, 'updateCostings'])->name('company-settings.costings.update');
     Route::resource('financial-years', FinancialYearController::class);
     Route::get('/payment-add/{voucher_no}/print', [PaymentAddController::class, 'print'])->name('payment-add.print');
     Route::resource('contra-add', ContraAddController::class);
@@ -447,6 +447,9 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::get('deposit', [PartyStockMoveController::class, 'create'])->name('party-stock.deposit.create');
         Route::post('deposit', [PartyStockMoveController::class, 'store'])->name('party-stock.deposit.store');
         Route::get('deposit-list', [PartyStockMoveController::class, 'index'])->name('party-stock.deposit.index');
+
+        Route::get('/party-stock/deposits/{id}', [\App\Http\Controllers\PartyStockMoveController::class, 'show'])
+            ->name('party-stock.deposit.show');
 
 
         // Withdraw Routes

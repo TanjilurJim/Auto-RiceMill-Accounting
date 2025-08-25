@@ -92,29 +92,58 @@ class PartyStockWithdrawController extends Controller
                 ->whereIn('created_by', user_scope_ids())
                 ->get(['id', 'party_ledger_id', 'party_item_id', 'godown_id', 'qty', 'unit_name']);
 
+            $partyIds = $stocks->pluck('party_ledger_id')->unique()->values();
+            $piIds    = $stocks->pluck('party_item_id')->filter()->unique()->values();
+            $gdIds    = $stocks->pluck('godown_id')->unique()->values();
+
+            // Latest deposit rate for each (party, item, godown)
+            $lastRates = \App\Models\PartyStockMove::select(
+                'party_ledger_id',
+                'party_item_id',
+                'godown_id_to',
+                'rate',
+                'date',
+                'id'
+            )
+                ->where('move_type', 'deposit')
+                ->whereIn('party_ledger_id', $partyIds)
+                ->whereIn('party_item_id', $piIds)
+                ->whereIn('godown_id_to', $gdIds)
+                ->whereIn('created_by', user_scope_ids())
+                ->orderBy('party_ledger_id')
+                ->orderBy('party_item_id')
+                ->orderBy('godown_id_to')
+                ->orderByDesc('date')
+                ->orderByDesc('id')
+                ->get()
+                // keep only the latest per triple
+                ->unique(fn($r) => $r->party_ledger_id . '|' . $r->party_item_id . '|' . $r->godown_id_to)
+                ->keyBy(fn($r) => $r->party_ledger_id . '|' . $r->party_item_id . '|' . $r->godown_id_to);
+
             // 3) Build available stock map (party -> godown -> items[])
             $availableStock = [];   // ✅ initialize
 
+            $availableStock = [];
             foreach ($stocks as $stock) {
                 $partyId  = (int) $stock->party_ledger_id;
                 $godownId = (int) $stock->godown_id;
 
-                if (!isset($availableStock[$partyId])) {
-                    $availableStock[$partyId] = [];
-                }
-                if (!isset($availableStock[$partyId][$godownId])) {
-                    $availableStock[$partyId][$godownId] = [
-                        'godown_id'   => $godownId,
-                        'godown_name' => $stock->godown->name ?? '',
-                        'items'       => [],
-                    ];
-                }
+                $availableStock[$partyId] ??= [];
+                $availableStock[$partyId][$godownId] ??= [
+                    'godown_id'   => $godownId,
+                    'godown_name' => $stock->godown->name ?? '',
+                    'items'       => [],
+                ];
+
+                $key = $partyId . '|' . $stock->party_item_id . '|' . $godownId;
+                $lastRate = optional($lastRates->get($key))->rate;
 
                 $availableStock[$partyId][$godownId]['items'][] = [
                     'party_item_id' => (int) $stock->party_item_id,
                     'item_name'     => $stock->partyItem->item_name ?? '',
                     'qty'           => (float) $stock->qty,
                     'unit_name'     => $stock->unit_name ?? '',
+                    'last_rate'     => $lastRate !== null ? (float)$lastRate : null, // 👈 NEW
                 ];
             }
 
@@ -155,13 +184,15 @@ class PartyStockWithdrawController extends Controller
             'withdraws.*.unit_name'     => ['nullable', 'string'],
             'withdraws.*.qty'           => ['required', 'numeric', 'min:0.01'],
             'withdraws.*.rate'          => ['nullable', 'numeric', 'min:0'],
+            'withdraws.*.bosta_weight'         => ['nullable', 'numeric', 'min:0'],
+            'withdraws.*.weight'      => ['nullable', 'numeric', 'min:0']
         ]);
 
         try {
             DB::transaction(function () use ($validated) {
                 foreach ($validated['withdraws'] as $row) {
-                    // row-level lock for accurate stock check
-                    $stock = PartyJobStock::whereIn('created_by', user_scope_ids())
+                    // lock stock for accurate check
+                    $stock = \App\Models\PartyJobStock::whereIn('created_by', user_scope_ids())
                         ->where('party_ledger_id', $validated['party_ledger_id'])
                         ->where('party_item_id',   $row['party_item_id'])
                         ->where('godown_id',       $validated['godown_id_from'])
@@ -169,28 +200,45 @@ class PartyStockWithdrawController extends Controller
                         ->first();
 
                     if (!$stock || $stock->qty < $row['qty']) {
-                        throw ValidationException::withMessages([
+                        throw \Illuminate\Validation\ValidationException::withMessages([
                             'withdraws' => ["Insufficient stock for item {$row['party_item_id']}"],
                         ]);
                     }
 
-                    PartyStockMove::create([
+                    // compute weight: prefer client, else infer
+                    $qty      = (float)$row['qty'];
+                    $rate     = isset($row['rate']) ? (float)$row['rate'] : 0.0;
+                    $unitName = strtolower((string)($row['unit_name'] ?? ''));
+                    $perBosta = isset($row['bosta_weight']) ? (float)$row['bosta_weight'] : 0.0;
+
+                    $weight = $row['weight'] ?? null; // client computed
+                    if ($weight === null) {
+                        if ($unitName === 'kg') $weight = $qty;
+                        elseif ($unitName === 'bosta' && $perBosta > 0) $weight = $qty * $perBosta;
+                    }
+
+                    \App\Models\PartyStockMove::create([
                         'date'            => $validated['date'],
                         'party_ledger_id' => $validated['party_ledger_id'],
                         'party_item_id'   => $row['party_item_id'],
                         'godown_id_from'  => $validated['godown_id_from'],
                         'godown_id_to'    => null,
-                        'qty'             => -$row['qty'],
-                        'rate'            => $row['rate'] ?? 0,
-                        'total'           => -$row['qty'] * ($row['rate'] ?? 0),
+                        'qty'             => -$qty,
+                        'weight'          => $weight !== null ? -abs($weight) : null, // NEGATIVE out
+                        'rate'            => $rate,
+                        'total'           => - ($qty * $rate),
                         'move_type'       => 'withdraw',
-                        'ref_no'          => $validated['ref_no'] ?? null,
+                        'ref_no'          => $validated['ref_no'],
                         'remarks'         => $validated['remarks'] ?? null,
                         'unit_name'       => $row['unit_name'] ?? null,
+                        'meta'            => [
+                            'bosta_weight' => $perBosta ?: null,
+                        ],
                         'created_by'      => auth()->id(),
                     ]);
 
-                    $stock->qty -= $row['qty'];
+                    // decrement stock
+                    $stock->qty -= $qty;
                     $stock->save();
                 }
             });

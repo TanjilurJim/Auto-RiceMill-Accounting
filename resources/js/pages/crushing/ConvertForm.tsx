@@ -2,6 +2,7 @@
 import InputCalendar from '@/components/Btn&Link/InputCalendar';
 import ConsumedTable from '@/components/crushing/ConsumedTable';
 import CostingSection from '@/components/crushing/CostingSection';
+import dayjs from 'dayjs';
 
 import GeneratedCompanyTable from '@/components/crushing/GeneratedCompanyTable';
 import GeneratedPartyTable from '@/components/crushing/GeneratedPartyTable';
@@ -9,7 +10,7 @@ import type { ConsumedRow, GeneratedRow, Owner } from '@/components/crushing/typ
 import AppLayout from '@/layouts/app-layout';
 import { Head, Link, useForm } from '@inertiajs/react';
 import axios from 'axios';
-import React from 'react';
+import React, { useEffect } from 'react';
 import Select from 'react-select';
 
 type Basis = 'per_bosta' | 'per_kg_main' | 'fixed';
@@ -25,6 +26,19 @@ type ProductionCostRow = {
 type NewCosting = {
     market_rate: string | number | '';
     production_costs: ProductionCostRow[];
+};
+
+type PageProps = {
+    available_stock: any; // tighten types if you have them
+    preset?: any;
+    // ...other props
+};
+
+type PartyItemOpt = {
+    value: string;
+    label: string;
+    unit_name: string;
+    per_unit_kg?: number; // <-- NEW
 };
 
 type CostingPreset = {
@@ -280,34 +294,36 @@ export default function ConvertForm({
         patchGenerated(mainIdx, { per_kg_rate: finalPerKg.toFixed(2), _justComputed: true } as any);
     };
 
+    // ConvertForm.tsx
     const patchConsumed = (idx: number, patch: Partial<ConsumedRow>) => {
         setData(
             'consumed',
             data.consumed.map((r, i) => {
                 if (i !== idx) return r;
+                let next: ConsumedRow = { ...r, ...patch };
 
-                let next = { ...r, ...patch };
+                const changed = 'qty' in patch || 'unit_name' in patch || 'party_item_id' in patch;
 
-                // On item change → autofill unit, reset lot & weight
-                if (data.owner === 'company' && 'item_id' in patch) {
-                    const item = companyItemOpts.find((o) => o.value === Number(patch.item_id));
-                    next.unit_name = item?.unit ?? '';
-                    next.lot_id = '';
-                    next.weight = '';
+                if (data.owner === 'party' && changed) {
+                    const qtyNum = parseFloat(String(next.qty || '0')) || 0;
+                    const unitNm = String(next.unit_name || '').toLowerCase();
+
+                    let perKg = typeof next.per_unit_kg === 'number' ? next.per_unit_kg : unitNm === 'kg' ? 1 : undefined;
+
+                    if (qtyNum > 0 && perKg) {
+                        next.weight = String((qtyNum * perKg).toFixed(3));
+                    }
                 }
 
-                // Recompute weight when qty/unit/lot changes
-                const chg = 'qty' in patch || 'unit_name' in patch || 'lot_id' in patch || 'item_id' in patch;
-                if (data.owner === 'company' && chg) {
+                // company recompute (your existing code) stays as-is
+                if (data.owner === 'company' && changed) {
                     const itemId = Number(next.item_id || 0);
                     const lotId = Number(next.lot_id || 0);
                     const qtyNum = parseFloat(String(next.qty || '0')) || 0;
                     const unitNm = (next.unit_name || '').toLowerCase();
-
                     const itm = companyItemOpts.find((o) => o.value === itemId);
                     const lot = itm?.lots?.find((l: any) => Number(l.lot_id) === lotId);
 
-                    // per-unit in kg
                     let perUnitKg = 0;
                     if (unitNm === 'kg') perUnitKg = 1;
                     else if ((itm?.item_weight ?? 0) > 0) perUnitKg = Number(itm!.item_weight);
@@ -317,6 +333,7 @@ export default function ConvertForm({
                         next.weight = String((qtyNum * perUnitKg).toFixed(3));
                     }
                 }
+
                 return next;
             }),
         );
@@ -497,28 +514,40 @@ export default function ConvertForm({
         }));
     };
 
-    const partyItemOptions = (partyId: string | number) => {
+    const partyItemOptions = (partyId: string | number): PartyItemOpt[] => {
         if (data.owner === 'company') return [];
         const pId = String(partyId || '');
         const gId = String(data.godown_id || '');
         if (!pId || !gId) return [];
         if (!available_stock[pId] || !available_stock[pId][gId]) return [];
+
         const { items } = available_stock[pId][gId];
         return items.map((itm: any) => ({
             value: String(itm.party_item_id ?? itm.item_id),
             label: `${itm.item_name}  (in stock: ${itm.qty} ${itm.unit_name})`,
+            unit_name: itm.unit_name, // <-- include unit
+            per_unit_kg: itm.per_unit_kg ?? (String(itm.unit_name).toLowerCase() === 'kg' ? 1 : undefined), // safe fallback
         }));
     };
 
     const consumedOpts = partyItemOptions(data.party_ledger_id);
 
+    useEffect(() => {
+        if (!__DEV__) return;
+        console.log('[ConvertForm] consumedOpts:', consumedOpts);
+    }, [consumedOpts]);
+    
     const submit = (e: React.FormEvent) => {
         e.preventDefault();
         if (!canSave) return; // ⬅️ block save unless stopped state
+
+        
+
+
         if (data.owner === 'company') {
             post(route('crushing.company.convert.store'), { onSuccess: () => reset() });
         } else {
-            post(route('party-stock.transfer.store'), { onSuccess: () => reset() });
+            post(route('party-stock.transfer.store'), {  onSuccess: () => reset() });
         }
     };
 
@@ -546,6 +575,22 @@ export default function ConvertForm({
     const mainValue = basePerKg * (mainKg || 0); // চালের বেস মূল্য (৳)
     const netCost = mainValue + prod - byp; // মোট খরচ (৳)
     const perKgPreview = mainKg > 0 ? netCost / mainKg : 0; // ফাইনাল প্রিভিউ (৳/kg)
+
+    const __DEV__ = process.env.NODE_ENV !== 'production';
+
+    useEffect(() => {
+        if (!__DEV__) return;
+
+        console.log('[ConvertForm] props.available_stock (raw):', available_stock);
+
+        const pId = String(data.party_ledger_id || '');
+        const gId = String(data.godown_id || '');
+        const itemsForSelection = available_stock?.[pId]?.[gId]?.items || [];
+
+        console.log('[ConvertForm] items for selected party+godown:', itemsForSelection);
+        // If your controller had passed last_rate, you’d see it on each item here.
+        // With your current controller, there is NO rate in page props – by design.
+    }, [available_stock, data.party_ledger_id, data.godown_id]);
 
     return (
         <AppLayout>
