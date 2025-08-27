@@ -3,10 +3,12 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use App\Traits\BelongsToTenant;
 
 class Journal extends Model
 {
     //
+    use BelongsToTenant;
 
     protected $fillable = ['date', 'voucher_no', 'narration', 'created_by','voucher_type'];
 

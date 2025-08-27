@@ -15,7 +15,7 @@ use Maatwebsite\Excel\Facades\Excel;
 use Barryvdh\DomPDF\Facade\Pdf;
 use App\Models\Stock;
 use App\Models\Item;
-
+use Carbon\Carbon;
 use function company_info;   // helper
 use function numberToWords;
 use function user_scope_ids; // helper
@@ -34,85 +34,101 @@ use Inertia\Inertia;
 
 class ReportController extends Controller
 {
-    
+
 
     public function employeeLedger(Request $request)
     {
         $user = auth()->user();
-        $employeeQuery = Employee::select('id', 'name');
 
-        if (!$user->hasRole('admin')) {
-            $ids = user_scope_ids();
-            // Exclude admin-created employees for normal users
-            $adminIds = User::role('admin')->pluck('id')->toArray();
-            $employeeQuery->whereIn('created_by', $ids)
-                ->whereNotIn('created_by', $adminIds);
-        }
+        // Employees dropdown (auto tenant-scoped via BelongsToTenant)
+        $employees = Employee::select('id', 'name')
+            ->orderBy('name')
+            ->get();
 
-        $employees = $employeeQuery->get();
-
+        // If filters not provided yet, just render the filter page
         if (!$request->employee_id || !$request->from_date || !$request->to_date) {
             return Inertia::render('reports/EmployeeLedgerFilter', [
                 'employees' => $employees,
             ]);
         }
 
-        $employee = Employee::with('ledger')->findOrFail($request->employee_id);
-        // $company = CompanySetting::where('created_by', auth()->id())->first();
+        // Validate inputs (lightweight)
+        $request->validate([
+            'employee_id' => ['required', 'integer', 'exists:employees,id'],
+            'from_date'   => ['required', 'date'],
+            'to_date'     => ['required', 'date', 'after_or_equal:from_date'],
+        ]);
 
-        $company = CompanySetting::where('created_by', auth()->id())->first() ?? (object)[
-            'company_name' => '',
-            // add other fields as needed with default values
-        ];
+        // Make sure the selected employee is in tenant scope
+        $employee = Employee::with('ledger')->findOrFail((int) $request->employee_id);
 
         if (!$employee->ledger) {
             return back()->with('error', 'No ledger account found for this employee.');
         }
 
         $ledgerId = $employee->ledger->id;
-        $from = $request->from_date;
-        $to = $request->to_date;
+        $from     = $request->from_date;
+        $to       = $request->to_date;
 
-        $entries = JournalEntry::with('journal')
+        // CompanySetting should also respect the current tenant group.
+        // Prefer the current user’s setting if present; otherwise any from the group.
+        $ids = user_scope_ids(); // [] for admin
+        $company = \App\Models\CompanySetting::query()
+            ->when($ids, fn($q) => $q->whereIn('created_by', $ids))
+            ->orderByDesc(DB::raw('created_by = ' . (int) $user->id)) // prefer current user’s row
+            ->first() ?? (object)[
+                'company_name' => '',
+            ];
+
+        // Entries within date range (journal is eager-loaded; both models are tenant-scoped)
+        $entries = \App\Models\JournalEntry::with(['journal:id,date,voucher_no'])
             ->where('account_ledger_id', $ledgerId)
             ->whereHas('journal', function ($q) use ($from, $to) {
                 $q->whereBetween('date', [$from, $to]);
             })
+            // If you want DB-side ordering without collection sort:
+            ->whereHas('journal') // keep builder context
             ->get()
-            ->sortBy(fn($entry) => $entry->journal->date)
+            ->sortBy(fn($e) => $e->journal->date)
             ->values();
 
-        $openingBalance = JournalEntry::where('account_ledger_id', $ledgerId)
-            ->whereHas('journal', function ($q) use ($from) {
-                $q->where('date', '<', $from);
-            })
+        // Opening balance before the "from" date
+        $openingBalance = \App\Models\JournalEntry::where('account_ledger_id', $ledgerId)
+            ->whereHas('journal', fn($q) => $q->where('date', '<', $from))
             ->sum(DB::raw("CASE WHEN type = 'credit' THEN amount ELSE -amount END"));
 
         return Inertia::render('reports/EmployeeLedger', [
-            'company' => $company,
-            'employee' => $employee,
-            'user' => auth()->user(),
-            'entries' => $entries->map(function ($entry) {
+            'company'         => $company,
+            'employee'        => [
+                'id'   => $employee->id,
+                'name' => $employee->name,
+            ],
+            'entries'         => $entries->map(function ($entry) {
                 return [
-                    'id' => $entry->id,
-                    'type' => $entry->type,
+                    'id'     => $entry->id,
+                    'type'   => $entry->type,
                     'amount' => $entry->amount,
-                    'note' => $entry->note,
+                    'note'   => $entry->note,
                     'journal' => [
-                        'date' => $entry->journal->date,
-                        'voucher_no' => $entry->journal->voucher_no,
+                        'date'       => optional($entry->journal)->date,
+                        'voucher_no' => optional($entry->journal)->voucher_no,
                     ],
                 ];
             }),
-            'from' => $request->from_date,
-            'to' => $request->to_date,
+            'from'            => $from,
+            'to'              => $to,
             'opening_balance' => $openingBalance,
-            'user' => auth()->user(),
+            'user'            => [
+                'id'   => $user->id,
+                'name' => $user->name,
+            ],
+            'employees'       => $employees, // keep filter controls reactive
         ]);
     }
 
 
-    
+
+
     public function stockSummary(Request $request)
     {
         $from = $request->input('from');

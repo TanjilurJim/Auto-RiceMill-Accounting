@@ -1,15 +1,19 @@
+import ActionFooter from '@/components/ActionFooter';
 import AppLayout from '@/layouts/app-layout';
 import { Head, usePage } from '@inertiajs/react';
 import moment from 'moment';
-import React, { useRef } from 'react';
-import ActionFooter from '@/components/ActionFooter';
+import React, { useMemo, useRef } from 'react';
 
 interface Company {
-    name: string;
-    company_name: string;
-    address: string;
-    phone: string;
-    logo_path: string;
+    name?: string;
+    company_name?: string;
+    address?: string;
+    phone?: string;
+    logo_path?: string;
+    mobile?: string;
+    email?: string;
+    website?: string;
+    financial_year?: string;
 }
 
 interface Employee {
@@ -22,10 +26,10 @@ interface JournalEntry {
     id: number;
     type: 'debit' | 'credit';
     amount: number;
-    note: string;
+    note?: string;
     journal: {
         date: string;
-        voucher_no: string;
+        voucher_no?: string | null;
     };
 }
 
@@ -35,67 +39,89 @@ interface PageProps {
     entries: JournalEntry[];
     from: string;
     to: string;
-    opening_balance: number;
+    opening_balance: number; // credit - debit (from PHP)
+    user: { name: string };
 }
 
+const fmtTk = (value: number | string) => {
+  const n = toNum(value);
+  return n.toLocaleString('en-BD', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+};
+
+const toNum = (v: unknown) => {
+    if (typeof v === 'number') return v;
+    if (v == null) return 0;
+    const s = String(v).replace(/,/g, ''); // "20,000.00" -> "20000.00"
+    const n = parseFloat(s);
+    return Number.isFinite(n) ? n : 0;
+};
+
 const EmployeeLedger: React.FC = () => {
-    const { props } = usePage<{ company: Company; employee: Employee; entries: JournalEntry[]; from: string; to: string; opening_balance: number; user: { name: string }; }>();
-    const { company, employee, entries, from, to, opening_balance } = props;
-
-    let runningBalance = opening_balance;
-    let totalDebit = 0;
-    let totalCredit = 0;
-
-    const formatTk = (value: number) => Number(value).toLocaleString('en-BD', { minimumFractionDigits: 2 });
+    const { props } = usePage<PageProps>();
+    const { company, employee, entries, from, to, opening_balance, user } = props;
 
     const reportRef = useRef<HTMLDivElement>(null);
 
+    // Build rows with running balance (credit - debit convention)
+    const { rows, totals, closingBalance } = useMemo(() => {
+        let running = toNum(opening_balance); // credit - debit
 
+        const acc = {
+            rows: [] as Array<JournalEntry & { running: number; debitAmt: number; creditAmt: number }>,
+            debit: 0,
+            credit: 0,
+        };
+
+        for (const e of entries) {
+            const amt = toNum(e.amount);
+            const debitAmt = e.type === 'debit' ? amt : 0;
+            const creditAmt = e.type === 'credit' ? amt : 0;
+
+            // running = opening + credits - debits (all numbers)
+            running += creditAmt - debitAmt;
+
+            acc.debit += debitAmt;
+            acc.credit += creditAmt;
+
+            acc.rows.push({ ...e, running, debitAmt, creditAmt });
+        }
+
+        return {
+            rows: acc.rows,
+            totals: { debit: acc.debit, credit: acc.credit },
+            closingBalance: running,
+        };
+    }, [entries, opening_balance]);
 
     const handleExportPDF = () => {
         const originalTitle = document.title;
-        document.title = `EmployeeLedger-${employee.name}-${from}-to-${to}`;
-
+        const safeName = employee.name.replace(/[^\w\-]+/g, '_');
+        document.title = `EmployeeLedger-${safeName}-${from}-to-${to}`;
         window.print();
-
-        setTimeout(() => {
-            document.title = originalTitle;
-        }, 1000);
+        setTimeout(() => (document.title = originalTitle), 300);
     };
+
+    const balanceLabel = (val: number) => (val >= 0 ? 'CR' : 'DR'); // >=0 ==> credit balance (credit - debit)
+    const abs = (n: number) => Math.abs(n);
 
     return (
         <AppLayout>
             <Head title="Employee Ledger Report" />
-            <div
-                className="max-w-full bg-white p-4 sm:p-6 md:p-8 lg:p-10 xl:p-12"
-                ref={reportRef}
-            >
+            <div className="max-w-full bg-white p-4 sm:p-6 md:p-8 lg:p-10 xl:p-12" ref={reportRef}>
                 {/* Company Info */}
                 <div className="mb-4 text-center">
-                    {company?.logo_path && (
-                        <img
-                            src={company?.logo_path}
-                            alt="Company Logo"
-                            className="mx-auto mb-2 h-16 w-16 object-cover"
-                        />
-                    )}
-                    <h2 className="text-xl sm:text-2xl lg:text-3xl font-bold">
-                        {company?.company_name}
-                    </h2>
-                    <p className="text-sm sm:text-base">{company?.address}</p>
-                    <p className="text-sm sm:text-base">{company?.mobile}</p>
-                    <p className="text-sm sm:text-base">{company?.email}</p>
-                    <p className="text-sm sm:text-base">{company?.website}</p>
-                    <p className="text-sm sm:text-base">
-                        Financial Year: {company?.financial_year}
-                    </p>
+                    {company?.logo_path && <img src={company.logo_path} alt="Company Logo" className="mx-auto mb-2 h-16 w-16 object-cover" />}
+                    <h2 className="text-xl font-bold sm:text-2xl lg:text-3xl">{company?.company_name || company?.name || '—'}</h2>
+                    {company?.address && <p className="text-sm sm:text-base">{company.address}</p>}
+                    {company?.mobile && <p className="text-sm sm:text-base">{company.mobile}</p>}
+                    {company?.email && <p className="text-sm sm:text-base">{company.email}</p>}
+                    {company?.website && <p className="text-sm sm:text-base">{company.website}</p>}
+                    {company?.financial_year && <p className="text-sm sm:text-base">Financial Year: {company.financial_year}</p>}
                 </div>
 
                 {/* Employee Info */}
                 <div className="mb-4 rounded border p-4 sm:p-6">
-                    <h3 className="mb-2 text-lg sm:text-xl font-semibold">
-                        Employee Ledger
-                    </h3>
+                    <h3 className="mb-2 text-lg font-semibold sm:text-xl">Employee Ledger</h3>
                     <p>
                         <strong>Employee Name:</strong> {employee.name}
                     </p>
@@ -109,21 +135,9 @@ const EmployeeLedger: React.FC = () => {
                         <strong>From:</strong> {from} <strong>To:</strong> {to}
                     </p>
                     <p>
-                        <strong>Opening Balance:</strong> Tk. {formatTk(opening_balance)}{' '}
-                        {opening_balance >= 0 ? '(DR)' : '(CR)'}
+                        <strong>Opening Balance:</strong> Tk. {fmtTk(abs(opening_balance))} {balanceLabel(opening_balance)}
                     </p>
                 </div>
-
-                {/* <div className="mb-4 flex justify-end gap-3 no-print">
-                    <button onClick={() => window.print()} className="rounded bg-blue-600 px-4 py-2 text-sm text-white hover:bg-blue-700">
-                        🖨 Print
-                    </button>
-                    <button onClick={handleExportPDF} className="rounded bg-red-600 px-4 py-2 text-sm text-white hover:bg-red-700">
-                        📄 Export as PDF
-                    </button>
-                </div> */}
-
-
 
                 {/* Ledger Table */}
                 <div className="overflow-x-auto">
@@ -139,43 +153,26 @@ const EmployeeLedger: React.FC = () => {
                             </tr>
                         </thead>
                         <tbody>
-                            {entries.map((entry) => {
-                                if (entry.type === 'debit') {
-                                    totalDebit += entry.amount;
-                                    runningBalance -= entry.amount;
-                                } else {
-                                    totalCredit += entry.amount;
-                                    runningBalance += entry.amount;
-                                }
-
-                                return (
-                                    <tr key={entry.id}>
-                                        <td className="border p-2">
-                                            {moment(entry.journal.date).format('DD-MM-YY')}
-                                        </td>
-                                        <td className="border p-2">{entry.type}</td>
-                                        <td className="border p-2">{entry.journal.voucher_no}</td>
-                                        <td className="border p-2 text-right">
-                                            {entry.type === 'debit' ? formatTk(entry.amount) : ''}
-                                        </td>
-                                        <td className="border p-2 text-right">
-                                            {entry.type === 'credit' ? formatTk(entry.amount) : ''}
-                                        </td>
-                                        <td className="border p-2 text-right">
-                                            {formatTk(Math.abs(runningBalance))}{' '}
-                                            {runningBalance >= 0 ? 'DR' : 'CR'}
-                                        </td>
-                                    </tr>
-                                );
-                            })}
+                            {rows.map((r) => (
+                                <tr key={r.id}>
+                                    <td className="border p-2">{moment(r.journal.date).format('DD-MM-YY')}</td>
+                                    <td className="border p-2 uppercase">{r.type}</td>
+                                    <td className="border p-2">{r.journal.voucher_no || '-'}</td>
+                                    <td className="border p-2 text-right">{r.debitAmt ? fmtTk(r.debitAmt) : ''}</td>
+                                    <td className="border p-2 text-right">{r.creditAmt ? fmtTk(r.creditAmt) : ''}</td>
+                                    <td className="border p-2 text-right">
+                                        {fmtTk(abs(r.running))} {balanceLabel(r.running)}
+                                    </td>
+                                </tr>
+                            ))}
                         </tbody>
                         <tfoot className="bg-gray-100 font-semibold">
                             <tr>
                                 <td className="border p-2 text-center" colSpan={3}>
                                     Total
                                 </td>
-                                <td className="border p-2 text-right">{formatTk(totalDebit)}</td>
-                                <td className="border p-2 text-right">{formatTk(totalCredit)}</td>
+                                <td className="border p-2 text-right">{fmtTk(totals.debit)}</td>
+                                <td className="border p-2 text-right">{fmtTk(totals.credit)}</td>
                                 <td className="border p-2 text-right"></td>
                             </tr>
                             <tr>
@@ -183,8 +180,7 @@ const EmployeeLedger: React.FC = () => {
                                     Closing Balance
                                 </td>
                                 <td className="border p-2 text-right">
-                                    {formatTk(Math.abs(runningBalance))}{' '}
-                                    {runningBalance >= 0 ? 'DR' : 'CR'}
+                                    {fmtTk(abs(closingBalance))} {balanceLabel(closingBalance)}
                                 </td>
                             </tr>
                         </tfoot>
@@ -192,21 +188,19 @@ const EmployeeLedger: React.FC = () => {
                 </div>
 
                 {/* Footer */}
-                <div className="mt-6 text-right text-xs sm:text-sm text-gray-500">
-                    Printed on {moment().format('DD-MM-YYYY, h:mm a')} | User: {props.user.name}
+                <div className="mt-6 text-right text-xs text-gray-500 sm:text-sm">
+                    Printed on {moment().format('DD-MM-YYYY, h:mm a')} | User: {user?.name}
                 </div>
 
                 {/* Action Footer */}
                 <ActionFooter
                     onSubmit={() => window.print()}
                     onSaveAndPrint={handleExportPDF}
-                    submitText="🖨 Print"
+                    submitText=" Print"
                     saveAndPrintText="📄 Export as PDF"
                     cancelHref="/employee-ledger"
                     className="justify-end py-4"
                 />
-
-
             </div>
         </AppLayout>
     );
