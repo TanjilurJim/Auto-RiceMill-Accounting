@@ -4,10 +4,10 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
-
+use App\Traits\BelongsToTenant;
 class SalarySlipEmployee extends Model
 {
-    use HasFactory;
+    use HasFactory, BelongsToTenant;
 
     /* ───── Mass-assignable ───── */
     protected $fillable = [
@@ -15,9 +15,11 @@ class SalarySlipEmployee extends Model
         'employee_id',
         'basic_salary',
         'additional_amount',
+        'advance_adjusted', 
         'total_amount',
         'paid_amount',        // ← NEW
-        'status',             // ← NEW   (Unpaid / Partially Paid / Paid)
+        'status',   
+                  // ← NEW   (Unpaid / Partially Paid / Paid)
     ];
 
     /* ───── Relationships ───── */
@@ -36,4 +38,9 @@ class SalarySlipEmployee extends Model
     {
         return $q->whereColumn('total_amount', '>', 'paid_amount');
     }
+
+    public function getNetPayableAttribute(): float {
+        return max(0, ($this->total_amount - $this->advance_adjusted) - $this->paid_amount);
+    }
+
 }

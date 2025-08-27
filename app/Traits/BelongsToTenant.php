@@ -9,11 +9,10 @@ trait BelongsToTenant
         static::addGlobalScope('tenant', function ($q) {
             $ids = user_scope_ids();
             if ($ids) {
-                $q->whereIn('created_by', $ids);
+                // Qualify with the base model's table to avoid ambiguity
+                $table = $q->getModel()->getTable();
+                $q->whereIn("$table.created_by", $ids);
             }
         });
     }
 }
-
-
-

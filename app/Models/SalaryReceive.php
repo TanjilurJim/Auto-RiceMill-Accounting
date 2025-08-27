@@ -4,10 +4,11 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use App\Traits\BelongsToTenant;
 
 class SalaryReceive extends Model
 {
-    use HasFactory;
+    use HasFactory, BelongsToTenant;
 
     protected $fillable = [
         'vch_no',
@@ -18,6 +19,8 @@ class SalaryReceive extends Model
         'description',
         'created_by',
         'salary_slip_employee_id',
+        'is_advance', 
+        'journal_id'
     ];
 
     // Relationship to Employee model

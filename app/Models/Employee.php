@@ -5,6 +5,9 @@ namespace App\Models;
 use App\Traits\BelongsToTenant;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use App\Models\SalaryReceive;
+use App\Models\SalarySlipEmployee;
+
 
 class Employee extends Model
 {
@@ -76,5 +79,12 @@ class Employee extends Model
     public function getSalaryOutstandingAttribute(): float
     {
         return max(0, $this->gross_salary - $this->salary_paid);
+    }
+    public function getAdvanceBalanceAttribute(): float  
+    {
+        $advPaid = \App\Models\SalaryReceive::where('employee_id', $this->id)->where('is_advance', true)->sum('amount');
+        $advAdj = $this->salarySlipEmployees()->sum('advance_adjusted');
+        return max(0, $advPaid - $advAdj);
+
     }
 }

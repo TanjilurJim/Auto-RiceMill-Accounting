@@ -4,10 +4,10 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
-
+use App\Traits\BelongsToTenant;
 class SalarySlip extends Model
 {
-    use HasFactory;
+    use HasFactory, BelongsToTenant;
 
     protected $fillable = [
         'voucher_number',
@@ -15,7 +15,10 @@ class SalarySlip extends Model
         'month',         // ✅ add this
         'year',          // ✅ and this
         'created_by',
+        'is_advance'
     ];
+
+    protected $casts = ['is_advance' => 'bool',];
 
     // Relationship to SalarySlipEmployee model
     public function salarySlipEmployees()
@@ -39,5 +42,11 @@ class SalarySlip extends Model
     public function creator()
     {
         return $this->belongsTo(User::class, 'created_by');
+    }
+
+    public function getAdvanceEffectiveAttribute(): bool
+    {
+        $monthStart = \Carbon\Carbon::create($this->year, $this->month, 1);
+        return $this->is_advance || \Carbon\Carbon::parse($this->date)->lt($monthStart);
     }
 }

@@ -281,7 +281,9 @@ Route::middleware(['auth', 'verified'])->group(function () {
     // sale responsible
     // 👇 approval inboxes
 
-
+    Route::resource('salary-receives', SalaryReceiveController::class)->parameters([
+        'salary-receives' => 'salaryReceive',
+    ]);
     //Sales Return
     Route::resource('sales-returns', SalesReturnController::class);
     Route::get('/sales/{sale}/load', [SalesReturnController::class, 'loadSale']);
@@ -327,6 +329,8 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::resource('designations', DesignationController::class);
     Route::resource('shifts', ShiftController::class);
     Route::resource('employees', EmployeeController::class);
+    
+     Route::resource('salary-slips', SalarySlipController::class);
 
     // employee salary report
     Route::get(
@@ -335,13 +339,13 @@ Route::middleware(['auth', 'verified'])->group(function () {
     )->name('employees.salary-report');
 
 
+    
+
 
     // Salary
-    Route::resource('salary-slips', SalarySlipController::class);
+   
     Route::get('/salary-slips/{salarySlip}/invoice', [SalarySlipController::class, 'invoice'])->name('salary-slips.invoice');
-    Route::resource('salary-receives', SalaryReceiveController::class)->parameters([
-        'salary-receives' => 'salaryReceive',
-    ]);
+    
     // Employee Report
     Route::get('employee-ledger', [ReportController::class, 'employeeLedger'])->name('employee.ledger');
     Route::prefix('employee-reports')
@@ -397,12 +401,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
             ->name('export');
     });
 
-    // All Receivable Payable Report
-    // Filter Page (Step 1)
 
-    // Route::get('/reports/receivable-payable/filter', function () {
-    //     return Inertia::render('reports/AllReceivablePayableFilter');
-    // })->name('reports.receivable-payable.filter');
 
     Route::get('/reports/receivable-payable/filter', [AllReceivablePayableReportController::class, 'filter'])
         ->name('reports.receivable-payable.filter');
@@ -415,9 +414,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
 
     Route::get('/reports/all-received-payment', [AllReceivedPaymentReportController::class, 'index'])->name('reports.all-received-payment');
 
-    // Route::get('/reports/all-received-payment/filter', function () {
-    //     return Inertia::render('reports/AllReceivedPaymentFilter');
-    // })->name('reports.all-received-payment.filter');
+ 
     Route::get('/reports/all-received-payment/filter', [AllReceivedPaymentReportController::class, 'filter'])
         ->name('reports.all-received-payment.filter');
 
@@ -552,10 +549,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('/crushing/rent-day-book', [\App\Http\Controllers\DayBookController::class, 'index'])
         ->name('reports.daybook');
 
-    // Route::prefix('party-stock')->group(function () {
-    //     Route::get('/available-stock/{partyId}', [PartyStockController::class, 'getAvailableStock']);
-    //     Route::get('/party-godowns/{partyId}', [PartyStockController::class, 'getPartyGodowns']);
-    // });
+  
 
     // Dryer
     Route::resource('dryers', DryerController::class);

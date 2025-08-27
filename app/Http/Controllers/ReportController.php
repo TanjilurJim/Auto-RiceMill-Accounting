@@ -34,72 +34,7 @@ use Inertia\Inertia;
 
 class ReportController extends Controller
 {
-    // Employee Ledger Report
-
-    // public function employeeLedger(Request $request)
-    // {
-    //     $employees = Employee::select('id', 'name')
-    //         ->when(!auth()->user()->hasRole('admin'), function ($query) {
-    //             $query->where('created_by', auth()->id());
-    //         })
-    //         ->get();
-
-    //     if (!$request->employee_id || !$request->from_date || !$request->to_date) {
-    //         return Inertia::render('reports/EmployeeLedgerFilter', [
-    //             'employees' => $employees,
-    //         ]);
-    //     }
-
-    //     $employee = Employee::with('ledger')->findOrFail($request->employee_id);
-    //     $company = CompanySetting::where('created_by', auth()->id())->first();
-
-    //     if (!$employee->ledger) {
-    //         return back()->with('error', 'No ledger account found for this employee.');
-    //     }
-
-    //     $ledgerId = $employee->ledger->id;
-
-    //     // Get ledger entries
-    //     $from = $request->from_date;
-    //     $to = $request->to_date;
-    //     $entries = JournalEntry::with('journal')
-    //         ->where('account_ledger_id', $ledgerId)
-    //         ->whereHas('journal', function ($q) use ($from, $to) {
-    //             $q->whereBetween('date', [$from, $to]);
-    //         })
-    //         ->get()
-    //         ->sortBy(fn($entry) => $entry->journal->date)
-    //         ->values();
-
-    //     // Calculate opening balance
-    //     $openingBalance = JournalEntry::where('account_ledger_id', $ledgerId)
-    //         ->whereHas('journal', function ($q) use ($from) {
-    //             $q->where('date', '<', $from);
-    //         })
-    //         ->sum(DB::raw("CASE WHEN type = 'credit' THEN amount ELSE -amount END"));
-
-    //     return Inertia::render('reports/EmployeeLedger', [
-    //         'company' => $company,
-    //         'employee' => $employee,
-    //         'user' => auth()->user(),
-    //         'entries' => $entries->map(function ($entry) {
-    //             return [
-    //                 'id' => $entry->id,
-    //                 'type' => $entry->type,
-    //                 'amount' => $entry->amount,
-    //                 'note' => $entry->note,
-    //                 'journal' => [
-    //                     'date' => $entry->journal->date,
-    //                     'voucher_no' => $entry->journal->voucher_no,
-    //                 ],
-    //             ];
-    //         }),
-    //         'from' => $request->from_date,
-    //         'to' => $request->to_date,
-    //         'opening_balance' => $openingBalance,
-    //         'user' => auth()->user(),
-    //     ]);
-    // }
+    
 
     public function employeeLedger(Request $request)
     {
@@ -177,48 +112,7 @@ class ReportController extends Controller
     }
 
 
-    // Stock Summary Report
-    // public function stockSummary(Request $request)
-    // {
-    //     $from = $request->input('from');
-    //     $to = $request->input('to');
-
-    //     // If filters are missing, show filter page
-    //     $godowns = Godown::when(!auth()->user()->hasRole('admin'), fn($q) => $q->where('created_by', auth()->id()))
-    //         ->select('id', 'name')->get();
-    //     $categories = Category::when(!auth()->user()->hasRole('admin'), fn($q) => $q->where('created_by', auth()->id()))
-    //         ->get(['id', 'name']); // ✅ FETCH CATEGORIES
-
-    //     $items = Item::when(!auth()->user()->hasRole('admin'), fn($q) => $q->where('created_by', auth()->id()))
-    //         ->get(['id', 'item_name']);
-    //     if (!$from || !$to) {
-    //         return Inertia::render('reports/StockSummaryFilter', [
-    //             'godowns' => $godowns,
-    //             'categories' => $categories,
-    //             'items' => $items, // ✅ Add this line
-    //         ]);
-    //     }
-    //     // dd(auth()->user()->hasRole('admin'), auth()->id());
-    //     $stocks = $this->getStockData($request);
-
-
-
-    //     $company = CompanySetting::where('created_by', auth()->id())->first();
-
-    //     return Inertia::render('reports/StockSummary', [
-    //         'items' => $items, // ✅ use pre-filtered variable here
-    //         'stocks' => $stocks,
-    //         'company' => $company,
-    //         'godowns' => $godowns,
-    //         'categories' => $categories,
-    //         'filters' => [
-    //             'from' => $from,
-    //             'to' => $to,
-    //             'godown_id' => $request->godown_id,
-    //         ]
-    //     ]);
-    // }
-
+    
     public function stockSummary(Request $request)
     {
         $from = $request->input('from');

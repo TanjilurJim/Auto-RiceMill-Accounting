@@ -20,22 +20,6 @@ use Illuminate\Support\Facades\DB;
 
 class EmployeeController extends Controller
 {
-    // public function index()
-    // {
-    //     // Fetch all employees with related data (department, designation, shift, reference_by)
-    //     $employees = Employee::query()
-    //         ->with('department', 'designation', 'shift', 'referenceBy')
-    //         ->when(!auth()->user()->hasRole('admin'), function ($query) {
-    //             $query->where('created_by', auth()->id());
-    //         })
-    //         ->get();
-
-    //     // Return Inertia view with employee data
-    //     return Inertia::render('employees/index', [
-    //         'employees' => $employees
-    //     ]);
-    // }
-
     public function index()
     {
         $employees = Employee::with('department', 'designation', 'shift', 'referenceBy')
@@ -53,33 +37,6 @@ class EmployeeController extends Controller
 
         return Inertia::render('employees/index', compact('employees'));
     }
-
-
-
-    // public function create()
-    // {
-    //     // Fetch all the required relations data (departments, designations, shifts, references)
-    //     $departments = Department::when(!auth()->user()->hasRole('admin'), function ($q) {
-    //         $q->where('created_by', auth()->id());
-    //     })->get();
-    //     $designations = Designation::when(!auth()->user()->hasRole('admin'), function ($q) {
-    //         $q->where('created_by', auth()->id());
-    //     })->get();
-    //     $shifts = Shift::when(!auth()->user()->hasRole('admin'), function ($q) {
-    //         $q->where('created_by', auth()->id());
-    //     })->get();
-    //     $references = Employee::when(!auth()->user()->hasRole('admin'), function ($q) {
-    //         $q->where('created_by', auth()->id());
-    //     })->get(); // Assuming employees can refer to other employees
-
-    //     // Return the create view
-    //     return Inertia::render('employees/create', [
-    //         'departments' => $departments,
-    //         'designations' => $designations,
-    //         'shifts' => $shifts,
-    //         'references' => $references,
-    //     ]);
-    // }
 
     public function create()
     {
@@ -115,6 +72,7 @@ class EmployeeController extends Controller
             'designation_id' => 'required|exists:designations,id',
             'shift_id' => 'required|exists:shifts,id',
             'reference_by' => 'nullable|exists:employees,id', // Optional: Employee who referred
+            
         ]);
 
         // Create a new employee
@@ -137,7 +95,7 @@ class EmployeeController extends Controller
                 'created_by' => auth()->id(),
             ]);
 
-            // 🌟 Auto-create Ledger for Employee
+            //  Auto-create Ledger for Employee
             $groupUnder = GroupUnder::where('name', 'Sundry Creditors')->firstOrFail();
             $nature     = Nature::where('name', 'Liabilities')->firstOrFail();
 
@@ -167,30 +125,42 @@ class EmployeeController extends Controller
                 'mark_for_user'       => false,
                 'created_by'          => auth()->id(),
             ]);
+
+            $assetUnder  = GroupUnder::where('name', 'Current Assets')->firstOrFail();
+            $assetNature = Nature::where('name', 'Assets')->firstOrFail();
+            $advanceGroup = AccountGroup::firstOrCreate(
+                ['name' => 'Employee Advances', 'created_by' => auth()->id()],
+                [
+                    'nature_id'      => $assetNature->id,
+                    'group_under_id' => $assetUnder->id,
+                    'description'    => 'Short-term advances to employees',
+                    'created_by' => auth()->id(),
+                ]
+            );
+
+            AccountLedger::firstOrCreate(
+                [
+                    'employee_id'         => $employee->id,
+                    'account_ledger_name' => $employee->name . ' - Advance',
+                    'ledger_type'         => 'employee_advance',
+                    'created_by'          => auth()->id(),
+                ],
+                [
+                    'opening_balance'  => 0,
+                    'debit_credit'     => 'debit',
+                    'status'           => 'active',
+                    'account_group_id' => $advanceGroup->id,
+                    'group_under_id'   => $assetUnder->id,
+                    'address'          => $employee->present_address,
+                    'phone_number'     => $employee->mobile ?? '0000000000',
+                    'email'            => $employee->email  ?? 'employee@example.com',
+                ]
+            );
         });
         // Redirect with a success message
         return redirect()->route('employees.index')->with('success', 'Employee created successfully.');
     }
 
-    // public function edit(Employee $employee)
-    // {
-    //     if (!auth()->user()->hasRole('admin') && $employee->created_by !== auth()->id()) {
-    //         abort(403, 'Unauthorized');
-    //     }
-
-    //     $departments = Department::all();
-    //     $designations = Designation::all();
-    //     $shifts = Shift::all();
-    //     $references = Employee::all();
-
-    //     return Inertia::render('employees/edit', [
-    //         'employee' => $employee,
-    //         'departments' => $departments,
-    //         'designations' => $designations,
-    //         'shifts' => $shifts,
-    //         'references' => $references,
-    //     ]);
-    // }
 
     public function edit(Employee $employee)
     {
