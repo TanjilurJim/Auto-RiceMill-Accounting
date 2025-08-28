@@ -6,6 +6,9 @@ use App\Models\User;
 use Spatie\Permission\Models\Role;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
+use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Password;
+use Illuminate\Support\Str;
 
 class UserController extends Controller
 {
@@ -130,21 +133,66 @@ class UserController extends Controller
 
     public function store(Request $request)
     {
+        $actor   = auth()->user();
+        $isAdmin = $actor->hasRole('admin');
+
+        // password is only required if actor wants to set it now (admin UI can send a reset link instead)
         $request->validate([
-            'name' => 'required|string|max:255',
-            'email' => 'required|email|unique:users,email',
-            'password' => 'required|min:6|confirmed',
-            'roles' => 'array'
+            'name'   => 'required|string|max:255',
+            'email'  => 'required|email|unique:users,email',
+            'roles'  => 'array',
+
+            // Flow toggles (admin can control; for non-admin we enforce defaults below)
+            'mark_verified'     => 'sometimes|boolean',
+            'send_invite'       => 'sometimes|boolean',
+            'set_password_now'  => 'sometimes|boolean',
+
+            // Required only when set_password_now is true
+            'password' => [$request->boolean('set_password_now') ? 'required' : 'nullable', 'min:6', 'confirmed'],
         ]);
+
+        // --- Role safety: non-admins cannot assign admin role
+        $roleIds = $request->input('roles', []);
+        if ($isAdmin) {
+            // admin can assign anything
+        } else {
+            $forbiddenRoleIds = Role::where('name', 'admin')->pluck('id')->all();
+            $roleIds = array_values(array_diff($roleIds, $forbiddenRoleIds));
+        }
+
+        // --- Flow policy (SaaS):
+        // Admin-created users: follow toggles provided.
+        // Non-admin-created users: auto-verify, always send invite, password set by user.
+        $markVerified   = $isAdmin ? $request->boolean('mark_verified', true) : true; // ← default TRUE for admins
+        $sendInvite     = $isAdmin ? $request->boolean('send_invite', true)   : true;
+        $setPasswordNow = $isAdmin ? $request->boolean('set_password_now', false) : false;
+
+        // If not setting password now, create with temp random (user will set via invite)
+        $rawPassword = $setPasswordNow
+            ? $request->input('password')
+            : Str::random(32);
 
         $user = \App\Models\User::create([
-            'name' => $request->name,
-            'email' => $request->email,
-            'password' => bcrypt($request->password),
-            'created_by' => auth()->id(), // ✅ set ownership
+            'name'       => $request->name,
+            'email'      => $request->email,
+            'password'   => Hash::make($rawPassword),
+            'created_by' => $actor->id, // ownership
         ]);
 
-        $user->syncRoles($request->roles ?? []);
+        $user->syncRoles($roleIds);
+
+        // Verification behavior
+        if ($markVerified) {
+            $user->forceFill(['email_verified_at' => now()])->save();
+        } else {
+            // Require verification for this account
+            $user->sendEmailVerificationNotification();
+        }
+
+        // Invite to set password (reset link). Works for verified or unverified users.
+        if ($sendInvite) {
+            Password::sendResetLink(['email' => $user->email]);
+        }
 
         return redirect()->route('users.index')->with('success', 'User created successfully.');
     }

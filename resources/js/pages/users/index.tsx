@@ -50,13 +50,20 @@ export default function UserIndex({ users, filter, search }: { users: Pagination
     }, [query, filter]);
 
     // 🔥 SweetAlert Delete Confirmation
-    const confirmDelete = (userId: number) => {
-        confirmDialog(
-            {}, () => {
-                router.delete(`/users/${userId}`);
+    const confirmDelete = (row: User) => {
+        confirmDialog({}, () => {
+            if (row.deleted_at) {
+                // FORCE DELETE (per your routes/users group)
+                router.delete(route('users.force-delete', row.id), { preserveScroll: true });
+            } else {
+                // SOFT DELETE
+                router.delete(route('users.destroy', row.id), { preserveScroll: true });
             }
-        )
+        });
+    };
 
+    const restoreUser = (id: number) => {
+        router.patch(route('users.restore', id), undefined, { preserveScroll: true });
     };
 
     const columns = [
@@ -67,8 +74,9 @@ export default function UserIndex({ users, filter, search }: { users: Pagination
             header: 'Status',
             accessor: (row: User) => (
                 <span
-                    className={`inline-block rounded px-2 py-0.5 text-xs font-medium ${row.status === 'active' ? 'bg-green-500 text-white' : 'bg-red-500 text-white'
-                        }`}
+                    className={`inline-block rounded px-2 py-0.5 text-xs font-medium ${
+                        row.status === 'active' ? 'bg-green-500 text-white' : 'bg-red-500 text-white'
+                    }`}
                 >
                     {row.status}
                 </span>
@@ -77,23 +85,20 @@ export default function UserIndex({ users, filter, search }: { users: Pagination
         },
         ...(authUser?.roles?.some((r: any) => r.name === 'admin')
             ? [
-                {
-                    header: 'Created By',
-                    accessor: (row: User) => row.created_by_user?.name || 'N/A',
-                    className: 'py-2 align-middle text-center',
-                },
-            ]
+                  {
+                      header: 'Created By',
+                      accessor: (row: User) => row.created_by_user?.name || 'N/A',
+                      className: 'py-2 align-middle text-center',
+                  },
+              ]
             : []),
         {
             header: 'Roles',
             accessor: (row: User) => (
-                <div className="flex justify-center items-center gap-1">
+                <div className="flex items-center justify-center gap-1">
                     {row.roles.length > 0 ? (
                         row.roles.map((role) => (
-                            <span
-                                key={role.id}
-                                className="inline-block rounded bg-blue-500 px-2 py-1 text-xs text-white"
-                            >
+                            <span key={role.id} className="inline-block rounded bg-blue-500 px-2 py-1 text-xs text-white">
                                 {role.name}
                             </span>
                         ))
@@ -112,19 +117,21 @@ export default function UserIndex({ users, filter, search }: { users: Pagination
                         <ActionButtons
                             printHref={`/users/${row.id}`}
                             editHref={`/users/${row.id}/edit`}
-                            onDelete={() => confirmDelete(row.id)}
+                            onDelete={() => confirmDelete(row)}
                             printText="View"
                             editText="Edit"
                             deleteText="Delete"
                         />
                     ) : (
-                        <ActionButtons
-                            editHref={`/users/${row.id}/restore`}
-                            onDelete={() => confirmDelete(row.id)}
-                            editText="Restore"
-                            deleteText="Force Delete"
-                            deleteClassName="bg-red-800 hover:bg-red-900"
-                        />
+                        <div className="flex gap-2">
+                            {/* Restore must be PATCH, not GET */}
+                            <button className="rounded bg-blue-600 px-3 py-1 text-white hover:bg-blue-700" onClick={() => restoreUser(row.id)}>
+                                Restore
+                            </button>
+                            <button className="rounded bg-red-800 px-3 py-1 text-white hover:bg-red-900" onClick={() => confirmDelete(row)}>
+                                Force Delete
+                            </button>
+                        </div>
                     )}
                 </div>
             ),
@@ -135,18 +142,18 @@ export default function UserIndex({ users, filter, search }: { users: Pagination
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
             <Head title="Users" />
-            <div className="bg-gray-100 p-6 h-full w-screen lg:w-full">
-                <div className="bg-white h-full rounded-lg p-6">
-
-                    <PageHeader title="Users" addLinkHref='users/create' addLinkText="+ Create User" />
+            <div className="h-full w-screen bg-gray-100 p-6 lg:w-full">
+                <div className="h-full rounded-lg bg-white p-6">
+                    <PageHeader title="Users" addLinkHref="users/create" addLinkText="+ Create User" />
 
                     <div className="mb-6 flex space-x-2">
                         {['all', 'active', 'inactive', 'trashed'].map((type) => (
                             <Link
                                 key={type}
                                 href={`?filter=${type}`}
-                                className={`rounded px-3 py-1 text-sm ${filter === type ? 'bg-blue-600 text-white' : 'border hover:bg-neutral-100 dark:hover:bg-neutral-800'
-                                    }`}
+                                className={`rounded px-3 py-1 text-sm ${
+                                    filter === type ? 'bg-blue-600 text-white' : 'border hover:bg-neutral-100 dark:hover:bg-neutral-800'
+                                }`}
                             >
                                 {type === 'all' ? 'All' : type === 'active' ? 'Active' : type === 'inactive' ? 'Inactive' : 'Trashed'}
                             </Link>
@@ -177,14 +184,8 @@ export default function UserIndex({ users, filter, search }: { users: Pagination
                         className="rounded bg-white p-4 shadow dark:bg-neutral-900"
                     />
 
-
                     {/* Pagination */}
-                    <Pagination
-                        links={users.links}
-                        currentPage={users.current_page}
-                        lastPage={users.last_page}
-                        total={users.total}
-                    />
+                    <Pagination links={users.links} currentPage={users.current_page} lastPage={users.last_page} total={users.total} />
                 </div>
             </div>
         </AppLayout>
