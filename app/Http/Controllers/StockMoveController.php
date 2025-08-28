@@ -16,18 +16,7 @@ class StockMoveController extends Controller
         ]);
     }
 
-    /* -------------------------------------------------
-     |  Payload the Vue/React page will send:
-     |  {
-     |    date: '2025-08-01',
-     |    godown_id: 3,
-     |    lines: [
-     |      { item_id: 12, lot_no: 'A-15',  type: 'in',  qty: 30, unit_cost: 48 },
-     |      { item_id: 12, lot_no: 'A-15',  type: 'out', qty:  5 },
-     |      { item_id: 20, lot_no: 'B-2',   type: 'in',  qty: 18 },
-     |    ]
-     |  }
-     * ------------------------------------------------*/
+    
     public function store(Request $req)
     {
         $req->validate([

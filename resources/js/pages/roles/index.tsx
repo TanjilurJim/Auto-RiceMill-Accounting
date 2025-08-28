@@ -6,7 +6,7 @@ import AppLayout from '@/layouts/app-layout';
 import { type BreadcrumbItem } from '@/types';
 import { Head, router } from '@inertiajs/react';
 import { Pencil, Trash2 } from 'lucide-react';
-
+import Pagination from '@/components/Pagination';
 interface Role {
     id: number;
     name: string;
@@ -83,6 +83,16 @@ export default function RoleIndex({ roles }: Props) {
                         pagination={roles}
                         noDataMessage="No roles found."
                         className="rounded bg-white p-4 shadow dark:bg-neutral-900"
+                    />
+
+                    <Pagination
+                    
+                    links = {roles.links}
+                    currentPage={roles.current_page}
+                    lastPage={Math.ceil(roles.total/roles.per_page)}
+                    total={roles.total}
+
+
                     />
                 </div>
             </div>

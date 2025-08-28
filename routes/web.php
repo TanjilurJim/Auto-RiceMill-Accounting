@@ -21,6 +21,8 @@ use App\Http\Controllers\PurchaseController;
 use App\Http\Controllers\SalesManController;
 use App\Http\Controllers\ContraAddController;
 use App\Http\Controllers\DashboardController;
+use App\Http\Controllers\AdminDashboardController;
+
 use App\Http\Controllers\PartyItemController;
 use App\Http\Controllers\StockMoveController;
 use App\Http\Controllers\DepartmentController;
@@ -54,7 +56,7 @@ use App\Http\Controllers\FinishedProductController;
 use App\Http\Controllers\PartyStockReportController;
 use App\Http\Controllers\PurchaseApprovalController;
 use App\Http\Controllers\ConversionVoucherController;
-
+use App\Http\Controllers\SmtpSettingController;
 use App\Http\Controllers\LedgerGroupReportController;
 
 
@@ -88,6 +90,12 @@ Route::get('/contacts', function () {
 Route::post('/logout', [AuthenticatedSessionController::class, 'destroy'])
     ->name('logout');
 
+Route::middleware(['auth','verified','role:admin'])->group(function () {
+    Route::get('/smtp', [SmtpSettingController::class, 'index'])->name('smtp.index');
+    Route::post('/smtp', [SmtpSettingController::class, 'store'])->name('smtp.store');
+    Route::post('/smtp/test', [SmtpSettingController::class, 'test'])->name('smtp.test');
+});
+
 
 Route::middleware(['auth', 'verified'])->group(function () {
 
@@ -97,26 +105,11 @@ Route::middleware(['auth', 'verified'])->group(function () {
     // })->name('dashboard');
     Route::get('dashboard', [DashboardController::class, 'index'])->name('dashboard');
 
-    // Users - requires permission: manage-users
-    // Route::middleware(['permission:manage-users'])->group(function () {
-    //     Route::resource('users', UserController::class);
-    //     Route::prefix('users')->name('users.')->group(function () {
-    //         Route::patch('/{id}/restore', [UserController::class, 'restore'])->name('restore');
-    //         Route::delete('/{id}/force-delete', [UserController::class, 'forceDelete'])->name('force-delete');
-    //     });
-    // });
+    Route::prefix('admin')->name('admin.')->middleware('role:admin')->group(function () {
+        Route::get('dashboard', [AdminDashboardController::class, 'index'])->name('dashboard');
+    });
 
-    // Roles - requires permission: manage-roles
-    // Route::middleware(['permission:manage-roles'])->group(function () {
-    //     Route::resource('roles', RoleController::class);
-    // });
-
-    // Permissions - requires permission: manage-permissions
-    // Route::middleware(['permission:manage-permissions'])->group(function () {
-    //     Route::resource('permissions', PermissionController::class);
-    // });
-
-    //users module.ability
+    
 
     Route::prefix('users')->name('users.')->group(function () {
         Route::middleware('permission:users.view')->get('/',              [UserController::class, 'index'])->name('index');

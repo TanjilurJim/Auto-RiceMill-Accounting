@@ -8,20 +8,7 @@ use Inertia\Inertia;
 
 class ShiftController extends Controller
 {
-    // public function index()
-    // {
-    //     // Fetch all shifts with their creator
-    //     $shifts = Shift::with('creator')
-    //         ->when(!auth()->user()->hasRole('admin'), function ($query) {
-    //             $query->where('created_by', auth()->id());
-    //         })
-    //         ->get();
-
-    //     // Return the index view with data
-    //     return Inertia::render('shifts/index', [
-    //         'shifts' => $shifts
-    //     ]);
-    // }
+    
 
     public function index()
     {
@@ -67,13 +54,7 @@ class ShiftController extends Controller
         return redirect()->route('shifts.index')->with('success', 'Shift created successfully.');
     }
 
-    // public function edit(Shift $shift)
-    // {
-    //     // Return the edit view for the given shift
-    //     return Inertia::render('shifts/edit', [
-    //         'shift' => $shift
-    //     ]);
-    // }
+   
 
     public function edit(Shift $shift)
     {

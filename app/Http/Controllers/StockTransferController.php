@@ -109,28 +109,7 @@ class StockTransferController extends Controller
         return Inertia::render('StockTransfer/Show', ['stockTransfer' => $transfer]);
     }
 
-    // public function edit($id)
-    // {
-    //     $userId = auth()->id();
-    //     $isAdmin = auth()->user()->hasRole('admin');
-
-    //     $transfer = StockTransfer::with(['items.item'])
-    //         ->when(!$isAdmin, fn($q) => $q->where('created_by', $userId))
-    //         ->findOrFail($id);
-
-    //     return Inertia::render('StockTransfer/Edit', [
-    //         'stockTransfer' => $transfer,
-    //         'godowns' => Godown::when(!$isAdmin, fn($q) => $q->where('created_by', $userId))->get(),
-
-    //         // 🟡 Only items that the user owns
-    //         'items' => \App\Models\Item::when(!$isAdmin, fn($q) => $q->where('created_by', $userId))->get(),
-
-    //         // 🟩 All stocks grouped by godown so frontend can filter easily
-    //         'stocks' => \App\Models\Stock::with('item')
-    //             ->when(!$isAdmin, fn($q) => $q->where('created_by', $userId))
-    //             ->get(),
-    //     ]);
-    // }
+    
 
     public function edit($id)
     {
@@ -231,11 +210,7 @@ class StockTransferController extends Controller
             'products.*.rate' => 'required|numeric|min:0.01',
         ]);
 
-        // $stockTransfer = StockTransfer::with('items')->findOrFail($id);
-
-        // if ($stockTransfer->created_by !== auth()->id() && !auth()->user()->hasRole('admin')) {
-        //     abort(403);
-        // }
+        
 
         $stockTransfer = StockTransfer::with('items')
             ->when($ids !== null && !empty($ids), fn($q) => $q->whereIn('created_by', $ids))
@@ -308,34 +283,7 @@ class StockTransferController extends Controller
     }
 
 
-    /*--------------------------------------------------------------
-    |  DELETE
-    --------------------------------------------------------------*/
-    // public function destroy(StockTransfer $stockTransfer)
-    // {
-    //     if ($stockTransfer->created_by !== auth()->id()) {
-    //         abort(403);
-    //     }
-
-    //     foreach ($stockTransfer->items as $line) {
-    //         Stock::where([
-    //             'item_id'   => $line->item_id,
-    //             'godown_id' => $stockTransfer->from_godown_id,
-    //             'created_by' => auth()->id(),
-    //         ])->increment('qty', $line->quantity);
-
-    //         Stock::where([
-    //             'item_id'   => $line->item_id,
-    //             'godown_id' => $stockTransfer->to_godown_id,
-    //             'created_by' => auth()->id(),
-    //         ])->decrement('qty', $line->quantity);
-    //     }
-
-    //     $stockTransfer->items()->delete();
-    //     $stockTransfer->delete();
-
-    //     return back()->with('success', 'Stock transfer deleted.');
-    // }
+   
 
     public function destroy(StockTransfer $stockTransfer)
     {

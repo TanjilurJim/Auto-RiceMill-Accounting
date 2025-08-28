@@ -9,7 +9,7 @@ import {
     Banknote,
     BanknoteIcon,
     BarChart2,
-    BarChartBig,
+    BarChartBig, MailCheck,
     Boxes,
     Building2,
     CalendarClock,
@@ -70,6 +70,13 @@ export function sectionColor(title: string): string {
 }
 
 const mainNavItems: NavItem[] = [
+
+    {
+        title: 'Super Admin Dashboard',
+        href: '/admin/dashboard',
+        icon: LayoutGrid,
+        roles: ['admin'],
+    },
     {
         title: 'Dashboard',
         href: '/dashboard',
@@ -480,7 +487,8 @@ const mainNavItems: NavItem[] = [
     {
         title: 'Permissions',
         href: '/permissions',
-        icon: Lock, // you can change this icon to something like a shield or lock if you prefer
+        icon: Lock, 
+        roles: ['admin'],// you can change this icon to something like a shield or lock if you prefer
     },
     {
         title: 'Roles',
@@ -492,6 +500,12 @@ const mainNavItems: NavItem[] = [
         title: 'Users',
         href: '/users',
         icon: Users, // 👈 This icon works well for users
+    },
+    {
+        title: 'SMTP Settings',
+        href: '/smtp',
+        icon: MailCheck, 
+        roles : ['admin']
     },
 ];
 

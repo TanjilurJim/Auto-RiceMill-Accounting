@@ -63,4 +63,16 @@ class User extends Authenticatable
     {
         return get_top_parent_id($this);
     }
+
+    public function createdBy()
+    {
+        // If you don't want tenant/global scopes to affect this parent lookup, add ->withoutGlobalScopes()
+        return $this->belongsTo(User::class, 'created_by');
+    }
+
+    // the users this user created (children)
+    public function children()
+    {
+        return $this->hasMany(User::class, 'created_by');
+    }
 }
