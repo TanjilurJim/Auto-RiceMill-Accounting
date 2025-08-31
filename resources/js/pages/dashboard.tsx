@@ -6,6 +6,7 @@ import { Head, usePage, Link } from '@inertiajs/react';
 import { ArrowRight, Building, CheckCircle2, CircleDollarSign, ReceiptText, RotateCcw, ShoppingCart, Wallet } from 'lucide-react';
 import { useState } from 'react';
 import { Bar, BarChart, Cell, Legend, Line, LineChart, Pie, PieChart, ResponsiveContainer, Sector, Tooltip, XAxis, YAxis } from 'recharts';
+import TrialBanner from '@/components/TrialBanner';
 /* ─────────────────────────────── Charts data ────────────────────────── */
 const monthly = [
     { month: 'Jan', sales: 120, purchases: 95 },
@@ -92,8 +93,11 @@ export default function Dashboard() {
     return (
         <AppLayout breadcrumbs={[{ title: 'Dashboard', href: '/dashboard' }]}>
             <Head title="Dashboard" />
+            
+            <TrialBanner />
 
             <div className="m-2 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+                
                 {kpis.map(({ title, value, icon: Icon, color, bg }) => (
                     <Card
                         key={title}
@@ -129,6 +133,7 @@ export default function Dashboard() {
                         <Building className="text-muted-foreground h-6 w-6" />
                     </div>
                 </CardHeader>
+                
 
                 {/* The content area no longer has padding, the list items manage it themselves */}
                 <CardContent className="p-0">

@@ -41,6 +41,22 @@ class HandleInertiaRequests extends Middleware
         [$message, $author] = str(Inspiring::quotes()->random())->explode('-');
         $user = $request->user();
 
+        $trial = null;
+        if ($user) {
+            $ends = $user->trial_ends_at;
+            $now  = now();
+
+            $minutesLeft = $ends ? $now->diffInMinutes($ends, false) : null; // negative if expired
+            $trial = [
+                'ends_at'         => $ends?->toIso8601String(),
+                'minutes_left'    => $minutesLeft,
+                'days_left'       => $minutesLeft !== null ? ceil(max(0, $minutesLeft) / 1440) : null,
+                'expiring_soon'   => $minutesLeft !== null && $minutesLeft <= (2 * 24 * 60) && $minutesLeft > 0, // ≤ 2 days
+                'expired'         => $minutesLeft !== null && $minutesLeft <= 0,
+                'inactive'        => $user->status !== 'active',
+            ];
+        }
+
         return [
             ...parent::share($request),
             'name' => config('app.name'),
@@ -51,6 +67,7 @@ class HandleInertiaRequests extends Middleware
                 'isAdmin'   => $user?->hasRole('admin') ?? false,
                 'roles'     => $user ? $user->getRoleNames() : [],     // ["admin","manager",...]
                 'verified'  => $user?->hasVerifiedEmail() ?? false,
+                'trial'   => $trial,
             ],
             'ziggy' => fn(): array => [
                 ...(new Ziggy)->toArray(),

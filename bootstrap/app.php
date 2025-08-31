@@ -6,6 +6,7 @@ use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
 use Illuminate\Http\Middleware\AddLinkHeadersForPreloadedAssets;
+use Illuminate\Console\Scheduling\Schedule;
 
 return Application::configure(basePath: dirname(__DIR__))
     ->withRouting(
@@ -28,8 +29,15 @@ return Application::configure(basePath: dirname(__DIR__))
         ]);
     })
     ->withProviders([
-        App\Providers\BroadcastServiceProvider::class,  // 👈 ADD THIS
+        App\Providers\BroadcastServiceProvider::class,  
     ])
+    ->withSchedule(function (Schedule $schedule) {
+        // runs hourly
+        // $schedule->command('users:deactivate-expired-trials')->hourly();
+
+        // For testing, you can drop to every minute:
+        $schedule->command('users:deactivate-expired-trials')->everyMinute();
+    })
     ->withExceptions(function (Exceptions $exceptions) {
         //
     })->create();
