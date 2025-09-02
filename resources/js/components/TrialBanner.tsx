@@ -51,7 +51,11 @@ function humanLabel(p: ReturnType<typeof formatParts>) {
 }
 
 export default function TrialBanner() {
-  const { auth } = usePage().props as any;
+
+  const { auth } = (usePage().props as any) ?? {};
+  const roles: string[] = auth?.roles ?? [];
+  const isAdmin = roles.some((r) => ['admin', 'Super Admin'].includes(r));
+  if (isAdmin) return null; 
   const trial = (auth?.trial || null) as TrialInfo | null;
 
   if (!trial) return null;

@@ -7,6 +7,7 @@ use App\Models\PartyStockMove;
 use App\Models\PartyJobStock;
 use App\Models\AccountLedger;
 use App\Models\Godown;
+use App\Events\DryerJobUpdated;
 use App\Models\Unit;
 use Illuminate\Http\Request;
 use App\Models\CrushingJob;
@@ -121,9 +122,17 @@ class PartyStockAdjustmentController extends Controller
             ->value('id');
 
         $tenantId = auth()->user()->tenant_id;
+        $creatorId = auth()->id();
+
+
+
+
+
 
         $setting = CompanySetting::firstOrCreate(['created_by' => $tenantId], [
-            'company_name' => null,
+            'company_name' => config('app.name', 'My Company'),
+            'created_by'   => $creatorId,
+
         ]);
         $costingPresets = data_get($setting, 'costings.items', []);
 
@@ -523,6 +532,16 @@ class PartyStockAdjustmentController extends Controller
             return $job;
         });
 
+        event(new DryerJobUpdated(
+            tenantId: (int)auth()->user()->tenant_id,  // adapt if needed
+            payload: [
+                'job_id'    => $job->id,
+                'dryer_id'  => (int)$job->dryer_id,
+                'status'    => 'started',
+                'started_at' => $job->started_at?->toISOString(),
+            ]
+        ));
+
         return redirect()
             ->route('crushing.jobs.index')
             ->with('success', 'Dryer started.')
@@ -540,6 +559,16 @@ class PartyStockAdjustmentController extends Controller
             'status'     => 'stopped',
             'stopped_at' => Carbon::now(),
         ]);
+
+        event(new DryerJobUpdated(
+            tenantId: (int)auth()->user()->tenant_id,  // adapt if needed
+            payload: [
+                'job_id'    => $job->id,
+                'dryer_id'  => (int)$job->dryer_id,
+                'status'    => 'stopped',
+                'stopped_at' => $job->stopped_at?->toISOString(),
+            ]
+        ));
 
         // Redirect to convert form prefilled from this job
         return redirect()

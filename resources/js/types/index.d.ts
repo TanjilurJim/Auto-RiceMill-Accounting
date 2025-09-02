@@ -1,5 +1,6 @@
 import { LucideIcon } from 'lucide-react';
 import type { Config } from 'ziggy-js';
+import { Link } from '@inertiajs/react';
 
 export interface Auth {
     user: User;
@@ -8,6 +9,12 @@ export interface Auth {
 export interface BreadcrumbItem {
     title: string;
     href: string;
+}
+
+interface BreadcrumbProps {
+  items: BreadcrumbItem[];
+  companyLogo?: string;
+  companyName?: string;
 }
 
 export interface NavGroup {
@@ -22,6 +29,7 @@ export interface NavItem {
     isActive?: boolean;
     roles?: string[]; // ✅ role-based visibility
     children?: NavItem[]; // ✅ nested sidebar
+    aliases?: string[];
 
     
 }

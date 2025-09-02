@@ -1,15 +1,15 @@
 import { NavFooter } from '@/components/nav-footer';
 import { NavMain } from '@/components/nav-main';
 import { NavUser } from '@/components/nav-user';
-import { useState, useEffect } from 'react'; 
 import { Sidebar, SidebarContent, SidebarFooter, SidebarHeader, SidebarMenu, SidebarMenuButton, SidebarMenuItem } from '@/components/ui/sidebar';
 import type { NavItem } from '@/types';
 import { Link, usePage } from '@inertiajs/react';
 import {
     Banknote,
+    Phone,
     BanknoteIcon,
     BarChart2,
-    BarChartBig, MailCheck,
+    BarChartBig,
     Boxes,
     Building2,
     CalendarClock,
@@ -26,6 +26,7 @@ import {
     Layers,
     LayoutGrid,
     Lock,
+    MailCheck,
     Notebook,
     Package,
     ReceiptText,
@@ -43,6 +44,7 @@ import {
     Warehouse,
     Workflow,
 } from 'lucide-react';
+import { useEffect, useState } from 'react';
 import { FiAward, FiClock, FiHome, FiSettings, FiUsers } from 'react-icons/fi';
 import AppLogo from './app-logo';
 
@@ -70,7 +72,6 @@ export function sectionColor(title: string): string {
 }
 
 const mainNavItems: NavItem[] = [
-
     {
         title: 'Super Admin Dashboard',
         href: '/admin/dashboard',
@@ -148,13 +149,13 @@ const mainNavItems: NavItem[] = [
         group: true, // Add group marker
         children: [
             {
-                title: 'Purchases',
+                title: 'Purchases-notification',
                 icon: ShoppingCart,
                 group: true, // Add group marker
                 children: [
                     { title: 'Sub', href: '/purchases/inbox/sub', icon: ReceiptText },
                     { title: 'Responsible', href: '/purchases/inbox/resp', icon: ReceiptText },
-                    { title: 'Approve-Reject Log', href: route('purchases.approvals'), icon: History },
+                    { title: 'Purcchase Approve-Reject Log', href: '/approvals', icon: History },
                 ],
             },
             {
@@ -164,7 +165,7 @@ const mainNavItems: NavItem[] = [
                 children: [
                     { title: 'Sub', href: '/sales/inbox/sub', icon: ReceiptText },
                     { title: 'Responsible', href: '/sales/inbox/resp', icon: ReceiptText },
-                    { title: 'Approve-Reject Log', href: '/sales/approvals', icon: History },
+                    { title: 'Sale Approve-Reject Log', href: '/sales/approvals', icon: History },
                 ],
             },
         ],
@@ -428,13 +429,13 @@ const mainNavItems: NavItem[] = [
                 href: '/party-stock/company/convert-list',
                 icon: FileText,
             },
-            
+
             {
                 title: 'ক্রাশিং জবসমূহ তালিকা',
                 href: '/party-stock/crushing/jobs',
                 icon: FileText,
             },
-           
+
             {
                 title: 'ক্রাশিং ভাউচারসমূহ',
                 href: '/party-stock/rent-voucher/',
@@ -487,8 +488,8 @@ const mainNavItems: NavItem[] = [
     {
         title: 'Permissions',
         href: '/permissions',
-        icon: Lock, 
-        roles: ['admin'],// you can change this icon to something like a shield or lock if you prefer
+        icon: Lock,
+        roles: ['admin'], // you can change this icon to something like a shield or lock if you prefer
     },
     {
         title: 'Roles',
@@ -504,8 +505,8 @@ const mainNavItems: NavItem[] = [
     {
         title: 'SMTP Settings',
         href: '/smtp',
-        icon: MailCheck, 
-        roles : ['admin']
+        icon: MailCheck,
+        roles: ['admin'],
     },
 ];
 
@@ -520,6 +521,12 @@ const footerNavItems: NavItem[] = [
     //     href: 'https://laravel.com/docs/starter-kits',
     //     icon: BookOpen,
     // },
+    {
+    
+        title: 'Support: 01744333888',
+        href: 'https://wa.me/8801744333888',
+        icon: Phone,
+    },
 ];
 
 // Recursively filter nav items based on roles
@@ -546,9 +553,10 @@ export function AppSidebar() {
     useEffect(() => {
         if (!userId || !window.Echo) return;
 
-        window.Echo.private(`approvals.${userId}`).listen('ApprovalCountersUpdated', (e: any) => setCounters(e.counters));
+        const channel = window.Echo.private(`approvals.${userId}`);
+        channel.listen('ApprovalCountersUpdated', (e: any) => setCounters(e.counters));
 
-        return () => window.Echo.leave(`private-approvals.${userId}`);
+        return () => channel.stopListening('ApprovalCountersUpdated').unsubscribe();
     }, [userId]);
 
     const filteredNavItems = filterNavItems(mainNavItems, roles);
@@ -577,7 +585,7 @@ export function AppSidebar() {
             {/* ---------- Footer ---------- */}
             <SidebarFooter>
                 <NavFooter items={footerNavItems} className="mt-auto" />
-                
+
                 <NavUser />
             </SidebarFooter>
         </Sidebar>

@@ -11,24 +11,32 @@ class GodownController extends Controller
 {
 
 
-    public function index()
+    public function index(Request $request)
     {
-        $user = auth()->user();
+        $user   = $request->user();
+        $search = trim((string) $request->query('search', ''));
 
-        if ($user->hasRole('admin')) {
-            $godowns = Godown::with('creator')->orderBy('id', 'desc')->paginate(10);
-        } else {
+        $query = \App\Models\Godown::with('creator')
+            ->orderByDesc('id');
+
+        if (! $user->hasRole('admin')) {
             $ids = godown_scope_ids();
-            $godowns = Godown::with('creator')
-                ->whereIn('created_by', $ids)
-                ->orderBy('id', 'desc')
-                ->paginate(10)
-                // ->withQueryString()
-            ;
+            $query->whereIn('created_by', $ids);
         }
 
+        if ($search !== '') {
+            $query->where(function ($q) use ($search) {
+                $q->where('name', 'like', "%{$search}%")
+                    ->orWhere('godown_code', 'like', "%{$search}%")
+                    ->orWhere('address', 'like', "%{$search}%"); // if you have this column
+            });
+        }
+
+        $godowns = $query->paginate(10)->withQueryString();
+
         return Inertia::render('godowns/index', [
-            'godowns' => $godowns
+            'godowns' => $godowns,
+            'filters' => ['search' => $search], // optional: handy for initializing inputs
         ]);
     }
 
@@ -90,7 +98,7 @@ class GodownController extends Controller
             'godown'        => $godown,
             'khamalCount'   => $godown->khamals->count(),   // 🆕
             // Or send full collection if you need names/capacity:
-            'khamals'    => $godown->khamals->map->only(['id','khamal_no','capacity_ton']),
+            'khamals'    => $godown->khamals->map->only(['id', 'khamal_no', 'capacity_ton']),
         ]);
     }
 

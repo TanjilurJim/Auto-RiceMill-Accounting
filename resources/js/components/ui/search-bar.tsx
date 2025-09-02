@@ -1,40 +1,48 @@
-// components/ui/search-bar.tsx
-
 import { router } from '@inertiajs/react';
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 
-interface SearchBarProps {
-    endpoint: string;
-    searchQuery: string;
-    filter?: string;
-    placeholder?: string;
-}
+export function SearchBar({
+  endpoint,
+  placeholder,
+  only = ['godowns'],                  // 👈 defaults for this page
+}: {
+  endpoint: string;
+  placeholder?: string;
+  only?: string[];
+}) {
+  const initial = useMemo(
+    () => new URLSearchParams(window.location.search).get('search') ?? '',
+    []
+  );
+  const [q, setQ] = useState(initial);
+  const first = useRef(true);
 
-export function SearchBar({ endpoint, searchQuery = '', filter, placeholder = "Search..." }: SearchBarProps) {
-    const [query, setQuery] = useState(searchQuery);
+  useEffect(() => {
+    if (first.current) {               // ✅ don’t auto-request on first mount
+      first.current = false;
+      return;
+    }
+    const id = setTimeout(() => {
+      router.get(
+        endpoint,
+        { search: q, page: 1 },        // ✅ reset to page 1 on new search
+        {
+          preserveState: true,
+          preserveScroll: true,
+          replace: true,
+          only,                        // ✅ fetch just the required prop
+        }
+      );
+    }, 300); // small debounce
+    return () => clearTimeout(id);
+  }, [q, endpoint, only]);
 
-    useEffect(() => {
-        const timeout = setTimeout(() => {
-            router.get(endpoint, { search: query, filter }, { preserveState: true, replace: true });
-        }, 300);
-
-        return () => clearTimeout(timeout);
-    }, [query, filter]);
-
-    return (
-        <div className="mb-4 flex items-center gap-2">
-            <input
-                type="text"
-                value={query}
-                onChange={(e) => setQuery(e.target.value)}
-                placeholder={placeholder}
-                className="w-64 rounded border px-3 py-1 dark:border-neutral-700 dark:bg-neutral-800"
-            />
-            {query && (
-                <button type="button" onClick={() => setQuery('')} className="text-sm text-red-600 hover:underline">
-                    Clear
-                </button>
-            )}
-        </div>
-    );
+  return (
+    <input
+      value={q}
+      onChange={(e) => setQ(e.target.value)}
+      placeholder={placeholder}
+      className="w-full rounded border px-3 py-2"
+    />
+  );
 }

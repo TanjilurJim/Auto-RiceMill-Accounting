@@ -83,6 +83,7 @@
   color utility to any element that depends on these defaults.
 */
 @layer base {
+
     *,
     ::after,
     ::before,
@@ -252,42 +253,143 @@
     body {
         @apply bg-background text-foreground;
     }
+
 }
+
 @layer utilities {
-  .btn-green {
-    @apply inline-flex items-center justify-center rounded-md bg-green-600 px-4 py-2 text-sm font-semibold text-white shadow-sm transition-colors hover:bg-green-700 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-green-600;
-  }
-  .btn-red {
-    @apply inline-flex items-center justify-center rounded-md bg-red-600 px-4 py-2 text-sm font-semibold text-white shadow-sm transition-colors hover:bg-red-700 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-red-600;
-  }
-  .btn-gray {
-    @apply inline-flex items-center justify-center rounded-md bg-white px-4 py-2 text-sm font-semibold text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 transition-colors hover:bg-gray-50 dark:bg-neutral-700 dark:text-white dark:ring-neutral-600 dark:hover:bg-neutral-600;
-  }
-  .input {
-    @apply block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-sky-600 sm:text-sm sm:leading-6 dark:bg-neutral-800 dark:text-white dark:ring-neutral-600 dark:focus:ring-sky-500;
-  }
+    .btn-green {
+        @apply inline-flex items-center justify-center rounded-md bg-green-600 px-4 py-2 text-sm font-semibold text-white shadow-sm transition-colors;
+    }
+
+    .btn-red {
+        @apply inline-flex items-center justify-center rounded-md bg-red-600 px-4 py-2 text-sm font-semibold text-white shadow-sm transition-colors;
+    }
+
+    .btn-gray {
+        @apply inline-flex items-center justify-center rounded-md bg-white px-4 py-2 text-sm font-semibold text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 transition-colors;
+    }
+
+    /* IMPORTANT: no variants here */
+    .input {
+        @apply block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300;
+    }
+}
+
+
+
+@layer base {
+
+    /* Buttons */
+    .btn-green:hover {
+        @apply bg-green-700;
+    }
+
+    .btn-green:focus-visible {
+        @apply outline outline-2 outline-offset-2 outline-green-600;
+    }
+
+    .btn-red:hover {
+        @apply bg-red-700;
+    }
+
+    .btn-red:focus-visible {
+        @apply outline outline-2 outline-offset-2 outline-red-600;
+    }
+
+    .btn-gray:hover {
+        @apply bg-gray-50;
+    }
+
+    .dark .btn-gray {
+        @apply bg-neutral-700 text-white ring-neutral-600;
+    }
+
+    .dark .btn-gray:hover {
+        @apply bg-neutral-600;
+    }
+
+    /* Inputs */
+    .input:focus {
+        @apply ring-2 ring-inset ring-sky-600;
+    }
+
+    .input::placeholder {
+        @apply text-gray-400;
+    }
+
+    .dark .input {
+        @apply bg-neutral-800 text-white ring-neutral-600;
+    }
+
+    .dark .input:focus {
+        @apply ring-sky-500;
+    }
+
+    .dark .input::placeholder {
+        @apply text-neutral-400;
+    }
+}
+
+/* Put dark-mode overrides in a non-apply way (base layer works well) */
+@layer base {
+    .dark .btn-gray {
+        @apply bg-neutral-700 text-white ring-neutral-600;
+    }
+
+    .dark .btn-gray:hover {
+        @apply bg-neutral-600;
+    }
+
+    .dark .input {
+        @apply bg-neutral-800 text-white ring-neutral-600;
+    }
+
+    .dark .input:focus {
+        @apply ring-sky-500;
+    }
+
+    select {
+        color: var(--foreground);
+        background-color: var(--input);
+        border-color: var(--input);
+        /* 👇 key line: lets UA render popup in dark when .dark is on */
+        color-scheme: light dark;
+    }
+
+    /* Popup list item colors (Chromium/Firefox respect this) */
+    select option {
+        background-color: var(--popover);
+        color: var(--popover-foreground);
+    }
+
+    /* Optional: reduce OS forced-colors overriding your palette */
+    @media (forced-colors: active) {
+        select, option {
+            forced-color-adjust: none;
+        }
+    }
 }
 
 @media print {
     .no-print {
-      display: none !important;
+        display: none !important;
     }
 
     body {
-      background: white;
-      color: black;
+        background: white;
+        color: black;
     }
 
     table {
-      border-collapse: collapse;
-      width: 100%;
+        border-collapse: collapse;
+        width: 100%;
     }
 
     th, td {
-      border: 1px solid #333;
-      padding: 4px;
+        border: 1px solid #333;
+        padding: 4px;
     }
-  }
+}
 
 @theme inline {
     --radius-sm:
@@ -364,15 +466,14 @@
 }
 
 @layer base {
-  * {
-    @apply border-border outline-ring/50;
+    * {
+        @apply border-border outline-ring/50;
 
     }
-  body {
-    @apply bg-background text-foreground;
+
+    body {
+        @apply bg-background text-foreground;
 
     }
 
 }
-
-  

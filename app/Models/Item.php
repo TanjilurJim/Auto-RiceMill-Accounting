@@ -71,6 +71,8 @@ class Item extends Model
     {
         return $this->hasMany(\App\Models\Stock::class, 'item_id');
     }
+
+    
     public function khamal()
     {
         return $this->belongsTo(Khamal::class);

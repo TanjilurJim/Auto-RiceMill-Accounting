@@ -38,6 +38,19 @@ class CompanySetting extends Model
         'costings'  => 'array',
     ];
 
+    public static function booted(){
+
+        static::creating(function (CompanySetting $m){
+
+            if (empty($m->created_by)) {
+                // prefer the logged-in user; fall back to your top-parent helper if you use one
+                $m->created_by = auth()->id() ?? (function_exists('get_top_parent_id') ? get_top_parent_id() : null);
+            }
+
+        });
+
+    }
+
     public function getLogoUrlAttribute(): ?string
     {
         return $this->logo_path

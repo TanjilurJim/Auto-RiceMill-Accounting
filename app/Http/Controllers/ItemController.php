@@ -21,52 +21,52 @@ class ItemController extends Controller
     /**
      * Display a listing of the resource.
      */
-    // public function index()
-    // {
-    //     $userId = auth()->id();
 
-    //     $items = Item::with(['category', 'unit', 'godown', 'creator'])
-    //         ->where('created_by', $userId)
-    //         ->withSum(['stocks as current_stock' => function ($q) use ($userId) {
-    //             $q->where('created_by', $userId);
-    //         }], 'qty')
-    //         ->orderBy('id', 'desc')
-    //         ->paginate(10);
-
-    //     return Inertia::render('items/index', [
-    //         'items' => $items,
-    //     ]);
-    // }
     public function index()
     {
         $user = auth()->user();
 
-
         if ($user->hasRole('admin')) {
             $items = Item::with([
-                'category',
-                'unit',
-                'godown',
-                'creator',
-                'stocks.lot' => fn($q) => $q->where('qty', '>', 0) // ✅ only active lots
+                'category:id,name',
+                'unit:id,name',
+                'godown:id,name',
+                'creator:id,name',
+
+                // ✅ filter on stocks.qty (NOT on lots)
+                'stocks' => function ($q) {
+                    $q->where('qty', '>', 0)
+                        ->with('lot:id,lot_no'); // just eager-load the lot
+                },
             ])
-                ->withSum('stocks as current_stock', 'qty')
-                ->orderBy('id', 'desc')
+                // optional: keep the sum aligned with the same filter
+                ->withSum(['stocks as current_stock' => function ($q) {
+                    $q->where('qty', '>', 0);
+                }], 'qty')
+                ->orderByDesc('id')
                 ->paginate(10);
         } else {
             $ids = godown_scope_ids();
+
             $items = Item::with([
-                'category',
-                'unit',
-                'godown',
-                'creator',
-                'stocks' => fn($q) => $q->where('qty', '>', 0)->with('lot')
+                'category:id,name',
+                'unit:id,name',
+                'godown:id,name',
+                'creator:id,name',
+
+                // ✅ same idea for non-admin + your scope filter
+                'stocks' => function ($q) use ($ids) {
+                    $q->where('qty', '>', 0)
+                        ->whereIn('created_by', $ids) // or ->whereIn('godown_id', $ids) if that’s the intent
+                        ->with('lot:id,lot_no');
+                },
             ])
                 ->whereIn('created_by', $ids)
                 ->withSum(['stocks as current_stock' => function ($q) use ($ids) {
-                    $q->whereIn('created_by', $ids);
+                    $q->where('qty', '>', 0)
+                        ->whereIn('created_by', $ids); // match the same scope as above
                 }], 'qty')
-                ->orderBy('id', 'desc')
+                ->orderByDesc('id')
                 ->paginate(10);
         }
 

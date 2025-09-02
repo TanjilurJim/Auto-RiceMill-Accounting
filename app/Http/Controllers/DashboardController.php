@@ -15,6 +15,7 @@ use App\Models\PaymentAdd;
 use App\Models\SalesOrder;
 use App\Models\ReceivedAdd;
 use App\Models\SalesReturn;
+use App\Models\CrushingJob;
 use App\Models\WorkingOrder;
 use Illuminate\Http\Request;
 use App\Models\PurchaseReturn;
@@ -61,6 +62,30 @@ class DashboardController extends Controller
         $completedWorkOrders = WorkingOrder::when(!$isAdmin, function ($q) use ($userIds) {
             $q->whereIn('created_by', $userIds);
         })->where('production_status', 'completed')->count();
+
+
+        // ── Running dryers for live countdown panel ─────────────────────────
+        $runningDryers = CrushingJob::with(['dryer:id,dryer_name,batch_time'])
+            ->when(!$isAdmin, fn($q) => $q->whereIn('created_by', $userIds))
+            ->where('status', 'running')
+            ->orderByDesc('started_at')
+            ->limit(10)
+            ->get()
+            ->map(function (CrushingJob $j) {
+                $batchMinutes = (int) ($j->dryer?->batch_time ?? 0);
+                $endsAt = $j->started_at ? $j->started_at->copy()->addMinutes($batchMinutes) : null;
+
+                return [
+                    'id'           => $j->id,
+                    'dryer'        => $j->dryer?->dryer_name ?? '—',
+                    'batchMinutes' => $batchMinutes,              // from dryers.batch_time (minutes)
+                    'startedAt'    => optional($j->started_at)->toIso8601String(),
+                    'endsAt'       => optional($endsAt)->toIso8601String(),
+                    'capacityKg'   => (float) ($j->dryer_capacity ?? 0),
+                    'loadedKg'     => (float) ($j->total_loaded_qty ?? 0),
+                    'refNo'        => $j->ref_no,
+                ];
+            });
 
 
         $dueExpr = '(sales.grand_total + (
@@ -139,6 +164,8 @@ class DashboardController extends Controller
             'clearedDuesCount'   => $totalClearedDues,
             'purchasePayableTotal' => $totalPurchaseDue,
             'topPurchaseSuppliers' => $topPayables,
+
+            'runningDryers'         => $runningDryers,
         ]);
     }
 }
