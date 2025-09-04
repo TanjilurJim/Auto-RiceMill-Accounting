@@ -66,7 +66,7 @@ export function AppSidebarHeader({ breadcrumbs = [] }: { breadcrumbs?: Breadcrum
                         <img
                             src={company.logo_url}
                             alt={company?.name ?? 'Company'}
-                            className="h-12 w-auto max-w-[140px] object-contain sm:max-w-[160px] md:max-w-[180px]"
+                             className="block h-12 w-12 sm:w-[150px] md:w-[180px] shrink-0"
                         />
                     </Link>
                 ) : (

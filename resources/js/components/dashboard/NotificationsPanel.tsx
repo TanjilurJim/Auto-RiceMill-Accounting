@@ -47,7 +47,7 @@ export function NotificationsPanel({ expiring = [] as ExpiringUser[] }) {
   }, [expiring, now]);
 
   return (
-    <Card className="shadow-sm">
+    <Card className="shadow-sm p">
       <CardHeader className="flex flex-row items-center justify-between pb-2">
         <div className="flex items-center gap-2">
           <Timer className="h-5 w-5" />

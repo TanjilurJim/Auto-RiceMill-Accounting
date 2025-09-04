@@ -11,6 +11,7 @@ import {
     BarChart2,
     BarChartBig,
     Boxes,
+    Building,
     Building2,
     CalendarClock,
     CalendarDays,
@@ -479,7 +480,7 @@ const mainNavItems: NavItem[] = [
             {
                 title: 'Production Cost Setting',
                 href: '/company-settings/costings',
-                icon: Building2, // 👈 This icon works well for users
+                icon: Building, // 👈 This icon works well for users
             },
 
             // Later you can add more inventory-related items here (e.g., Products, Stock Transfers, etc.)

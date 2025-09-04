@@ -2,8 +2,7 @@
 import InputCalendar from '@/components/Btn&Link/InputCalendar';
 import ConsumedTable from '@/components/crushing/ConsumedTable';
 import CostingSection from '@/components/crushing/CostingSection';
-import dayjs from 'dayjs';
-
+import http from '@/lib/http';
 import GeneratedCompanyTable from '@/components/crushing/GeneratedCompanyTable';
 import GeneratedPartyTable from '@/components/crushing/GeneratedPartyTable';
 import type { ConsumedRow, GeneratedRow, Owner } from '@/components/crushing/types';
@@ -536,18 +535,15 @@ export default function ConvertForm({
         if (!__DEV__) return;
         console.log('[ConvertForm] consumedOpts:', consumedOpts);
     }, [consumedOpts]);
-    
+
     const submit = (e: React.FormEvent) => {
         e.preventDefault();
         if (!canSave) return; // ⬅️ block save unless stopped state
 
-        
-
-
         if (data.owner === 'company') {
             post(route('crushing.company.convert.store'), { onSuccess: () => reset() });
         } else {
-            post(route('party-stock.transfer.store'), {  onSuccess: () => reset() });
+            post(route('party-stock.transfer.store'), { onSuccess: () => reset() });
         }
     };
 
@@ -575,6 +571,13 @@ export default function ConvertForm({
     const mainValue = basePerKg * (mainKg || 0); // চালের বেস মূল্য (৳)
     const netCost = mainValue + prod - byp; // মোট খরচ (৳)
     const perKgPreview = mainKg > 0 ? netCost / mainKg : 0; // ফাইনাল প্রিভিউ (৳/kg)
+
+    // per-kg rate নিতে প্রথমে mainRow.per_kg_rate, না থাকলে preview
+    const perKgFromMain = parseFloat(String(mainRow?.per_kg_rate ?? ''));
+    const perKgToUse = Number.isFinite(perKgFromMain) && perKgFromMain > 0 ? perKgFromMain : perKgPreview;
+
+    // টোটাল চালের মূল্য = perKgToUse × mainKg
+    const totalByPerKg = mainKg > 0 ? perKgToUse * mainKg : 0;
 
     const __DEV__ = process.env.NODE_ENV !== 'production';
 
@@ -826,6 +829,24 @@ export default function ConvertForm({
                                             {mainKg > 0 ? perKgPreview.toFixed(2) : '—'}
                                         </span>
                                         <span className="text-sm text-gray-600"> ৳/কেজি</span>
+                                    </div>
+                                </div>
+                                <div className="rounded-lg border bg-gray-50 p-3">
+                                    <div className="text-[11px] text-gray-500">টোটাল চালের মূল্য</div>
+                                    <div className="mt-1 tabular-nums">
+                                        <span className="text-sm text-gray-600">
+                                            {Number.isFinite(perKgToUse) && mainKg > 0 ? `${perKgToUse.toFixed(2)} × ${mainKg} = ` : '—'}
+                                        </span>
+                                        <span className="rounded bg-emerald-50 px-2 py-[2px] text-lg font-semibold text-emerald-700">
+                                            {mainKg > 0 ? totalByPerKg.toFixed(2) : '—'}
+                                        </span>
+                                        <span className="text-sm text-gray-600"> টাকার চাল স্টকে ঢুকবে </span>
+                                    </div>
+                                    <div className="mt-1 text-[11px] text-gray-500">
+                                        (পরতা × মোট ওজন)
+                                        {Number.isFinite(perKgFromMain) && perKgFromMain > 0
+                                            ? ' — মেইন রো-এর পরতা ব্যবহার করা হয়েছে'
+                                            : ' — প্রিভিউ রেট ব্যবহৃত'}
                                     </div>
                                 </div>
                             </div>

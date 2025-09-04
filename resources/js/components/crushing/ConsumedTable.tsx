@@ -106,26 +106,22 @@ const ConsumedTable: React.FC<Props> = React.memo(
                                 )}
 
                                 <td className="border p-1">
-  <input
-    type="number"
-    className="w-full rounded border px-1 py-1.5 text-right"
-    value={row.qty}
-    onChange={(e) => {
-      const qty = e.target.value;
-      const qtyNum = parseFloat(qty || '0') || 0;
-      const unitNm = String(row.unit_name || '').toLowerCase();
-      const perKg = typeof row.per_unit_kg === 'number'
-        ? row.per_unit_kg
-        : (unitNm === 'kg' ? 1 : undefined);
+                                    <input
+                                        type="number"
+                                        className="w-full rounded border px-1 py-1.5 text-right"
+                                        value={row.qty}
+                                        onChange={(e) => {
+                                            const qty = e.target.value;
+                                            const qtyNum = parseFloat(qty || '0') || 0;
+                                            const unitNm = String(row.unit_name || '').toLowerCase();
+                                            const perKg = typeof row.per_unit_kg === 'number' ? row.per_unit_kg : unitNm === 'kg' ? 1 : undefined;
 
-      const nextWeight = qtyNum > 0 && perKg
-        ? String((qtyNum * perKg).toFixed(3))
-        : (row.weight || '');
+                                            const nextWeight = qtyNum > 0 && perKg ? String((qtyNum * perKg).toFixed(3)) : row.weight || '';
 
-      onPatch(idx, { qty, weight: nextWeight });
-    }}
-  />
-</td>
+                                            onPatch(idx, { qty, weight: nextWeight });
+                                        }}
+                                    />
+                                </td>
 
                                 <td className="border p-1">
                                     <select

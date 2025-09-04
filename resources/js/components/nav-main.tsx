@@ -67,24 +67,21 @@ export function NavMain({ items = [], counters = {} }: { items: NavItem[]; count
 
     // which high-level branch are we inside? (for counters)
     const branchPath = (item: NavItem, parents: string[]): 'sales' | 'purchases' | null => {
-        const chain = [...parents, item.title.toLowerCase()];
-        if (chain.includes('sales')) return 'sales';
-        if (chain.includes('purchases')) return 'purchases';
+        const chain = [...parents, (item.title ?? '').toLowerCase()];
+        const hit = (needle: string) => chain.some((t) => (t || '').toLowerCase().includes(needle));
+        if (hit('sales')) return 'sales';
+        if (hit('purch')) return 'purchases';
         return null;
     };
-
     // counts for group badges
-    const groupCount = (title: string, c: Counters): number | null => {
-        switch (title) {
-            case 'Inbox':
-                return (c.sales_sub ?? 0) + (c.sales_resp ?? 0) + (c.purch_sub ?? 0) + (c.purch_resp ?? 0);
-            case 'Purchases':
-                return (c.purch_sub ?? 0) + (c.purch_resp ?? 0);
-            case 'Sales':
-                return (c.sales_sub ?? 0) + (c.sales_resp ?? 0);
-            default:
-                return null;
+    const groupCount = (item: NavItem, parents: string[], c: Counters): number | null => {
+        if (item.title === 'Inbox') {
+            return (c.sales_sub ?? 0) + (c.sales_resp ?? 0) + (c.purch_sub ?? 0) + (c.purch_resp ?? 0);
         }
+        const branch = branchPath(item, parents);
+        if (branch === 'purchases') return (c.purch_sub ?? 0) + (c.purch_resp ?? 0);
+        if (branch === 'sales') return (c.sales_sub ?? 0) + (c.sales_resp ?? 0);
+        return null;
     };
 
     // ✅ open all ancestor groups for the current route, using unique keys
@@ -141,7 +138,7 @@ export function NavMain({ items = [], counters = {} }: { items: NavItem[]; count
             if (isGroup) {
                 const open = openGroups[key] ?? false;
                 const hasActiveChild = hasActiveDesc(item);
-                const gCount = groupCount(item.title, counters);
+                const gCount = groupCount(item, parents, counters);
 
                 return (
                     <SidebarMenuItem key={key}>

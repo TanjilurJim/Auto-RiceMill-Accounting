@@ -1,6 +1,6 @@
 import React from 'react';
 import CreatableSelect from 'react-select/creatable';
-import { ErrorsBag, GeneratedRow, RSOption, UnitLite } from './types';
+import { ErrorsBag, GeneratedRow, UnitLite } from './types';
 
 interface Props {
     rows: GeneratedRow[];
@@ -17,8 +17,6 @@ interface Props {
 const GeneratedCompanyTable: React.FC<Props> = React.memo(
     ({ rows, units, errors, allItemOpts, godownSelected, onAdd, onRemove, onPatch, flashMain }) => {
         const err = (p: string) => (errors?.[p] as string) || undefined;
-
-        
 
         return (
             <>
@@ -56,12 +54,13 @@ const GeneratedCompanyTable: React.FC<Props> = React.memo(
                                 {/* Item */}
                                 <td className="border p-1">
                                     <CreatableSelect
-                                        classNamePrefix="rs py-1.5"
+                                        className="w-full"
+                                        classNamePrefix="rs" // <-- fixed
                                         placeholder="Item"
                                         options={allItemOpts}
                                         value={
                                             allItemOpts.find((o) => o.value === Number(row.item_id)) ||
-                                            (row.item_name ? ({ value: 0, label: row.item_name } as RSOption<number>) : null)
+                                            (row.item_name ? ({ value: 0, label: row.item_name } as any) : null)
                                         }
                                         onChange={(sel: any) => {
                                             const match = allItemOpts.find((o) => o.value === Number(sel?.value));
@@ -73,7 +72,13 @@ const GeneratedCompanyTable: React.FC<Props> = React.memo(
                                         }}
                                         onCreateOption={(name: string) => onPatch(idx, { item_id: '', item_name: name })}
                                         isDisabled={!godownSelected}
+                                        styles={{
+                                            control: (base) => ({ ...base, minHeight: 36 }), // match your inputs
+                                            valueContainer: (b) => ({ ...b, paddingTop: 2, paddingBottom: 2 }),
+                                            input: (b) => ({ ...b, margin: 0, padding: 0 }),
+                                        }}
                                     />
+
                                     {err(`generated.${idx}.item_id`) && <p className="text-xs text-red-500">{err(`generated.${idx}.item_id`)}</p>}
                                     {err(`generated.${idx}.item_name`) && <p className="text-xs text-red-500">{err(`generated.${idx}.item_name`)}</p>}
                                 </td>
@@ -175,7 +180,7 @@ const GeneratedCompanyTable: React.FC<Props> = React.memo(
                                         <input
                                             type="number"
                                             step="0.01"
-                                            className="w-full rounded border px-1 text-right py-1.5"
+                                            className="w-full rounded border px-1 py-1.5 text-right"
                                             value={(row as any).byproduct_unit_rate || ''}
                                             onChange={(e) => onPatch(idx, { byproduct_unit_rate: e.target.value })}
                                             placeholder="0.00"

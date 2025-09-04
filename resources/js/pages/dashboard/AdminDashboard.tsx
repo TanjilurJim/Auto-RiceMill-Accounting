@@ -271,7 +271,7 @@ export default function AdminDashboard() {
             {/* <QuickStats /> */}
 
             {/* User Stats Cards */}
-            <div className="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+            <div className="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-4 p-2">
                 <Card className="shadow-sm">
                     <CardHeader className="flex flex-row items-center justify-between pb-2">
                         <CardTitle className="text-sm font-medium">
@@ -312,7 +312,7 @@ export default function AdminDashboard() {
                     </CardContent>
                 </Card>
 
-                <Card className="shadow-sm">
+                <Card className="shadow-sm ">
                     <CardHeader className="flex flex-row items-center justify-between pb-2">
                         <CardTitle className="text-sm font-medium">New This Week</CardTitle>
                         <UserPlus className="h-5 w-5 text-blue-600" />
@@ -323,13 +323,14 @@ export default function AdminDashboard() {
                     </CardContent>
                 </Card>
             </div>
+            <div className='px-2'>
 
-            <RecentRegistrationsCard recentUsers={Array.isArray(recentUsers) ? recentUsers : []} rolesSummary={safeStats.rolesSummary} />
-
+            <RecentRegistrationsCard recentUsers={Array.isArray(recentUsers) ? recentUsers : []} rolesSummary={safeStats.rolesSummary}  />
+            </div>
             {/* Revenue Chart & Stats */}
-            <div className="mt-6 grid gap-4 lg:grid-cols-3">
+            <div className="mt-6 grid gap-4 lg:grid-cols-3 px-2">
                 <RevenueChart />
-                <div className="lg:col-span-1">
+                <div className="lg:col-span-2 px-2">
                     <NotificationsPanel expiring={Array.isArray(expiringSoon) ? expiringSoon : []} />
                 </div>
                 <Card className="shadow-sm lg:col-span-1">

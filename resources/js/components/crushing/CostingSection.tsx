@@ -282,7 +282,7 @@ const CostingSection: React.FC<Props> = React.memo(({ value, presets, dhaanBosta
                                 <button
                                     type="button"
                                     onClick={() => removeRow(row.id)}
-                                    className="h-10 w-full rounded-md border border-red-300 px-3 text-sm text-red-600 hover:bg-red-50"
+                                    className="h-10 w-full rounded-md border border-red-300 text-sm text-red-600 hover:bg-red-100"
                                     title="Remove"
                                 >
                                     Remove

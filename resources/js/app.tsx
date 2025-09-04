@@ -1,11 +1,14 @@
 import '../css/app.css';
 import './echo'; // Import Echo for real-time events
+import axios from 'axios';
 
+import '@/lib/http';
 import { createInertiaApp } from '@inertiajs/react';
 import { resolvePageComponent } from 'laravel-vite-plugin/inertia-helpers';
 import { createRoot } from 'react-dom/client';
 import { initializeTheme } from './hooks/use-appearance';
- import { NotificationProvider } from '@/providers/NotificationProvider';
+import { NotificationProvider } from '@/providers/NotificationProvider';
+
 
 const appName = 'Auto Rice MIll';
 

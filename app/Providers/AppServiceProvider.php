@@ -8,6 +8,8 @@ use Intervention\Image\Drivers\Gd\Driver;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\Storage;
 use Inertia\Inertia;
+use Illuminate\Database\Eloquent\Model;
+
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -24,6 +26,7 @@ class AppServiceProvider extends ServiceProvider
                 return true;
             }
         });
+        Model::preventLazyLoading();
 
         // Configure SMTP from DB (yours – unchanged)
         if (app()->runningInConsole()) return;

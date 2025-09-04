@@ -49,7 +49,7 @@ export function RevenueChart() {
   ];
 
   return (
-    <Card className="col-span-full shadow-sm xl:col-span-8">
+    <Card className="col-span-full shadow-sm xl:col-span-8 ">
       <CardHeader className="flex flex-row items-center justify-between pb-4">
         <CardTitle className="text-base font-medium">Revenue Overview</CardTitle>
         <Select value={period} onValueChange={setPeriod}>

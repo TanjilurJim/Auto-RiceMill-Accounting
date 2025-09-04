@@ -884,32 +884,70 @@ class SaleController extends Controller
         $stocks = Stock::with([
             'item:id,item_name,unit_id,weight',
             'item.unit:id,name',
-            // ⬇ include unit_weight so the UI can compute weight from বস্তা
             'lot:id,lot_no,unit_weight,received_at',
         ])
             ->where('godown_id', $godownId)
             ->when($ids, fn($q) => $q->whereIn('created_by', $ids))
-            ->whereNotNull('lot_id')      // ignore orphan rows
+            ->whereNotNull('lot_id')
             ->get()
-            ->filter(fn($s) => $s->lot); // keep only rows whose lot exists
+            ->filter(fn($s) => $s->lot);
+
+        // 1) collect lot ids we need a rate for
+        $lotIds = $stocks->pluck('lot_id')->unique()->values();
+
+        // 2) latest IN move per lot (uses collection unique() after ordering)
+        $latestMoves = DB::table('stock_moves as sm')
+            ->select('sm.lot_id', 'sm.unit_cost', 'sm.meta', 'sm.created_at')
+            ->whereIn('sm.lot_id', $lotIds)
+            ->where('sm.type', 'in')
+            ->orderBy('sm.created_at', 'desc')
+            ->get()
+            ->unique('lot_id')                // keep the first row per lot_id (latest due to orderBy desc)
+            ->keyBy('lot_id');                // map: lot_id => row
 
         $payload = $stocks
             ->groupBy('item_id')
-            ->map(function ($rows) {
-                $item = $rows->first()->item;
+            ->map(function ($rows) use ($latestMoves) {
+                $item       = $rows->first()->item;
+                $itemUnit   = strtolower($item->unit?->name ?? '');
+                $itemWeight = (float) ($item->weight ?? 0);  // kg per “bosta” if applicable
 
                 return [
-                    'id'        => $item->id,
-                    'item_name' => $item->item_name,
-                    'unit'      => $item->unit?->name ?? '', // safe access
-                    'item_weight' => (float) ($item->weight ?? 0),
-                    'lots'      => $rows->map(function ($s) {
+                    'id'          => $item->id,
+                    'item_name'   => $item->item_name,
+                    'unit'        => $item->unit?->name ?? '',
+                    'item_weight' => (float) $itemWeight,
+                    'lots'        => $rows->map(function ($s) use ($latestMoves, $itemUnit, $itemWeight) {
+                        $lot        = $s->lot;
+                        $unitWeight = (float) ($lot->unit_weight ?? $itemWeight ?? 0);
+
+                        // read latest IN move for this lot
+                        $move       = $latestMoves->get($s->lot_id);
+                        $meta       = $move ? json_decode($move->meta ?? '{}', true) : [];
+                        $perKg      = isset($meta['per_kg_rate']) ? (float) $meta['per_kg_rate'] : null;
+
+                        // normalize to the item’s unit
+                        $savedRate      = null;
+                        $savedRateUnit  = $itemUnit ?: null;
+                        if ($perKg !== null && $perKg > 0 && $itemUnit) {
+                            if ($itemUnit === 'kg') {
+                                $savedRate = $perKg;                         // already per-kg
+                            } elseif ($itemUnit === 'bosta' && $unitWeight > 0) {
+                                $savedRate = $perKg * $unitWeight;           // per-bosta = per-kg × kg/bosta
+                            } else {
+                                $savedRate = $perKg; // fallback
+                            }
+                        }
+
                         return [
-                            'lot_id'      => $s->lot_id,
-                            'lot_no'      => $s->lot->lot_no,
-                            'received_at' => optional($s->lot->received_at)->toDateString(),
-                            'stock_qty'   => (float) $s->qty,                          // cast for UI
-                            'unit_weight' => (float) ($s->lot->unit_weight ?? 0.0),    // ⬅ NEW: kg per বস্তা
+                            'lot_id'          => $s->lot_id,
+                            'lot_no'          => $lot->lot_no,
+                            'received_at'     => optional($lot->received_at)->toDateString(),
+                            'stock_qty'       => (float) $s->qty,
+                            'unit_weight'     => (float) ($lot->unit_weight ?? 0.0),
+                            'saved_rate'      => $savedRate ?: null,                 // ⬅ add to API
+                            'saved_rate_unit' => $savedRateUnit,    
+                            'per_kg_rate'     => $perKg ?: null,  
                         ];
                     })->values(),
                 ];

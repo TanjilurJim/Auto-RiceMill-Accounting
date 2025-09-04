@@ -26,6 +26,10 @@ interface ItemLot {
     lot_no: string;
     stock_qty: number;
     received_at: string | null;
+    unit_weight?: number;
+    saved_rate?: number | null; // normalized to product unit
+    saved_rate_unit?: string | null;
+    per_kg_rate?: number | null; // always per kg
 }
 
 interface ReceivedMode {
@@ -430,6 +434,7 @@ export default function SaleCreate({
                                     </div>
 
                                     {/* Main Price */}
+                                    {/* Sale Price */}
                                     <div className="h-full w-full">
                                         <label className="mb-1 block text-sm font-medium text-gray-700">Sale Price</label>
                                         <input
@@ -441,6 +446,54 @@ export default function SaleCreate({
                                         {errors[`sale_items.${index}.main_price`] && (
                                             <div className="mt-1 text-sm text-red-500">{errors[`sale_items.${index}.main_price`]}</div>
                                         )}
+
+                                        {/* helper: convert per-kg to product-unit */}
+                                        {(() => {
+                                            const prod = filteredItems.find((p) => String(p.id) === String(item.product_id));
+                                            const lot = prod?.lots.find((l) => String(l.lot_id) === String(item.lot_id));
+                                            if (!prod || !lot) return null;
+
+                                            const toProdUnitFromPerKg = (perKg?: number | null) => {
+                                                if (perKg == null) return undefined;
+                                                if (String(prod.unit).toLowerCase() === 'kg') return perKg;
+                                                const uw = Number(lot.unit_weight || 0); // kg per bosta
+                                                return uw > 0 ? perKg * uw : perKg; // fallback if missing
+                                            };
+
+                                            return (
+                                                <div className="mt-1 space-y-1 text-xs text-gray-600">
+                                                    {/* 1) Saved unit cost (normalized to product unit) */}
+                                                    {lot.saved_rate != null && (
+                                                        <div className="flex items-center gap-2">
+                                                            <span>
+                                                                Saved:{' '}
+                                                                <b>
+                                                                    ৳{Number(lot.saved_rate).toFixed(2)}/{prod.unit}
+                                                                </b>
+                                                            </span>
+                                                            <button
+                                                                type="button"
+                                                                className="rounded bg-emerald-600 px-2 py-[2px] text-white hover:bg-emerald-500"
+                                                                onClick={() => handleItemChange(index, 'main_price', String(lot.saved_rate))}
+                                                                title="Use saved lot-wise unit price"
+                                                            >
+                                                                Use
+                                                            </button>
+                                                        </div>
+                                                    )}
+
+                                                    {/* 2) Per-kg rate (always ৳/kg) + Use (converted to product unit) */}
+                                                    {lot.per_kg_rate != null && (
+                                                        <div className="flex items-center gap-2">
+                                                            <span>
+                                                                Per-kg: <b>৳{Number(lot.per_kg_rate).toFixed(2)}/kg</b>
+                                                            </span>
+                                                            
+                                                        </div>
+                                                    )}
+                                                </div>
+                                            );
+                                        })()}
                                     </div>
 
                                     {/* Discount */}
