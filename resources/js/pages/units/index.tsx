@@ -11,147 +11,155 @@ import { Head, useForm } from '@inertiajs/react';
 import { useState } from 'react';
 
 interface Unit {
-    id: number;
-    name: string;
+  id: number;
+  name: string;
 }
 
 interface PaginatedUnits {
-    data: Unit[];
-    links: { url: string | null; label: string; active: boolean }[];
-    current_page: number;
-    last_page: number;
-    total: number;
+  data: Unit[];
+  links: { url: string | null; label: string; active: boolean }[];
+  current_page: number;
+  last_page: number;
+  total: number;
 }
 
 export default function UnitIndex({ units }: { units: PaginatedUnits }) {
-    const [editUnit, setEditUnit] = useState<Unit | null>(null);
+  const [editUnit, setEditUnit] = useState<Unit | null>(null);
 
-    const {
-        data,
-        setData,
-        post,
-        put,
-        delete: destroy,
-        processing,
-        reset,
-        errors,
-    } = useForm({
-        name: '',
+  const {
+    data,
+    setData,
+    post,
+    put,
+    delete: destroy,
+    processing,
+    reset,
+    errors,
+  } = useForm({
+    name: '',
+  });
+
+  const handleEdit = (unit: Unit) => {
+    setEditUnit(unit);
+    setData('name', unit.name);
+  };
+
+  const handleDelete = (id: number) => {
+    confirmDialog({}, () => {
+      destroy(`/units/${id}`, {
+        onSuccess: () => reset(),
+      });
     });
+  };
 
-    const handleEdit = (unit: Unit) => {
-        setEditUnit(unit);
-        setData('name', unit.name);
-    };
-
-    const handleDelete = (id: number) => {
-
-        confirmDialog(
-            {}, () => {
-                destroy(`/units/${id}`, {
-                    onSuccess: () => reset(),
-                });
-            }
-        );
-    };
-
-    const handleSubmit = (e: React.FormEvent) => {
-        e.preventDefault();
-        if (editUnit) {
-            put(`/units/${editUnit.id}`, {
-                onSuccess: () => {
-                    reset();
-                    setEditUnit(null);
-                },
-            });
-        } else {
-            post('/units', {
-                onSuccess: () => reset(),
-            });
-        }
-    };
-
-    const handleCancel = () => {
-        reset();
-        setEditUnit(null);
-    };
-
-    const columns = [
-        {
-            header: '#SL',
-            accessor: (_: Unit, index?: number) => (index !== undefined ? index + 1 : '-'),
-            className: 'text-center',
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (editUnit) {
+      put(`/units/${editUnit.id}`, {
+        onSuccess: () => {
+          reset();
+          setEditUnit(null);
         },
-        { header: 'Unit Name', accessor: 'name' },
-        {
-            header: 'Action',
-            accessor: (unit: Unit) => (
-                <ActionButtons
-                    onEdit={() => handleEdit(unit)}
-                    onDelete={() => handleDelete(unit.id)}
-                />
-            ),
-            className: 'text-center',
-        },
-    ];
+      });
+    } else {
+      post('/units', {
+        onSuccess: () => reset(),
+      });
+    }
+  };
 
-    return (
-        <AppLayout>
-            <Head title="Unit Manage" />
-            <div className="h-full bg-gray-100 p-6">
-                <div className="h-full bg-white rounded-lg p-6">
-                    <div className="flex flex-col-reverse justify-between gap-4 md:flex-row h-full">
-                        {/* Left: List */}
-                        <div className="col-span-2 space-y-4 rounded bg-white p-4 shadow border md:w-2/3">
-                            <PageHeader title="Unit Manage" />
-                            <TableComponent
-                                columns={columns}
-                                data={units.data}
-                                noDataMessage="No units found."
-                            />
+  const handleCancel = () => {
+    reset();
+    setEditUnit(null);
+  };
 
-                            {/* Pagination */}
-                            <Pagination
-                                links={units.links}
-                                currentPage={units.current_page}
-                                lastPage={units.last_page}
-                                total={units.total}
-                            />
-                        </div>
+  const columns = [
+    {
+      header: '#SL',
+      accessor: (_: Unit, index?: number) => (index !== undefined ? index + 1 : '—'),
+      className: 'text-center',
+    },
+    { header: 'Unit Name', accessor: 'name' },
+    {
+      header: 'Action',
+      accessor: (unit: Unit) => (
+        <ActionButtons onEdit={() => handleEdit(unit)} onDelete={() => handleDelete(unit.id)} />
+      ),
+      className: 'text-center',
+    },
+  ];
 
-                        {/* Right: Form */}
-                        <div className="rounded bg-white p-4 shadow border md:w-1/3">
-                            <PageHeader title={editUnit ? 'Edit Unit' : 'Add Unit'} />
-                            <form onSubmit={handleSubmit} className="space-y-3">
-                                <input
-                                    type="text"
-                                    placeholder="Unit Name"
-                                    value={data.name}
-                                    onChange={(e) => setData('name', e.target.value)}
-                                    className="w-full rounded border p-2"
-                                />
-                                {errors.name && <p className="text-sm text-red-500">{errors.name}</p>}
+  const inputCls =
+    'w-full rounded-md border bg-background p-2 text-foreground outline-none focus:ring-2 focus:ring-ring';
 
-                                <div className="flex justify-between">
-                                    {editUnit ? (
-                                        <ActionFooter
-                                            className='w-full justify-between'
-                                            onSubmit={handleSubmit}
-                                            onCancel={handleCancel}
-                                            processing={processing}
-                                            submitText="Update"
-                                            cancelText="Cancel"
-                                        />
+  return (
+    <AppLayout title="Unit Manage">
+      <Head title="Unit Manage" />
 
-                                    ) : (
-                                        <AddBtn processing={processing} children="Add Unit" />
-                                    )}
-                                </div>
-                            </form>
-                        </div>
-                    </div>
+      <div className="w-full p-4 sm:p-6">
+        <div className="rounded-lg border bg-background p-4 sm:p-6 text-foreground">
+          <div className="flex flex-col-reverse gap-4 md:flex-row">
+            {/* Left: List */}
+            <div className="md:w-2/3">
+              <div className="space-y-4 rounded-md border bg-background p-4">
+                <PageHeader title="Unit Manage" />
+                <div className="rounded-md border">
+                  <TableComponent
+                    columns={columns}
+                    data={units.data}
+                    noDataMessage="No units found."
+                  />
                 </div>
+
+                <Pagination
+                  links={units.links}
+                  currentPage={units.current_page}
+                  lastPage={units.last_page}
+                  total={units.total}
+                  className="mt-2"
+                />
+              </div>
             </div>
-        </AppLayout>
-    );
+
+            {/* Right: Form */}
+            <div className="md:w-1/3">
+              <div className="space-y-3 rounded-md border bg-background p-4">
+                <PageHeader title={editUnit ? 'Edit Unit' : 'Add Unit'} />
+                <form onSubmit={handleSubmit} className="space-y-3">
+                  <input
+                    type="text"
+                    placeholder="Unit Name"
+                    value={data.name}
+                    onChange={(e) => setData('name', e.target.value)}
+                    className={inputCls}
+                    autoComplete="off"
+                    aria-invalid={!!errors.name}
+                  />
+                  {errors.name && (
+                    <p className="text-xs text-rose-500">{errors.name}</p>
+                  )}
+
+                  <div className="flex justify-between">
+                    {editUnit ? (
+                      <ActionFooter
+                        className="w-full justify-between"
+                        onSubmit={handleSubmit}
+                        onCancel={handleCancel}
+                        processing={processing}
+                        submitText="Update"
+                        cancelText="Cancel"
+                      />
+                    ) : (
+                      <AddBtn processing={processing}>Add Unit</AddBtn>
+                    )}
+                  </div>
+                </form>
+              </div>
+            </div>
+            {/* End Right */}
+          </div>
+        </div>
+      </div>
+    </AppLayout>
+  );
 }

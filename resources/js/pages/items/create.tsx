@@ -45,8 +45,8 @@ export default function ItemCreate({ categories, units, godowns }: { categories:
     return (
         <AppLayout>
             <Head title="Create Item" />
-            <div className="h-full bg-gray-100 p-6">
-                <div className="h-full rounded-lg bg-white p-6">
+            <div className="h-full bg-background p-6">
+                <div className="h-full rounded-lg bg-forground p-6">
                     <PageHeader title="Create Item" addLinkHref="/items" addLinkText="Back" />
 
                     <ItemForm

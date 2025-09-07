@@ -91,8 +91,8 @@ export default function PurchaseIndex({ purchases }: { purchases: PaginatedPurch
     return (
         <AppLayout>
             <Head title="All Purchases" />
-            <div className="h-full w-screen bg-gray-100 p-6 lg:w-full">
-                <div className="h-full rounded-lg bg-white p-6">
+            <div className="h-full w-screen bg-background p-6 lg:w-full">
+                <div className="h-full rounded-lg bg-background p-6">
                     {/* Use the PageHeader component  */}
                     <PageHeader title="Purchase List" addLinkHref="/purchases/create" addLinkText="+ Add New" />
 

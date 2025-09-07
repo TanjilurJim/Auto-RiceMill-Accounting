@@ -180,69 +180,60 @@
 }
 
 .dark {
-    --background:
-        oklch(0.145 0 0);
-    --foreground:
-        oklch(0.985 0 0);
-    --card:
-        oklch(0.205 0 0);
-    --card-foreground:
-        oklch(0.985 0 0);
-    --popover:
-        oklch(0.205 0 0);
-    --popover-foreground:
-        oklch(0.985 0 0);
-    --primary:
-        oklch(0.922 0 0);
-    --primary-foreground:
-        oklch(0.205 0 0);
-    --secondary:
-        oklch(0.269 0 0);
-    --secondary-foreground:
-        oklch(0.985 0 0);
-    --muted:
-        oklch(0.269 0 0);
-    --muted-foreground:
-        oklch(0.708 0 0);
-    --accent:
-        oklch(0.269 0 0);
-    --accent-foreground:
-        oklch(0.985 0 0);
-    --destructive:
-        oklch(0.704 0.191 22.216);
-    --destructive-foreground: oklch(0.637 0.237 25.331);
-    --border:
-        oklch(1 0 0 / 10%);
-    --input:
-        oklch(1 0 0 / 15%);
-    --ring:
-        oklch(0.556 0 0);
-    --chart-1:
-        oklch(0.488 0.243 264.376);
-    --chart-2:
-        oklch(0.696 0.17 162.48);
-    --chart-3:
-        oklch(0.769 0.188 70.08);
-    --chart-4:
-        oklch(0.627 0.265 303.9);
-    --chart-5:
-        oklch(0.645 0.246 16.439);
-    --sidebar:
-        oklch(0.205 0 0);
-    --sidebar-foreground:
-        oklch(0.985 0 0);
-    --sidebar-primary:
-        oklch(0.488 0.243 264.376);
-    --sidebar-primary-foreground:
-        oklch(0.985 0 0);
-    --sidebar-accent:
-        oklch(0.269 0 0);
-    --sidebar-accent-foreground:
-        oklch(0.985 0 0);
-    --sidebar-border:
-        oklch(1 0 0 / 10%);
-    --sidebar-ring:
-        oklch(0.556 0 0);
+    /* Backgrounds & surfaces */
+    --background: oklch(0.15 0 0);
+    /* page */
+    --card: oklch(0.22 0 0);
+    /* slightly lighter than bg for elevation */
+    --popover: oklch(0.22 0 0);
+
+    /* Text */
+    --foreground: oklch(0.98 0 0);
+    --card-foreground: var(--foreground);
+    --popover-foreground: var(--foreground);
+
+    /* Brand / emphasis (use real color, not near-white) */
+    /* Roughly Tailwind's blue-500/600 in OKLCH */
+    --primary: oklch(0.67 0.17 257);
+    --primary-foreground: oklch(0.99 0 0);
+
+    /* Neutrals & accents */
+    --secondary: oklch(0.26 0 0);
+    --secondary-foreground: var(--foreground);
+    --muted: oklch(0.24 0 0);
+    --muted-foreground: oklch(0.86 0 0);
+    /* brighter labels */
+    --accent: oklch(0.30 0.03 255);
+    /* subtle bluish hover bg */
+    --accent-foreground: var(--foreground);
+
+    /* Feedback */
+    --destructive: oklch(0.60 0.20 28);
+    /* stronger red */
+    --destructive-foreground: oklch(0.99 0 0);
+
+    /* Chrome */
+    --border: oklch(1 0 0 / 0.24);
+    /* ↑ from 10% to 24% */
+    --input: oklch(1 0 0 / 0.20);
+    --ring: oklch(0.70 0 0);
+
+    /* Charts (slightly brighter) */
+    --chart-1: oklch(0.62 0.22 255);
+    --chart-2: oklch(0.70 0.17 162);
+    --chart-3: oklch(0.74 0.18 70);
+    --chart-4: oklch(0.66 0.26 304);
+    --chart-5: oklch(0.68 0.24 16);
+
+    /* Sidebar */
+    --sidebar: oklch(0.22 0 0);
+    --sidebar-foreground: var(--foreground);
+    --sidebar-primary: var(--primary);
+    --sidebar-primary-foreground: var(--primary-foreground);
+    --sidebar-accent: oklch(0.26 0 0);
+    --sidebar-accent-foreground: var(--foreground);
+    --sidebar-border: var(--border);
+    --sidebar-ring: var(--ring);
 }
 
 @layer base {
@@ -476,4 +467,38 @@
 
     }
 
+
+}
+@layer base {
+  /* Tables: clearer header, alternating rows, stronger gridlines in dark */
+  .dark table {
+    --table-header: oklch(41.571% 0.00398 16.664);
+    --table-row:    oklch(24.354% 0.00003 271.152);
+    --table-alt:    oklch(0.23 0 0);
+    --table-hover:  oklch(0.30 0.03 255);
+    --table-border: oklch(1 0 0 / 0.28); /* a touch stronger inside table */
+  }
+
+  .dark table thead th {
+    background-color: var(--table-header) !important;
+    color: var(--foreground) !important;
+  }
+
+  .dark table,
+  .dark table th,
+  .dark table td {
+    border-color: var(--table-border) !important;
+  }
+
+  .dark table tbody tr {
+    background-color: var(--table-row);
+  }
+
+  .dark table tbody tr:nth-child(even) {
+    background-color: var(--table-alt);
+  }
+
+  .dark table tbody tr:hover {
+    background-color: var(--table-hover);
+  }
 }

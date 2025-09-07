@@ -63,11 +63,9 @@ export function AppSidebarHeader({ breadcrumbs = [] }: { breadcrumbs?: Breadcrum
                         aria-label="Company Settings"
                         title={company?.name ?? 'Company'}
                     >
-                        <img
-                            src={company.logo_url}
-                            alt={company?.name ?? 'Company'}
-                             className="block h-12 w-12 sm:w-[150px] md:w-[180px] shrink-0"
-                        />
+                        <span className="inline-block truncate text-lg sm:text-xl font-semibold leading-none max-w-[55vw] sm:max-w-[260px]">
+                        {company?.name ?? 'Company'}
+                        </span>
                     </Link>
                 ) : (
                 'Dashboard'

@@ -45,8 +45,8 @@ export default function History({ approvals }: { approvals: Paginator }) {
       <Head title="Approval Log" />
 
 
-            <div className="h-full w-screen bg-gray-100 p-6 lg:w-full">
-                <div className="h-full rounded-lg bg-white p-6">
+            <div className="h-full w-screen bg-background p-6 lg:w-full">
+                <div className="h-full rounded-lg bg-background p-6">
                   <PageHeader title= "Approval Log"></PageHeader>
                     <div className="overflow-x-auto rounded-lg border border-gray-200 bg-white shadow-sm dark:border-neutral-700 dark:bg-neutral-900">
                         <table className="w-full text-sm">

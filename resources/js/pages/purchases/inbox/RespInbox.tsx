@@ -12,8 +12,8 @@ export default function RespInbox() {
     return (
         <AppLayout>
             <Head title="Purchases – Responsible Inbox" />
-            <div className="h-full w-screen bg-gray-100 p-6 lg:w-full">
-                <div className="h-full rounded-lg bg-white p-6">
+            <div className="h-full w-screen bg-background-100 p-6 lg:w-full">
+                <div className="h-full rounded-lg bg-background p-6">
                   <PageHeader title="Purchases – Responsible Inbox"/>
 
                     <PurchaseInboxTable

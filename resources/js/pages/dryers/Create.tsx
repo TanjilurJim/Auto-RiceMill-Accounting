@@ -29,9 +29,9 @@ export default function Create() {
         <AppLayout title="New Dryer">
             <Head title="Add Dryers" />
 
-            <div className="h-full w-screen bg-gray-100 p-6 lg:w-full">
-                <div className="h-full rounded-lg bg-white p-6">
-                    <PageHeader title="Add Dryer" addLinkHref="/dryers/index" addLinkText="<- Back" />
+            <div className="h-full w-screen bg-background p-6 lg:w-full">
+                <div className="h-full rounded-lg text-card-foreground p-6">
+                    <PageHeader title="Add Dryer" addLinkHref="/dryers" addLinkText="<- Back" />
 
                     <Form
                         data={data}

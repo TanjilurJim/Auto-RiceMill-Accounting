@@ -86,11 +86,11 @@ export default function CategoryIndex({ categories }: { categories: PaginatedCat
     return (
         <AppLayout>
             <Head title="Category Manage" />
-            <div className="h-full bg-gray-100 p-6">
-                <div className="h-full bg-white rounded-lg p-6">
+            <div className="h-full bg-background p-6">
+                <div className="h-full text-foreground rounded-lg p-6">
                     <div className="flex flex-col-reverse justify-between gap-4 md:flex-row h-full">
                         {/* Left: List */}
-                        <div className="space-y-4 rounded bg-white p-4 shadow w-full md:w-2/3 border">
+                        <div className="space-y-4 rounded bg-background p-4 shadow w-full md:w-2/3 border">
                             <PageHeader title="All Category Manage" />
                             <TableComponent
                                 columns={columns}
@@ -108,7 +108,7 @@ export default function CategoryIndex({ categories }: { categories: PaginatedCat
                         </div>
 
                         {/* Right: Form */}
-                        <div className="rounded bg-white p-4 shadow w-full md:w-1/3 border">
+                        <div className="rounded bg-background p-4 shadow w-full md:w-1/3 border">
                             <PageHeader title={editCategory ? 'Edit Category' : 'Add Category'} />
                             <form onSubmit={handleSubmit} className="space-y-3">
                                 <input

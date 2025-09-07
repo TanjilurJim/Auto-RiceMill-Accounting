@@ -206,7 +206,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::post('/account-ledgers/modal', [\App\Http\Controllers\AccountLedgerController::class, 'storeFromModal']);
 
     // account ledgers
-    Route::resource('account-ledgers', AccountLedgerController::class)->only(['index', 'show'])
+    Route::resource('account-ledgers', AccountLedgerController::class)->only(['index',])
         ->middleware(perm('account-ledger', 'view'));
     Route::resource('account-ledgers', AccountLedgerController::class)->only(['create', 'store'])
         ->middleware(perm('account-ledger', 'create'));
@@ -223,7 +223,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
 
 
     // salesmen  (seeder module: 'salesman')
-    Route::resource('salesmen', SalesManController::class)->only(['index', 'show'])
+    Route::resource('salesmen', SalesManController::class)->only(['index',])
         ->middleware(perm('salesman', 'view'));
     Route::resource('salesmen', SalesManController::class)->only(['create', 'store'])
         ->middleware(perm('salesman', 'create'));
@@ -233,7 +233,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
         ->middleware(perm('salesman', 'delete'));
 
     // godowns
-    Route::resource('godowns', GodownController::class)->only(['index', 'show'])
+    Route::resource('godowns', GodownController::class)->only(['index', ])
         ->middleware(perm('godowns', 'view'));
     Route::resource('godowns', GodownController::class)->only(['create', 'store'])
         ->middleware(perm('godowns', 'create'));
@@ -273,10 +273,12 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::resource('categories', CategoryController::class)->only(['destroy'])
         ->middleware(perm('categories', 'delete'));
 
-    Route::resource('items', ItemController::class)->only(['index', 'show'])
+    Route::resource('items', ItemController::class)->only(['index',])
         ->middleware(perm('items', 'view'));
     Route::resource('items', ItemController::class)->only(['create', 'store'])
         ->middleware(perm('items', 'create'));
+        Route::resource('items', ItemController::class)->only(['show',])
+        ->middleware(perm('items', 'view'));
     Route::resource('items', ItemController::class)->only(['edit', 'update'])
         ->middleware(perm('items', 'edit'));
     Route::resource('items', ItemController::class)->only(['destroy'])
@@ -541,6 +543,11 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::resource('departments', DepartmentController::class)->only(['destroy'])
         ->middleware(perm('departments', 'delete'));
 
+
+    Route::get('/users/{user}/lineage', [UserController::class, 'lineage'])
+    ->name('users.lineage');
+    Route::patch('/users/{user}/extend-trial', [UserController::class, 'extendTrial'])
+    ->name('users.extendTrial');
 
     // designations
     Route::resource('designations', DesignationController::class)->only(['index', 'show'])
@@ -853,7 +860,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
 
 
     // Dryer
-    Route::resource('dryers', DryerController::class);
+    Route::resource('dryers', DryerController::class)->middleware(perm('dryers', 'view'));
 
     //Stock adding to inventory
     Route::get('stock-moves',            [StockMoveController::class, 'index']);

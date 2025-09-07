@@ -67,7 +67,8 @@ class HandleInertiaRequests extends Middleware
 
                 'isAdmin'   => $user?->hasRole('admin') ?? false,
                 'roles'     => $user ? $user->getRoleNames() : [],   
-                'tenant_id' => $request->user()->tenant_id,  // ["admin","manager",...]
+                'tenant_id' => $request->user()?->tenant_id ?? 0,
+
                 'verified'  => $user?->hasVerifiedEmail() ?? false,
                 'trial'   => $trial,
             ],

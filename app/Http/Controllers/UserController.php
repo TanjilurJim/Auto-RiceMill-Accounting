@@ -8,6 +8,8 @@ use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Password;
+
+use Carbon\Carbon;
 use Illuminate\Support\Str;
 
 class UserController extends Controller
@@ -51,7 +53,25 @@ class UserController extends Controller
 
     public function show($id)
     {
-        $user = \App\Models\User::with(['roles', 'createdBy'])->findOrFail($id);
+        $user = \App\Models\User::query()
+            ->select([
+                'id',
+                'name',
+                'email',
+                'phone',
+                'address',
+                'status',
+                'created_at',
+                'trial_ends_at',
+                'created_by',
+            ])
+            ->with([
+                // only what the UI needs
+                'roles:id,name',
+                'createdBy:id,name',
+            ])
+            ->findOrFail($id);
+
         return Inertia::render('users/show', ['user' => $user]);
     }
 
@@ -117,6 +137,36 @@ class UserController extends Controller
         ]);
 
         return redirect()->route('users.index')->with('success', 'User updated successfully.');
+    }
+
+    public function extendTrial(Request $request, User $user)
+    {
+        // 🛡️ Scope guard (same spirit as edit())
+        if (!auth()->user()->hasRole('admin') && $user->created_by !== auth()->id()) {
+            abort(403, 'Unauthorized');
+        }
+
+        $validated = $request->validate([
+            'mode' => 'required|in:add,set',
+            'days' => 'required_if:mode,add|integer|min:1|max:365',
+            'date' => 'required_if:mode,set|date|after:today',
+        ]);
+
+        // Choose base: later of current trial end or now
+        $base = $user->trial_ends_at ? Carbon::parse($user->trial_ends_at) : now();
+        if ($base->lessThan(now())) {
+            $base = now();
+        }
+
+        if ($validated['mode'] === 'add') {
+            $user->trial_ends_at = $base->clone()->addDays((int) $validated['days']);
+        } else {
+            $user->trial_ends_at = Carbon::parse($validated['date'])->endOfDay();
+        }
+
+        $user->save();
+
+        return back()->with('success', 'Trial end updated.');
     }
 
 
@@ -223,6 +273,38 @@ class UserController extends Controller
         $user->restore();
 
         return redirect()->route('users.index')->with('success', 'User restored successfully.');
+    }
+
+    public function lineage(User $user)
+    {
+        // Optional: gate/permission check here (e.g., $this->authorize('viewAny', User::class))
+
+        $tree = $this->buildTree($user);
+
+        return Inertia::render('users/Lineage', [
+            'root' => $tree,
+        ]);
+    }
+
+    private function buildTree(User $user): array
+    {
+        // load roles for current node
+        $user->loadMissing('roles:id,name');
+
+        // fetch direct children (respecting your tenant scope; admin will see all)
+        $children = User::with('roles:id,name')
+            ->where('created_by', $user->id)
+            ->orderBy('name')
+            ->get();
+
+        return [
+            'id'        => $user->id,
+            'name'      => $user->name,
+            'email'     => $user->email,
+            'roleNames' => $user->roles->pluck('name')->values(),
+            'joinedAt'  => optional($user->created_at)->toIso8601String(),
+            'children'  => $children->map(fn(User $u) => $this->buildTree($u))->values(),
+        ];
     }
 
     // Permanently delete user

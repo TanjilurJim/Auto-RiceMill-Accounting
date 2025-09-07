@@ -6,6 +6,7 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
+import { Crown } from 'lucide-react';
 
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -162,7 +163,19 @@ const RecentRegistrationsCard = memo(function RecentRegistrationsCard({
                                                 <AvatarFallback>{(u.name ?? 'U').slice(0, 2).toUpperCase()}</AvatarFallback>
                                             </Avatar>
                                             <div className="min-w-0">
-                                                <div className="truncate font-medium">{u.name}</div>
+                                                <div className="flex items-center gap-1 truncate font-medium">
+                                                    {u.name}
+                                                    {/** owner badge + link to lineage */}
+                                                    {(u.roleNames ?? []).some((r) => r.toLowerCase() === 'owner') && (
+                                                        <Link
+                                                            href={route('users.lineage', u.id)}
+                                                            title="View lineage (users created by this owner)"
+                                                            className="text-amber-500 hover:text-amber-600"
+                                                        >
+                                                            <Crown className="h-4 w-4" />
+                                                        </Link>
+                                                    )}
+                                                </div>
                                                 <div className="text-muted-foreground truncate text-xs">{u.email}</div>
                                             </div>
                                         </div>
@@ -271,7 +284,7 @@ export default function AdminDashboard() {
             {/* <QuickStats /> */}
 
             {/* User Stats Cards */}
-            <div className="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-4 p-2">
+            <div className="mt-6 grid gap-4 p-2 sm:grid-cols-2 lg:grid-cols-4">
                 <Card className="shadow-sm">
                     <CardHeader className="flex flex-row items-center justify-between pb-2">
                         <CardTitle className="text-sm font-medium">
@@ -312,7 +325,7 @@ export default function AdminDashboard() {
                     </CardContent>
                 </Card>
 
-                <Card className="shadow-sm ">
+                <Card className="shadow-sm">
                     <CardHeader className="flex flex-row items-center justify-between pb-2">
                         <CardTitle className="text-sm font-medium">New This Week</CardTitle>
                         <UserPlus className="h-5 w-5 text-blue-600" />
@@ -323,14 +336,13 @@ export default function AdminDashboard() {
                     </CardContent>
                 </Card>
             </div>
-            <div className='px-2'>
-
-            <RecentRegistrationsCard recentUsers={Array.isArray(recentUsers) ? recentUsers : []} rolesSummary={safeStats.rolesSummary}  />
+            <div className="px-2">
+                <RecentRegistrationsCard recentUsers={Array.isArray(recentUsers) ? recentUsers : []} rolesSummary={safeStats.rolesSummary} />
             </div>
             {/* Revenue Chart & Stats */}
-            <div className="mt-6 grid gap-4 lg:grid-cols-3 px-2">
+            <div className="mt-6 grid gap-4 px-2 lg:grid-cols-3">
                 <RevenueChart />
-                <div className="lg:col-span-2 px-2">
+                <div className="px-2 lg:col-span-2">
                     <NotificationsPanel expiring={Array.isArray(expiringSoon) ? expiringSoon : []} />
                 </div>
                 <Card className="shadow-sm lg:col-span-1">

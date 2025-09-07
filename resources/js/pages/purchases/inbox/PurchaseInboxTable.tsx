@@ -74,10 +74,10 @@ export default function PurchaseInboxTable({ purchases, approveRoute, rejectRout
 
     return (
         <>
-            <div className="overflow-hidden rounded-lg border border-gray-200 bg-white shadow-sm dark:border-neutral-700 dark:bg-neutral-900">
+            <div className="overflow-hidden rounded-lg border border-gray-200 bg-background shadow-sm dark:border-neutral-700 dark:bg-neutral-900">
                 <div className="overflow-x-auto">
                     <table className="w-full text-sm">
-                        <thead className="border-b border-gray-200 bg-gray-50 text-left text-xs tracking-wider text-gray-600 uppercase dark:border-neutral-700 dark:bg-neutral-800 dark:text-gray-400">
+                        <thead className="border-b border-gray-200 bg-background text-left text-xs tracking-wider text-gray-600 uppercase dark:border-neutral-700 dark:bg-neutral-800 dark:text-gray-400">
                             <tr>
                                 <th className="w-10 p-3">
                                     <input

@@ -1,8 +1,8 @@
+import AccountLedgerForm from '@/components/Form/AccountLedgerForm';
+import PageHeader from '@/components/PageHeader';
 import AppLayout from '@/layouts/app-layout';
 import { Head, useForm } from '@inertiajs/react';
-import PageHeader from '@/components/PageHeader';
 import React from 'react';
-import AccountLedgerForm from '@/components/Form/AccountLedgerForm';
 
 export default function CreateAccountLedger({
     groupUnders,
@@ -12,7 +12,7 @@ export default function CreateAccountLedger({
 }: {
     groupUnders: { id: number; name: string }[];
     accountGroups: { id: number; name: string; nature: { name: string } | null }[];
-    isAdmin: boolean; // Admin status passed from backend
+    isAdmin: boolean;
     reference_number: string;
 }) {
     const { data, setData, post, processing, errors } = useForm({
@@ -32,21 +32,19 @@ export default function CreateAccountLedger({
 
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
-
-        if (!data.ledger_type) {
-            setData('ledger_type', 'inventory'); // Or show an error
-        }
-
+        if (!data.ledger_type) setData('ledger_type', 'inventory');
         post('/account-ledgers');
     };
 
     return (
         <AppLayout>
             <Head title="Add Account Ledger" />
-            <div className="h-full p-6 bg-gray-100">
-                <div className="h-full p-6 bg-white rounded-lg">
-                    <PageHeader title='Add Account Ledger' addLinkHref='/account-ledgers' addLinkText='Back' />
+            {/* Use tokens so the background flips with .dark */}
+            <div className="bg-background min-h-svh p-6">
+                <div className="bg-card text-card-foreground mx-auto  rounded-xl border p-6 shadow-sm">
+                    <PageHeader title="Add Account Ledger" addLinkHref="/account-ledgers" addLinkText="Back" />
 
+                    {/* Ensure the form’s inputs use your .input class or shadcn inputs so they pick up dark vars */}
                     <AccountLedgerForm
                         data={data}
                         setData={setData}
@@ -59,7 +57,6 @@ export default function CreateAccountLedger({
                         submitText="Create"
                         cancelHref="/account-ledgers"
                     />
-                    
                 </div>
             </div>
         </AppLayout>

@@ -127,8 +127,8 @@ export default function ItemIndex({ items }: { items: PaginatedItems }) {
   return (
     <AppLayout>
       <Head title="Items" />
-      <div className="h-full w-screen bg-gray-100 p-6 lg:w-full">
-        <div className="h-full rounded-lg bg-white p-6">
+      <div className="h-full w-screen bg-background p-6 lg:w-full">
+        <div className="h-full rounded-lg bg-background p-6">
           <PageHeader title="All Items" addLinkHref="/items/create" addLinkText="+ Add New" />
           <TableComponent columns={columns} data={items.data} noDataMessage="No items found." />
           <Pagination links={items.links} currentPage={items.current_page} lastPage={items.last_page} total={items.total} />

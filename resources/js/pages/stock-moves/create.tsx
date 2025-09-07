@@ -66,14 +66,14 @@ export default function StockMoveCreate({ godowns, items }: { godowns: Godown[];
     return (
         <AppLayout>
             <Head title="Add Stock" />
-             <div className="h-full bg-gray-100 p-6">
-                <div className="h-full rounded-lg bg-white p-6">
+             <div className="h-full bg-background p-6">
+                <div className="h-full rounded-lg bg-background p-6">
                     <PageHeader title= "Add-Stock" addLinkHref="/stock-moves" addLinkText="Back" />
             <form onSubmit={handleSubmit} className="space-y-4 p-6">
 
                 <h1 className="text-xl font-semibold">Add Stock</h1>
 
-                <div className="space-y-4 rounded border bg-white p-4">
+                <div className="space-y-4 rounded border bg-background p-4">
                     <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
                         {/* Godown select */}
                         <div>
