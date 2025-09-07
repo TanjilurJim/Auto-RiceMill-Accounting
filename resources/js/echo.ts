@@ -25,7 +25,7 @@ if (token) {
 
 /* ---------- Echo / Pusher ---------- */
 window.Pusher = Pusher;
-window.Pusher.logToConsole = true;
+window.Pusher.logToConsole = import.meta.env.DEV; 
 
 window.Echo = new Echo({
   broadcaster: 'pusher',

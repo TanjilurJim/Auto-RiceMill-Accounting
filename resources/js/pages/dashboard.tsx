@@ -8,6 +8,7 @@ import { Head, Link, router, usePage } from '@inertiajs/react';
 import { ArrowRight, Building, CheckCircle2, CircleDollarSign, ReceiptText, RotateCcw, ShoppingCart, Wallet } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { Bar, BarChart, Cell, Legend, Line, LineChart, Pie, PieChart, ResponsiveContainer, Sector, Tooltip, XAxis, YAxis } from 'recharts';
+import '../echo';
 
 /* ─────────────────────────────── Charts data (demo) ────────────────────────── */
 const monthly = [
@@ -45,12 +46,13 @@ type DashboardProps = {
 
 export default function Dashboard({ runningDryers }: DashboardProps) {
     const page = usePage().props as any;
+
     const auth = page.auth ?? {};
     const roles: string[] = auth?.roles ?? [];
     const isAdmin = roles.some((r) => ['Admin', 'Super Admin'].includes(r));
 
     // 👉 define tenantId (adjust if you use top-parent id helper instead)
-    const tenantId: number | undefined = auth?.user?.tenant_id;
+    const tenantId: number | undefined = auth?.tenant_id ?? auth?.user?.tenant_id;
 
     const totalSales = page.totalSales ?? 0;
     const totalPurchases = page.totalPurchases ?? 0;
@@ -70,17 +72,21 @@ export default function Dashboard({ runningDryers }: DashboardProps) {
 
     // 🔔 Echo listener → refresh only the runningDryers prop
     useEffect(() => {
-        if (!tenantId) return;
+        console.log('[Dashboard] tenantId:', tenantId, 'Echo?', !!window?.Echo);
 
-        const channelName = `dryers.${tenantId}`;
-        const ch = window.Echo.private(channelName).listen('.dryer.job.updated', () => {
+        if (!tenantId || !window?.Echo) return;
+
+        const name = `dryers.${tenantId}`;
+        console.log('[Dashboard] subscribing:', name);
+
+        window.Echo.private(name).listen('.dryer.job.updated', (e) => {
+            console.log('[Dashboard] dryer event:', e);
             router.reload({ only: ['runningDryers'] });
         });
 
         return () => {
-            // leave both forms to be safe with prefixes
-            window.Echo.leave(`private-${channelName}`);
-            window.Echo.leave(channelName);
+            console.log('[Dashboard] leaving:', name);
+            window.Echo.leave(name);
         };
     }, [tenantId]);
 

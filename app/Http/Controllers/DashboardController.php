@@ -166,6 +166,7 @@ class DashboardController extends Controller
             'topPurchaseSuppliers' => $topPayables,
 
             'runningDryers'         => $runningDryers,
+            'tenantId'      => auth()->user()->tenant_id, 
         ]);
     }
 }
