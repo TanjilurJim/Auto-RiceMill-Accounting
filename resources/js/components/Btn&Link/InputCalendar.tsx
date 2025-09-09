@@ -25,7 +25,7 @@ const InputCalendar: React.FC<InputCalendarProps> = ({ value, onChange, label = 
   return (
     <div>
       {label && (
-        <label className="block text-sm font-medium text-gray-700">
+        <label className="block text-sm font-medium text-foreground">
           {label} {required && <span className="text-red-500">*</span>}
         </label>
       )}

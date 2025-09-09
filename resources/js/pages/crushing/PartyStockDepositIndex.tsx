@@ -33,8 +33,8 @@ export default function PartyStockDepositIndex({ deposits, pagination }: Props) 
     return (
         <AppLayout>
             <Head title="পার্টির পণ্য জমা তালিকা" />
-            <div className="h-full w-screen bg-gray-100 p-6 lg:w-full">
-                <div className="h-full space-y-6 rounded-sm bg-white p-6">
+            <div className="h-full w-screen bg-background p-6 lg:w-full">
+                <div className="h-full space-y-6 rounded-sm bg-background p-6">
                     <h1 className="text-xl font-bold">পার্টির পন্য জমা তালিকা</h1>
 
                     {deposits.length === 0 && (
@@ -43,7 +43,7 @@ export default function PartyStockDepositIndex({ deposits, pagination }: Props) 
 
                     <div className="overflow-x-auto">
                         <table className="min-w-full table-auto border text-sm">
-                            <thead className="bg-gray-100">
+                            <thead className="bg-background">
                                 <tr>
                                     <th className="border p-2">পার্টি</th>
                                     <th className="border p-2">রেফারেন্স নম্বর</th>
@@ -60,7 +60,7 @@ export default function PartyStockDepositIndex({ deposits, pagination }: Props) 
                                 {deposits.map((deposit) => (
                                     <React.Fragment key={deposit.id}>
                                         {deposit.items.map((item, idx) => (
-                                            <tr key={idx} className="hover:bg-gray-50">
+                                            <tr key={idx} className="hover:bg-background">
                                                 {/* Party Ledger */}
                                                 <td className="border p-2">{deposit.party_ledger_name}</td>
                                                 {/* Deposit Reference Number */}
@@ -77,7 +77,7 @@ export default function PartyStockDepositIndex({ deposits, pagination }: Props) 
                                                 <td className="border p-2 text-center gap-2 flex justify-center">
                                                     <Link
                                                         href={route('party-stock.deposit.show', deposit.id)}
-                                                        className="rounded bg-blue-600 px-3 py-1 text-white hover:bg-blue-700"
+                                                        className="rounded bg-blue-600 px-3 py-1 text-foreground hover:bg-blue-700"
                                                     >
                                                         View
                                                     </Link>

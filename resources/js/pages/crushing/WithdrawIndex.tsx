@@ -23,12 +23,12 @@ export default function PartyStockWithdrawIndex({ withdrawals }: Props) {
     return (
         <AppLayout>
             <Head title="মাল উত্তোলন তালিকা" />
-            <div className="h-full w-screen bg-gray-100 p-6 lg:w-full">
-                <div className="h-full rounded-lg bg-white p-6">
+            <div className="h-full w-screen bg-background p-6 lg:w-full">
+                <div className="h-full rounded-lg bg-background p-6">
                     <h1 className="mb-4 text-xl font-bold">মাল উত্তোলন তালিকা</h1>
 
                     <table className="w-full table-auto border text-sm">
-                        <thead className="bg-gray-100">
+                        <thead className="bg-background">
                             <tr>
                                 <th className="border p-2">তারিখ</th>
                                 <th className="border p-2">রেফারেন্স নম্বর</th>

@@ -72,8 +72,8 @@ export default function JobsIndex(props: JobsPageProps) {
         <AppLayout>
             <Head title="Crushing Jobs" />
 
-            <div className="h-full w-screen bg-gray-100 p-6 lg:w-full">
-                <div className="h-full rounded-lg bg-white p-6">
+            <div className="h-full w-screen bg-background p-6 lg:w-full">
+                <div className="h-full rounded-lg bg-background p-6">
                     {/* Header: title left, action right */}
                     <div className="mb-4 flex items-center justify-between">
                         <PageHeader title="Crushing Jobs" />
@@ -91,9 +91,9 @@ export default function JobsIndex(props: JobsPageProps) {
                             <thead className="bg-gray-100">
                                 <tr>
                                     <th className="w-12 border p-2">#</th>
-                                    <th className="w-24 border p-2">Status</th>
-                                    <th className="w-24 border p-2">Date</th>
-                                    <th className="w-28 border p-2">Ref</th>
+                                    <th className="w-24 border p-2">স্ট্যাটাস</th>
+                                    <th className="w-24 border p-2">তারিখ</th>
+                                    <th className="w-28 border p-2">রেফারেন্স নং</th>
                                     <th className="w-32 border p-2">Dryer</th>
                                     <th className="w-32 border p-2">Godown</th>
                                     <th className="w-32 border p-2">Party</th>

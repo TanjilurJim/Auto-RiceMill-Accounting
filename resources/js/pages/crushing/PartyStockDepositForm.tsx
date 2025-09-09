@@ -112,11 +112,49 @@ export default function PartyStockDepositForm({ parties, godowns, units, today, 
         handleFieldChange(index, 'unit_name', newUnit);
     };
 
+    const selectStyles = {
+  control: (base: any, state: any) => ({
+    ...base,
+    backgroundColor: 'var(--input)',
+    borderColor: state.isFocused ? 'var(--ring)' : 'var(--input)',
+    boxShadow: state.isFocused ? '0 0 0 2px var(--ring)' : 'none',
+    color: 'var(--foreground)',
+    minHeight: '2.5rem',
+    borderRadius: 'var(--radius-md)',
+  }),
+  singleValue: (base: any) => ({ ...base, color: 'var(--foreground)' }),
+  input:       (base: any) => ({ ...base, color: 'var(--foreground)' }),
+  placeholder: (base: any) => ({ ...base, color: 'var(--muted-foreground)' }),
+
+  menu: (base: any) => ({
+    ...base,
+    backgroundColor: 'var(--popover)',
+    color: 'var(--popover-foreground)',
+    border: '1px solid var(--border)',
+  }),
+  option: (base: any, state: any) => ({
+    ...base,
+    backgroundColor: state.isSelected
+      ? 'var(--primary)'
+      : state.isFocused
+      ? 'var(--accent)'
+      : 'transparent',
+    color: state.isSelected ? 'var(--primary-foreground)' : 'var(--popover-foreground)',
+  }),
+
+  indicatorSeparator: (b: any) => ({ ...b, backgroundColor: 'var(--border)' }),
+  dropdownIndicator:  (b: any) => ({ ...b, color: 'var(--muted-foreground)' }),
+  clearIndicator:     (b: any) => ({ ...b, color: 'var(--muted-foreground)' }),
+
+  // if you render into a portal (recommended to avoid overflow issues)
+  menuPortal: (base: any) => ({ ...base, zIndex: 60 }), // adjust to your stack
+};
+
     return (
         <AppLayout>
             <Head title="পার্টি মাল জমা ফর্ম" />
-            <div className="h-full w-screen bg-gray-100 p-6 lg:w-full">
-                <div className="h-full rounded-lg bg-white p-6">
+            <div className="h-full w-screen bg-background p-6 lg:w-full">
+                <div className="h-full rounded-lg bg-background p-6">
                     <h1 className="mb-4 text-xl font-bold">পার্টির পণ্য জমা ফর্ম</h1>
 
                     <form onSubmit={handleSubmit} className="space-y-6">
@@ -142,6 +180,7 @@ export default function PartyStockDepositForm({ parties, godowns, units, today, 
                                     classNamePrefix="react-select"
                                     placeholder="পার্টি খুঁজুন..."
                                     isClearable
+                                     styles={selectStyles}
                                 />
                                 {errors.party_ledger_id && <p className="text-sm text-red-500">{errors.party_ledger_id}</p>}
                             </div>
@@ -157,6 +196,7 @@ export default function PartyStockDepositForm({ parties, godowns, units, today, 
                                     classNamePrefix="react-select"
                                     placeholder="গুদাম খুঁজুন..."
                                     isClearable
+                                     styles={selectStyles}
                                 />
                                 {errors.godown_id_to && <p className="text-sm text-red-500">{errors.godown_id_to}</p>}
                             </div>
@@ -176,7 +216,7 @@ export default function PartyStockDepositForm({ parties, godowns, units, today, 
                         <div>
                             <h2 className="mb-2 text-lg font-semibold">পণ্যের জমা তালিকা</h2>
                             <table className="w-full table-auto border text-sm">
-                                <thead className="bg-gray-100">
+                                <thead className="bg-background">
                                     <tr>
                                         <th className="border p-2">পণ্য</th>
                                         <th className="border p-2">একক</th>
@@ -201,7 +241,7 @@ export default function PartyStockDepositForm({ parties, godowns, units, today, 
                                                     isClearable
                                                     menuPortalTarget={typeof window !== 'undefined' ? document.body : undefined}
                                                     menuPosition="fixed"
-                                                    styles={{ menuPortal: (base) => ({ ...base, zIndex: 9999 }) }}
+                                                     styles={selectStyles}
                                                 />
                                             </td>
 

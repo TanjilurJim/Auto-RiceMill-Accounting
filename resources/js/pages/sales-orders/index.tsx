@@ -104,8 +104,8 @@ export default function SalesOrderIndex() {
     return (
         <AppLayout>
             <Head title="Sales Order List" />
-            <div className="bg-gray-100 p-6 h-full w-screen lg:w-full">
-                <div className="bg-white h-full rounded-lg p-6">
+            <div className="bg-background p-6 h-full w-screen lg:w-full">
+                <div className="bg-background h-full rounded-lg p-6">
 
                     <PageHeader title='Sales Order List' addLinkHref='/sales-orders/create' addLinkText='+ Add Sales Order' />
 

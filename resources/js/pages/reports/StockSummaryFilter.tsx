@@ -1,11 +1,11 @@
+import InputCalendar from '@/components/Btn&Link/InputCalendar';
+import PageHeader from '@/components/PageHeader';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import AppLayout from '@/layouts/app-layout';
-import { useForm } from '@inertiajs/react';
-import PageHeader from '@/components/PageHeader';
+import { Head, useForm } from '@inertiajs/react';
+import dayjs from 'dayjs';
 import React, { useState } from 'react';
-import { Head } from '@inertiajs/react';
-import InputCalendar from '@/components/Btn&Link/InputCalendar';
 
 interface Props {
     godowns: { id: number; name: string }[];
@@ -20,11 +20,13 @@ const tabs = [
 ];
 
 export default function StockSummaryFilter({ godowns, categories, items }: Props) {
+    const today = dayjs().format('YYYY-MM-DD');
+    const startOfMonth = dayjs().startOf('month').format('YYYY-MM-DD');
     const [activeTab, setActiveTab] = useState<string>(tabs[0].route);
 
     const { data, setData, get, processing, errors } = useForm({
-        from: '',
-        to: '',
+        from: today, // 👈 auto-filled
+        to: today, // 👈 auto-filled
         godown_id: '',
         category_id: '',
         item_id: '',
@@ -42,8 +44,8 @@ export default function StockSummaryFilter({ godowns, categories, items }: Props
         <AppLayout>
             <Head title="Stock Report" />
 
-            <div className="bg-gray-100 p-6 h-full w-screen lg:w-full">
-                <div className="bg-white h-full rounded-lg p-6">
+            <div className="h-full w-screen bg-gray-100 p-6 lg:w-full">
+                <div className="h-full rounded-lg bg-white p-6">
                     <PageHeader title="Stock Report Filter" />
 
                     {/* Tabs for different report types */}
@@ -58,10 +60,11 @@ export default function StockSummaryFilter({ godowns, categories, items }: Props
                                             <button
                                                 type="button"
                                                 onClick={() => setActiveTab(tab.route)}
-                                                className={`inline-block px-3 py-2 text-sm font-medium focus:outline-none ${activeTab === tab.route
-                                                    ? 'border-b-2 border-blue-500 text-blue-600'
-                                                    : 'text-gray-500 hover:text-blue-600'
-                                                    }`}
+                                                className={`inline-block px-3 py-2 text-sm font-medium focus:outline-none ${
+                                                    activeTab === tab.route
+                                                        ? 'border-b-2 border-blue-500 text-blue-600'
+                                                        : 'text-gray-500 hover:text-blue-600'
+                                                }`}
                                             >
                                                 {tab.name}
                                             </button>
@@ -76,23 +79,13 @@ export default function StockSummaryFilter({ godowns, categories, items }: Props
                                 <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
                                     {/* From Date */}
                                     <div>
-                                        <InputCalendar
-                                            value={data.from}
-                                            onChange={val => setData('from', val)}
-                                            label="From Date"
-                                            required
-                                        />
+                                        <InputCalendar value={data.from} onChange={(val) => setData('from', val)} label="From Date" required />
                                         {errors.from && <p className="text-sm text-red-500">{errors.from}</p>}
                                     </div>
 
                                     {/* To Date */}
                                     <div>
-                                        <InputCalendar
-                                            value={data.to}
-                                            onChange={val => setData('to', val)}
-                                            label="To Date"
-                                            required
-                                        />
+                                        <InputCalendar value={data.to} onChange={(val) => setData('to', val)} label="To Date" required />
                                         {errors.to && <p className="text-sm text-red-500">{errors.to}</p>}
                                     </div>
 

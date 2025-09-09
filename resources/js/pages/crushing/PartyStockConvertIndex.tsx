@@ -54,7 +54,7 @@ export default function PartyStockConvertIndex({ conversions, pagination }: Prop
             <Head title="Conversions" />
             <div className="p-4 sm:p-6 lg:p-8">
                 <div className="mb-5 flex items-center justify-between">
-                    <h1 className="text-2xl font-bold text-slate-800">Stock Conversions</h1>
+                    <h1 className="text-2xl font-bold text-foreground">Stock Conversions</h1>
                     <Link
                         href={route('party-stock.transfer.create')}
                         className="rounded-sm bg-indigo-600 px-4 py-2 text-sm font-semibold text-white shadow hover:bg-indigo-500"
@@ -68,14 +68,14 @@ export default function PartyStockConvertIndex({ conversions, pagination }: Prop
                     <table className="w-full text-sm">
                         <thead className="bg-slate-50 text-slate-600">
                             <tr>
-                                <th className="p-3 text-left">Date</th>
-                                <th className="p-3 text-left">Ref No</th>
-                                <th className="p-3 text-left">Party</th>
-                                <th className="p-3 text-left">Godown</th>
-                                <th className="p-3 text-left">Remarks</th>
-                                <th className="p-3 text-right">Net Qty</th>
-                                <th className="p-3 text-right">Lines</th>
-                                <th className="p-3 text-right">Actions</th>
+                                <th className="p-3 text-left">তারিখ</th>
+                                <th className="p-3 text-left">রেফারেন্স নং</th>
+                                <th className="p-3 text-left">পার্টি</th>
+                                {/* <th className="p-3 text-left">গুদাম</th> */}
+                                <th className="p-3 text-left">মন্তব্য</th>
+                                {/* <th className="p-3 text-right">Net Qty</th>
+                                <th className="p-3 text-right">Lines</th> */}
+                                <th className="p-3 text-right">এ্যাকশন</th>
                             </tr>
                         </thead>
                         <tbody className="divide-y divide-slate-200">
@@ -87,10 +87,10 @@ export default function PartyStockConvertIndex({ conversions, pagination }: Prop
                                             <td className="p-3">{fmtDate(c.date)}</td>
                                             <td className="p-3 font-medium text-slate-800">{c.ref_no}</td>
                                             <td className="p-3">{c.party_ledger_name || '—'}</td>
-                                            <td className="p-3">{c.godown_name || '—'}</td>
+                                            {/* <td className="p-3">{c.godown_name || '—'}</td> */}
                                             <td className="p-3">{c.remarks || '—'}</td>
-                                            <td className="p-3 text-right">{net.toLocaleString()}</td>
-                                            <td className="p-3 text-right">
+                                            {/* <td className="p-3 text-right">{net.toLocaleString()}</td> */}
+                                            {/* <td className="p-3 text-right">
                                                 <button
                                                     type="button"
                                                     onClick={() => setOpen((s) => ({ ...s, [c.id]: !s[c.id] }))}
@@ -99,7 +99,7 @@ export default function PartyStockConvertIndex({ conversions, pagination }: Prop
                                                 >
                                                     {c.items.length} {open[c.id] ? '▲' : '▼'}
                                                 </button>
-                                            </td>
+                                            </td> */}
                                             <td className="p-3">
                                                 <div className="flex items-center justify-end gap-2">
                                                     <Link

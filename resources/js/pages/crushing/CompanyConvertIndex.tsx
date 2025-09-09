@@ -47,7 +47,7 @@ export default function CompanyConvertIndex({ conversions, pagination }: Props) 
             <Head title="Company Conversions" />
             <div className="p-4 sm:p-6 lg:p-8">
                 <div className="mb-5 flex items-center justify-between">
-                    <h1 className="text-2xl font-bold text-slate-800">Company Stock Conversions</h1>
+                    <h1 className="text-2xl font-bold text-foreground">Company Stock Conversions</h1>
 
                     <Link
                         href={route('party-stock.transfer.create')}
@@ -61,13 +61,13 @@ export default function CompanyConvertIndex({ conversions, pagination }: Props) 
                     <table className="w-full text-sm">
                         <thead className="bg-slate-50 text-slate-600">
                             <tr>
-                                <th className="p-3 text-left">Date</th>
-                                <th className="p-3 text-left">Ref No</th>
-                                <th className="p-3 text-left">Godown</th>
-                                <th className="p-3 text-left">Remarks</th>
-                                <th className="p-3 text-right">Net Qty</th>
-                                <th className="p-3 text-right">Lines</th>
-                                <th className="p-3 text-right">Actions</th>
+                                <th className="p-3 text-left">তারিখ</th>
+                                <th className="p-3 text-left">রেফারেন্স নং</th>
+                                <th className="p-3 text-left">গুদাম</th>
+                                <th className="p-3 text-left">মন্তব্য</th>
+                                {/* <th className="p-3 text-right">Net Qty</th> */}
+                                {/* <th className="p-3 text-right">Lines</th> */}
+                                <th className="p-3 text-right">এ্যাকশন</th>
                             </tr>
                         </thead>
                         <tbody className="divide-y divide-slate-200">

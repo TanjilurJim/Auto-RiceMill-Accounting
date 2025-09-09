@@ -22,8 +22,8 @@ export default function Settled({ sales }: Props) {
   return (
     <AppLayout>
       <Head title="Settled dues" />
-      <div className="h-full w-full bg-gray-100 p-6">
-        <div className="mx-auto max-w-5xl space-y-6">
+      <div className="h-full w-full bg-background p-6">
+        <div className="mx-auto space-y-6">
           <PageHeader
             title="Settled dues"
             addLinkHref="/dues"

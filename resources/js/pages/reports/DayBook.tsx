@@ -27,6 +27,14 @@ interface Props {
     company: {
         company_name: string;
         logo_path?: string;
+         email?: string;
+    financial_year?: string;
+    website?: string;
+
+    mobile?: string;
+    address?: string;
+    logo_url?: string;
+    logo_thumb_url?: string;
     };
 }
 
@@ -48,12 +56,8 @@ export default function DayBook({ entries, filters, company }: Props) {
                 <Card>
                     <CardHeader className="relative bg-gray-50 py-6 text-center">
                         <div className="space-y-1">
-                            {company?.logo_path && (
-                                <img
-                                    src={company?.logo_path}
-                                    alt="Company Logo"
-                                    className="mx-auto mb-2 h-16 w-16 object-cover"
-                                />
+                            {company?.logo_url && (
+                                <img src={company.logo_url} alt="Company Logo" className="mx-auto mb-2 h-20 object-contain print:h-12" />
                             )}
                             <h1 className="text-3xl font-bold uppercase">{company?.company_name ?? 'Company Name'}</h1>
                             {company?.address && <p className="text-sm text-gray-700">{company?.address}</p>}

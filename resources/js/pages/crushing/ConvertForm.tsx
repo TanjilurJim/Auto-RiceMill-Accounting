@@ -2,7 +2,6 @@
 import InputCalendar from '@/components/Btn&Link/InputCalendar';
 import ConsumedTable from '@/components/crushing/ConsumedTable';
 import CostingSection from '@/components/crushing/CostingSection';
-import http from '@/lib/http';
 import GeneratedCompanyTable from '@/components/crushing/GeneratedCompanyTable';
 import GeneratedPartyTable from '@/components/crushing/GeneratedPartyTable';
 import type { ConsumedRow, GeneratedRow, Owner } from '@/components/crushing/types';
@@ -387,6 +386,40 @@ export default function ConvertForm({
         );
     };
 
+    const selectStyles = {
+        control: (base: any, state: any) => ({
+            ...base,
+            backgroundColor: 'var(--input)',
+            borderColor: state.isFocused ? 'var(--ring)' : 'var(--input)',
+            boxShadow: state.isFocused ? '0 0 0 2px var(--ring)' : 'none',
+            color: 'var(--foreground)',
+            minHeight: '2.5rem',
+            borderRadius: 'var(--radius-md)',
+        }),
+        singleValue: (base: any) => ({ ...base, color: 'var(--foreground)' }),
+        input: (base: any) => ({ ...base, color: 'var(--foreground)' }),
+        placeholder: (base: any) => ({ ...base, color: 'var(--muted-foreground)' }),
+
+        menu: (base: any) => ({
+            ...base,
+            backgroundColor: 'var(--popover)',
+            color: 'var(--popover-foreground)',
+            border: '1px solid var(--border)',
+        }),
+        option: (base: any, state: any) => ({
+            ...base,
+            backgroundColor: state.isSelected ? 'var(--primary)' : state.isFocused ? 'var(--accent)' : 'transparent',
+            color: state.isSelected ? 'var(--primary-foreground)' : 'var(--popover-foreground)',
+        }),
+
+        indicatorSeparator: (b: any) => ({ ...b, backgroundColor: 'var(--border)' }),
+        dropdownIndicator: (b: any) => ({ ...b, color: 'var(--muted-foreground)' }),
+        clearIndicator: (b: any) => ({ ...b, color: 'var(--muted-foreground)' }),
+
+        // if you render into a portal (recommended to avoid overflow issues)
+        menuPortal: (base: any) => ({ ...base, zIndex: 60 }), // adjust to your stack
+    };
+
     const unitMap = new Map(units.map((u) => [u.id, u.name]));
     const itemOptions = items.map((i) => ({
         value: i.id,
@@ -598,14 +631,14 @@ export default function ConvertForm({
     return (
         <AppLayout>
             <Head title="Conversion / Transfer" />
-            <div className="h-full w-screen bg-gray-100 p-6 lg:w-full">
+            <div className="bg-background h-full w-screen p-6 lg:w-full">
                 <div className="mb-4">
                     <Link href={route('party-stock.transfer.index')} className="text-blue-600 hover:underline">
                         ← Back to list
                     </Link>
                 </div>
 
-                <div className="rounded-lg bg-white p-6">
+                <div className="bg-background rounded-lg p-6">
                     <h1 className="mb-4 text-xl font-bold">পণ্য রূপান্তর (Crushing → Output)</h1>
 
                     <form onSubmit={submit} className="space-y-6">
@@ -651,6 +684,7 @@ export default function ConvertForm({
                                         onChange={(sel) => setData('party_ledger_id', sel?.value || '')}
                                         placeholder="পার্টি নির্বাচন…"
                                         isClearable
+                                        styles={selectStyles}
                                     />
                                     {errors.party_ledger_id && <p className="text-xs text-red-500">{errors.party_ledger_id}</p>}
                                 </div>
@@ -666,6 +700,7 @@ export default function ConvertForm({
                                     onChange={(sel) => setData('godown_id', sel?.value || '')}
                                     placeholder="গুদাম নির্বাচন…"
                                     isClearable
+                                    styles={selectStyles}
                                 />
                                 {errors.godown_id && <p className="text-xs text-red-500">{errors.godown_id}</p>}
                             </div>
@@ -673,7 +708,7 @@ export default function ConvertForm({
                             {/* ref no */}
                             <div>
                                 <label className="mb-1 block font-medium">রেফারেন্স</label>
-                                <input readOnly className="w-full rounded border bg-gray-50 p-2" value={data.ref_no} />
+                                <input readOnly className="w-full rounded border bg-background p-2" value={data.ref_no} />
                             </div>
 
                             {/* dryer — header-level, not per row */}
@@ -689,10 +724,153 @@ export default function ConvertForm({
                                     placeholder="ড্রায়ার নির্বাচন…"
                                     isClearable
                                     isDisabled={!data.godown_id}
+                                    styles={selectStyles}
                                 />
                                 {errors.dryer_id && <p className="text-xs text-red-500">{errors.dryer_id}</p>}
                             </div>
                         </div>
+
+                        <div className="bg-background mt-4 rounded-xl border p-4 shadow-sm">
+                            {/* Header */}
+                            <div className="mb-3 flex items-center justify-between">
+                                <h3 className="text-foreground font-semibold">দর নির্ধারণ</h3>
+                                <span className="bg-background text-foreground rounded-md px-2 py-1 text-[12px] font-medium">
+                                    ফর্মুলা: <b>(বেস চালমূল্য + প্রোডাকশন কস্ট − বাই-প্রোডাক্ট)</b> ÷ <b>মোট চাল (কেজি)</b>
+                                </span>
+                            </div>
+
+                            {/* Compact stats row */}
+                            <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
+                                {/* Paddy total */}
+                                <div className="bg-background rounded-lg border p-3">
+                                    <div className="text-background text-[11px]">ধানের মোট দাম (৳)</div>
+                                    <div
+                                        className={`mt-1 text-lg font-semibold tabular-nums ${
+                                            flashPaddy ? 'animate-pulse rounded px-1 ring-2 ring-green-500' : ''
+                                        }`}
+                                        title="Consumed রেট থেকে অটো-ক্যালকুলেটেড"
+                                    >
+                                        {paddy.toFixed(2)}
+                                    </div>
+                                    <div className="text-foreground mt-1 text-[11px]">
+                                        মোট ধান: <b>{dhaanBostaCount > 0 ? dhaanBostaCount.toFixed(2) : '—'}</b> বস্তা
+                                    </div>
+                                </div>
+
+                                {/* Ratio & base porta */}
+                                <div className="bg-background rounded-lg border p-3">
+                                    <div className="text-foreground text-[11px]">ধান→চাল রেশিও ও বেস দর</div>
+
+                                    <div className="mt-1 text-sm tabular-nums">
+                                        ধান→চাল রেশিও:{' '}
+                                        <b className="bg-background rounded px-1 text-emerald-700">
+                                            {yieldKgPerBosta > 0 ? yieldKgPerBosta.toFixed(2) : '—'}
+                                        </b>{' '}
+                                        <span className="text-foreground">কেজি/বস্তা</span>
+                                    </div>
+
+                                    <div className="mt-1 text-sm tabular-nums">
+                                        বস্তা-পিছু ধানের দাম: <b>{costPerBosta.toFixed(2)}</b> <span className="text-foreground">৳/বস্তা</span>
+                                    </div>
+
+                                    <div className="mt-1 text-sm tabular-nums">
+                                        ভিত্তি দর (৳/কেজি):{' '}
+                                        <b className="rounded bg-indigo-50 px-1 text-indigo-700">{basePerKg > 0 ? basePerKg.toFixed(2) : '—'}</b>{' '}
+                                        <span className="text-foreground">৳/কেজি</span>
+                                    </div>
+                                </div>
+
+                                {/* Production cost */}
+                                <div className="rounded-lg border bg-background p-3">
+                                    <div className="text-[11px] text-gray-500">প্রোডাকশন কস্ট (৳)</div>
+                                    <div className="mt-1 text-lg font-semibold tabular-nums">{prod.toFixed(2)}</div>
+                                </div>
+
+                                {/* By-product total */}
+                                <div className="rounded-lg border bg-background p-3">
+                                    <div className="text-[11px] text-gray-500">বাই-প্রোডাক্ট (৳)</div>
+                                    <div className="mt-1 text-lg font-semibold tabular-nums">{byp.toFixed(2)}</div>
+                                </div>
+                            </div>
+
+                            {/* Main kg & final preview */}
+                            <div className="mt-3 grid grid-cols-1 gap-3 lg:grid-cols-3">
+                                <div className="rounded-lg border bg-background p-3">
+                                    <div className="text-[11px] text-gray-500">উৎপাদিত চাল (মেইন) – মোট ওজন</div>
+                                    <div className="mt-1 text-lg font-semibold tabular-nums">
+                                        {mainKg || 0} <span className="text-sm">কেজি</span>
+                                    </div>
+                                    <div className="mt-1 text-[11px] text-gray-500">মেইন রো-তে weight দিন</div>
+                                </div>
+
+                                <div className="rounded-lg border bg-background p-3">
+                                    <div className="text-[11px] text-gray-500">বেস চালমূল্য (৳)</div>
+                                    <div className="mt-1 text-lg font-semibold tabular-nums">{mainValue.toFixed(2)}</div>
+                                    <div className="mt-1 text-[11px] text-gray-500">= ভিত্তি দর (৳/কেজি) × মোট চাল (কেজি)</div>
+                                </div>
+
+                                <div className="rounded-lg border bg-background p-3">
+                                    <div className="text-[11px] text-gray-500">প্রতি কেজি (ফাইনাল প্রিভিউ)</div>
+                                    <div className="mt-1 tabular-nums">
+                                        <span className="text-foreground text-sm">
+                                            ({mainValue.toFixed(2)} + {prod.toFixed(2)} − {byp.toFixed(2)}) ÷ {mainKg || 0} ={' '}
+                                        </span>
+                                        <span className="rounded bg-emerald-50 px-2 py-[2px] text-lg font-semibold text-emerald-700">
+                                            {mainKg > 0 ? perKgPreview.toFixed(2) : '—'}
+                                        </span>
+                                        <span className="text-foreground text-sm"> ৳/কেজি</span>
+                                    </div>
+                                </div>
+                                <div className="rounded-lg border bg-background p-3">
+                                    <div className="text-[11px] text-gray-500">টোটাল চালের মূল্য</div>
+                                    <div className="mt-1 tabular-nums">
+                                        <span className="text-foreground text-sm">
+                                            {Number.isFinite(perKgToUse) && mainKg > 0 ? `${perKgToUse.toFixed(2)} × ${mainKg} = ` : '—'}
+                                        </span>
+                                        <span className="rounded bg-background px-2 py-[2px] text-lg font-semibold text-foreground">
+                                            {mainKg > 0 ? totalByPerKg.toFixed(2) : '—'}
+                                        </span>
+                                        <span className="text-foreground text-sm"> টাকার চাল স্টকে ঢুকবে </span>
+                                    </div>
+                                    <div className="mt-1 text-[11px] text-gray-500">
+                                        (পরতা × মোট ওজন)
+                                        {Number.isFinite(perKgFromMain) && perKgFromMain > 0
+                                            ? ' — মেইন রো-এর পরতা ব্যবহার করা হয়েছে'
+                                            : ' — প্রিভিউ রেট ব্যবহৃত'}
+                                    </div>
+                                </div>
+                            </div>
+
+                            {/* Actions */}
+                            <div className="mt-3 flex flex-wrap gap-2">
+                                <button
+                                    type="button"
+                                    onClick={computePaddyTotal}
+                                    className="rounded-sm bg-slate-800 px-3 py-2 text-sm text-white hover:bg-slate-700 disabled:opacity-50"
+                                    disabled={paddyBusy || !data.consumed.length || !data.godown_id}
+                                    title="Consumed লাইন থেকে ধানের মোট দাম বের করবে"
+                                >
+                                    {paddyBusy ? 'হিসাব হচ্ছে…' : 'ধানের মোট দাম বের করুন'}
+                                </button>
+
+                                <button
+                                    type="button"
+                                    onClick={computeMainPerKg}
+                                    className="rounded-sm bg-indigo-600 px-3 py-2 text-sm text-white hover:bg-indigo-500 disabled:opacity-50"
+                                    disabled={mainIdx < 0}
+                                    title="মেইন রো-তে প্রতি কেজির দর বসাবে"
+                                >
+                                    মেইন আইটেমে প্রতি কেজি সেট করুন
+                                </button>
+                            </div>
+                        </div>
+                        <CostingSection
+                            value={data.costing.production_costs}
+                            presets={costing_presets}
+                            dhaanBostaCount={dhaanBostaCount}
+                            mainKg={parseFloat(mainRow?.weight || '0')}
+                            onChange={(rows) => setData('costing', { ...(data.costing ?? { market_rate: '' }), production_costs: rows })}
+                        />
 
                         {/* Consumed */}
                         <ConsumedTable
@@ -732,148 +910,6 @@ export default function ConvertForm({
                             />
                         )}
                         {/* Production Cost (preset‑aware) */}
-                        <CostingSection
-                            value={data.costing.production_costs}
-                            presets={costing_presets}
-                            dhaanBostaCount={dhaanBostaCount}
-                            mainKg={parseFloat(mainRow?.weight || '0')}
-                            onChange={(rows) => setData('costing', { ...(data.costing ?? { market_rate: '' }), production_costs: rows })}
-                        />
-
-                        <div className="mt-4 rounded-xl border bg-white p-4 shadow-sm">
-                            {/* Header */}
-                            <div className="mb-3 flex items-center justify-between">
-                                <h3 className="text-base font-semibold">দর নির্ধারণ</h3>
-                                <span className="rounded-md bg-amber-50 px-2 py-1 text-[12px] font-medium text-black">
-                                    ফর্মুলা: <b>(বেস চালমূল্য + প্রোডাকশন কস্ট − বাই-প্রোডাক্ট)</b> ÷ <b>মোট চাল (কেজি)</b>
-                                </span>
-                            </div>
-
-                            {/* Compact stats row */}
-                            <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
-                                {/* Paddy total */}
-                                <div className="rounded-lg border bg-gray-50 p-3">
-                                    <div className="text-[11px] text-gray-500">ধানের মোট দাম (৳)</div>
-                                    <div
-                                        className={`mt-1 text-lg font-semibold tabular-nums ${
-                                            flashPaddy ? 'animate-pulse rounded px-1 ring-2 ring-green-500' : ''
-                                        }`}
-                                        title="Consumed রেট থেকে অটো-ক্যালকুলেটেড"
-                                    >
-                                        {paddy.toFixed(2)}
-                                    </div>
-                                    <div className="mt-1 text-[11px] text-gray-500">
-                                        মোট ধান: <b>{dhaanBostaCount > 0 ? dhaanBostaCount.toFixed(2) : '—'}</b> বস্তা
-                                    </div>
-                                </div>
-
-                                {/* Ratio & base porta */}
-                                <div className="rounded-lg border bg-gray-50 p-3">
-                                    <div className="text-[11px] text-gray-500">ধান→চাল রেশিও ও বেস দর</div>
-
-                                    <div className="mt-1 text-sm tabular-nums">
-                                        ধান→চাল রেশিও:{' '}
-                                        <b className="rounded bg-emerald-50 px-1 text-emerald-700">
-                                            {yieldKgPerBosta > 0 ? yieldKgPerBosta.toFixed(2) : '—'}
-                                        </b>{' '}
-                                        <span className="text-gray-600">কেজি/বস্তা</span>
-                                    </div>
-
-                                    <div className="mt-1 text-sm tabular-nums">
-                                        বস্তা-পিছু ধানের দাম: <b>{costPerBosta.toFixed(2)}</b> <span className="text-gray-600">৳/বস্তা</span>
-                                    </div>
-
-                                    <div className="mt-1 text-sm tabular-nums">
-                                        ভিত্তি দর (৳/কেজি):{' '}
-                                        <b className="rounded bg-indigo-50 px-1 text-indigo-700">{basePerKg > 0 ? basePerKg.toFixed(2) : '—'}</b>{' '}
-                                        <span className="text-gray-600">৳/কেজি</span>
-                                    </div>
-                                </div>
-
-                                {/* Production cost */}
-                                <div className="rounded-lg border bg-gray-50 p-3">
-                                    <div className="text-[11px] text-gray-500">প্রোডাকশন কস্ট (৳)</div>
-                                    <div className="mt-1 text-lg font-semibold tabular-nums">{prod.toFixed(2)}</div>
-                                </div>
-
-                                {/* By-product total */}
-                                <div className="rounded-lg border bg-gray-50 p-3">
-                                    <div className="text-[11px] text-gray-500">বাই-প্রোডাক্ট (৳)</div>
-                                    <div className="mt-1 text-lg font-semibold tabular-nums">{byp.toFixed(2)}</div>
-                                </div>
-                            </div>
-
-                            {/* Main kg & final preview */}
-                            <div className="mt-3 grid grid-cols-1 gap-3 lg:grid-cols-3">
-                                <div className="rounded-lg border bg-gray-50 p-3">
-                                    <div className="text-[11px] text-gray-500">উৎপাদিত চাল (মেইন) – মোট ওজন</div>
-                                    <div className="mt-1 text-lg font-semibold tabular-nums">
-                                        {mainKg || 0} <span className="text-sm">কেজি</span>
-                                    </div>
-                                    <div className="mt-1 text-[11px] text-gray-500">মেইন রো-তে weight দিন</div>
-                                </div>
-
-                                <div className="rounded-lg border bg-gray-50 p-3">
-                                    <div className="text-[11px] text-gray-500">বেস চালমূল্য (৳)</div>
-                                    <div className="mt-1 text-lg font-semibold tabular-nums">{mainValue.toFixed(2)}</div>
-                                    <div className="mt-1 text-[11px] text-gray-500">= ভিত্তি দর (৳/কেজি) × মোট চাল (কেজি)</div>
-                                </div>
-
-                                <div className="rounded-lg border bg-gray-50 p-3">
-                                    <div className="text-[11px] text-gray-500">প্রতি কেজি (ফাইনাল প্রিভিউ)</div>
-                                    <div className="mt-1 tabular-nums">
-                                        <span className="text-sm text-gray-600">
-                                            ({mainValue.toFixed(2)} + {prod.toFixed(2)} − {byp.toFixed(2)}) ÷ {mainKg || 0} ={' '}
-                                        </span>
-                                        <span className="rounded bg-emerald-50 px-2 py-[2px] text-lg font-semibold text-emerald-700">
-                                            {mainKg > 0 ? perKgPreview.toFixed(2) : '—'}
-                                        </span>
-                                        <span className="text-sm text-gray-600"> ৳/কেজি</span>
-                                    </div>
-                                </div>
-                                <div className="rounded-lg border bg-gray-50 p-3">
-                                    <div className="text-[11px] text-gray-500">টোটাল চালের মূল্য</div>
-                                    <div className="mt-1 tabular-nums">
-                                        <span className="text-sm text-gray-600">
-                                            {Number.isFinite(perKgToUse) && mainKg > 0 ? `${perKgToUse.toFixed(2)} × ${mainKg} = ` : '—'}
-                                        </span>
-                                        <span className="rounded bg-emerald-50 px-2 py-[2px] text-lg font-semibold text-emerald-700">
-                                            {mainKg > 0 ? totalByPerKg.toFixed(2) : '—'}
-                                        </span>
-                                        <span className="text-sm text-gray-600"> টাকার চাল স্টকে ঢুকবে </span>
-                                    </div>
-                                    <div className="mt-1 text-[11px] text-gray-500">
-                                        (পরতা × মোট ওজন)
-                                        {Number.isFinite(perKgFromMain) && perKgFromMain > 0
-                                            ? ' — মেইন রো-এর পরতা ব্যবহার করা হয়েছে'
-                                            : ' — প্রিভিউ রেট ব্যবহৃত'}
-                                    </div>
-                                </div>
-                            </div>
-
-                            {/* Actions */}
-                            <div className="mt-3 flex flex-wrap gap-2">
-                                <button
-                                    type="button"
-                                    onClick={computePaddyTotal}
-                                    className="rounded-sm bg-slate-800 px-3 py-2 text-sm text-white hover:bg-slate-700 disabled:opacity-50"
-                                    disabled={paddyBusy || !data.consumed.length || !data.godown_id}
-                                    title="Consumed লাইন থেকে ধানের মোট দাম বের করবে"
-                                >
-                                    {paddyBusy ? 'হিসাব হচ্ছে…' : 'ধানের মোট দাম বের করুন'}
-                                </button>
-
-                                <button
-                                    type="button"
-                                    onClick={computeMainPerKg}
-                                    className="rounded-sm bg-indigo-600 px-3 py-2 text-sm text-white hover:bg-indigo-500 disabled:opacity-50"
-                                    disabled={mainIdx < 0}
-                                    title="মেইন রো-তে প্রতি কেজির দর বসাবে"
-                                >
-                                    মেইন আইটেমে প্রতি কেজি সেট করুন
-                                </button>
-                            </div>
-                        </div>
 
                         {/* remarks + footer buttons */}
                         <div>

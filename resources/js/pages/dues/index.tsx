@@ -74,19 +74,19 @@ export default function DueIndex({ sales, filters }: Props) {
         <AppLayout>
             <Head title="Outstanding Dues" />
 
-            <div className="min-h-screen bg-gray-100 p-6">
+            <div className="min-h-screen bg-background p-6">
                 <div className="mx-auto max-w-6xl space-y-6">
                     <PageHeader title="Outstanding Dues" addLinkHref="/sales" addLinkText="Back to Sales" />
 
                     {/* flash msg */}
-                    {flash?.success && <div className="rounded bg-green-100 p-3 text-green-800">{flash.success}</div>}
+                    {flash?.success && <div className="rounded bg-background p-3 text-green-800">{flash.success}</div>}
 
                     {/* search bar */}
                     <div className="mb-3 flex items-center gap-2">
                         <input
                             type="text"
                             placeholder="Search voucher, customer, item…"
-                            className="w-full max-w-sm rounded border-b-2 border-black p-2 shadow-sm"
+                            className="w-full max-w-sm rounded border-b-2 border-gray-600 p-2 shadow-sm"
                             value={search}
                             onChange={(e) => setSearch(e.target.value)}
                         />
@@ -104,9 +104,9 @@ export default function DueIndex({ sales, filters }: Props) {
                     </div>
 
                     {/* table */}
-                    <div className="overflow-x-auto rounded-lg border bg-white">
-                        <table className="min-w-full table-auto text-sm text-gray-800">
-                            <thead className="sticky top-0 bg-gray-50 text-left text-xs font-semibold tracking-wide uppercase">
+                    <div className="overflow-x-auto rounded-lg border bg-background">
+                        <table className="min-w-full table-auto text-sm text-foreground">
+                            <thead className="sticky top-0 bg-background text-left text-xs font-semibold tracking-wide uppercase">
                                 <tr>
                                     <th className="px-4 py-3">Date</th>
                                     <th className="px-4 py-3">Voucher</th>
@@ -120,20 +120,20 @@ export default function DueIndex({ sales, filters }: Props) {
                             <tbody>
                                 {sales.data.length === 0 && (
                                     <tr>
-                                        <td colSpan={6} className="py-10 text-center text-gray-500">
+                                        <td colSpan={6} className="py-10 text-center text-foreground/70">
                                             🎉 No dues — all caught up.
                                         </td>
                                     </tr>
                                 )}
 
                                 {sales.data.map((s) => (
-                                    <tr key={s.id} className="border-t even:bg-gray-50/50 hover:bg-gray-50">
+                                    <tr key={s.id} className="border-t even:bg-background-50/50 ">
                                         <td className="px-4 py-2">{formatDate(s.date)}</td>
                                         <td className="px-4 py-2">{s.voucher_no}</td>
                                         <td className="px-4 py-2">{s.customer}</td>
 
                                         {/* show up to 3 item names, then “+ n more” */}
-                                        <td className="px-4 py-2 text-xs text-gray-600">
+                                        <td className="px-4 py-2 text-xs text-foreground/80">
                                             {s.sale_items}
                                             {s.extra_count > 0 && <span className="text-gray-400"> +{s.extra_count} more</span>}
                                         </td>

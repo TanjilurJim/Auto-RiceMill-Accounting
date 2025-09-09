@@ -65,6 +65,43 @@ export default function WithdrawForm({ parties, godowns, units, today, generated
             label: g.godown_name,
         }));
     }, [data.party_ledger_id, available_stock]);
+    const selectStyles = {
+  control: (base: any, state: any) => ({
+    ...base,
+    backgroundColor: 'var(--input)',
+    borderColor: state.isFocused ? 'var(--ring)' : 'var(--input)',
+    boxShadow: state.isFocused ? '0 0 0 2px var(--ring)' : 'none',
+    color: 'var(--foreground)',
+    minHeight: '2.5rem',
+    borderRadius: 'var(--radius-md)',
+  }),
+  singleValue: (base: any) => ({ ...base, color: 'var(--foreground)' }),
+  input:       (base: any) => ({ ...base, color: 'var(--foreground)' }),
+  placeholder: (base: any) => ({ ...base, color: 'var(--muted-foreground)' }),
+
+  menu: (base: any) => ({
+    ...base,
+    backgroundColor: 'var(--popover)',
+    color: 'var(--popover-foreground)',
+    border: '1px solid var(--border)',
+  }),
+  option: (base: any, state: any) => ({
+    ...base,
+    backgroundColor: state.isSelected
+      ? 'var(--primary)'
+      : state.isFocused
+      ? 'var(--accent)'
+      : 'transparent',
+    color: state.isSelected ? 'var(--primary-foreground)' : 'var(--popover-foreground)',
+  }),
+
+  indicatorSeparator: (b: any) => ({ ...b, backgroundColor: 'var(--border)' }),
+  dropdownIndicator:  (b: any) => ({ ...b, color: 'var(--muted-foreground)' }),
+  clearIndicator:     (b: any) => ({ ...b, color: 'var(--muted-foreground)' }),
+
+  // if you render into a portal (recommended to avoid overflow issues)
+  menuPortal: (base: any) => ({ ...base, zIndex: 60 }), // adjust to your stack
+};
 
     // Items available for the selected party+godown (so we can auto-fill unit_name properly)
     const itemOptions = useMemo(() => {
@@ -146,12 +183,12 @@ export default function WithdrawForm({ parties, godowns, units, today, generated
     return (
         <AppLayout>
             <Head title="মাল উত্তোলন ফর্ম" />
-            <div className="h-full w-screen bg-gray-100 p-6 lg:w-full">
-                <div className="h-full rounded-lg bg-white p-6">
+            <div className="h-full w-screen bg-background p-6 lg:w-full">
+                <div className="h-full rounded-lg bg-background p-6">
                     <h1 className="mb-4 text-xl font-bold">পণ্য উত্তোলন ফর্ম</h1>
 
                     {/* Available stock panel */}
-                    <div className="mb-4 rounded-md bg-gray-100 p-4">
+                    <div className="mb-4 rounded-md bg-background p-4">
                         {data.party_ledger_id && available_stock[data.party_ledger_id] ? (
                             <>
                                 <h2 className="text-lg font-semibold">Selected Party Stock</h2>
@@ -171,7 +208,7 @@ export default function WithdrawForm({ parties, godowns, units, today, generated
                                 </div>
                             </>
                         ) : (
-                            <p>Please select a party to see available stock.</p>
+                            <p>দয়া করে পার্টি সিলেক্ট করুন স্টক এর আইটেম দেখার জন্য</p>
                         )}
                     </div>
 
@@ -211,7 +248,7 @@ export default function WithdrawForm({ parties, godowns, units, today, generated
                                     isClearable
                                     menuPortalTarget={typeof window !== 'undefined' ? document.body : undefined}
                                     menuPosition="fixed"
-                                    styles={{ menuPortal: (base) => ({ ...base, zIndex: 9999 }) }}
+                                     styles={selectStyles}
                                 />
                                 {errors.party_ledger_id && <p className="text-sm text-red-500">{errors.party_ledger_id}</p>}
                             </div>
@@ -233,7 +270,7 @@ export default function WithdrawForm({ parties, godowns, units, today, generated
                                     isClearable
                                     menuPortalTarget={typeof window !== 'undefined' ? document.body : undefined}
                                     menuPosition="fixed"
-                                    styles={{ menuPortal: (base) => ({ ...base, zIndex: 9999 }) }}
+                                     styles={selectStyles}
                                 />
                                 {errors.godown_id_from && <p className="text-sm text-red-500">{errors.godown_id_from}</p>}
                             </div>

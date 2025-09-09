@@ -5,6 +5,8 @@ namespace App\Http\Controllers;
 use App\Models\CompanySetting;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Pagination\LengthAwarePaginator;
+use Illuminate\Pagination\Paginator;
 use App\Models\Employee;
 use App\Exports\AccountBookExport;
 use App\Exports\CategoryWiseStockSummaryExport;
@@ -132,46 +134,122 @@ class ReportController extends Controller
     public function stockSummary(Request $request)
     {
         $from = $request->input('from');
-        $to = $request->input('to');
+        $to   = $request->input('to');
 
         $user = auth()->user();
-        $ids = user_scope_ids();
+        $ids  = user_scope_ids();
 
         // If filters are missing, show filter page
-        if (!$user->hasRole('admin')) {
-            $godowns = Godown::whereIn('created_by', $ids)->select('id', 'name')->get();
-            $categories = Category::whereIn('created_by', $ids)->get(['id', 'name']);
-            $items = Item::whereIn('created_by', $ids)->get(['id', 'item_name']);
-        } else {
-            $godowns = Godown::select('id', 'name')->get();
-            $categories = Category::get(['id', 'name']);
-            $items = Item::get(['id', 'item_name']);
-        }
-
         if (!$from || !$to) {
+            if (!$user->hasRole('admin')) {
+                $godowns    = Godown::whereIn('created_by', $ids)->select('id', 'name')->get();
+                $categories = Category::whereIn('created_by', $ids)->get(['id', 'name']);
+                $items      = Item::whereIn('created_by', $ids)->get(['id', 'item_name']);
+            } else {
+                $godowns    = Godown::select('id', 'name')->get();
+                $categories = Category::get(['id', 'name']);
+                $items      = Item::get(['id', 'item_name']);
+            }
+
             return Inertia::render('reports/StockSummaryFilter', [
-                'godowns' => $godowns,
+                'godowns'    => $godowns,
                 'categories' => $categories,
-                'items' => $items,
+                'items'      => $items,
             ]);
         }
 
-        $stocks = $this->getStockData($request);
+        // lists (for header/filter chips on the result page)
+        if (!$user->hasRole('admin')) {
+            $godowns    = Godown::whereIn('created_by', $ids)->select('id', 'name')->get();
+            $categories = Category::whereIn('created_by', $ids)->get(['id', 'name']);
+            $items      = Item::whereIn('created_by', $ids)->get(['id', 'item_name']);
+        } else {
+            $godowns    = Godown::select('id', 'name')->get();
+            $categories = Category::get(['id', 'name']);
+            $items      = Item::get(['id', 'item_name']);
+        }
+
+        // your existing collection
+        $all = $this->getStockData($request); // Collection<array>
+
+        // pagination
+        $page    = Paginator::resolveCurrentPage('page');
+        $perPage = (int) $request->input('per_page', 25);
+
+
+
+        $stocks = new LengthAwarePaginator(
+            $all->forPage($page, $perPage)->values(),
+            $all->count(),
+            $perPage,
+            $page,
+            [
+                'path'  => $request->url(),
+                'query' => $request->query(), // keep from/to/godown_id etc.
+            ]
+        );
+        $stocks->onEachSide(1);
+        $grand = [
+            'total_qty' => (float) $all->sum('qty'),
+            // add more if needed:
+            // 'total_purchase' => (float) $all->sum('total_purchase'),
+            // 'total_sale'     => (float) $all->sum('total_sale'),
+        ];
 
         $company = CompanySetting::where('created_by', auth()->id())->first();
+        $grandByGodownItem = $this->getGrandByGodownItem($request);
 
         return Inertia::render('reports/StockSummary', [
-            'items' => $items,
-            'stocks' => $stocks,
-            'company' => $company,
-            'godowns' => $godowns,
+            'items'      => $items,
+            'stocks'     => $stocks, // has data, links, current_page, last_page, total
+            'company'    => $company,
+            'grand'   => $grand,
+            'godowns'    => $godowns,
+            'grandByGodownItem' => $grandByGodownItem,
             'categories' => $categories,
-            'filters' => [
-                'from' => $from,
-                'to' => $to,
-                'godown_id' => $request->godown_id,
-            ]
+            'filters'    => [
+                'from'        => $from,
+                'to'          => $to,
+                'godown_id'   => $request->godown_id,
+                'category_id' => $request->category_id,
+                'item_id'     => $request->item_id,
+            ],
         ]);
+    }
+    private function getGrandByGodownItem(Request $request): array
+    {
+        $user = auth()->user();
+        $ids  = user_scope_ids();
+        $stockTable = (new Stock)->getTable(); // usually "stocks"
+
+        $rows = Stock::query()
+            ->join('items as i', 'i.id', '=', "{$stockTable}.item_id")
+            ->leftJoin('units as u', 'u.id', '=', 'i.unit_id')
+            ->leftJoin('godowns as g', 'g.id', '=', "{$stockTable}.godown_id")
+            ->when(
+                !$user->hasRole('admin'),
+                fn($q) =>
+                $q->whereIn('i.created_by', $ids)
+            )
+            ->when(
+                $request->godown_id,
+                fn($q) =>
+                $q->where("{$stockTable}.godown_id", $request->godown_id)
+            )
+            ->selectRaw('COALESCE(g.name, "—") as godown, i.item_name, COALESCE(u.name, "") as unit, SUM(' . $stockTable . '.qty) as total_qty')
+            ->groupBy('godown', 'i.item_name', 'u.name')
+            ->orderBy('godown')
+            ->orderBy('i.item_name')
+            ->get();
+
+        // Shape: [godown => [ "Item (Unit)" => qty ]]
+        $by = [];
+        foreach ($rows as $r) {
+            $label = trim($r->item_name . ' (' . $r->unit . ')');
+            $by[$r->godown][$label] = (float) $r->total_qty;
+        }
+        ksort($by); // sort godowns alphabetically
+        return $by;
     }
 
     // Stock Summary PDF and Excel exports
@@ -203,31 +281,7 @@ class ReportController extends Controller
         );
     }
 
-    // Stock Data
-    // private function getStockData(Request $request)
-    // {
-    //     return Stock::with(['item.unit', 'godown'])
-    //         ->when(!auth()->user()->hasRole('admin'), function ($q) {
-    //             $q->whereHas('item', function ($subQuery) {
-    //                 $subQuery->where('created_by', auth()->id());
-    //             });
-    //         })
-    //         ->when($request->godown_id, fn($q) => $q->where('godown_id', $request->godown_id))
-    //         ->get()
-    //         ->map(function ($stock) {
-    //             return [
-    //                 'item_name' => $stock->item->item_name,
-    //                 'godown_name' => $stock->godown->name,
-    //                 'unit' => $stock->item->unit->name,
-    //                 'qty' => (float) $stock->qty ?? 0,
-    //                 'total_purchase' => (float) (PurchaseItem::where('product_id', $stock->item_id)->sum('subtotal') ?? 0),
-    //                 'total_sale' => (float) (SaleItem::where('product_id', $stock->item_id)->sum('subtotal') ?? 0),
-    //                 'total_sale_qty' => (float) (SaleItem::where('product_id', $stock->item_id)->sum('qty') ?? 0), // ✅ ADD THIS
-    //                 'last_purchase_at' => PurchaseItem::where('product_id', $stock->item_id)->latest()->value('created_at'),
-    //                 'last_sale_at' => SaleItem::where('product_id', $stock->item_id)->latest()->value('created_at'),
-    //             ];
-    //         });
-    // }
+
 
     private function getStockData(Request $request)
     {

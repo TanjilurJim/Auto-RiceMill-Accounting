@@ -107,7 +107,7 @@ export default function Login({ status, canResetPassword }: LoginProps) {
 
                                 <button
                                     type="submit"
-                                    className="mt-4 inline-flex w-full items-center justify-center gap-1 rounded bg-[#F15A29] px-6 py-2 text-white transition duration-300 ease-in-out hover:bg-[#1D1C1E] hover:text-[#F15A29]"
+                                    className="mt-4 inline-flex w-full items-center justify-center gap-1 rounded bg-[#5e0404] px-6 py-2 text-white transition duration-300 ease-in-out hover:bg-[#1D1C1E] hover:text-white"
                                     tabIndex={4}
                                     disabled={processing}
                                 >

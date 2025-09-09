@@ -30,22 +30,58 @@ interface Props {
     onRemove: (idx: number) => void;
     onPatch: (idx: number, patch: Partial<ConsumedRow>) => void;
 }
+    const selectStyles = {
+  control: (base: any, state: any) => ({
+    ...base,
+    backgroundColor: 'var(--input)',
+    borderColor: state.isFocused ? 'var(--ring)' : 'var(--input)',
+    boxShadow: state.isFocused ? '0 0 0 2px var(--ring)' : 'none',
+    color: 'var(--foreground)',
+    minHeight: '2.5rem',
+    borderRadius: 'var(--radius-md)',
+  }),
+  singleValue: (base: any) => ({ ...base, color: 'var(--foreground)' }),
+  input:       (base: any) => ({ ...base, color: 'var(--foreground)' }),
+  placeholder: (base: any) => ({ ...base, color: 'var(--muted-foreground)' }),
 
+  menu: (base: any) => ({
+    ...base,
+    backgroundColor: 'var(--popover)',
+    color: 'var(--popover-foreground)',
+    border: '1px solid var(--border)',
+  }),
+  option: (base: any, state: any) => ({
+    ...base,
+    backgroundColor: state.isSelected
+      ? 'var(--primary)'
+      : state.isFocused
+      ? 'var(--accent)'
+      : 'transparent',
+    color: state.isSelected ? 'var(--primary-foreground)' : 'var(--popover-foreground)',
+  }),
+
+  indicatorSeparator: (b: any) => ({ ...b, backgroundColor: 'var(--border)' }),
+  dropdownIndicator:  (b: any) => ({ ...b, color: 'var(--muted-foreground)' }),
+  clearIndicator:     (b: any) => ({ ...b, color: 'var(--muted-foreground)' }),
+
+  // if you render into a portal (recommended to avoid overflow issues)
+  menuPortal: (base: any) => ({ ...base, zIndex: 60 }), // adjust to your stack
+};
 const ConsumedTable: React.FC<Props> = React.memo(
     ({ owner, rows, units, errors, consumedOptsForParty, companyItemOpts, lotOptionsForItem, onAdd, onRemove, onPatch }) => {
         const err = (p: string) => (errors?.[p] as string) || undefined;
 
         return (
             <>
-                <h2 className="mt-6 mb-2 text-lg font-semibold">Consumed</h2>
+                <h2 className="mt-6 mb-2 text-lg font-semibold">কনজিউমড পণ্য</h2>
                 <table className="w-full border text-sm">
-                    <thead className="bg-gray-100">
+                    <thead className="bg-gray-background">
                         <tr>
-                            <th className="border p-1">{owner === 'company' ? 'Item / Lot' : 'Item'}</th>
-                            {owner === 'company' && <th className="border p-1">Lot</th>}
-                            <th className="border p-1">Qty</th>
-                            <th className="border p-1">Unit</th>
-                            <th className="border p-1">Weight (kg)</th>
+                            <th className="border p-1">{owner === 'company' ? 'পণ্যের নাম' : 'Item'}</th>
+                            {owner === 'company' && <th className="border p-1">লট/ব্যাচ নং</th>}
+                            <th className="border p-1">পরিমাণ</th>
+                            <th className="border p-1">একক</th>
+                            <th className="border p-1">ওজন (kg)</th>
                             <th className="w-6 border p-1">✕</th>
                         </tr>
                     </thead>
@@ -76,6 +112,7 @@ const ConsumedTable: React.FC<Props> = React.memo(
                                                 });
                                             }}
                                             isClearable
+                                            styles={selectStyles}
                                         />
                                         {err(`consumed.${idx}.party_item_id`) && (
                                             <p className="text-xs text-red-500">{err(`consumed.${idx}.party_item_id`)}</p>
@@ -90,6 +127,7 @@ const ConsumedTable: React.FC<Props> = React.memo(
                                                 options={companyItemOpts}
                                                 value={companyItemOpts.find((o) => o.value === Number(row.item_id))}
                                                 onChange={(sel) => onPatch(idx, { item_id: (sel?.value as any) || '', lot_id: '' })}
+                                                styles={selectStyles}
                                             />
                                         </td>
                                         <td className="border p-1">
@@ -100,6 +138,7 @@ const ConsumedTable: React.FC<Props> = React.memo(
                                                 value={lotOptionsForItem(row.item_id!).find((o) => o.value === Number(row.lot_id))}
                                                 isDisabled={!row.item_id}
                                                 onChange={(sel) => onPatch(idx, { lot_id: (sel?.value as any) || '' })}
+                                                styles={selectStyles}
                                             />
                                         </td>
                                     </>
@@ -177,7 +216,7 @@ const ConsumedTable: React.FC<Props> = React.memo(
                     </tbody>
                 </table>
                 <button type="button" onClick={onAdd} className="mt-1 text-sm text-blue-600">
-                    + line
+                    +  আরো পণ্য যুক্ত করুন
                 </button>
             </>
         );

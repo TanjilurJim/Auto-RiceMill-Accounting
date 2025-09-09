@@ -110,17 +110,7 @@ export default function SaleCreate({
 
         cogs_ledger_id: '',
     });
-    // useEffect(() => {
-    //     if (data.godown_id) {
-    //         axios.get(`/sales/items/by-godown/${data.godown_id}`).then((res) => {
-    //             // Update the state with the items and their stock quantities
-    //             setFilteredItems(res.data); // Ensure you get the correct stock quantities here
-    //         });
-    //     } else {
-    //         setFilteredItems([]); // Clear the items if no godown is selected
-    //     }
-    // }, [data.godown_id]);
-
+   
     /* ③ fetch items + lots from the new endpoint */
     useEffect(() => {
         if (!data.godown_id) {
@@ -144,16 +134,7 @@ export default function SaleCreate({
     const [newLedgerName, setNewLedgerName] = useState('');
     const [newGroupId, setNewGroupId] = useState('');
 
-    // useEffect(() => {
-    //     if (data.received_mode_id) {
-    //         const mode = receivedModes.find((m) => m.id === parseInt(data.received_mode_id));
-    //         if (mode?.ledger_id) {
-    //             axios.get(`/account-ledgers/${mode.ledger_id}/balance`).then((res) => {
-    //                 setData('closing_balance', res.data.balance);
-    //             });
-    //         }
-    //     }
-    // }, [data.received_mode_id]);
+  
 
     const customerLedgers = ledgers.filter((l) => l.mark_for_user);
 
@@ -256,17 +237,17 @@ export default function SaleCreate({
     return (
         <AppLayout>
             <Head title="Add Sale" />
-            <div className="h-full w-screen bg-gray-100 p-6 lg:w-full">
-                <div className="h-full rounded-lg bg-white p-6">
+            <div className="h-full w-screen bg-background p-6 lg:w-full">
+                <div className="h-full rounded-lg bg-background p-6">
                     {/* Header */}
 
                     <PageHeader title="Create Sale" addLinkHref="/sales" addLinkText="Back" />
 
                     {/* Form */}
-                    <form onSubmit={handleSubmit} className="space-y-8 rounded-lg border bg-white p-6">
+                    <form onSubmit={handleSubmit} className="space-y-8 rounded-lg border bg-background p-6">
                         {/* Section 1: Basic Sale Info */}
                         <div>
-                            <h2 className="mb-3 border-b pb-1 text-lg font-semibold text-gray-700">Sale Information</h2>
+                            <h2 className="mb-3 border-b pb-1 text-lg font-semibold text-foreground">Sale Information</h2>
                             <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
                                 {/* Date */}
                                 <div>
@@ -276,13 +257,13 @@ export default function SaleCreate({
 
                                 {/* Voucher No */}
                                 <div>
-                                    <label className="mb-1 block text-sm font-medium text-gray-700">Voucher No</label>
-                                    <input type="text" className="w-full rounded border bg-gray-100 p-2" value={data.voucher_no} readOnly />
+                                    <label className="mb-1 block text-sm font-medium text-foreground">Voucher No</label>
+                                    <input type="text" className="w-full rounded border bg-background p-2" value={data.voucher_no} readOnly />
                                 </div>
 
                                 {/* Godown */}
                                 <div>
-                                    <label className="mb-1 block text-sm font-medium text-gray-700">Godown</label>
+                                    <label className="mb-1 block text-sm font-medium text-foreground">Godown</label>
                                     <select
                                         className="w-full rounded border p-2"
                                         value={data.godown_id}
@@ -300,7 +281,7 @@ export default function SaleCreate({
 
                                 {/* Salesman */}
                                 <div>
-                                    <label className="mb-1 block text-sm font-medium text-gray-700">Salesman</label>
+                                    <label className="mb-1 block text-sm font-medium text-foreground">Salesman</label>
                                     <select
                                         className="w-full rounded border p-2"
                                         value={data.salesman_id}
@@ -318,7 +299,7 @@ export default function SaleCreate({
 
                                 {/* Party Ledger */}
                                 <div>
-                                    <label className="mb-1 block text-sm font-medium text-gray-700">Customer Ledger</label>
+                                    <label className="mb-1 block text-sm font-medium text-foreground">Customer Ledger</label>
                                     <select
                                         className="w-full rounded border p-2"
                                         value={data.account_ledger_id}
@@ -345,7 +326,7 @@ export default function SaleCreate({
 
                                 {/* Phone */}
                                 <div>
-                                    <label className="mb-1 block text-sm font-medium text-gray-700">Phone</label>
+                                    <label className="mb-1 block text-sm font-medium text-foreground">Phone</label>
                                     <input
                                         type="text"
                                         className="w-full rounded border p-2"
@@ -356,7 +337,7 @@ export default function SaleCreate({
 
                                 {/* Address */}
                                 <div>
-                                    <label className="mb-1 block text-sm font-medium text-gray-700">Address</label>
+                                    <label className="mb-1 block text-sm font-medium text-foreground">Address</label>
                                     <input
                                         type="text"
                                         className="w-full rounded border p-2"
@@ -369,7 +350,7 @@ export default function SaleCreate({
 
                         {/* Section 2: Product Rows */}
                         <div>
-                            <h2 className="mb-3 border-b pb-1 text-lg font-semibold text-gray-700">Products</h2>
+                            <h2 className="mb-3 border-b pb-1 text-lg font-semibold text-foreground">Products</h2>
 
                             {data.sale_items.map((item, index) => (
                                 // <div key={index} className="mb-3 grid grid-cols-12 items-end gap-2">
@@ -377,7 +358,7 @@ export default function SaleCreate({
                                     {/* Product */}
                                     {/* ───────── Product ───────── */}
                                     <div className="h-full w-full">
-                                        <label className="mb-1 block text-sm font-medium text-gray-700">Product</label>
+                                        <label className="mb-1 block text-sm font-medium text-foreground">Product</label>
                                         <select
                                             className="h-fit w-full rounded border p-2"
                                             value={item.product_id}
@@ -397,7 +378,7 @@ export default function SaleCreate({
 
                                     {/* ───────── Lot ───────── */}
                                     <div className="h-full w-full">
-                                        <label className="mb-1 block text-sm font-medium text-gray-700">Lot</label>
+                                        <label className="mb-1 block text-sm font-medium text-foreground">Lot</label>
                                         <select
                                             className="h-fit w-full rounded border p-2"
                                             value={item.lot_id}
@@ -421,7 +402,7 @@ export default function SaleCreate({
 
                                     {/* Qty */}
                                     <div className="h-full w-full">
-                                        <label className="mb-1 block text-sm font-medium text-gray-700">Qty</label>
+                                        <label className="mb-1 block text-sm font-medium text-foreground">Qty</label>
                                         <input
                                             type="number"
                                             className="h-fit w-full rounded border p-2"
@@ -436,7 +417,7 @@ export default function SaleCreate({
                                     {/* Main Price */}
                                     {/* Sale Price */}
                                     <div className="h-full w-full">
-                                        <label className="mb-1 block text-sm font-medium text-gray-700">Sale Price</label>
+                                        <label className="mb-1 block text-sm font-medium text-foreground">Sale Price</label>
                                         <input
                                             type="number"
                                             className="w-full rounded border p-2"
@@ -498,7 +479,7 @@ export default function SaleCreate({
 
                                     {/* Discount */}
                                     <div className="h-full w-full">
-                                        <label className="mb-1 block text-sm font-medium text-gray-700">Disc</label>
+                                        <label className="mb-1 block text-sm font-medium text-foreground">Disc</label>
                                         <input
                                             type="number"
                                             className="w-full rounded border p-2"
@@ -509,7 +490,7 @@ export default function SaleCreate({
 
                                     {/* Discount Type */}
                                     <div className="h-full w-full">
-                                        <label className="mb-1 block text-sm font-medium text-gray-700">Type</label>
+                                        <label className="mb-1 block text-sm font-medium text-foreground">Type</label>
                                         <select
                                             className="w-full rounded border p-2"
                                             value={item.discount_type}
@@ -522,8 +503,8 @@ export default function SaleCreate({
 
                                     {/* Subtotal */}
                                     <div className="h-full w-full">
-                                        <label className="mb-1 block text-sm font-medium text-gray-700">Subtotal</label>
-                                        <input type="number" className="w-full rounded border bg-gray-100 p-2" value={item.subtotal} readOnly />
+                                        <label className="mb-1 block text-sm font-medium text-foreground">Subtotal</label>
+                                        <input type="number" className="w-full rounded border bg-background p-2" value={item.subtotal} readOnly />
                                     </div>
 
                                     {/* Add/Remove Buttons */}
@@ -551,7 +532,7 @@ export default function SaleCreate({
                             ))}
                             {/* Section 2: Product Rows */}
                             <div>
-                                <h2 className="mb-3 border-b pb-1 text-lg font-semibold text-gray-700">Products</h2>
+                                <h2 className="mb-3 border-b pb-1 text-lg font-semibold text-foreground">Products</h2>
 
                                 {data.sale_items.map((item, index) => (
                                     <div key={index} className="mb-3 grid grid-cols-12 items-end gap-2">
@@ -564,7 +545,7 @@ export default function SaleCreate({
                             <div className="mt-6 grid grid-cols-1 gap-4 md:grid-cols-3">
                                 {/* Inventory Ledger */}
                                 <div className="col-span-1">
-                                    <label className="mb-1 block flex items-center gap-1 text-sm font-semibold text-gray-700">
+                                    <label className="mb-1 block flex items-center gap-1 text-sm font-semibold text-foreground">
                                         Inventory Ledger <span className="text-red-500">*</span>
                                         {/* Tooltip icon */}
                                         <div className="group relative cursor-pointer">
@@ -600,7 +581,7 @@ export default function SaleCreate({
                                 {/* Other Amount */}
                                 {/* COGS Ledger */}
                                 <div className="col-span-1">
-                                    <label className="mb-1 block flex items-center gap-1 text-sm font-semibold text-gray-700">
+                                    <label className="mb-1 block flex items-center gap-1 text-sm font-semibold text-foreground">
                                         COGS Ledger <span className="text-red-500">*</span>
                                         <div className="group relative cursor-pointer">
                                             <span className="inline-block h-4 w-4 rounded-full bg-gray-300 text-center text-xs font-bold">?</span>
@@ -632,7 +613,7 @@ export default function SaleCreate({
                                 </div>
                                 {/* Receive Mode */}
                                 <div>
-                                    <label className="mb-1 block text-sm font-semibold text-gray-700">Receive Mode</label>
+                                    <label className="mb-1 block text-sm font-semibold text-foreground">Receive Mode</label>
                                     <select
                                         className="w-full border p-2"
                                         value={data.received_mode_id || ''}
@@ -649,7 +630,7 @@ export default function SaleCreate({
                                 </div>
                                 {/* Receive Amount */}
                                 <div>
-                                    <label className="mb-1 block text-sm font-semibold text-gray-700">Receive Amount</label>
+                                    <label className="mb-1 block text-sm font-semibold text-foreground">Receive Amount</label>
                                     <input
                                         type="number"
                                         placeholder="0.00"
@@ -660,12 +641,12 @@ export default function SaleCreate({
                                 </div>
                                 {/* Total Due */}
                                 <div>
-                                    <label className="mb-1 block text-sm font-semibold text-gray-700">Total Due</label>
+                                    <label className="mb-1 block text-sm font-semibold text-foreground">Total Due</label>
                                     <input type="number" readOnly className="w-full border bg-gray-100 p-2" value={uiTotalDue} />
                                 </div>
                                 {/* Closing Balance */}
                                 <div>
-                                    <label className="mb-1 block text-sm font-semibold text-gray-700">Closing Balance</label>
+                                    <label className="mb-1 block text-sm font-semibold text-foreground">Closing Balance</label>
                                     <input type="number" readOnly className="w-full border bg-gray-100 p-2" value={uiClosingBal} />
                                 </div>
                             </div>
@@ -673,11 +654,11 @@ export default function SaleCreate({
 
                         {/* Section 3: Shipping, Delivery, Truck Info */}
                         <div>
-                            <h2 className="mb-3 border-b pb-1 text-lg font-semibold text-gray-700">Shipping & Truck Details</h2>
+                            <h2 className="mb-3 border-b pb-1 text-lg font-semibold text-foreground">Shipping & Truck Details</h2>
                             <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
                                 {/* Shipping Details */}
                                 <div>
-                                    <label className="mb-1 block text-sm font-medium text-gray-700">Shipping Details</label>
+                                    <label className="mb-1 block text-sm font-medium text-foreground">Shipping Details</label>
                                     <textarea
                                         className="w-full rounded border p-2"
                                         rows={3}
@@ -688,7 +669,7 @@ export default function SaleCreate({
 
                                 {/* Delivered To */}
                                 <div>
-                                    <label className="mb-1 block text-sm font-medium text-gray-700">Delivered To</label>
+                                    <label className="mb-1 block text-sm font-medium text-foreground">Delivered To</label>
                                     <textarea
                                         className="w-full rounded border p-2"
                                         rows={3}
@@ -701,7 +682,7 @@ export default function SaleCreate({
                             <div className="mt-4 grid grid-cols-1 gap-4 md:grid-cols-3">
                                 {/* Truck Rent */}
                                 <div>
-                                    <label className="mb-1 block text-sm font-medium text-gray-700">Truck Rent</label>
+                                    <label className="mb-1 block text-sm font-medium text-foreground">Truck Rent</label>
                                     <input
                                         type="text"
                                         className="w-full rounded border p-2"
@@ -712,7 +693,7 @@ export default function SaleCreate({
 
                                 {/* Rent Advance */}
                                 <div>
-                                    <label className="mb-1 block text-sm font-medium text-gray-700">Rent Advance</label>
+                                    <label className="mb-1 block text-sm font-medium text-foreground">Rent Advance</label>
                                     <input
                                         type="text"
                                         className="w-full rounded border p-2"
@@ -723,7 +704,7 @@ export default function SaleCreate({
 
                                 {/* Net Rent */}
                                 <div>
-                                    <label className="mb-1 block text-sm font-medium text-gray-700">Due Rent</label>
+                                    <label className="mb-1 block text-sm font-medium text-foreground">Due Rent</label>
                                     <input
                                         type="text"
                                         className="w-full rounded border p-2"
@@ -734,7 +715,7 @@ export default function SaleCreate({
 
                                 {/* Truck Driver Name */}
                                 <div>
-                                    <label className="mb-1 block text-sm font-medium text-gray-700">Truck Driver Name</label>
+                                    <label className="mb-1 block text-sm font-medium text-foreground">Truck Driver Name</label>
                                     <input
                                         type="text"
                                         className="w-full rounded border p-2"
@@ -745,7 +726,7 @@ export default function SaleCreate({
 
                                 {/* Driver Address */}
                                 <div>
-                                    <label className="mb-1 block text-sm font-medium text-gray-700">Driver Address</label>
+                                    <label className="mb-1 block text-sm font-medium text-foreground">Driver Address</label>
                                     <input
                                         type="text"
                                         className="w-full rounded border p-2"
@@ -756,7 +737,7 @@ export default function SaleCreate({
 
                                 {/* Driver Mobile */}
                                 <div>
-                                    <label className="mb-1 block text-sm font-medium text-gray-700">Driver Mobile</label>
+                                    <label className="mb-1 block text-sm font-medium text-foreground">Driver Mobile</label>
                                     <input
                                         type="text"
                                         className="w-full rounded border p-2"
@@ -790,7 +771,7 @@ export default function SaleCreate({
                     }}
                 >
                     <div className="w-full max-w-md rounded bg-white p-6 shadow-lg">
-                        <h2 className="mb-4 text-lg font-semibold text-gray-700">Create Inventory Ledger</h2>
+                        <h2 className="mb-4 text-lg font-semibold text-foreground">Create Inventory Ledger</h2>
 
                         <input
                             type="text"
@@ -860,7 +841,7 @@ export default function SaleCreate({
                     }}
                 >
                     <div className="w-full max-w-md rounded bg-white p-6 shadow-lg">
-                        <h2 className="mb-4 text-lg font-semibold text-gray-700">Create COGS Ledger</h2>
+                        <h2 className="mb-4 text-lg font-semibold text-foreground">Create COGS Ledger</h2>
 
                         <input
                             type="text"

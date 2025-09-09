@@ -310,7 +310,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
     // ---------------------------
     // Purchase Routes
     // ---------------------------
-    Route::resource('purchases', PurchaseController::class)->only(['index', 'show'])
+    Route::resource('purchases', PurchaseController::class)->only(['index'])
         ->middleware(perm('purchases', 'view'));
     Route::resource('purchases', PurchaseController::class)->only(['create', 'store'])
         ->middleware(perm('purchases', 'create'));
@@ -318,12 +318,14 @@ Route::middleware(['auth', 'verified'])->group(function () {
         ->middleware(perm('purchases', 'edit'));
     Route::resource('purchases', PurchaseController::class)->only(['destroy'])
         ->middleware(perm('purchases', 'delete'));
+    Route::resource('purchases', PurchaseController::class)->only([ 'show'])
+        ->middleware(perm('purchases', 'view'));
 
     // Purchase returns (seeder key: 'purchases-return')
     Route::get('purchase-returns/{purchase_return}/invoice', [PurchaseReturnController::class, 'invoice'])
         ->middleware(perm('purchases-return', 'view'))->name('purchase-returns.invoice');
 
-    Route::resource('purchase-returns', PurchaseReturnController::class)->only(['index', 'show'])
+    Route::resource('purchase-returns', PurchaseReturnController::class)->only(['index', ])
         ->middleware(perm('purchases-return', 'view'));
     Route::resource('purchase-returns', PurchaseReturnController::class)->only(['create', 'store'])
         ->middleware(perm('purchases-return', 'create'));
@@ -347,7 +349,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('purchase-returns/{purchase_return}/invoice', [PurchaseReturnController::class, 'invoice'])->name('purchase-returns.invoice');
 
     // Sale Routes
-    Route::resource('sales', SaleController::class)->only(['index', 'show'])
+    Route::resource('sales', SaleController::class)->only(['index', ])
         ->middleware(perm('sales', 'view'));
     Route::resource('sales', SaleController::class)->only(['create', 'store'])
         ->middleware(perm('sales', 'create'));
@@ -355,6 +357,8 @@ Route::middleware(['auth', 'verified'])->group(function () {
         ->middleware(perm('sales', 'edit'));
     Route::resource('sales', SaleController::class)->only(['destroy'])
         ->middleware(perm('sales', 'delete'));
+        Route::resource('sales', SaleController::class)->only([ 'show'])
+        ->middleware(perm('sales', 'view'));
 
 
     // api routes for supplier/web.php

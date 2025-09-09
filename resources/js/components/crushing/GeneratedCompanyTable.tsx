@@ -14,26 +14,64 @@ interface Props {
     flashMain?: boolean; // NEW: for visual feedback on main row
 }
 
+    const selectStyles = {
+  control: (base: any, state: any) => ({
+    ...base,
+    backgroundColor: 'var(--input)',
+    borderColor: state.isFocused ? 'var(--ring)' : 'var(--input)',
+    boxShadow: state.isFocused ? '0 0 0 2px var(--ring)' : 'none',
+    color: 'var(--foreground)',
+    minHeight: '2.5rem',
+    borderRadius: 'var(--radius-md)',
+  }),
+  singleValue: (base: any) => ({ ...base, color: 'var(--foreground)' }),
+  input:       (base: any) => ({ ...base, color: 'var(--foreground)' }),
+  placeholder: (base: any) => ({ ...base, color: 'var(--muted-foreground)' }),
+
+  menu: (base: any) => ({
+    ...base,
+    backgroundColor: 'var(--popover)',
+    color: 'var(--popover-foreground)',
+    border: '1px solid var(--border)',
+  }),
+  option: (base: any, state: any) => ({
+    ...base,
+    backgroundColor: state.isSelected
+      ? 'var(--primary)'
+      : state.isFocused
+      ? 'var(--accent)'
+      : 'transparent',
+    color: state.isSelected ? 'var(--primary-foreground)' : 'var(--popover-foreground)',
+  }),
+
+  indicatorSeparator: (b: any) => ({ ...b, backgroundColor: 'var(--border)' }),
+  dropdownIndicator:  (b: any) => ({ ...b, color: 'var(--muted-foreground)' }),
+  clearIndicator:     (b: any) => ({ ...b, color: 'var(--muted-foreground)' }),
+
+  // if you render into a portal (recommended to avoid overflow issues)
+  menuPortal: (base: any) => ({ ...base, zIndex: 60 }), // adjust to your stack
+};
+
 const GeneratedCompanyTable: React.FC<Props> = React.memo(
     ({ rows, units, errors, allItemOpts, godownSelected, onAdd, onRemove, onPatch, flashMain }) => {
         const err = (p: string) => (errors?.[p] as string) || undefined;
 
         return (
             <>
-                <h2 className="mt-8 mb-2 text-lg font-semibold">Generated</h2>
+                <h2 className="mt-8 mb-2 text-lg font-semibold">উৎপাদিত পণ্য </h2>
                 <table className="w-full border text-sm">
-                    <thead className="bg-gray-100">
+                    <thead className="bg-background">
                         <tr>
-                            <th className="border p-1">Main</th>
-                            <th className="border p-1">Item</th>
-                            <th className="border p-1">New Lot No</th>
-                            <th className="border p-1">Qty</th>
-                            <th className="border p-1">Unit</th>
-                            <th className="border p-1">Bosta weight (kg)</th> {/* ⬅ NEW */}
+                            <th className="border p-1">মেইন</th>
+                            <th className="border p-1">পণ্যের নাম</th>
+                            <th className="border p-1">নতুন লট নং</th>
+                            <th className="border p-1">পরিমাণ</th>
+                            <th className="border p-1">একক</th>
+                            <th className="border p-1">বস্তার ওজন (kg)</th> {/* ⬅ NEW */} 
                             <th className="border p-1">প্রতি কেজি পরতা </th>
-                            <th className="border p-1">Weight (kg)</th>
-                            <th className="border p-1">By-product rate (৳/unit)</th>
-                            <th className="border p-1">By-product value (৳)</th>
+                            <th className="border p-1">ওজন (kg)</th>
+                            <th className="border p-1">বাই প্রোডাক্ট রেট (৳/একক)</th>
+                            <th className="border p-1">বাই প্রোডাক্ট ভ্যালু (৳)</th>
                             <th className="w-6 border p-1">✕</th>
                         </tr>
                     </thead>
@@ -72,11 +110,7 @@ const GeneratedCompanyTable: React.FC<Props> = React.memo(
                                         }}
                                         onCreateOption={(name: string) => onPatch(idx, { item_id: '', item_name: name })}
                                         isDisabled={!godownSelected}
-                                        styles={{
-                                            control: (base) => ({ ...base, minHeight: 36 }), // match your inputs
-                                            valueContainer: (b) => ({ ...b, paddingTop: 2, paddingBottom: 2 }),
-                                            input: (b) => ({ ...b, margin: 0, padding: 0 }),
-                                        }}
+                                        styles={selectStyles}
                                     />
 
                                     {err(`generated.${idx}.item_id`) && <p className="text-xs text-red-500">{err(`generated.${idx}.item_id`)}</p>}
@@ -147,7 +181,7 @@ const GeneratedCompanyTable: React.FC<Props> = React.memo(
                                     {row.is_main ? (
                                         <input
                                             readOnly
-                                            className={`w-full cursor-not-allowed rounded border bg-gray-50 px-1 text-right transition ${row._justComputed ? 'animate-pulse ring-2 ring-green-500' : ''}`}
+                                            className={`w-full cursor-not-allowed rounded border bg-background px-1 text-right transition ${row._justComputed ? 'animate-pulse ring-2 ring-green-500' : ''}`}
                                             value={(row as any).per_kg_rate || ''}
                                             placeholder="—"
                                             title="Computed from total cost ÷ main weight"
@@ -196,7 +230,7 @@ const GeneratedCompanyTable: React.FC<Props> = React.memo(
                                     ) : (
                                         <input
                                             readOnly
-                                            className="w-full cursor-not-allowed rounded border bg-gray-50 px-1 py-1.5 text-right"
+                                            className="w-full cursor-not-allowed rounded border bg-background px-1 py-1.5 text-right"
                                             value={row.sale_value || ''}
                                             placeholder="0.00"
                                             title="Auto: qty × rate"

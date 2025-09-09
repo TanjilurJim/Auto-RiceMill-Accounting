@@ -173,17 +173,55 @@ const CostingSection: React.FC<Props> = React.memo(({ value, presets, dhaanBosta
         return sum + (isNaN(n as number) ? 0 : (n as number));
     }, 0);
 
+    const selectStyles = {
+  control: (base: any, state: any) => ({
+    ...base,
+    backgroundColor: 'var(--input)',
+    borderColor: state.isFocused ? 'var(--ring)' : 'var(--input)',
+    boxShadow: state.isFocused ? '0 0 0 2px var(--ring)' : 'none',
+    color: 'var(--foreground)',
+    minHeight: '2.5rem',
+    borderRadius: 'var(--radius-md)',
+  }),
+  singleValue: (base: any) => ({ ...base, color: 'var(--foreground)' }),
+  input:       (base: any) => ({ ...base, color: 'var(--foreground)' }),
+  placeholder: (base: any) => ({ ...base, color: 'var(--muted-foreground)' }),
+
+  menu: (base: any) => ({
+    ...base,
+    backgroundColor: 'var(--popover)',
+    color: 'var(--popover-foreground)',
+    border: '1px solid var(--border)',
+  }),
+  option: (base: any, state: any) => ({
+    ...base,
+    backgroundColor: state.isSelected
+      ? 'var(--primary)'
+      : state.isFocused
+      ? 'var(--accent)'
+      : 'transparent',
+    color: state.isSelected ? 'var(--primary-foreground)' : 'var(--popover-foreground)',
+  }),
+
+  indicatorSeparator: (b: any) => ({ ...b, backgroundColor: 'var(--border)' }),
+  dropdownIndicator:  (b: any) => ({ ...b, color: 'var(--muted-foreground)' }),
+  clearIndicator:     (b: any) => ({ ...b, color: 'var(--muted-foreground)' }),
+
+  // if you render into a portal (recommended to avoid overflow issues)
+  menuPortal: (base: any) => ({ ...base, zIndex: 60 }), // adjust to your stack
+};
+
     // Avoid SSR issues with menuPortalTarget
     const menuPortalTarget = typeof window !== 'undefined' ? document.body : undefined;
 
     return (
-        <div className="mt-8 rounded border bg-slate-50 p-4">
+        <div className="mt-8 rounded border bg-background p-4">
             <div className="mb-3 flex items-center justify-between">
-                <h3 className="text-lg font-semibold">Production Cost</h3>
+                <h3 className="text-lg font-semibold">প্রোডাকশন খরচ</h3>
                 <button
                     type="button"
                     onClick={addRow}
-                    className="rounded-md bg-slate-800 px-3 py-1 text-sm text-white hover:bg-slate-700"
+                    className="rounded-md bg-slate-800 px-3 py-1 text-sm text-background hover:bg-slate-700"
                     title="Add row"
                 >
                     + Add row
@@ -273,6 +311,7 @@ const CostingSection: React.FC<Props> = React.memo(({ value, presets, dhaanBosta
                                         })
                                     }
                                     readOnly={!!row.preset_id}
+                                    
                                 />
                             </div>
 

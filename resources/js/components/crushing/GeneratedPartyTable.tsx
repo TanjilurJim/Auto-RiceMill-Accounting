@@ -20,18 +20,18 @@ const GeneratedPartyTable: React.FC<Props> = React.memo(({ rows, units, errors, 
         <>
 
             
-            <h2 className="mt-8 mb-2 text-lg font-semibold">Generated</h2>
+            <h2 className="mt-8 mb-2 text-lg font-semibold">উৎপাদিত পণ্য </h2>
             <table className="w-full border text-sm">
                 <thead className="bg-gray-100">
                     <tr>
-                        <th className="border p-1">Main</th>
-                        <th className="border p-1">Item name</th>
-                        <th className="border p-1">Qty</th>
-                        <th className="border p-1">Unit</th>
-                        <th className="border p-1">Bosta weight (kg)</th> {/* ⬅ NEW */}
+                        <th className="border p-1">মেইন</th>
+                        <th className="border p-1">পণ্যের নাম</th>
+                        <th className="border p-1">পরিমাণ </th>
+                        <th className="border p-1">একক</th>
+                        <th className="border p-1">বস্তার ওজন (kg)</th> {/* ⬅ NEW */}
                         <th className="border p-1">প্রতি কেজি পরতা </th>
-                        <th className="border p-1">Weight (kg)</th>
-                        <th className="border p-1">By-product value (৳)</th>
+                        <th className="border p-1">ওজন (kg)</th>
+                        <th className="border p-1">বাই-প্রোডাক্ট এর ভ্যালু (৳)</th>
                         <th className="w-6 border p-1">✕</th>
                     </tr>
                 </thead>
@@ -166,7 +166,7 @@ const GeneratedPartyTable: React.FC<Props> = React.memo(({ rows, units, errors, 
             </table>
 
             <button type="button" onClick={onAdd} className="mt-1 text-sm text-blue-600">
-                + line
+                + আরো পণ্য যুক্ত করুন
             </button>
         </>
     );
