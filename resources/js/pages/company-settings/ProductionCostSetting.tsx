@@ -43,7 +43,7 @@ export default function ProductionCostSetting({ presets, basisOptions }: Props) 
                 <h1 className="mb-4 text-2xl font-bold">Production Cost Setting</h1>
 
                 <form onSubmit={onSubmit} className="space-y-4">
-                    <div className="rounded-lg border bg-white p-4">
+                    <div className="rounded-lg border bg-background p-4">
                         <div className="mb-3 flex items-center justify-between">
                             <h2 className="text-lg font-semibold">Presets</h2>
                             <button type="button" onClick={addRow} className="rounded bg-slate-800 px-3 py-1 text-sm text-white">

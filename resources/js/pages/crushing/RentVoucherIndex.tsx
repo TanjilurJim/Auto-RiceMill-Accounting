@@ -27,8 +27,8 @@ export default function RentVoucherIndex({ vouchers, pagination }: Props) {
         <AppLayout>
             <Head title="Rent Vouchers" />
             
-            <div className="h-full w-screen bg-gray-100 p-6 lg:w-full">
-                <div className="h-full rounded-lg bg-white p-6">
+            <div className="h-full w-screen bg-background p-6 lg:w-full">
+                <div className="h-full rounded-lg bg-background p-6">
                 
                 <div className="mb-4 flex items-center justify-between">
                     <h1 className="text-2xl font-bold">Rent Vouchers</h1>
@@ -55,7 +55,7 @@ export default function RentVoucherIndex({ vouchers, pagination }: Props) {
                     </thead>
                     <tbody>
                         {vouchers.map((v, i) => (
-                            <tr key={v.id} className="hover:bg-gray-50">
+                            <tr key={v.id} className="hover:bg-background">
                                 <td className="border p-2 text-center">{(pagination.currentPage - 1) * 15 + i + 1}</td>
                                 <td className="border p-2">{v.date}</td>
                                 <td className="border p-2">{v.vch_no}</td>

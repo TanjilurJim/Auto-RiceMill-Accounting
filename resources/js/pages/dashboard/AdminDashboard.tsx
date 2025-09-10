@@ -284,11 +284,11 @@ export default function AdminDashboard() {
             {/* <QuickStats /> */}
 
             {/* User Stats Cards */}
-            <div className="mt-6 grid gap-4 p-2 sm:grid-cols-2 lg:grid-cols-4">
-                <Card className="shadow-sm">
-                    <CardHeader className="flex flex-row items-center justify-between pb-2">
-                        <CardTitle className="text-sm font-medium">
-                            <Link href="/users">Total Users</Link>
+            <div className="mt-6 grid gap-4 p-2 sm:grid-cols-2 lg:grid-cols-4 ">
+                <Card className="shadow-sm transition duration-300 ease-in-out hover:text-primary">
+                    <CardHeader className="flex flex-row items-center justify-between pb-2 ">
+                        <CardTitle className="text-sm font-medium ">
+                            <Link href="/users" >Total Users</Link>
                         </CardTitle>
                         <Users className="text-muted-foreground h-5 w-5" />
                     </CardHeader>
@@ -298,8 +298,8 @@ export default function AdminDashboard() {
                     </CardContent>
                 </Card>
 
-                <Card className="shadow-sm">
-                    <CardHeader className="flex flex-row items-center justify-between pb-2">
+                <Card className="shadow-sm transition duration-300 ease-in-out hover:text-primary">
+                    <CardHeader className="flex flex-row items-center justify-between pb-2 ">
                         <CardTitle className="text-sm font-medium">
                             <Link href="/users?filter=active"> Active Users</Link>
                         </CardTitle>
@@ -341,8 +341,8 @@ export default function AdminDashboard() {
             </div>
             {/* Revenue Chart & Stats */}
             <div className="mt-6 grid gap-4 px-2 lg:grid-cols-3">
-                <RevenueChart />
-                <div className="px-2 lg:col-span-2">
+                {/* <RevenueChart /> */}
+                <div className=" lg:col-span-2">
                     <NotificationsPanel expiring={Array.isArray(expiringSoon) ? expiringSoon : []} />
                 </div>
                 <Card className="shadow-sm lg:col-span-1">

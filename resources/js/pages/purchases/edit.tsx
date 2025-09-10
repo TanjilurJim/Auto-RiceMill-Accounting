@@ -159,12 +159,12 @@ export default function PurchaseEdit({ purchase, godowns, salesmen, ledgers, sto
     return (
         <AppLayout>
             <Head title="Update Purchase" />
-            <div className="h-full w-screen bg-gray-100 p-6 lg:w-full">
-                <div className="h-full rounded-lg bg-white p-6">
+            <div className="h-full w-screen bg-background p-6 lg:w-full">
+                <div className="h-full rounded-lg bg-background p-6">
                     {/* Header */}
                     <PageHeader title="Update Purchase" addLinkHref="/purchases" addLinkText="Back" />
 
-                    <form onSubmit={handleSubmit} className="space-y-6 rounded bg-white p-6 shadow">
+                    <form onSubmit={handleSubmit} className="space-y-6 rounded bg-background p-6 shadow">
                         {/* ---------- Info section ---------- */}
                         <div className="space-y-4">
                             <h2 className="border-b pb-1 text-lg font-semibold">Purchase Information</h2>
@@ -180,7 +180,7 @@ export default function PurchaseEdit({ purchase, godowns, salesmen, ledgers, sto
                                         />
                                     </div>
                                     <div className="flex-1 flex flex-col justify-end">
-                                        <label className="block text-sm font-medium text-gray-700 mb-1">Voucher No</label>
+                                        <label className="block text-sm font-medium text-foreground mb-1">Voucher No</label>
                                         <input
                                             type="text"
                                             className="border p-2 w-full"
@@ -191,7 +191,7 @@ export default function PurchaseEdit({ purchase, godowns, salesmen, ledgers, sto
                                     </div>
                                 </div>
                                 <div>
-                                    <label className="block text-sm font-medium text-gray-700 mb-1">Godown</label>
+                                    <label className="block text-sm font-medium text-foreground mb-1">Godown</label>
                                     <select
                                         name="godown_id"
                                         className={cn('border p-2 w-full', errors.godown_id && 'border-red-500')}
@@ -207,7 +207,7 @@ export default function PurchaseEdit({ purchase, godowns, salesmen, ledgers, sto
                                     </select>
                                 </div>
                                 <div>
-                                    <label className="block text-sm font-medium text-gray-700 mb-1">Salesman</label>
+                                    <label className="block text-sm font-medium text-foreground mb-1">Salesman</label>
                                     <select
                                         className="border p-2 w-full"
                                         value={data.salesman_id ?? ''}
@@ -222,7 +222,7 @@ export default function PurchaseEdit({ purchase, godowns, salesmen, ledgers, sto
                                     </select>
                                 </div>
                                 <div>
-                                    <label className="block text-sm font-medium text-gray-700 mb-1">Account Ledger</label>
+                                    <label className="block text-sm font-medium text-foreground mb-1">Account Ledger</label>
                                     <select
                                         className={cn('border p-2 w-full', errors.account_ledger_id && 'border-red-500')}
                                         value={data.account_ledger_id ?? ''}
@@ -237,7 +237,7 @@ export default function PurchaseEdit({ purchase, godowns, salesmen, ledgers, sto
                                     </select>
                                 </div>
                                 <div>
-                                    <label className="block text-sm font-medium text-gray-700 mb-1">Inventory Ledger</label>
+                                    <label className="block text-sm font-medium text-foreground mb-1">Inventory Ledger</label>
                                     <select
                                         className={cn('border p-2 w-full', errors.inventory_ledger_id && 'border-red-500')}
                                         value={data.inventory_ledger_id}
@@ -253,7 +253,7 @@ export default function PurchaseEdit({ purchase, godowns, salesmen, ledgers, sto
                                 </div>
 
                                 <div>
-                                    <label className="block text-sm font-medium text-gray-700 mb-1">Received Mode</label>
+                                    <label className="block text-sm font-medium text-foreground mb-1">Received Mode</label>
                                     <select
                                         className={cn('border p-2 w-full', errors.received_mode_id && 'border-red-500')}
                                         value={data.received_mode_id ?? ''}
@@ -268,7 +268,7 @@ export default function PurchaseEdit({ purchase, godowns, salesmen, ledgers, sto
                                     </select>
                                 </div>
                                 <div>
-                                    <label className="block text-sm font-medium text-gray-700 mb-1">Address</label>
+                                    <label className="block text-sm font-medium text-foreground mb-1">Address</label>
                                     <input
                                         type="text"
                                         className={cn('border p-2 w-full', errors.address && 'border-red-500')}
@@ -281,10 +281,10 @@ export default function PurchaseEdit({ purchase, godowns, salesmen, ledgers, sto
 
                         {/* ---------- Items table ---------- */}
                         <div>
-                            <h2 className="mb-3 border-b bg-gray-100 pb-1 text-lg font-semibold">Products</h2>
+                            <h2 className="mb-3 border-b bg-background/80 pb-1 text-lg font-semibold">Products</h2>
                             <div className="overflow-x-auto rounded border">
                                 <table className="min-w-full text-left text-sm">
-                                    <thead className="bg-gray-50">
+                                    <thead className="bg-background">
                                         <tr>
                                             <th className="border px-2 py-1">Product</th>
                                             <th className="border px-2 py-1">Qty</th>
@@ -297,7 +297,7 @@ export default function PurchaseEdit({ purchase, godowns, salesmen, ledgers, sto
                                     </thead>
                                     <tbody>
                                         {data.purchase_items.map((it, idx) => (
-                                            <tr key={idx} className="hover:bg-gray-50">
+                                            <tr key={idx} className="hover:bg-background/80">
                                                 <td className="border px-2 py-1">
                                                     <select
                                                         className="w-full"
@@ -347,7 +347,7 @@ export default function PurchaseEdit({ purchase, godowns, salesmen, ledgers, sto
                                                     </select>
                                                 </td>
                                                 <td className="border px-2 py-1">
-                                                    <input readOnly type="number" className="w-full bg-gray-100" value={it.subtotal} />
+                                                    <input readOnly type="number" className="w-full bg-background" value={it.subtotal} />
                                                 </td>
                                                 <td className="border px-2 py-1 text-center">
                                                     <div className="flex justify-center space-x-1">
@@ -385,7 +385,7 @@ export default function PurchaseEdit({ purchase, godowns, salesmen, ledgers, sto
                             <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                                 {/* Payment Mode */}
                                 <div className="col-span-1">
-                                    <label className="block text-sm font-medium text-gray-700">Payment Mode</label>
+                                    <label className="block text-sm font-medium text-foreground">Payment Mode</label>
                                     <select
                                         className={cn('w-full rounded border p-2', errors.received_mode_id && 'border-red-500')}
                                         value={data.received_mode_id}
@@ -402,7 +402,7 @@ export default function PurchaseEdit({ purchase, godowns, salesmen, ledgers, sto
 
                                 {/* Amount Paid */}
                                 <div className="col-span-1">
-                                    <label className="block text-sm font-medium text-gray-700">Amount Paid</label>
+                                    <label className="block text-sm font-medium text-foreground">Amount Paid</label>
                                     <input
                                         type="number"
                                         className={cn('w-full rounded border p-2', errors.amount_paid && 'border-red-500')}
@@ -418,20 +418,20 @@ export default function PurchaseEdit({ purchase, godowns, salesmen, ledgers, sto
                         <div className="mt-6">
                             <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
                                 {/* Item Qty Total */}
-                                <div className="flex justify-between rounded border bg-gray-50 p-3">
-                                    <span className="font-medium text-gray-700">Item Qty Total:</span>
+                                <div className="flex justify-between rounded border bg-background p-3">
+                                    <span className="font-medium text-foreground">Item Qty Total:</span>
                                     <span className="font-semibold text-gray-900">{totalQty}</span>
                                 </div>
 
                                 {/* Total Discount */}
-                                <div className="flex justify-between rounded border bg-gray-50 p-3">
-                                    <span className="font-medium text-gray-700">Total Discount:</span>
+                                <div className="flex justify-between rounded border bg-background p-3">
+                                    <span className="font-medium text-foreground">Total Discount:</span>
                                     <span className="font-semibold text-gray-900">{totalDisc}</span>
                                 </div>
 
                                 {/* Grand Total */}
-                                <div className="flex justify-between rounded border bg-gray-50 p-3">
-                                    <span className="font-medium text-gray-700">Grand Total:</span>
+                                <div className="flex justify-between rounded border bg-background p-3">
+                                    <span className="font-medium text-foreground">Grand Total:</span>
                                     <span className="font-semibold text-gray-900">{grandTotal}</span>
                                 </div>
                             </div>
@@ -441,9 +441,9 @@ export default function PurchaseEdit({ purchase, godowns, salesmen, ledgers, sto
                         <div className="col-span-2 grid grid-cols-1 gap-4 space-y-4 md:grid-cols-2">
                             {/* Supplier Info */}
                             <div>
-                                <label className="mb-1 block font-semibold text-gray-700">Supplier Info</label>
+                                <label className="mb-1 block font-semibold text-foreground">Supplier Info</label>
                                 <textarea
-                                    className="w-full rounded border bg-white p-2 shadow-sm focus:ring-1 focus:ring-blue-500 focus:outline-none"
+                                    className="w-full rounded border bg-background p-2 shadow-sm focus:ring-1 focus:ring-blue-500 focus:outline-none"
                                     rows={3}
                                     value={data.delivered_to || ''}
                                     onChange={(e) => setData('delivered_to', e.target.value)}
@@ -451,9 +451,9 @@ export default function PurchaseEdit({ purchase, godowns, salesmen, ledgers, sto
                             </div>
                             {/* Shipping Details */}
                             <div>
-                                <label className="mb-1 block font-semibold text-gray-700">Shipping Details</label>
+                                <label className="mb-1 block font-semibold text-foreground">Shipping Details</label>
                                 <textarea
-                                    className="w-full rounded border bg-white p-2 shadow-sm focus:ring-1 focus:ring-blue-500 focus:outline-none"
+                                    className="w-full rounded border bg-background p-2 shadow-sm focus:ring-1 focus:ring-blue-500 focus:outline-none"
                                     rows={3}
                                     value={data.shipping_details || ''}
                                     onChange={(e) => setData('shipping_details', e.target.value)}

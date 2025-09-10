@@ -36,7 +36,7 @@ export default function SalePartyReport({
     <AppLayout title="Party-wise Sale Report">
       <div className="max-w-full space-y-4 p-4">
         <Card className="shadow-lg">
-          <CardHeader className="bg-gray-50 py-6 text-center relative">
+          <CardHeader className="bg-background py-6 text-center relative">
             {company?.logo_path && (
               <img
                 src={company?.logo_path}

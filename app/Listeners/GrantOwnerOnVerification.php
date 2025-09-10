@@ -3,9 +3,8 @@
 namespace App\Listeners;
 
 use Illuminate\Auth\Events\Verified;
+use Illuminate\Support\Carbon;
 use Spatie\Permission\Models\Role;
-
-
 
 class GrantOwnerOnVerification
 {
@@ -13,19 +12,25 @@ class GrantOwnerOnVerification
     {
         $user = $event->user;
 
-        Role::findOrCreate('Owner', 'web');
+        // Ensure role exists and assign once
+        Role::findOrCreate('Owner', config('auth.defaults.guard', 'web'));
         if (! $user->hasRole('Owner')) {
             $user->assignRole('Owner');
         }
 
-        // Configurable trial length:
-        // If TRIAL_MINUTES > 0, use minutes (handy for local tests)
-        // else use TRIAL_DAYS (defaults to 7)
-        $minutes = (int) env('TRIAL_MINUTES', 1);
-        $days    = (int) env('TRIAL_DAYS', 7);
+        // Read from config (respects config:cache)
+        $days = (int) config('trial.days', 7);
+        if ($days <= 0) {
+            $days = 7; // fallback to a sane default
+        }
 
-        $user->status        = 'active';
-        $user->trial_ends_at = $minutes > 0 ? now()->addMinutes($minutes) : now()->addDays($days);
+        $user->status = 'active';
+
+        // Only set once; avoid extending if already set somehow
+        if (is_null($user->trial_ends_at)) {
+            $user->trial_ends_at = Carbon::now()->addDays($days);
+        }
+
         $user->save();
     }
 }

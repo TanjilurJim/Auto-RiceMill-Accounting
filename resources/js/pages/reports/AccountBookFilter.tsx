@@ -10,12 +10,48 @@ import PageHeader from '@/components/PageHeader';
 interface Props {
     ledgers: { id: number; account_ledger_name: string }[];
 }
+const selectStyles = {
+  control: (base: any, state: any) => ({
+    ...base,
+    backgroundColor: 'var(--input)',
+    borderColor: state.isFocused ? 'var(--ring)' : 'var(--input)',
+    boxShadow: state.isFocused ? '0 0 0 2px var(--ring)' : 'none',
+    color: 'var(--foreground)',
+    minHeight: '2.5rem',
+    borderRadius: 'var(--radius-md)',
+  }),
+  singleValue: (base: any) => ({ ...base, color: 'var(--foreground)' }),
+  input:       (base: any) => ({ ...base, color: 'var(--foreground)' }),
+  placeholder: (base: any) => ({ ...base, color: 'var(--muted-foreground)' }),
 
+  menu: (base: any) => ({
+    ...base,
+    backgroundColor: 'var(--popover)',
+    color: 'var(--popover-foreground)',
+    border: '1px solid var(--border)',
+  }),
+  option: (base: any, state: any) => ({
+    ...base,
+    backgroundColor: state.isSelected
+      ? 'var(--primary)'
+      : state.isFocused
+      ? 'var(--accent)'
+      : 'transparent',
+    color: state.isSelected ? 'var(--primary-foreground)' : 'var(--popover-foreground)',
+  }),
+
+  indicatorSeparator: (b: any) => ({ ...b, backgroundColor: 'var(--border)' }),
+  dropdownIndicator:  (b: any) => ({ ...b, color: 'var(--muted-foreground)' }),
+  clearIndicator:     (b: any) => ({ ...b, color: 'var(--muted-foreground)' }),
+
+  // if you render into a portal (recommended to avoid overflow issues)
+  menuPortal: (base: any) => ({ ...base, zIndex: 60 }), // adjust to your stack
+};
 export default function AccountBookFilter({ ledgers }: Props) {
     const { data, setData, processing } = useForm({
         ledger_id: '',
-        from_date: '',
-        to_date: '',
+        from_date: 'today',
+        to_date: 'today',
     });
 
     const handleSubmit = (e: React.FormEvent) => {
@@ -27,8 +63,8 @@ export default function AccountBookFilter({ ledgers }: Props) {
         <AppLayout>
             <Head title="Account Book — Filter" />
 
-            <div className="bg-gray-100 p-6 h-full w-screen lg:w-full">
-                <div className="bg-white h-full rounded-lg p-6">
+            <div className="bg-background p-6 h-full w-screen lg:w-full">
+                <div className="bg-background h-full rounded-lg p-6">
 
                     <PageHeader title="Account Book Report Filter" />
 
@@ -47,7 +83,7 @@ export default function AccountBookFilter({ ledgers }: Props) {
                             <form onSubmit={handleSubmit} className="space-y-6">
                                 {/* Ledger selector */}
                                 <div className="space-y-2">
-                                    <Label htmlFor="ledger" className="text-gray-700">
+                                    <Label htmlFor="ledger" className="text-foreground">
                                         Account Ledger
                                     </Label>
                                     <Select
@@ -60,17 +96,8 @@ export default function AccountBookFilter({ ledgers }: Props) {
                                         }))}
                                         onChange={opt => setData('ledger_id', opt?.value ?? '')}
                                         className="text-sm"
-                                        styles={{
-                                            control: (base) => ({
-                                                ...base,
-                                                minHeight: '42px',
-                                                borderRadius: '0.375rem',
-                                                borderColor: '#d1d5db',
-                                                '&:hover': {
-                                                    borderColor: '#9ca3af',
-                                                },
-                                            }),
-                                        }}
+                                                                             styles={selectStyles}
+
                                     />
                                 </div>
 

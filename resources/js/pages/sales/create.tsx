@@ -314,7 +314,7 @@ export default function SaleCreate({
                                     </select>
 
                                     {/* Helper Text and Link */}
-                                    <div className="mt-1 text-sm text-gray-500">
+                                    <div className="mt-1 text-sm text-foreground">
                                         Create Customer Ledger if not created yet.{' '}
                                         <a href="/account-ledgers/create" target="_blank" className="text-blue-600 underline hover:text-blue-800">
                                             Create New
@@ -570,7 +570,7 @@ export default function SaleCreate({
                                             </option>
                                         ))}
                                     </select>
-                                    <div className="mt-1 text-sm text-gray-500">
+                                    <div className="mt-1 text-sm text-foreground">
                                         Don’t see your ledger?{' '}
                                         <button onClick={() => setShowInventoryLedgerModal(true)} className="text-blue-600 underline">
                                             Create here
@@ -603,7 +603,7 @@ export default function SaleCreate({
                                             </option>
                                         ))}
                                     </select>
-                                    <div className="mt-1 text-sm text-gray-500">
+                                    <div className="mt-1 text-sm text-foreground">
                                         Used to track cost of goods sold. Don’t see one?{' '}
                                         <button onClick={() => setShowCogsLedgerModal(true)} className="text-blue-600 underline">
                                             Create one
@@ -626,7 +626,7 @@ export default function SaleCreate({
                                             </option>
                                         ))}
                                     </select>
-                                    <div className="mt-1 text-sm text-gray-500">Projected Closing Bal.: {uiClosingBal}</div>
+                                    <div className="mt-1 text-sm text-foreground">Projected Closing Bal.: {uiClosingBal}</div>
                                 </div>
                                 {/* Receive Amount */}
                                 <div>
@@ -642,12 +642,12 @@ export default function SaleCreate({
                                 {/* Total Due */}
                                 <div>
                                     <label className="mb-1 block text-sm font-semibold text-foreground">Total Due</label>
-                                    <input type="number" readOnly className="w-full border bg-gray-100 p-2" value={uiTotalDue} />
+                                    <input type="number" readOnly className="w-full border bg-background p-2" value={uiTotalDue} />
                                 </div>
                                 {/* Closing Balance */}
                                 <div>
                                     <label className="mb-1 block text-sm font-semibold text-foreground">Closing Balance</label>
-                                    <input type="number" readOnly className="w-full border bg-gray-100 p-2" value={uiClosingBal} />
+                                    <input type="number" readOnly className="w-full border bg-background p-2" value={uiClosingBal} />
                                 </div>
                             </div>
                         </div>

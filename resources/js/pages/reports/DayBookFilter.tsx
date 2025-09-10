@@ -38,11 +38,11 @@ export default function DayBookFilter({ users, isAdmin }: { users: any[]; isAdmi
   return (
     <AppLayout>
       <Head title="Day Book Filter" />
-      <div className="h-full w-screen bg-gray-100 p-6 lg:w-full">
-        <div className="h-full rounded-lg bg-white p-6">
+      <div className="h-full w-screen bg-background p-6 lg:w-full">
+        <div className="h-full rounded-lg bg-background p-6">
           <PageHeader title="Day Book Report Filter" />
 
-          <form onSubmit={handleSubmit} className="space-y-6 rounded-lg border bg-white p-6 shadow">
+          <form onSubmit={handleSubmit} className="space-y-6 rounded-lg border bg-background p-6 shadow">
             <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
               <div>
                 <InputCalendar

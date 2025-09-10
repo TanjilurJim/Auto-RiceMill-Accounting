@@ -137,13 +137,13 @@ export default function StockMoveCreate({ godowns, items }: { godowns: Godown[];
 
                                 {/* Qty */}
                                 <div>
-                                    <label className="mb-0.5 block text-xs">Qty</label>
+                                    <label className="mb-0.5 block text-xs">Qty(Bosta)</label>
                                     <Input type="number" step="0.001" value={line.qty} onChange={(e) => updateLine(idx, 'qty', e.target.value)} />
                                 </div>
 
                                 {/* Cost */}
                                 <div>
-                                    <label className="mb-0.5 block text-xs">Cost</label>
+                                    <label className="mb-0.5 block text-xs">Rate</label>
                                     <Input
                                         type="number"
                                         step="0.01"

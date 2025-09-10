@@ -41,6 +41,43 @@ export default function PartyStockReportIndex({ parties, items, rows, totals, fi
         if (dateTo) p.date_to = dateTo;
         return p;
     };
+    const selectStyles = {
+  control: (base: any, state: any) => ({
+    ...base,
+    backgroundColor: 'var(--input)',
+    borderColor: state.isFocused ? 'var(--ring)' : 'var(--input)',
+    boxShadow: state.isFocused ? '0 0 0 2px var(--ring)' : 'none',
+    color: 'var(--foreground)',
+    minHeight: '2.5rem',
+    borderRadius: 'var(--radius-md)',
+  }),
+  singleValue: (base: any) => ({ ...base, color: 'var(--foreground)' }),
+  input:       (base: any) => ({ ...base, color: 'var(--foreground)' }),
+  placeholder: (base: any) => ({ ...base, color: 'var(--muted-foreground)' }),
+
+  menu: (base: any) => ({
+    ...base,
+    backgroundColor: 'var(--popover)',
+    color: 'var(--popover-foreground)',
+    border: '1px solid var(--border)',
+  }),
+  option: (base: any, state: any) => ({
+    ...base,
+    backgroundColor: state.isSelected
+      ? 'var(--primary)'
+      : state.isFocused
+      ? 'var(--accent)'
+      : 'transparent',
+    color: state.isSelected ? 'var(--primary-foreground)' : 'var(--popover-foreground)',
+  }),
+
+  indicatorSeparator: (b: any) => ({ ...b, backgroundColor: 'var(--border)' }),
+  dropdownIndicator:  (b: any) => ({ ...b, color: 'var(--muted-foreground)' }),
+  clearIndicator:     (b: any) => ({ ...b, color: 'var(--muted-foreground)' }),
+
+  // if you render into a portal (recommended to avoid overflow issues)
+  menuPortal: (base: any) => ({ ...base, zIndex: 60 }), // adjust to your stack
+};
 
     const apply = () => {
         if (!dateTo) {
@@ -92,8 +129,8 @@ export default function PartyStockReportIndex({ parties, items, rows, totals, fi
         <AppLayout>
             <Head title="Crushing – Party Stock Report" />
 
-            <div className="bg-gray-100 p-6 print:p-0">
-                <div className="rounded-lg bg-white p-6 shadow-lg print:p-4 print:shadow-none">
+            <div className="bg-background p-6 print:p-0">
+                <div className="rounded-lg bg-background p-6 shadow-lg print:p-4 print:shadow-none">
                     <PageHeader title="Party Stock Report" />
 
                     {/* filter bar */}
@@ -108,6 +145,8 @@ export default function PartyStockReportIndex({ parties, items, rows, totals, fi
                                 onChange={(o) => setPartyId(o?.value ?? '')}
                                 isClearable
                                 className="min-w-[180px]"
+                                                                     styles={selectStyles}
+
                             />
                         </div>
                         <div className="space-y-1">
@@ -120,6 +159,8 @@ export default function PartyStockReportIndex({ parties, items, rows, totals, fi
                             onChange={(o) => setItemId(o?.value ?? '')}
                             isClearable
                             className="min-w-[180px]"
+                                                                 styles={selectStyles}
+
                         />
                         </div>
 

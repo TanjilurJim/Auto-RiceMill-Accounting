@@ -14,16 +14,11 @@ export default function TruckChalan({
   const handlePrint = () => window.print?.();
 
   return (
-    <div className="mx-auto max-w-full bg-white p-6 shadow print:shadow-none">
+    <div className="mx-auto max-w-full bg-background p-6 shadow print:shadow-none">
       <Head title={`Truck Chalan #${sale.voucher_no}`} />
 
       {/* Back link */}
-      <Link
-        href="/sales"
-        className="mb-4 inline-block rounded bg-gray-300 px-4 py-2 text-sm hover:bg-neutral-100 print:hidden"
-      >
-        Back
-      </Link>
+      
 
       {/* header (logo + company) */}
       <div className="mb-4 text-center print:text-xs">

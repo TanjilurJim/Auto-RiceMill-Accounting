@@ -85,7 +85,7 @@ class GoogleAuthController extends Controller
 
         // Block inactive accounts
         if ($user->status !== 'active') {
-            return redirect()->route('login')->with('status', 'Your account is inactive. Please contact support.');
+            session()->flash('status', 'Your account is inactive. Limited access only.');
         }
 
         Auth::login($user, remember: true);

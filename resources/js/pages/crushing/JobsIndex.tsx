@@ -94,16 +94,16 @@ export default function JobsIndex(props: JobsPageProps) {
                                     <th className="w-24 border p-2">স্ট্যাটাস</th>
                                     <th className="w-24 border p-2">তারিখ</th>
                                     <th className="w-28 border p-2">রেফারেন্স নং</th>
-                                    <th className="w-32 border p-2">Dryer</th>
-                                    <th className="w-32 border p-2">Godown</th>
-                                    <th className="w-32 border p-2">Party</th>
-                                    <th className="w-36 border p-2">Started</th>
-                                    <th className="w-36 border p-2">Stopped</th>
-                                    <th className="w-32 border p-2 text-right">Duration </th>
-                                    <th className="w-40 border p-2 text-right">Loaded (kg / t)</th>
-                                    <th className="w-28 border p-2 text-right">Capacity (Ton)</th>
-                                    <th className="w-28 border p-2 text-right">Utilization</th>
-                                    <th className="w-32 border p-2">Action</th>
+                                    <th className="w-32 border p-2">ড্রায়ার</th>
+                                    <th className="w-32 border p-2">গুদাম</th>
+                                    <th className="w-32 border p-2">পার্টি</th>
+                                    <th className="w-36 border p-2">শুরু</th>
+                                    <th className="w-36 border p-2">বন্ধ</th>
+                                    <th className="w-32 border p-2 text-right">সময় </th>
+                                    <th className="w-40 border p-2 text-right">লোড (kg / t)</th>
+                                    <th className="w-28 border p-2 text-right">ক্যাপাসিটি (Ton)</th>
+                                    <th className="w-28 border p-2 text-right">ইউটিলাইজেশন</th>
+                                    <th className="w-32 border p-2">এ্যাকশন</th>
                                 </tr>
                             </thead>
 

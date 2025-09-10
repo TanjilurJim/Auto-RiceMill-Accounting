@@ -44,16 +44,16 @@ export default function StockSummaryFilter({ godowns, categories, items }: Props
         <AppLayout>
             <Head title="Stock Report" />
 
-            <div className="h-full w-screen bg-gray-100 p-6 lg:w-full">
-                <div className="h-full rounded-lg bg-white p-6">
+            <div className="h-full w-screen bg-background p-6 lg:w-full">
+                <div className="h-full rounded-lg bg-background p-6">
                     <PageHeader title="Stock Report Filter" />
 
                     {/* Tabs for different report types */}
                     <Card>
-                        <CardHeader className="border-b bg-gray-50 px-6 py-4">
+                        <CardHeader className="border-b bg-background px-6 py-4">
                             {/* <h2 className="text-2xl font-semibold">Generate Stock Report</h2> */}
                             {/* <nav className="mt-4 border-b border-gray-200"> */}
-                            <nav className="border-b border-gray-200">
+                            <nav className="border-b border-background/20">
                                 <ul className="-mb-px flex space-x-4">
                                     {tabs.map((tab, idx) => (
                                         <li key={idx}>
@@ -63,7 +63,7 @@ export default function StockSummaryFilter({ godowns, categories, items }: Props
                                                 className={`inline-block px-3 py-2 text-sm font-medium focus:outline-none ${
                                                     activeTab === tab.route
                                                         ? 'border-b-2 border-blue-500 text-blue-600'
-                                                        : 'text-gray-500 hover:text-blue-600'
+                                                        : 'text-forground hover:text-blue-600'
                                                 }`}
                                             >
                                                 {tab.name}

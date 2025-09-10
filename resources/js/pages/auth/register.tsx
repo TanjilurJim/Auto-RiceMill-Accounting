@@ -88,7 +88,7 @@ export default function Register() {
                                     <InputError message={errors.password_confirmation} />
                                 </div>
 
-                                <button type="submit" className="mt-4 w-full inline-flex gap-1 items-center justify-center bg-[#F15A29] text-white hover:text-[#F15A29] py-2 px-6 rounded hover:bg-[#1D1C1E] transition duration-300 ease-in-out" tabIndex={5} disabled={processing}>
+                                <button type="submit" className="mt-4 w-full inline-flex gap-1 items-center justify-center bg-[#5e0404] text-white hover:text-white py-2 px-6 rounded hover:bg-[#1D1C1E] transition duration-300 ease-in-out" tabIndex={5} disabled={processing}>
                                     {processing &&
                                     <LoaderCircle className="h-4 w-4 animate-spin" />}
                                     Create account

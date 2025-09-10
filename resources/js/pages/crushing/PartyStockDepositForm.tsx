@@ -112,7 +112,7 @@ export default function PartyStockDepositForm({ parties, godowns, units, today, 
         handleFieldChange(index, 'unit_name', newUnit);
     };
 
-    const selectStyles = {
+const selectStyles = {
   control: (base: any, state: any) => ({
     ...base,
     backgroundColor: 'var(--input)',

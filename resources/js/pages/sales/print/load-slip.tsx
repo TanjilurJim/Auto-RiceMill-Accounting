@@ -23,16 +23,11 @@ export default function LoadSlip({
   const handlePrint = () => window.print?.();
 
   return (
-    <div className="mx-auto max-w-full bg-white p-6 shadow print:shadow-none">
+    <div className="mx-auto max-w-full bg-background p-6 shadow print:shadow-none">
       <Head title={`Load Slip #${sale.voucher_no}`} />
 
       {/* Back link (hidden on print) */}
-      <Link
-        href="/sales"
-        className="mb-4 inline-block rounded bg-green-600 px-6 py-2 text-white hover:bg-green-700 print:hidden"
-      >
-        Back
-      </Link>
+     
 
       {/* ─── Company header ─── */}
       <div className="mb-4 text-center print:text-xs">

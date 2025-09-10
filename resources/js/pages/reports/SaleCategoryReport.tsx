@@ -56,7 +56,7 @@ export default function SaleCategoryReport({
             <div className="max-w-full space-y-4 p-4">
                 <Card className="shadow-lg">
                     {/* ── Header ───────────────────── */}
-                    <CardHeader className="relative bg-gray-50  text-center">
+                    <CardHeader className="relative bg-background  text-center">
                         {company?.logo_path && (
                             <img
                                 src={company?.logo_path}

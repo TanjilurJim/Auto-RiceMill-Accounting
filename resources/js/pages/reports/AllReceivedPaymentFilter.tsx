@@ -22,8 +22,8 @@ export default function AllReceivedPaymentFilter() {
     <AppLayout>
       <Head title="Received & Payment — Filter" />
 
-      <div className="bg-gray-100 p-6 h-full w-screen lg:w-full">
-        <div className="bg-white h-full rounded-lg p-6">
+      <div className="bg-background p-6 h-full w-screen lg:w-full">
+        <div className="bg-background h-full rounded-lg p-6">
 
           <PageHeader title="Received & Payment Report Filter" />
 

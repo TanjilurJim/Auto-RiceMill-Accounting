@@ -48,9 +48,9 @@ export default function PurchaseInvoice({ purchase, company }: { purchase: Purch
         <AppLayout>
             <Head title={`Purchase Invoice #${purchase.voucher_no}`} />
 
-            <div className="container mx-auto bg-white p-8 shadow-md">
+            <div className="container mx-auto bg-background p-8 shadow-md">
                 {/* Back link */}
-                <Link href="/purchases" className="rounded bg-gray-300 px-4 py-2 hover:bg-neutral-100">
+                <Link href="/purchases" className="rounded bg-gray-800 px-4 py-2 hover:bg-background/80 text-white print:hidden">
                     Back
                 </Link>
 
@@ -140,7 +140,7 @@ export default function PurchaseInvoice({ purchase, company }: { purchase: Purch
 
                 {/* Action buttons (Back / Print) */}
                 <ActionFooter
-                    className="justify-center"
+                    className="justify-center print:hidden"
                     cancelHref="/purchases"
                     cancelText="Back"
                     onSubmit={handlePrint}

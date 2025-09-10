@@ -45,7 +45,7 @@ export default function PurchaseItemReport({
       <div className="max-w-full space-y-4 p-4">
         <Card className="shadow-lg">
           {/* ── Header ───────────────────────────────────────── */}
-          <CardHeader className="bg-gray-50 py-6 text-center">
+          <CardHeader className="bg-background py-6 text-center">
             <div className="space-y-1">
               {company?.logo_path && (
                 <img
@@ -58,13 +58,13 @@ export default function PurchaseItemReport({
                 {company?.company_name ?? 'Company Name'}
               </h1>
               {company?.address && (
-                <p className="text-sm text-gray-700">{company?.address}</p>
+                <p className="text-sm text-foreground">{company?.address}</p>
               )}
               {company?.mobile && (
-                <p className="text-sm text-gray-700">Phone: {company?.mobile}</p>
+                <p className="text-sm text-foreground">Phone: {company?.mobile}</p>
               )}
               {(company?.email || company?.website) && (
-                <p className="text-sm text-gray-700">
+                <p className="text-sm text-foreground">
                   {company?.email && <span>{company?.email}</span>}
                   {company?.email && company?.website && <span className="mx-1">|</span>}
                   {company?.website && <span>{company?.website}</span>}
@@ -76,7 +76,7 @@ export default function PurchaseItemReport({
               <h2 className="text-xl font-semibold underline">
                 Item-wise Purchase Report
               </h2>
-              <p className="text-sm text-gray-600">
+              <p className="text-sm text-foreground">
                 From&nbsp;<strong>{filters.from_date}</strong> to&nbsp;
                 <strong>{filters.to_date}</strong>
               </p>
@@ -123,7 +123,7 @@ export default function PurchaseItemReport({
                       ))}
 
                       {/* grand total */}
-                      <tr className="bg-gray-100 font-semibold print:bg-white">
+                      <tr className="bg-background font-semibold print:bg-white">
                         <td className="border px-2 py-1 text-right" colSpan={2}>
                           Grand&nbsp;Total
                         </td>
@@ -148,13 +148,13 @@ export default function PurchaseItemReport({
                   )}
 
                   {/* totals by unit */}
-                  <tr className="bg-gray-50">
+                  <tr className="bg-background font-semibold print:bg-white">
                     <td
                       className="border px-2 py-2 text-sm font-medium"
                       colSpan={5}
                     >
                       <strong>Total Qty by Unit:</strong>
-                      <ul className="mt-1 list-disc space-y-0.5 pl-5 text-sm text-gray-700">
+                      <ul className="mt-1 list-disc space-y-0.5 pl-5 text-sm text-foreground">
                         {Object.entries(qtyByUnit).map(([u, q]) => (
                           <li key={u}>
                             {q.toFixed(2)} {u}

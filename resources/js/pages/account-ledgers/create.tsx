@@ -3,6 +3,7 @@ import PageHeader from '@/components/PageHeader';
 import AppLayout from '@/layouts/app-layout';
 import { Head, useForm } from '@inertiajs/react';
 import React from 'react';
+import LedgerTypeCheatSheet from '@/components/LedgerTypeCheatSheet';
 
 export default function CreateAccountLedger({
     groupUnders,
@@ -41,9 +42,12 @@ export default function CreateAccountLedger({
             <Head title="Add Account Ledger" />
             {/* Use tokens so the background flips with .dark */}
             <div className="bg-background min-h-svh p-6">
-                <div className="bg-card text-card-foreground mx-auto  rounded-xl border p-6 shadow-sm">
+                <div className="bg-card text-card-foreground mx-auto rounded-xl border p-6 shadow-sm">
                     <PageHeader title="Add Account Ledger" addLinkHref="/account-ledgers" addLinkText="Back" />
 
+                    <div className="mt-4">
+                        <LedgerTypeCheatSheet />
+                    </div>
                     {/* Ensure the form’s inputs use your .input class or shadcn inputs so they pick up dark vars */}
                     <AccountLedgerForm
                         data={data}

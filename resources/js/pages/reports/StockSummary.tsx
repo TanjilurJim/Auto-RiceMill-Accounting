@@ -71,17 +71,17 @@ export default function StockSummary({ stocks, filters, company, grand, grandByG
 
             <div className="max-w-full space-y-4 p-4">
                 <Card className="shadow-lg">
-                    <CardHeader className="relative bg-gray-50 py-6 text-center">
+                    <CardHeader className="relative bg-background/20 py-6 text-center">
                         <div className="space-y-1">
                             {company?.logo_url && (
                                 <img src={company.logo_url} alt="Company Logo" className="mx-auto mb-2 h-20 object-contain print:h-12" />
                             )}
 
                             <h1 className="text-3xl font-bold uppercase">{company?.company_name ?? 'Company Name'}</h1>
-                            {company?.address && <p className="text-sm text-gray-700">{company.address}</p>}
-                            {company?.mobile && <p className="text-sm text-gray-700">Phone: {company.mobile}</p>}
+                            {company?.address && <p className="text-sm text-foreground">{company.address}</p>}
+                            {company?.mobile && <p className="text-sm text-foreground">Phone: {company.mobile}</p>}
                             {(company?.email || company?.website) && (
-                                <p className="text-sm text-gray-700">
+                                <p className="text-sm text-foreground">
                                     {company?.email && <span>{company.email}</span>}
                                     {company?.email && company?.website && <span className="mx-1">|</span>}
                                     {company?.website && <span>{company.website}</span>}
@@ -91,7 +91,7 @@ export default function StockSummary({ stocks, filters, company, grand, grandByG
 
                         <div className="mt-4">
                             <h2 className="text-xl font-semibold underline">Stock Summary Report</h2>
-                            <p className="text-sm text-gray-600">
+                            <p className="text-sm text-foreground">
                                 From: <strong>{filters.from}</strong>, To: <strong>{filters.to}</strong>
                             </p>
                         </div>
@@ -104,7 +104,7 @@ export default function StockSummary({ stocks, filters, company, grand, grandByG
                     </CardHeader>
 
                     <CardContent className="p-6">
-                        <div className="mb-4 flex items-center justify-between text-sm text-gray-600">
+                        <div className="mb-4 flex items-center justify-between text-sm text-foreground">
                             <div>
                                 Stock from <strong>{filters.from}</strong> to <strong>{filters.to}</strong>
                             </div>
@@ -176,7 +176,7 @@ export default function StockSummary({ stocks, filters, company, grand, grandByG
                                             <tr className="bg-gray-50 print:bg-white">
                                                 <td className="border px-2 py-2 text-sm font-medium" colSpan={7}>
                                                     <strong>Closing Stock&nbsp;by&nbsp;Item (page):</strong>
-                                                    <ul className="mt-1 list-disc space-y-0.5 pl-5 text-sm text-gray-700">
+                                                    <ul className="mt-1 list-disc space-y-0.5 pl-5 text-sm text-foreground">
                                                         {Object.entries(
                                                             rows.reduce<Record<string, number>>((acc, s) => {
                                                                 const key = `${s.item_name} (${s.unit})`;
@@ -196,13 +196,13 @@ export default function StockSummary({ stocks, filters, company, grand, grandByG
                                                     <strong>Closing Stock by Godown → Item (all pages):</strong>
 
                                                     {Object.keys(grandByGodownItem).length === 0 ? (
-                                                        <div className="mt-1 text-sm text-gray-600">No data.</div>
+                                                        <div className="mt-1 text-sm text-foreground">No data.</div>
                                                     ) : (
                                                         <div className="mt-2 space-y-2">
                                                             {Object.entries(grandByGodownItem).map(([godown, items]) => (
                                                                 <div key={godown}>
                                                                     <div className="font-semibold">{godown}</div>
-                                                                    <ul className="mt-1 list-disc space-y-0.5 pl-5 text-sm text-gray-700">
+                                                                    <ul className="mt-1 list-disc space-y-0.5 pl-5 text-sm text-foreground">
                                                                         {Object.entries(items).map(([itemLabel, qty]) => (
                                                                             <li key={`${godown}-${itemLabel}`}>
                                                                                 {itemLabel}: {Number(qty).toFixed(2)}

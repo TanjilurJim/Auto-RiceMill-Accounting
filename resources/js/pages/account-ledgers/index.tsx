@@ -16,7 +16,7 @@ interface AccountLedger {
   reference_number: string;
   account_group?: { name: string };
   group_under?: { name: string };
-  created_by_user?: { name: string };
+  created_by?: { name: string };
 }
 
 export default function AccountLedgerIndex({
@@ -61,7 +61,7 @@ export default function AccountLedgerIndex({
     { header: 'Debit/Credit', accessor: 'debit_credit', className: 'capitalize w-2/12' },
     {
       header: 'Created By',
-      accessor: (row: AccountLedger) => row.created_by_user?.name || 'N/A',
+      accessor: (row: AccountLedger) => row.created_by?.name || 'N/A',
       className: 'w-2/12',
     },
   ];

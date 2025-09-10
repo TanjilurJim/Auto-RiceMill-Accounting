@@ -24,9 +24,9 @@ export default function SaleInvoice({ sale, company }: { sale: any; company: any
     };
 
     return (
-        <div className="container mx-auto bg-white p-8 shadow-md">
+        <div className="container mx-auto bg-background p-8 shadow-md">
             {/* Header */}
-            <Link href="/sales" className="rounded bg-gray-300 px-4 py-2 hover:bg-neutral-100">
+            <Link href="/sales" className="rounded bg-gray-800 px-4 py-2 hover:bg-background/20 print:hidden text-foreground mb-4 inline-block">
                 Back
             </Link>
 
@@ -145,7 +145,7 @@ export default function SaleInvoice({ sale, company }: { sale: any; company: any
                 </button>
             </div> */}
             <ActionFooter
-                className="justify-center"
+                className="justify-center print:hidden"
                 cancelHref="/sales" // URL for the cancel/back action
                 cancelText="Back" // Text for the cancel button
                 onSubmit={handlePrint} // Function to handle the print action

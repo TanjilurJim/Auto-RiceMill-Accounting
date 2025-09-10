@@ -73,13 +73,13 @@ export default function AllReceivablePayableReport({
             />
           )}
           <h1 className="text-xl font-bold">{company?.company_name}</h1>
-          <p className="text-sm text-gray-600">{company?.address}</p>
-          <p className="text-sm text-gray-600">Phone: {company?.phone}</p>
+          <p className="text-sm bg-foreground-600">{company?.address}</p>
+          <p className="text-sm bg-foreground-600">Phone: {company?.phone}</p>
 
           <h2 className="text-xl font-semibold underline">
             All Receivable &amp; Payable Report
           </h2>
-          <p className="mt-2 text-sm text-gray-600">{periodText}</p>
+          <p className="mt-2 text-sm bg-foreground-600">{periodText}</p>
         </div>
 
         <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
@@ -103,7 +103,7 @@ export default function AllReceivablePayableReport({
                     <tr>
                       <td
                         colSpan={4}
-                        className="px-3 py-3 text-center text-gray-500"
+                        className="px-3 py-3 text-center bg-foreground-500"
                       >
                         No receivables in this period.
                       </td>
@@ -125,7 +125,7 @@ export default function AllReceivablePayableReport({
                       </td>
                     </tr>
                   ))}
-                  <tr className="bg-green-50 font-bold">
+                  <tr className="bg-background font-bold">
                     <td colSpan={3} className="px-3 py-2 text-right">
                       Total
                     </td>
@@ -156,7 +156,7 @@ export default function AllReceivablePayableReport({
                     <tr>
                       <td
                         colSpan={4}
-                        className="px-3 py-3 text-center text-gray-500"
+                        className="px-3 py-3 text-center bg-foreground-500"
                       >
                         No payables in this period.
                       </td>
@@ -172,7 +172,7 @@ export default function AllReceivablePayableReport({
                       </td>
                     </tr>
                   ))}
-                  <tr className="bg-red-50 font-bold">
+                  <tr className="bg-background font-bold">
                     <td colSpan={3} className="px-3 py-2 text-right">
                       Total
                     </td>

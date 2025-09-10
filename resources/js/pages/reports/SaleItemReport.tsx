@@ -44,7 +44,7 @@ export default function SaleItemReport({
         <Card className="shadow-lg">
 
           {/* Header */}
-          <CardHeader className="relative bg-gray-50 py-6 text-center">
+          <CardHeader className="relative bg-background py-6 text-center">
             {company?.logo_path && (
               <img
                 src={company?.logo_path}

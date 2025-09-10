@@ -37,7 +37,7 @@ export default function BalanceSheet({ from_date, to_date, balances, stock, work
             <div className="grid grid-cols-1 gap-6 md:grid-cols-2 print:text-xs">
                 {/* ASSETS */}
                 <div>
-                    <h2 className="bg-gray-100 px-3 py-1 font-semibold">Assets</h2>
+                    <h2 className="bg-background/20 px-3 py-1 font-semibold">Assets</h2>
                     {assets.map((r) => (
                         <div key={r.group} className="flex justify-between border-b px-3 py-1">
                             <span>{r.group}</span>
@@ -55,7 +55,7 @@ export default function BalanceSheet({ from_date, to_date, balances, stock, work
                         <span>{working.toFixed(2)}</span>
                     </div>
 
-                    <div className="flex justify-between bg-green-50 px-3 py-1 font-bold">
+                    <div className="flex justify-between bg-background px-3 py-1 font-bold">
                         <span>Total Assets</span>
                         <span>{assetTotal.toFixed(2)}</span>
                     </div>
@@ -63,7 +63,7 @@ export default function BalanceSheet({ from_date, to_date, balances, stock, work
 
                 {/* LIABILITIES & EQUITY */}
                 <div>
-                    <h2 className="bg-gray-100 px-3 py-1 font-semibold">Liabilities &amp; Equity</h2>
+                    <h2 className="bg-background px-3 py-1 font-semibold">Liabilities &amp; Equity</h2>
                     {liabs.map((r) => (
                         <div key={r.group} className="flex justify-between border-b px-3 py-1">
                             <span>{r.group}</span>
@@ -71,7 +71,7 @@ export default function BalanceSheet({ from_date, to_date, balances, stock, work
                         </div>
                     ))}
 
-                    <div className="flex justify-between bg-red-50 px-3 py-1 font-bold">
+                    <div className="flex justify-between bg-background px-3 py-1 font-bold">
                         <span>Total Liabilities&nbsp;</span>
                         <span>{liabTotal.toFixed(2)}</span>
                     </div>

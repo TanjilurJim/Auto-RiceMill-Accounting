@@ -63,7 +63,7 @@ export default function LedgerGroupSummary({
             </div>
 
       {/* main card */}
-      <div className="mt-6 max-w-full rounded bg-white p-4 shadow print:text-xs w-screen lg:w-full">
+      <div className="mt-6 mx-auto rounded bg-background p-4 shadow print:text-xs w-screen lg:w-full">
 
             {/* ── Company header (print-friendly) ───────────────── */}
             <div className="mb-6 text-center">
@@ -97,15 +97,15 @@ export default function LedgerGroupSummary({
                         From&nbsp;{filters.from_date}&nbsp;to&nbsp;{filters.to_date}
                     </span>
 
-                    {group_label && <span className="inline-block rounded-full bg-gray-100 px-3 py-1 text-xs text-gray-600">{group_label}</span>}
+                    {group_label && <span className="inline-block rounded-full bg-foreground px-3 py-1 text-xs text-gray-600">{group_label}</span>}
                 </div>
             </div>
 
-            <div className="mx-auto mt-6 w-screen max-w-6xl rounded bg-white p-4 shadow lg:w-full">
+            <div className="mx-auto mt-6 w-screen  rounded bg-background/70 p-4 shadow lg:w-full">
                 {/* title + print */}
-                <div className="flex items-center justify-between print:hidden">
-                    <h2 className="text-xl font-semibold text-gray-800">Group-wise Ledger Balance Summary</h2>
-                    <span className="mt-1 inline-block rounded-full bg-gray-100 px-3 py-0.5 text-xs font-medium text-gray-600">{group_label}</span>
+                <div className="flex items-center justify-between print:hidden bg-background/50 px-2 py-1 border border-gray-100 rounded">
+                    <h2 className="text-xl font-semibold text-forground">Group-wise Ledger Balance Summary</h2>
+                    <span className="mt-1 inline-block rounded-full bg-gray-background px-3 py-0.5 text-sm font-medium text-foreground">{group_label}</span>
                     <Button size="sm" onClick={() => window.print()} className="bg-black text-white hover:bg-gray-700">
                         <Printer className="mr-2 h-4 w-4" /> Print
                     </Button>

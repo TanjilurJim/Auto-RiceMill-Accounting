@@ -31,8 +31,8 @@ export default function BalanceSheetFilter({ default_from, default_to }: Props) 
         <AppLayout>
             <Head title="Balance‑Sheet Filters" />
 
-            <div className="h-full w-screen bg-gray-100 p-6 lg:w-full">
-                <div className="h-full rounded-lg bg-white p-6">
+            <div className="h-full w-screen bg-background p-6 lg:w-full">
+                <div className="h-full rounded-lg bg-background p-6">
                     {/* <h1 className="mb-4 text-lg font-semibold">Balance‑Sheet Filter</h1> */}
                     <PageHeader title="Balance‑Sheet Filter" />
 

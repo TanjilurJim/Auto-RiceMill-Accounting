@@ -53,33 +53,13 @@ export default function SaleReportFilter({ tab, categories, items, parties, godo
     <AppLayout title="Sale Report Filter">
       <Head title="Sale Report" />
 
-      <div className="bg-gray-100 p-6 h-full w-screen lg:w-full">
-        <div className="bg-white h-full rounded-lg p-6">
+      <div className="bg-background p-6 h-full w-screen lg:w-full">
+        <div className="bg-background h-full rounded-lg p-6">
           <PageHeader title="Generate Sale Report" />
           <Card>
             {/* ── Header and Tab Bar ───────────────────── */}
-            <CardHeader className="border-b bg-gray-50 px-6 py-4">
-              {/* <h2 className="text-2xl font-semibold">Generate Sale Report</h2> */}
-
-              {/* <nav className="mt-4 border-b border-gray-200">
-                <ul className="-mb-px flex space-x-4">
-                  {tabs.map((t) => (
-                    <li key={t.key}>
-                      <button
-                        type="button"
-                        onClick={() => setActiveTab(t.key)}
-                        className={`inline-block px-3 py-2 text-sm font-medium ${activeTab === t.key
-                            ? 'border-b-2 border-blue-500 text-blue-600'
-                            : 'text-gray-500 hover:text-blue-600'
-                          }`}
-                      >
-                        {t.label}
-                      </button>
-                    </li>
-                  ))}
-                </ul>
-              </nav> */}
-
+            <CardHeader className="border-b bg-background px-6 py-4">
+              
               <nav className="mt-4 border-b border-gray-200">
                 <ul className="flex flex-wrap gap-2 sm:gap-4 md:gap-6 lg:gap-8 xl:gap-10">
                   {tabs.map((t) => (
@@ -89,7 +69,7 @@ export default function SaleReportFilter({ tab, categories, items, parties, godo
                         onClick={() => setActiveTab(t.key)}
                         className={`inline-block px-3 py-2 text-sm font-medium ${activeTab === t.key
                             ? 'border-b-2 border-blue-500 text-blue-600'
-                            : 'text-gray-500 hover:text-blue-600'
+                            : 'text-foreground hover:text-blue-600'
                           }`}
                       >
                         {t.label}

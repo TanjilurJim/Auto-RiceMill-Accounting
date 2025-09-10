@@ -41,7 +41,7 @@ const FilterBar: React.FC<{
     );
 
     return (
-        <div className="flex flex-wrap items-end gap-4 rounded-lg border border-gray-200 bg-gray-50 p-4 print:hidden">
+        <div className="flex flex-wrap items-end gap-4 rounded-lg border border-background bg-background p-4 print:hidden">
             {/* dates */}
             <div className="flex-grow">
                 <InputCalendar
@@ -124,7 +124,7 @@ const SummarySection: React.FC<{ totals: any; byType: any }> = ({ totals, byType
             <h3 className="mb-3 text-lg font-semibold">ভাউচার অনুযায়ী</h3>
             <table className="min-w-full text-sm">
                 <thead>
-                    <tr className="bg-gray-50">
+                    <tr className="bg-background">
                         <th className="px-3 py-2 text-left">Type</th>
                         <th className="px-3 py-2 text-right">জমা / উত্তোলন</th>
                         <th className="px-3 py-2 text-right">৳ Amount</th>
@@ -183,7 +183,7 @@ export default function DayBookIndex({ rows, totals, byType, filters }) {
                     </button>
                 </PageHeader>
 
-                <div className="rounded-lg bg-white p-4 shadow-sm sm:p-6">
+                <div className="rounded-lg bg-background p-4 shadow-sm sm:p-6">
                     <FilterBar
                         from={from}
                         setFrom={setFrom}

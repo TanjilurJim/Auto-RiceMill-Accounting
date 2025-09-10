@@ -172,7 +172,7 @@ export default function CompanyConvertIndex({ conversions, pagination }: Props) 
                         <Link
                             key={i}
                             href={l.url || '#'}
-                            className={`rounded border px-3 py-1 text-sm ${l.active ? 'bg-slate-800 text-white' : 'bg-white hover:bg-slate-50'}`}
+                            className={`rounded border px-3 py-1 text-sm ${l.active ? 'bg-background text-foreground' : 'bg-background hover:bg-foreground/10'}`}
                             dangerouslySetInnerHTML={{ __html: l.label }}
                         />
                     ))}

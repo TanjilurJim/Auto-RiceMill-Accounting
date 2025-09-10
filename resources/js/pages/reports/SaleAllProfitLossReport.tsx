@@ -49,7 +49,7 @@ export default function SaleAllProfitLossReport({
         <Card className="shadow-lg">
 
           {/* Header */}
-          <CardHeader className="bg-gray-50 py-6 text-center relative">
+          <CardHeader className="bg-background py-6 text-center relative">
             {company?.logo_path && (
               <img
                 src={company?.logo_path}

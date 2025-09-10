@@ -113,8 +113,8 @@ export default function PurchaseShow({ purchase, paid_summary }: { purchase: Pur
     return (
         <AppLayout>
             <Head title={`${purchase.voucher_no}`} />
-            <div className="h-full w-screen bg-gray-100 p-6 lg:w-full">
-                <div className="h-full rounded-lg bg-white p-6">
+            <div className="h-full w-screen bg-background p-6 lg:w-full">
+                <div className="h-full rounded-lg bg-background p-6">
                     <PageHeader title="" addLinkHref="/purchases" addLinkText="Back" />
 
                     <header className="mb-6 flex flex-wrap items-center justify-between gap-4">

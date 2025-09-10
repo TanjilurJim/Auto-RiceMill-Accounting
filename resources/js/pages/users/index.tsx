@@ -14,7 +14,7 @@ interface User {
     email: string;
     status: 'active' | 'inactive';
     deleted_at: string | null;
-    created_by_user?: { name: string };
+    created_by?: { name: string };
     roles: { id: number; name: string }[];
 }
 
@@ -87,7 +87,7 @@ export default function UserIndex({ users, filter, search }: { users: Pagination
             ? [
                   {
                       header: 'Created By',
-                      accessor: (row: User) => row.created_by_user?.name || 'N/A',
+                      accessor: (row: User) => row.created_by?.name || 'N/A',
                       className: 'py-2 align-middle text-center',
                   },
               ]
@@ -142,8 +142,8 @@ export default function UserIndex({ users, filter, search }: { users: Pagination
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
             <Head title="Users" />
-            <div className="h-full w-screen bg-gray-100 p-6 lg:w-full">
-                <div className="h-full rounded-lg bg-white p-6">
+            <div className="h-full w-screen bg-background p-6 lg:w-full">
+                <div className="h-full rounded-lg bg-background p-6">
                     <PageHeader title="Users" addLinkHref="users/create" addLinkText="+ Create User" />
 
                     <div className="mb-6 flex space-x-2">

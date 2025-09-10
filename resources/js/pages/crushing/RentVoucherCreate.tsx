@@ -1,11 +1,11 @@
 /*  resources/js/pages/crushing/RentVoucherCreate.tsx  */
+import InputCalendar from '@/components/Btn&Link/InputCalendar';
 import AppLayout from '@/layouts/app-layout';
 import { Head, Link, useForm } from '@inertiajs/react';
 import axios from 'axios';
 import React from 'react';
 import Select from 'react-select';
 import { route } from 'ziggy-js';
-import InputCalendar from '@/components/Btn&Link/InputCalendar';
 /* ---------- types ---------- */
 interface Party {
     id: number;
@@ -44,6 +44,40 @@ const SummaryRow = ({ label, value, bold = false }: { label: string; value: numb
         <span className={'tabular-nums ' + (bold ? 'font-semibold' : '')}>{value.toFixed(2)}</span>
     </div>
 );
+
+const selectStyles = {
+    control: (base: any, state: any) => ({
+        ...base,
+        backgroundColor: 'var(--input)',
+        borderColor: state.isFocused ? 'var(--ring)' : 'var(--input)',
+        boxShadow: state.isFocused ? '0 0 0 2px var(--ring)' : 'none',
+        color: 'var(--foreground)',
+        minHeight: '2.5rem',
+        borderRadius: 'var(--radius-md)',
+    }),
+    singleValue: (base: any) => ({ ...base, color: 'var(--foreground)' }),
+    input: (base: any) => ({ ...base, color: 'var(--foreground)' }),
+    placeholder: (base: any) => ({ ...base, color: 'var(--muted-foreground)' }),
+
+    menu: (base: any) => ({
+        ...base,
+        backgroundColor: 'var(--popover)',
+        color: 'var(--popover-foreground)',
+        border: '1px solid var(--border)',
+    }),
+    option: (base: any, state: any) => ({
+        ...base,
+        backgroundColor: state.isSelected ? 'var(--primary)' : state.isFocused ? 'var(--accent)' : 'transparent',
+        color: state.isSelected ? 'var(--primary-foreground)' : 'var(--popover-foreground)',
+    }),
+
+    indicatorSeparator: (b: any) => ({ ...b, backgroundColor: 'var(--border)' }),
+    dropdownIndicator: (b: any) => ({ ...b, color: 'var(--muted-foreground)' }),
+    clearIndicator: (b: any) => ({ ...b, color: 'var(--muted-foreground)' }),
+
+    // if you render into a portal (recommended to avoid overflow issues)
+    menuPortal: (base: any) => ({ ...base, zIndex: 60 }), // adjust to your stack
+};
 
 export default function RentVoucherCreate({ today, generated_vch_no, parties, items, modes, units }: Props) {
     /* ---------- form ---------- */
@@ -126,21 +160,20 @@ export default function RentVoucherCreate({ today, generated_vch_no, parties, it
     return (
         <AppLayout>
             <Head title="Rent Voucher" />
-            <div className="h-full w-screen bg-gray-100 p-6 lg:w-full">
+            <div className="bg-background h-full w-screen p-6 lg:w-full">
                 <div className="mb-4">
                     <Link href={route('party-stock.rent-voucher.index')} className="text-blue-600 hover:underline">
                         ← Back to list
                     </Link>
                 </div>
 
-                <div className="rounded-lg bg-white p-6">
+                <div className="bg-background rounded-lg p-6">
                     <h1 className="mb-4 text-xl font-bold">Rent Voucher</h1>
 
                     <form onSubmit={submit} className="space-y-6">
                         {/* header */}
                         <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
                             <div>
-                               
                                 <InputCalendar label="Date" value={data.date} onChange={(val) => setData('date', val)} required />
                                 {errors.date && <p className="text-xs text-red-500">{errors.date}</p>}
                                 {/* {errors.date && <p className="text-xs text-red-500">{errors.date}</p>} */}
@@ -164,6 +197,8 @@ export default function RentVoucherCreate({ today, generated_vch_no, parties, it
                                     value={partyOpts.find((o) => o.value === data.party_ledger_id) || null}
                                     onChange={(o) => setData('party_ledger_id', o?.value || '')}
                                     placeholder="Select Account Ledger"
+                                                                         styles={selectStyles}
+
                                 />
                                 {errors.party_ledger_id && <p className="text-xs text-red-500">{errors.party_ledger_id}</p>}
                             </div>
@@ -172,7 +207,7 @@ export default function RentVoucherCreate({ today, generated_vch_no, parties, it
                         {/* detail table */}
                         <div className="overflow-x-auto">
                             <table className="w-full border text-sm">
-                                <thead className="bg-gray-100">
+                                <thead className="bg-background">
                                     <tr>
                                         <th className="border p-2 text-left">Product Name</th>
                                         <th className="border p-2 text-right">Qty</th>
@@ -205,10 +240,7 @@ export default function RentVoucherCreate({ today, generated_vch_no, parties, it
                                                     menuPlacement="auto"
                                                     menuShouldScrollIntoView={false}
                                                     maxMenuHeight={280}
-                                                    styles={{
-                                                        menuPortal: (base) => ({ ...base, zIndex: 9999 }),
-                                                        menu: (base) => ({ ...base, zIndex: 9999 }),
-                                                    }}
+                                                    styles={selectStyles}
                                                 />
                                                 {errors[`lines.${idx}.party_item_id`] && (
                                                     <small className="text-red-500">{errors[`lines.${idx}.party_item_id`]}</small>
@@ -238,10 +270,7 @@ export default function RentVoucherCreate({ today, generated_vch_no, parties, it
                                                     menuPlacement="auto"
                                                     menuShouldScrollIntoView={false}
                                                     maxMenuHeight={280}
-                                                    styles={{
-                                                        menuPortal: (base) => ({ ...base, zIndex: 9999 }),
-                                                        menu: (base) => ({ ...base, zIndex: 9999 }),
-                                                    }}
+                                                    styles={selectStyles}
                                                 />
                                             </td>
 
@@ -281,7 +310,7 @@ export default function RentVoucherCreate({ today, generated_vch_no, parties, it
                         </div>
 
                         {/* voucher summary */}
-                        <div className="mt-4 rounded-xl border bg-white p-4 shadow-sm">
+                        <div className="bg-background mt-4 rounded-xl border p-4 shadow-sm">
                             <div className="grid gap-6 sm:grid-cols-2">
                                 {/* left */}
                                 <div className="space-y-2">
@@ -301,6 +330,8 @@ export default function RentVoucherCreate({ today, generated_vch_no, parties, it
                                                 placeholder="Received Mode*"
                                                 value={modeOpts.find((o) => o.value === data.received_mode_id) || null}
                                                 onChange={(o) => setData('received_mode_id', o?.value || '')}
+                                                                                     styles={selectStyles}
+
                                             />
                                         </div>
                                         <input

@@ -147,8 +147,8 @@ export default function SaleEdit({
     return (
         <AppLayout>
             <Head title="Edit Sale" />
-            <div className="bg-gray-100 p-6 h-full w-screen lg:w-full">
-                <div className="bg-white h-full rounded-lg p-6">
+            <div className="bg-background p-6 h-full w-screen lg:w-full">
+                <div className="bg-background h-full rounded-lg p-6">
                     {/* <div className="mb-6 flex items-center justify-between">
                     <h1 className="text-2xl font-semibold text-gray-800">Edit Sale</h1>
                     <Link href="/sales" className="rounded bg-gray-300 px-4 py-2 hover:bg-neutral-100">Back</Link>
@@ -157,14 +157,14 @@ export default function SaleEdit({
                     <PageHeader title='Edit Sale' addLinkHref='/sales' addLinkText='Back' />
 
                     {/* Form */}
-                    <form onSubmit={handleSubmit} className="space-y-6 rounded-lg bg-white p-6 border">
+                    <form onSubmit={handleSubmit} className="space-y-6 rounded-lg bg-background p-6 border">
                         {/* Section 1: Basic Sale Info */}
                         <div>
-                            <h2 className="mb-3 border-b pb-1 text-lg font-semibold text-gray-700">Sale Information</h2>
+                            <h2 className="mb-3 border-b pb-1 text-lg font-semibold text-foreground">Sale Information</h2>
                             <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
                                 {/* Date */}
                                 <div>
-                                    <label className="mb-1 block text-sm font-medium text-gray-700">Date</label>
+                                    <label className="mb-1 block text-sm font-medium text-foreground">Date</label>
                                     <input
                                         type="date"
                                         className="w-full rounded border p-2"
@@ -176,13 +176,13 @@ export default function SaleEdit({
 
                                 {/* Voucher No */}
                                 <div>
-                                    <label className="mb-1 block text-sm font-medium text-gray-700">Voucher No</label>
-                                    <input type="text" className="w-full rounded border bg-gray-100 p-2" value={data.voucher_no} readOnly />
+                                    <label className="mb-1 block text-sm font-medium text-foreground">Voucher No</label>
+                                    <input type="text" className="w-full rounded border bg-background p-2" value={data.voucher_no} readOnly />
                                 </div>
 
                                 {/* Godown */}
                                 <div>
-                                    <label className="mb-1 block text-sm font-medium text-gray-700">Godown</label>
+                                    <label className="mb-1 block text-sm font-medium text-foreground">Godown</label>
                                     <select
                                         className="w-full rounded border p-2"
                                         value={data.godown_id}
@@ -200,7 +200,7 @@ export default function SaleEdit({
 
                                 {/* Salesman */}
                                 <div>
-                                    <label className="mb-1 block text-sm font-medium text-gray-700">Salesman</label>
+                                    <label className="mb-1 block text-sm font-medium text-foreground">Salesman</label>
                                     <select
                                         className="w-full rounded border p-2"
                                         value={data.salesman_id}
@@ -218,7 +218,7 @@ export default function SaleEdit({
 
                                 {/* Party Ledger */}
                                 <div>
-                                    <label className="mb-1 block text-sm font-medium text-gray-700">Party Ledger</label>
+                                    <label className="mb-1 block text-sm font-medium text-foreground">Party Ledger</label>
                                     <select
                                         className="w-full rounded border p-2"
                                         value={data.account_ledger_id}
@@ -236,7 +236,7 @@ export default function SaleEdit({
 
                                 {/* Phone */}
                                 <div>
-                                    <label className="mb-1 block text-sm font-medium text-gray-700">Phone</label>
+                                    <label className="mb-1 block text-sm font-medium text-foreground">Phone</label>
                                     <input
                                         type="text"
                                         className="w-full rounded border p-2"
@@ -247,7 +247,7 @@ export default function SaleEdit({
 
                                 {/* Address */}
                                 <div>
-                                    <label className="mb-1 block text-sm font-medium text-gray-700">Address</label>
+                                    <label className="mb-1 block text-sm font-medium text-foreground">Address</label>
                                     <input
                                         type="text"
                                         className="w-full rounded border p-2"
@@ -260,13 +260,13 @@ export default function SaleEdit({
 
                         {/* Section 2: Product Rows */}
                         <div>
-                            <h2 className="mb-3 border-b pb-1 text-lg font-semibold text-gray-700">Products</h2>
+                            <h2 className="mb-3 border-b pb-1 text-lg font-semibold text-foreground">Products</h2>
 
                             {data.sale_items.map((item, index) => (
                                 <div key={index} className="mb-3 grid grid-cols-12 items-end gap-2">
                                     {/* Product */}
                                     <div className="col-span-3">
-                                        <label className="mb-1 block text-sm font-medium text-gray-700">Product</label>
+                                        <label className="mb-1 block text-sm font-medium text-foreground">Product</label>
                                         <select
                                             className="w-full rounded border p-2"
                                             value={item.product_id}
@@ -286,7 +286,7 @@ export default function SaleEdit({
 
                                     {/* Qty */}
                                     <div className="col-span-1">
-                                        <label className="mb-1 block text-sm font-medium text-gray-700">Qty</label>
+                                        <label className="mb-1 block text-sm font-medium text-foreground">Qty</label>
                                         <input
                                             type="number"
                                             className="w-full rounded border p-2"
@@ -300,7 +300,7 @@ export default function SaleEdit({
 
                                     {/* Main Price */}
                                     <div className="col-span-2">
-                                        <label className="mb-1 block text-sm font-medium text-gray-700">Main Price</label>
+                                        <label className="mb-1 block text-sm font-medium text-foreground">Main Price</label>
                                         <input
                                             type="number"
                                             className="w-full rounded border p-2"
@@ -314,7 +314,7 @@ export default function SaleEdit({
 
                                     {/* Discount */}
                                     <div className="col-span-1">
-                                        <label className="mb-1 block text-sm font-medium text-gray-700">Disc</label>
+                                        <label className="mb-1 block text-sm font-medium text-foreground">Disc</label>
                                         <input
                                             type="number"
                                             className="w-full rounded border p-2"
@@ -325,7 +325,7 @@ export default function SaleEdit({
 
                                     {/* Discount Type */}
                                     <div className="col-span-1">
-                                        <label className="mb-1 block text-sm font-medium text-gray-700">Type</label>
+                                        <label className="mb-1 block text-sm font-medium text-foreground">Type</label>
                                         <select
                                             className="w-full rounded border p-2"
                                             value={item.discount_type}
@@ -338,8 +338,8 @@ export default function SaleEdit({
 
                                     {/* Subtotal */}
                                     <div className="col-span-2">
-                                        <label className="mb-1 block text-sm font-medium text-gray-700">Subtotal</label>
-                                        <input type="number" className="w-full rounded border bg-gray-100 p-2" value={item.subtotal} readOnly />
+                                        <label className="mb-1 block text-sm font-medium text-foreground">Subtotal</label>
+                                        <input type="number" className="w-full rounded border bg-background p-2" value={item.subtotal} readOnly />
                                     </div>
 
                                     {/* Add/Remove Buttons */}
@@ -363,7 +363,7 @@ export default function SaleEdit({
                             ))}
                             {/* Section 2: Product Rows */}
                             <div>
-                                <h2 className="mb-3 border-b pb-1 text-lg font-semibold text-gray-700">Products</h2>
+                                <h2 className="mb-3 border-b pb-1 text-lg font-semibold text-foreground">Products</h2>
 
                                 {data.sale_items.map((item, index) => (
                                     <div key={index} className="mb-3 grid grid-cols-12 items-end gap-2">
@@ -376,7 +376,7 @@ export default function SaleEdit({
                             <div className="mt-6 grid grid-cols-1 gap-4 md:grid-cols-3">
                                 {/* Inventory Ledger */}
                                 <div className="col-span-1">
-                                    <label className="mb-1 block flex items-center gap-1 text-sm font-semibold text-gray-700">
+                                    <label className="mb-1 block flex items-center gap-1 text-sm font-semibold text-foreground">
                                         Inventory Ledger <span className="text-red-500">*</span>
                                         <div className="group relative cursor-pointer">
                                             <span className="inline-block h-4 w-4 rounded-full bg-gray-300 text-center text-xs font-bold">?</span>
@@ -402,7 +402,7 @@ export default function SaleEdit({
 
                                 {/* COGS Ledger */}
                                 <div className="col-span-1">
-                                    <label className="mb-1 block flex items-center gap-1 text-sm font-semibold text-gray-700">
+                                    <label className="mb-1 block flex items-center gap-1 text-sm font-semibold text-foreground">
                                         COGS Ledger <span className="text-red-500">*</span>
                                         <div className="group relative cursor-pointer">
                                             <span className="inline-block h-4 w-4 rounded-full bg-gray-300 text-center text-xs font-bold">?</span>
@@ -428,7 +428,7 @@ export default function SaleEdit({
 
                                 {/* Other Amount */}
                                 <div>
-                                    <label className="mb-1 block text-sm font-semibold text-gray-700">Other Amount</label>
+                                    <label className="mb-1 block text-sm font-semibold text-foreground">Other Amount</label>
                                     <input
                                         type="number"
                                         placeholder="0.00"
@@ -440,7 +440,7 @@ export default function SaleEdit({
 
                                 {/* Receive Mode */}
                                 <div>
-                                    <label className="mb-1 block text-sm font-semibold text-gray-700">Receive Mode</label>
+                                    <label className="mb-1 block text-sm font-semibold text-foreground">Receive Mode</label>
                                     <select
                                         className="w-full border p-2"
                                         value={data.received_mode_id}
@@ -457,7 +457,7 @@ export default function SaleEdit({
 
                                 {/* Receive Amount */}
                                 <div>
-                                    <label className="mb-1 block text-sm font-semibold text-gray-700">Amount Received</label>
+                                    <label className="mb-1 block text-sm font-semibold text-foreground">Amount Received</label>
                                     <input
                                         type="number"
                                         placeholder="0.00"
@@ -469,7 +469,7 @@ export default function SaleEdit({
 
                                 {/* Total Due */}
                                 <div>
-                                    <label className="mb-1 block text-sm font-semibold text-gray-700">Total Due</label>
+                                    <label className="mb-1 block text-sm font-semibold text-foreground">Total Due</label>
                                     <input
                                         type="number"
                                         placeholder="0.00"
@@ -481,7 +481,7 @@ export default function SaleEdit({
 
                                 {/* Closing Balance */}
                                 <div>
-                                    <label className="mb-1 block text-sm font-semibold text-gray-700">Closing Balance</label>
+                                    <label className="mb-1 block text-sm font-semibold text-foreground">Closing Balance</label>
                                     <input
                                         type="number"
                                         placeholder="0.00"
@@ -495,11 +495,11 @@ export default function SaleEdit({
 
                         {/* Section 3: Shipping, Delivery, Truck Info */}
                         <div>
-                            <h2 className="mb-3 border-b pb-1 text-lg font-semibold text-gray-700">Shipping & Truck Details</h2>
+                            <h2 className="mb-3 border-b pb-1 text-lg font-semibold text-foreground">Shipping & Truck Details</h2>
                             <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
                                 {/* Shipping Details */}
                                 <div>
-                                    <label className="mb-1 block text-sm font-medium text-gray-700">Shipping Details</label>
+                                    <label className="mb-1 block text-sm font-medium text-foreground">Shipping Details</label>
                                     <textarea
                                         className="w-full rounded border p-2"
                                         rows={3}
@@ -510,7 +510,7 @@ export default function SaleEdit({
 
                                 {/* Delivered To */}
                                 <div>
-                                    <label className="mb-1 block text-sm font-medium text-gray-700">Delivered To</label>
+                                    <label className="mb-1 block text-sm font-medium text-foreground">Delivered To</label>
                                     <textarea
                                         className="w-full rounded border p-2"
                                         rows={3}
@@ -523,7 +523,7 @@ export default function SaleEdit({
                             <div className="mt-4 grid grid-cols-1 gap-4 md:grid-cols-3">
                                 {/* Truck Rent */}
                                 <div>
-                                    <label className="mb-1 block text-sm font-medium text-gray-700">Truck Rent</label>
+                                    <label className="mb-1 block text-sm font-medium text-foreground">Truck Rent</label>
                                     <input
                                         type="text"
                                         className="w-full rounded border p-2"
@@ -534,7 +534,7 @@ export default function SaleEdit({
 
                                 {/* Rent Advance */}
                                 <div>
-                                    <label className="mb-1 block text-sm font-medium text-gray-700">Rent Advance</label>
+                                    <label className="mb-1 block text-sm font-medium text-foreground">Rent Advance</label>
                                     <input
                                         type="text"
                                         className="w-full rounded border p-2"
@@ -545,7 +545,7 @@ export default function SaleEdit({
 
                                 {/* Net Rent */}
                                 <div>
-                                    <label className="mb-1 block text-sm font-medium text-gray-700">Net Rent</label>
+                                    <label className="mb-1 block text-sm font-medium text-foreground">Net Rent</label>
                                     <input
                                         type="text"
                                         className="w-full rounded border p-2"
@@ -556,7 +556,7 @@ export default function SaleEdit({
 
                                 {/* Truck Driver Name */}
                                 <div>
-                                    <label className="mb-1 block text-sm font-medium text-gray-700">Truck Driver Name</label>
+                                    <label className="mb-1 block text-sm font-medium text-foreground">Truck Driver Name</label>
                                     <input
                                         type="text"
                                         className="w-full rounded border p-2"
@@ -567,7 +567,7 @@ export default function SaleEdit({
 
                                 {/* Driver Address */}
                                 <div>
-                                    <label className="mb-1 block text-sm font-medium text-gray-700">Driver Address</label>
+                                    <label className="mb-1 block text-sm font-medium text-foreground">Driver Address</label>
                                     <input
                                         type="text"
                                         className="w-full rounded border p-2"
@@ -578,7 +578,7 @@ export default function SaleEdit({
 
                                 {/* Driver Mobile */}
                                 <div>
-                                    <label className="mb-1 block text-sm font-medium text-gray-700">Driver Mobile</label>
+                                    <label className="mb-1 block text-sm font-medium text-foreground">Driver Mobile</label>
                                     <input
                                         type="text"
                                         className="w-full rounded border p-2"
@@ -594,7 +594,7 @@ export default function SaleEdit({
                         {/* Section 5: Submit */}
                         {/* <div className="mt-6 flex justify-end gap-3">
                         <button type="submit" disabled={processing} className="rounded bg-purple-600 px-5 py-2 font-semibold text-white shadow hover:bg-purple-700">{processing ? 'Updating...' : 'Update'}</button>
-                        <Link href="/sales" className="rounded border border-gray-400 px-5 py-2 font-semibold text-gray-700 hover:bg-gray-100">Cancel</Link>
+                        <Link href="/sales" className="rounded border border-gray-400 px-5 py-2 font-semibold text-foreground hover:bg-background">Cancel</Link>
                     </div> */}
                         <ActionFooter
                             className='w-full justify-end'

@@ -63,11 +63,11 @@ export default function Edit({ setting, financialYears, interestBasisOptions = [
         <AppLayout>
             <Head title="Company Settings" />
 
-            <div className="h-full w-screen bg-gray-100 p-6 lg:w-full">
-                <div className="h-full rounded-lg bg-white p-6">
+            <div className="h-full w-screen bg-background p-6 lg:w-full">
+                <div className="h-full rounded-lg bg-background p-6">
                     <PageHeader title="Company Profile" />
 
-                    <form onSubmit={handleSubmit} encType="multipart/form-data" className="space-y-6 rounded-lg border bg-white p-6">
+                    <form onSubmit={handleSubmit} encType="multipart/form-data" className="space-y-6 rounded-lg border bg-background text-foreground p-6">
                         {/* Basic text inputs */}
                         <div className="grid grid-cols-1 gap-6 sm:grid-cols-2">
                             {[
@@ -79,7 +79,7 @@ export default function Edit({ setting, financialYears, interestBasisOptions = [
                                 ['Mobile Number', 'mobile'],
                             ].map(([label, key]) => (
                                 <div key={key}>
-                                    <label className="mb-1 block text-sm font-medium text-gray-700">{label}</label>
+                                    <label className="mb-1 block text-sm font-medium text-foreground">{label}</label>
                                     <input
                                         type="text"
                                         value={data[key as keyof typeof data] as string}
@@ -98,7 +98,7 @@ export default function Edit({ setting, financialYears, interestBasisOptions = [
                                 ['Description', 'description'],
                             ].map(([label, key]) => (
                                 <div key={key}>
-                                    <label className="mb-1 block text-sm font-medium text-gray-700">{label}</label>
+                                    <label className="mb-1 block text-sm font-medium text-foreground">{label}</label>
                                     <textarea
                                         rows={3}
                                         value={data[key as keyof typeof data] as string}
@@ -112,7 +112,7 @@ export default function Edit({ setting, financialYears, interestBasisOptions = [
 
                         {/* FY dropdown */}
                         <div>
-                            <label className="mb-1 block text-sm font-medium text-gray-700">Financial Year</label>
+                            <label className="mb-1 block text-sm font-medium text-foreground">Financial Year</label>
                             <select
                                 value={data.financial_year_id}
                                 onChange={(e) => setData('financial_year_id', Number(e.target.value) || '')}
@@ -130,7 +130,7 @@ export default function Edit({ setting, financialYears, interestBasisOptions = [
 
                         {/* ── Sale approval flow ───────────────────────────────────── */}
                         <div>
-                            <label className="mb-1 block text-sm font-medium text-gray-700">Sale approval flow</label>
+                            <label className="mb-1 block text-sm font-medium text-foreground">Sale approval flow</label>
 
                             <select
                                 value={data.sale_approval_flow}
@@ -149,7 +149,7 @@ export default function Edit({ setting, financialYears, interestBasisOptions = [
 
                         {/* ── Purchase approval flow ─────────────────────────────── */}
                         <div>
-                            <label className="mb-1 block text-sm font-medium text-gray-700">Purchase approval flow</label>
+                            <label className="mb-1 block text-sm font-medium text-foreground">Purchase approval flow</label>
 
                             <select
                                 value={data.purchase_approval_flow}
@@ -176,13 +176,13 @@ export default function Edit({ setting, financialYears, interestBasisOptions = [
                                     onChange={(e) => setData('apply_interest', e.target.checked)}
                                     className="h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
                                 />
-                                <label htmlFor="apply_interest" className="text-sm font-medium text-gray-700">
+                                <label htmlFor="apply_interest" className="text-sm font-medium text-foreground">
                                     Apply interest on overdue invoices
                                 </label>
                             </div>
 
                             <div>
-                                <label className="mb-1 block text-sm font-medium text-gray-700">Interest basis</label>
+                                <label className="mb-1 block text-sm font-medium text-foreground">Interest basis</label>
                                 <select
                                     value={data.interest_basis}
                                     onChange={(e) => setData('interest_basis', e.target.value)}
@@ -198,7 +198,7 @@ export default function Edit({ setting, financialYears, interestBasisOptions = [
                             </div>
                         </div>
                         <div>
-                            <label className="mb-1 block text-sm font-medium text-gray-700">Interest type</label>
+                            <label className="mb-1 block text-sm font-medium text-foreground">Interest type</label>
                             <select
                                 value={data.interest_type}
                                 onChange={(e) => setData('interest_type', e.target.value)}
@@ -211,7 +211,7 @@ export default function Edit({ setting, financialYears, interestBasisOptions = [
                         </div>
                         {data.interest_type === 'flat' && (
                             <div className="mt-6">
-                                <label className="mb-1 block text-sm font-medium text-gray-700">Flat charge per day</label>
+                                <label className="mb-1 block text-sm font-medium text-foreground">Flat charge per day</label>
                                 <input
                                     type="number"
                                     step="0.01"
@@ -226,7 +226,7 @@ export default function Edit({ setting, financialYears, interestBasisOptions = [
                         {/* ② new inputs — put these under the “Interest basis” select */}
                         <div className="grid grid-cols-1 gap-6 sm:grid-cols-2">
                             <div>
-                                <label className="mb-1 block text-sm font-medium text-gray-700">Yearly interest %</label>
+                                <label className="mb-1 block text-sm font-medium text-foreground">Yearly interest %</label>
                                 <input
                                     type="number"
                                     step="0.0001"
@@ -238,7 +238,7 @@ export default function Edit({ setting, financialYears, interestBasisOptions = [
                             </div>
 
                             <div>
-                                <label className="mb-1 block text-sm font-medium text-gray-700">Monthly interest %</label>
+                                <label className="mb-1 block text-sm font-medium text-foreground">Monthly interest %</label>
                                 <input
                                     type="number"
                                     step="0.0001"
@@ -252,7 +252,7 @@ export default function Edit({ setting, financialYears, interestBasisOptions = [
 
                         {/* Logo upload */}
                         <div>
-                            <label className="mb-1 block text-sm font-medium text-gray-700">Company Logo</label>
+                            <label className="mb-1 block text-sm font-medium text-foreground">Company Logo</label>
                             <div className="flex items-center gap-4">
                                 {data.logo ? (
                                     <img src={URL.createObjectURL(data.logo)} alt="Logo Preview" className="h-16 w-16 rounded border object-cover" />

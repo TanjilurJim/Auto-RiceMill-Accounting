@@ -92,17 +92,17 @@ export default function RentVoucherShow() {
         <AppLayout>
             <Head title={`Rent Voucher – ${voucher.vch_no}`} />
 
-            <div className="min-h-screen bg-gray-50 py-6 print:bg-white print:py-0">
+            <div className="min-h-screen bg-background py-6 print:bg-white print:py-0">
                 <div className="mx-auto max-w-5xl">
                     {/* ---------- Header card ---------- */}
-                    <div className="mb-6 overflow-hidden rounded-lg bg-white shadow-sm print:rounded-none print:shadow-none">
-                        <div className="bg-gradient-to-r from-purple-600 to-purple-700 px-6 py-6 text-white print:border-b print:bg-white print:text-black">
+                    <div className="mb-6 overflow-hidden rounded-lg bg-background shadow-sm print:rounded-none print:shadow-none">
+                        <div className="bg-gradient-to-r from-purple-600 to-purple-700 px-6 py-6 text-background print:border-b print:bg-white print:text-black">
                             <div className="flex items-center justify-between">
                                 <div className="flex items-center space-x-4">
-                                    <div className="rounded-lg bg-white/20 p-3 print:bg-purple-100">
+                                    <div className="rounded-lg bg-background/20 p-3 print:bg-purple-100">
                                         {/* icon */}
                                         <svg
-                                            className="h-8 w-8 text-white print:text-purple-600"
+                                            className="h-8 w-8 text-background print:text-purple-600"
                                             fill="none"
                                             stroke="currentColor"
                                             viewBox="0 0 24 24"
@@ -189,7 +189,7 @@ export default function RentVoucherShow() {
                     </div>
 
                     {/* ---------- Financial summary ---------- */}
-                    <div className="mb-6 overflow-hidden rounded-lg bg-white shadow-sm print:rounded-none print:shadow-none">
+                    <div className="mb-6 overflow-hidden rounded-lg bg-background shadow-sm print:rounded-none print:shadow-none">
                         <div className="border-b border-gray-200 bg-gray-50 px-6 py-4">
                             <h2 className="flex items-center text-lg font-semibold text-gray-900">
                                 <svg className="mr-2 h-5 w-5 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">

@@ -21,12 +21,12 @@ export default function Create() {
   return (
     <AppLayout>
       <Head title="Create Financial Year" />
-      <div className="bg-gray-100 p-6 h-full w-screen lg:w-full">
-        <div className="bg-white h-full rounded-lg p-6">
+      <div className="bg-background p-6 h-full w-screen lg:w-full">
+        <div className="bg-background h-full rounded-lg p-6">
 
           <PageHeader title="Add New Financial Year" addLinkHref='/financial-years' addLinkText="Back" />
 
-          <form onSubmit={handleSubmit} className="space-y-6 bg-white rounded-lg p-6 border">
+          <form onSubmit={handleSubmit} className="space-y-6 bg-background rounded-lg p-6 border">
             {/* Title */}
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
@@ -34,7 +34,7 @@ export default function Create() {
               </label>
               <input
                 type="text"
-                className="w-full rounded-md border border-gray-300 px-4 py-2 text-sm font-semibold shadow focus:border-blue-500 focus:ring-blue-500"
+                className="w-full rounded-md border border-gray-300 px-4 py-2 text-sm text-foreground font-semibold shadow focus:border-blue-500 focus:ring-blue-500"
                 value={data.title}
                 onChange={(e) => setData('title', e.target.value)}
                 placeholder="e.g., 2024-2025"
@@ -49,7 +49,7 @@ export default function Create() {
               </label>
               <input
                 type="date"
-                className="w-full rounded-md border border-gray-300 px-4 py-2 text-sm font-semibold shadow focus:border-blue-500 focus:ring-blue-500"
+                className=" w-full rounded-md border border-gray-300 px-4 py-2 text-sm font-semibold shadow focus:border-blue-500 focus:ring-blue-500"
                 value={data.start_date}
                 onChange={(e) => setData('start_date', e.target.value)}
               />

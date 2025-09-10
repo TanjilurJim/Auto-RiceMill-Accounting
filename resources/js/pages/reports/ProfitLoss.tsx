@@ -100,10 +100,10 @@ export default function ProfitLoss({
                 {/* Header */}
                 <div className="mb-4 flex items-center justify-center">
                     <div>
-                        <h1 className="text-xl font-bold text-gray-800">
+                        <h1 className="text-xl font-bold text-foreground">
                             Profit &amp; Loss Report
                         </h1>
-                        <p className="text-sm text-gray-500">
+                        <p className="text-sm text-foreground">
                             Period: <strong>{from_date}</strong> to{' '}
                             <strong>{to_date}</strong>
                         </p>
@@ -112,7 +112,7 @@ export default function ProfitLoss({
 
                 {/* Top‑level Figures */}
                 <div className="mx-auto grid max-w-lg gap-2 text-sm">
-                    <h2 className="border-b pb-1 font-semibold text-gray-700">
+                    <h2 className="border-b pb-1 font-semibold text-foreground">
                         Income
                     </h2>
                     <div className="flex justify-between">
@@ -124,7 +124,7 @@ export default function ProfitLoss({
                         <span>{Number(figures.otherIncome).toFixed(2)}</span>
                     </div>
 
-                    <h2 className="border-b pt-4 pb-1 font-semibold text-gray-700">
+                    <h2 className="border-b pt-4 pb-1 font-semibold text-foreground">
                         Expenses
                     </h2>
                     <div className="flex justify-between">
@@ -136,7 +136,7 @@ export default function ProfitLoss({
                         <span>{Number(figures.expenses).toFixed(2)}</span>
                     </div>
 
-                    <h2 className="border-b pt-4 pb-1 font-semibold text-gray-700">
+                    <h2 className="border-b pt-4 pb-1 font-semibold text-foreground">
                         Summary
                     </h2>
                     <div className="flex justify-between font-semibold">
@@ -153,7 +153,7 @@ export default function ProfitLoss({
                 <div className="mx-auto mt-8 grid max-w-4xl gap-4 md:grid-cols-2 print:text-xs">
                     {/* Expense column */}
                     <div>
-                        <h2 className="border-b pb-1 font-semibold text-gray-700">
+                        <h2 className="border-b pb-1 font-semibold text-foreground">
                             Expenses by Group
                         </h2>
                         {expenses.map(g => (
@@ -166,7 +166,7 @@ export default function ProfitLoss({
 
                     {/* Income column */}
                     <div>
-                        <h2 className="border-b pb-1 font-semibold text-gray-700">
+                        <h2 className="border-b pb-1 font-semibold text-foreground">
                             Income by Group
                         </h2>
                         {income.map(g => (

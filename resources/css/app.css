@@ -364,6 +364,7 @@
         }
     }
 }
+
 @layer base {
   /* Root control */
   .react-select__control {

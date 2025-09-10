@@ -455,7 +455,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
         ->middleware(perm('company-settings', 'edit'))->name('company-settings.costings.update');
 
 
-    Route::resource('financial-years', FinancialYearController::class)->only(['index', 'show'])
+    Route::resource('financial-years', FinancialYearController::class)->only(['index', ])
         ->middleware(perm('financial-year', 'view'));
     Route::resource('financial-years', FinancialYearController::class)->only(['create', 'store'])
         ->middleware(perm('financial-year', 'create'));
@@ -463,6 +463,8 @@ Route::middleware(['auth', 'verified'])->group(function () {
         ->middleware(perm('financial-year', 'edit'));
     Route::resource('financial-years', FinancialYearController::class)->only(['destroy'])
         ->middleware(perm('financial-year', 'delete'));
+        Route::resource('financial-years', FinancialYearController::class)->only(['show', ])
+        ->middleware(perm('financial-year', 'view'));
 
 
     Route::get('/payment-add/{voucher_no}/print', [PaymentAddController::class, 'print'])->name('payment-add.print');

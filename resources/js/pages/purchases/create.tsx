@@ -201,12 +201,12 @@ export default function PurchaseCreate({
     return (
         <AppLayout>
             <Head title="Add Purchase" />
-            <div className="h-full w-screen bg-gray-100 p-6 lg:w-full">
-                <div className="h-full rounded-lg bg-white p-6">
+            <div className="h-full w-screen bg-background p-6 lg:w-full">
+                <div className="h-full rounded-lg bg-background p-6">
                     <PageHeader title="Purchase Information" addLinkHref="/purchases" addLinkText="Back" />
 
                     {/* Form Card */}
-                    <form onSubmit={handleSubmit} className="space-y-6 rounded-lg border bg-white p-6 shadow-md">
+                    <form onSubmit={handleSubmit} className="space-y-6 rounded-lg border bg-background p-6 shadow-md">
                         {/* Section 1 - Purchase Info */}
                         <div className="space-y-4">
                             <h2 className="border-b pb-1 text-lg font-semibold">Purchase Information</h2>
@@ -291,7 +291,7 @@ export default function PurchaseCreate({
 
                                     {/* Party balance label – put directly after the select */}
                                     {partyBalance !== null && (
-                                        <div className="col-span-2 py-0.5 text-xs text-gray-600">
+                                        <div className="col-span-2 py-0.5 text-xs text-foreground">
                                             Party Balance: {Number(partyBalance).toFixed(2)}
                                         </div>
                                     )}
@@ -316,7 +316,7 @@ export default function PurchaseCreate({
                                         </select>
 
                                         {inventoryBalance !== null && (
-                                            <div className="mt-1 text-xs text-gray-600">Inventory Balance: {Number(inventoryBalance).toFixed(2)}</div>
+                                            <div className="mt-1 text-xs text-foreground">Inventory Balance: {Number(inventoryBalance).toFixed(2)}</div>
                                         )}
 
                                         {/* Placeholder for Add Button — next step will handle modal */}
@@ -356,10 +356,10 @@ export default function PurchaseCreate({
 
                         {/* Section 2 - Product Table */}
                         <div>
-                            <h2 className="mb-3 border-b bg-gray-100 pb-1 text-lg font-semibold">Products</h2>
+                            <h2 className="mb-3 border-b bg-background/80 pb-1 text-lg font-semibold">Products</h2>
                             <div className="overflow-x-auto rounded border">
                                 <table className="min-w-full text-left">
-                                    <thead className="bg-gray-50 text-sm">
+                                    <thead className="bg-text-foreground text-sm">
                                         <tr>
                                             <th className="border px-2 py-1">Product</th>
                                             <th className="border px-2 py-1">Lot No</th>
@@ -373,7 +373,7 @@ export default function PurchaseCreate({
                                     </thead>
                                     <tbody>
                                         {data.purchase_items.map((item, index) => (
-                                            <tr key={index} className="hover:bg-gray-50">
+                                            <tr key={index} className="hover:bg-background/80">
                                                 <td className="border px-2 py-1">
                                                     <select
                                                         className="w-full"
@@ -389,7 +389,7 @@ export default function PurchaseCreate({
                                                     </select>
                                                     {/* Projected stock AFTER this purchase */}
                                                     {item.product_id && (
-                                                        <div className="text-xs text-gray-500">
+                                                        <div className="text-xs text-foreground">
                                                             Projected stock:&nbsp;
                                                             {(
                                                                 (parseFloat(godownItems.find((s) => s.item.id == item.product_id)?.qty as any) || 0) +
@@ -445,7 +445,7 @@ export default function PurchaseCreate({
                                                     </select>
                                                 </td>
                                                 <td className="border px-2 py-1">
-                                                    <input type="number" className="w-full bg-gray-100" value={item.subtotal} readOnly />
+                                                    <input type="number" className="w-full bg-background" value={item.subtotal} readOnly />
                                                 </td>
                                                 <td className="border px-2 py-1 text-center">
                                                     <div className="flex justify-center space-x-1">
@@ -483,7 +483,7 @@ export default function PurchaseCreate({
                             <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                                 {/* Payment Mode */}
                                 <div className="col-span-1">
-                                    <label className="block text-sm font-medium text-gray-700">Payment Mode</label>
+                                    <label className="block text-sm font-medium text-foreground">Payment Mode</label>
                                     <select
                                         className="w-full rounded border p-2"
                                         value={data.received_mode_id}
@@ -507,7 +507,7 @@ export default function PurchaseCreate({
                                         ))}
                                     </select>
                                     {paymentLedgerBalance !== null && (
-                                        <div className="mt-1 w-full text-xs text-gray-600">
+                                        <div className="mt-1 w-full text-xs text-foreground">
                                             Payment Ledger Balance: {Number(paymentLedgerBalance).toFixed(2)}
                                         </div>
                                     )}
@@ -515,7 +515,7 @@ export default function PurchaseCreate({
 
                                 {/* Amount Paid */}
                                 <div className="col-span-1">
-                                    <label className="block text-sm font-medium text-gray-700">Amount Paid</label>
+                                    <label className="block text-sm font-medium text-foreground">Amount Paid</label>
                                     <input
                                         type="number"
                                         className="w-full rounded border p-2"
@@ -534,7 +534,7 @@ export default function PurchaseCreate({
 
                                 {/* Remaining Due */}
                                 <div className="col-span-1 text-xs text-red-600 sm:col-span-2 lg:col-span-3">
-                                    <label className="block text-sm font-medium text-gray-700">Remaining Due</label>
+                                    <label className="block text-sm font-medium text-foreground">Remaining Due</label>
                                     <div>{remainingDue.toFixed(2)}</div>
                                 </div>
                             </div>
@@ -544,20 +544,20 @@ export default function PurchaseCreate({
                         {/* Totals Section */}
                         <div className="mt-6">
                             <div className="grid-cols- grid gap-6 md:grid-cols-3">
-                                <div className="flex justify-between rounded border bg-gray-50 p-3 shadow-sm">
-                                    <span className="font-semibold text-gray-700">Item Qty Total:</span>
+                                <div className="flex justify-between rounded border bg-text-foreground p-3 shadow-sm">
+                                    <span className="font-semibold text-foreground">Item Qty Total:</span>
                                     <span className="font-semibold">
                                         {data.purchase_items.reduce((sum, item) => sum + (parseFloat(item.qty) || 0), 0)}
                                     </span>
                                 </div>
-                                <div className="flex justify-between rounded border bg-gray-50 p-3 shadow-sm">
-                                    <span className="font-semibold text-gray-700">Total Discount:</span>
+                                <div className="flex justify-between rounded border bg-text-foreground p-3 shadow-sm">
+                                    <span className="font-semibold text-foreground">Total Discount:</span>
                                     <span className="font-semibold">
                                         {data.purchase_items.reduce((sum, item) => sum + (parseFloat(item.discount) || 0), 0)}
                                     </span>
                                 </div>
-                                <div className="flex justify-between rounded border bg-gray-50 p-3 shadow-sm">
-                                    <span className="font-semibold text-gray-700">All Total Amount:</span>
+                                <div className="flex justify-between rounded border bg-text-foreground p-3 shadow-sm">
+                                    <span className="font-semibold text-foreground">All Total Amount:</span>
                                     <span className="font-semibold">
                                         {data.purchase_items.reduce((sum, item) => sum + (parseFloat(item.subtotal) || 0), 0)}
                                     </span>
@@ -569,18 +569,18 @@ export default function PurchaseCreate({
                         <div className="col-span-2 grid grid-cols-1 gap-4 space-y-4 md:grid-cols-2">
                             {/* using this for supplier info and shipping details */}
                             <div>
-                                <label className="mb-1 block font-semibold text-gray-700">Supplier Info</label>
+                                <label className="mb-1 block font-semibold text-foreground">Supplier Info</label>
                                 <textarea
-                                    className="w-full rounded border bg-white p-2 shadow-sm focus:ring-1 focus:ring-blue-500 focus:outline-none"
+                                    className="w-full rounded border bg-background/80 p-2 shadow-sm focus:ring-1 focus:ring-blue-500 focus:outline-none"
                                     rows={3}
                                     value={data.delivered_to || ''}
                                     onChange={(e) => setData('delivered_to', e.target.value)}
                                 ></textarea>
                             </div>
                             <div className="">
-                                <label className="mb-1 block font-semibold text-gray-700">Shipping Details</label>
+                                <label className="mb-1 block font-semibold text-foreground">Shipping Details</label>
                                 <textarea
-                                    className="w-full rounded border bg-white p-2 shadow-sm focus:ring-1 focus:ring-blue-500 focus:outline-none"
+                                    className="w-full rounded border bg-background p-2 shadow-sm focus:ring-1 focus:ring-blue-500 focus:outline-none"
                                     rows={3}
                                     value={data.shipping_details || ''}
                                     onChange={(e) => setData('shipping_details', e.target.value)}
@@ -603,7 +603,7 @@ export default function PurchaseCreate({
                     {showLedgerModal && (
                         <div className="bg-opacity-50 fixed inset-0 z-50 flex items-center justify-center bg-black">
                             <div className="w-full max-w-md rounded bg-white p-6 shadow-lg">
-                                <h2 className="mb-4 text-lg font-semibold text-gray-700">Create New Inventory Ledger</h2>
+                                <h2 className="mb-4 text-lg font-semibold text-foreground">Create New Inventory Ledger</h2>
 
                                 <input
                                     type="text"

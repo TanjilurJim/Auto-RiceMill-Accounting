@@ -78,7 +78,7 @@ export default function AccountBook({ company, entries, opening_balance, from, t
             </div>
             <Head title="Account Book" />
 
-            <div className="mx-auto mt-6 max-w-6xl rounded bg-white p-4 shadow print:text-xs print:font-normal">
+            <div className=" mt-6 l rounded bg-background p-4 shadow print:text-xs print:font-normal">
                 {/* Header */}
                 {/* Header Layout */}
                 <div className="mb-6 text-center">

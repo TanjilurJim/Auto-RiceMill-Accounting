@@ -172,30 +172,30 @@ export default function SaleIndex({ sales }: { sales: PaginatedSales }) {
                                 {/* dropdown – only for the row that’s open */}
                                 {openDropdown === rowIndex && (
                                     <div
-                                        className="absolute right-0 z-50 mt-1 w-40 rounded border bg-white shadow"
+                                        className="absolute right-0 z-50 mt-1 w-40 rounded border bg-background shadow"
                                         onClick={(e) => e.stopPropagation()}
                                     >
-                                        <Link href={`/sales/${row.id}/invoice`} target="_blank" className="block px-4 py-2 text-sm hover:bg-gray-100">
+                                        <Link href={`/sales/${row.id}/invoice`} target="_blank" className="block px-4 py-2 text-sm hover:bg-gray-100 hover:text-black">
                                             Sale Invoice
                                         </Link>
                                         <Link
                                             href={`/sales/${row.id}/truck-chalan`}
                                             target="_blank"
-                                            className="block px-4 py-2 text-sm hover:bg-gray-100"
+                                            className="block px-4 py-2 text-sm hover:bg-gray-100 hover:text-black"
                                         >
                                             Truck Chalan
                                         </Link>
                                         <Link
                                             href={`/sales/${row.id}/load-slip`}
                                             target="_blank"
-                                            className="block px-4 py-2 text-sm hover:bg-gray-100"
+                                            className="block px-4 py-2 text-sm hover:bg-gray-100 hover:text-black"
                                         >
                                             Load Slip
                                         </Link>
                                         <Link
                                             href={`/sales/${row.id}/gate-pass`}
                                             target="_blank"
-                                            className="block px-4 py-2 text-sm hover:bg-gray-100"
+                                            className="block px-4 py-2 text-sm hover:bg-gray-100 hover:text-black"
                                         >
                                             Gate Pass
                                         </Link>

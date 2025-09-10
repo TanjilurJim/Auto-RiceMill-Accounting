@@ -43,7 +43,7 @@ export default function SaleSalesmanReport({
         <AppLayout title="Salesman-wise Sale Report">
             <div className=" max-w-full space-y-4 p-4">
                 <Card className="shadow-lg">
-                    <CardHeader className="relative bg-gray-50 py-6 text-center">
+                    <CardHeader className="relative bg-background py-6 text-center">
                         {company?.logo_path && (
                             <img
                                 src={company?.logo_path}

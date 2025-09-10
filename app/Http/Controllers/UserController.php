@@ -186,66 +186,80 @@ class UserController extends Controller
         $actor   = auth()->user();
         $isAdmin = $actor->hasRole('admin');
 
-        // password is only required if actor wants to set it now (admin UI can send a reset link instead)
         $request->validate([
-            'name'   => 'required|string|max:255',
-            'email'  => 'required|email|unique:users,email',
-            'roles'  => 'array',
+            'name'  => 'required|string|max:255',
+            'email' => 'required|email|unique:users,email',
+            'roles' => 'array',
 
-            // Flow toggles (admin can control; for non-admin we enforce defaults below)
             'mark_verified'     => 'sometimes|boolean',
             'send_invite'       => 'sometimes|boolean',
             'set_password_now'  => 'sometimes|boolean',
+            'password'          => [$request->boolean('set_password_now') ? 'required' : 'nullable', 'min:6', 'confirmed'],
 
-            // Required only when set_password_now is true
-            'password' => [$request->boolean('set_password_now') ? 'required' : 'nullable', 'min:6', 'confirmed'],
+            // Trial fields validate only for admins (UI already hides for non-admins)
+            'trial_mode' => 'nullable|in:add,set',
+            'trial_days' => 'exclude_unless:trial_mode,add|nullable|integer|min:1|max:365',
+            'trial_date' => 'exclude_unless:trial_mode,set|nullable|date|after:today',
         ]);
 
-        // --- Role safety: non-admins cannot assign admin role
+        // Role safety
         $roleIds = $request->input('roles', []);
-        if ($isAdmin) {
-            // admin can assign anything
-        } else {
-            $forbiddenRoleIds = Role::where('name', 'admin')->pluck('id')->all();
-            $roleIds = array_values(array_diff($roleIds, $forbiddenRoleIds));
+        if (!$isAdmin) {
+            $forbidden = \Spatie\Permission\Models\Role::where('name', 'admin')->pluck('id')->all();
+            $roleIds = array_values(array_diff($roleIds, $forbidden));
         }
 
-        // --- Flow policy (SaaS):
-        // Admin-created users: follow toggles provided.
-        // Non-admin-created users: auto-verify, always send invite, password set by user.
-        $markVerified   = $isAdmin ? $request->boolean('mark_verified', true) : true; // ← default TRUE for admins
+        // Flow toggles
+        $markVerified   = $isAdmin ? $request->boolean('mark_verified', true) : true;
         $sendInvite     = $isAdmin ? $request->boolean('send_invite', true)   : true;
         $setPasswordNow = $isAdmin ? $request->boolean('set_password_now', false) : false;
+        $rawPassword    = $setPasswordNow ? $request->input('password') : \Illuminate\Support\Str::random(32);
 
-        // If not setting password now, create with temp random (user will set via invite)
-        $rawPassword = $setPasswordNow
-            ? $request->input('password')
-            : Str::random(32);
+        // ---------- Trial logic ----------
+        $trialEnds = null;
 
-        $user = \App\Models\User::create([
+        if ($isAdmin && $request->filled('trial_mode')) {
+            // Admin can set/extend on create
+            $base = now();
+            if ($request->trial_mode === 'add' && $request->filled('trial_days')) {
+                $trialEnds = $base->clone()->addDays((int) $request->trial_days);
+            } elseif ($request->trial_mode === 'set' && $request->filled('trial_date')) {
+                $trialEnds = \Carbon\Carbon::parse($request->trial_date)->endOfDay();
+            }
+        } else {
+            // Non-admin creator: inherit group head's trial (top-most under admin).
+            // If group head has none, fallback to creator’s own trial.
+            $headId   = get_top_parent_id($actor);                 // helper you shared
+            $groupHead = $headId ? \App\Models\User::find($headId) : null;
+            $trialEnds = optional($groupHead)->trial_ends_at ?? $actor->trial_ends_at;
+        }
+
+        // Create user (avoid fillable issues)
+        $user = new \App\Models\User([
             'name'       => $request->name,
             'email'      => $request->email,
-            'password'   => Hash::make($rawPassword),
-            'created_by' => $actor->id, // ownership
+            'password'   => \Illuminate\Support\Facades\Hash::make($rawPassword),
+            'created_by' => $actor->id,
         ]);
+        $user->trial_ends_at = $trialEnds;   // persist explicitly
+        $user->save();
 
         $user->syncRoles($roleIds);
 
-        // Verification behavior
         if ($markVerified) {
             $user->forceFill(['email_verified_at' => now()])->save();
         } else {
-            // Require verification for this account
             $user->sendEmailVerificationNotification();
         }
 
-        // Invite to set password (reset link). Works for verified or unverified users.
         if ($sendInvite) {
-            Password::sendResetLink(['email' => $user->email]);
+            \Illuminate\Support\Facades\Password::sendResetLink(['email' => $user->email]);
         }
 
         return redirect()->route('users.index')->with('success', 'User created successfully.');
     }
+
+
 
 
     public function destroy($id)

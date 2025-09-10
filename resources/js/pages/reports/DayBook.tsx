@@ -54,16 +54,16 @@ export default function DayBook({ entries, filters, company }: Props) {
 
 
                 <Card>
-                    <CardHeader className="relative bg-gray-50 py-6 text-center">
+                    <CardHeader className="relative bg-background/20 py-6 text-center">
                         <div className="space-y-1">
                             {company?.logo_url && (
                                 <img src={company.logo_url} alt="Company Logo" className="mx-auto mb-2 h-20 object-contain print:h-12" />
                             )}
                             <h1 className="text-3xl font-bold uppercase">{company?.company_name ?? 'Company Name'}</h1>
-                            {company?.address && <p className="text-sm text-gray-700">{company?.address}</p>}
-                            {company?.mobile && <p className="text-sm text-gray-700">Phone: {company?.mobile}</p>}
+                            {company?.address && <p className="text-sm text-foreground">{company?.address}</p>}
+                            {company?.mobile && <p className="text-sm text-foreground">Phone: {company?.mobile}</p>}
                             {(company?.email || company?.website) && (
-                                <p className="text-sm text-gray-700">
+                                <p className="text-sm text-foreground">
                                     {company?.email && <span>{company?.email}</span>}
                                     {company?.email && company?.website && <span className="mx-1">|</span>}
                                     {company?.website && <span>{company?.website}</span>}
@@ -73,7 +73,7 @@ export default function DayBook({ entries, filters, company }: Props) {
 
                         <div className="mt-4">
                             <h2 className="text-xl font-semibold underline">Day Book Report</h2>
-                            <p className="text-sm text-gray-600">
+                            <p className="text-sm text-foreground">
                                 From: <strong>{dayjs(filters.from).format('MMMM D, YYYY')}</strong>, To:{' '}
                                 <strong>{dayjs(filters.to).format('MMMM D, YYYY')}</strong>
                                 {filters.transaction_type && ` | Type: ${filters.transaction_type}`}

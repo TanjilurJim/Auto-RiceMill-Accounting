@@ -77,16 +77,16 @@ const logoSrc = company?.logo_url ?? company?.logo_thumb_url ?? null;
         {/* ─────────────────── Report title ─────────────────── */}
         <div className="mb-4 text-center print:text-sm">
           <h1 className="text-lg font-bold">All Received &amp; Payment Report</h1>
-          <p className="mt-1 text-sm text-gray-600">
+          <p className="mt-1 text-sm text-foreground">
             Report Period:&nbsp;
             <strong>{from_date}</strong>&nbsp;to&nbsp;<strong>{to_date}</strong>
           </p>
         </div>
 
         {/* ─────────────────── Table ─────────────────── */}
-        <div className="overflow-x-auto rounded border border-gray-200 bg-white text-sm">
+        <div className="overflow-x-auto rounded border border-gray-200 bg-background text-sm">
           <table className="min-w-full table-auto">
-            <thead className="bg-gray-100">
+            <thead className="bg-background print:bg-white">
               <tr>
                 <th className="border px-3 py-2 text-left">Date</th>
                 <th className="border px-3 py-2 text-left">Voucher No</th>
@@ -123,7 +123,7 @@ const logoSrc = company?.logo_url ?? company?.logo_thumb_url ?? null;
                   <td className="border px-3 py-2">{entry.created_by}</td>
                 </tr>
               ))}
-              <tr className="bg-gray-100 font-bold">
+              <tr className="bg-background font-bold">
                 <td colSpan={5} className="px-3 py-2 text-right">
                   Total
                 </td>

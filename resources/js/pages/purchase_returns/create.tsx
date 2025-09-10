@@ -99,12 +99,12 @@ export default function PurchaseReturnCreate({
     return (
         <AppLayout>
             <Head title="Add Purchase Return" />
-            <div className="h-full w-screen bg-gray-100 p-6 lg:w-full">
-                <div className="h-full rounded-lg bg-white p-6">
+            <div className="h-full w-screen bg-background p-6 lg:w-full">
+                <div className="h-full rounded-lg bg-background p-6">
                     <PageHeader title="Create Purchase Return" addLinkText="Back" addLinkHref="/purchase-returns" />
 
                     {/* Form Card */}
-                    <form onSubmit={handleSubmit} className="space-y-6 rounded-lg border bg-white p-6">
+                    <form onSubmit={handleSubmit} className="space-y-6 rounded-lg border bg-background p-6">
                         {/* Return Info */}
                         <div className="space-y-4">
                             <h2 className="border-b pb-1 text-lg font-semibold">Return Information</h2>
@@ -168,10 +168,10 @@ export default function PurchaseReturnCreate({
 
                         {/* Return Items Table */}
                         <div>
-                            <h2 className="mb-3 border-b bg-gray-100 pb-1 text-lg font-semibold">Return Items</h2>
+                            <h2 className="mb-3 border-b bg-background pb-1 text-lg font-semibold">Return Items</h2>
                             <div className="overflow-x-auto rounded border">
                                 <table className="min-w-full text-left">
-                                    <thead className="bg-gray-50 text-sm">
+                                    <thead className="bg-background text-sm">
                                         <tr>
                                             <th className="border px-2 py-1">Product</th>
                                             <th className="border px-2 py-1">Lot No</th>
@@ -183,7 +183,7 @@ export default function PurchaseReturnCreate({
                                     </thead>
                                     <tbody>
                                         {data.return_items.map((item, index) => (
-                                            <tr key={index} className="hover:bg-gray-50">
+                                            <tr key={index} className="hover:bg-background/50">
                                                 <td className="border px-2 py-1">
                                                     <select
                                                         className="w-full"
@@ -227,7 +227,7 @@ export default function PurchaseReturnCreate({
                                                     />
                                                 </td>
                                                 <td className="border px-2 py-1">
-                                                    <input type="number" className="w-full bg-gray-100" value={item.subtotal} readOnly />
+                                                    <input type="number" className="w-full bg-background" value={item.subtotal} readOnly />
                                                 </td>
                                                 <td className="border px-2 py-1 text-center">
                                                     <div className="flex justify-center space-x-1">
@@ -261,14 +261,14 @@ export default function PurchaseReturnCreate({
                         {/* Totals */}
                         <div className="mt-6 flex justify-between gap-4">
                             <div className="flex w-full flex-col gap-2.5 md:flex-row">
-                                <div className="flex w-full justify-between rounded border bg-gray-50 p-3 shadow-sm">
-                                    <span className="font-semibold text-gray-700">Total Qty:</span>
+                                <div className="flex w-full justify-between rounded border bg-background p-3 shadow-sm">
+                                    <span className="font-semibold text-foreground0">Total Qty:</span>
                                     <span className="font-semibold">
                                         {data.return_items.reduce((sum, item) => sum + (parseFloat(item.qty) || 0), 0)}
                                     </span>
                                 </div>
-                                <div className="flex w-full justify-between rounded border bg-gray-50 p-3 shadow-sm">
-                                    <span className="font-semibold text-gray-700">Total Return Value:</span>
+                                <div className="flex w-full justify-between rounded border bg-background p-3 shadow-sm">
+                                    <span className="font-semibold text-foreground0">Total Return Value:</span>
                                     <span className="font-semibold">
                                         {data.return_items.reduce((sum, item) => sum + (parseFloat(item.subtotal) || 0), 0)} Tk
                                     </span>
@@ -355,7 +355,7 @@ export default function PurchaseReturnCreate({
                             ))}
                         </div>
 
-                        <div className="mt-2 text-right text-sm text-gray-600">
+                        <div className="mt-2 text-right text-sm text-foreground">
                             Total Refunded: {data.refund_modes.reduce((sum, r) => sum + (parseFloat(r.amount_paid) || 0), 0)} Tk
                         </div>
 

@@ -76,8 +76,8 @@ export default function CreateForPurchase({
     return (
         <AppLayout>
             <Head title="Settle Purchase Due" />
-            <div className="w-screen bg-gray-100 p-6 lg:w-full">
-                <div className="rounded-lg bg-white p-6">
+            <div className="w-screen bg-background p-6 lg:w-full">
+                <div className="rounded-lg bg-background p-6">
                     <PageHeader title="Settle Purchase Due" addLinkHref={route('purchases.show', purchase.id)} addLinkText="Back to Purchase" />
 
                     {/* Summary */}
@@ -89,7 +89,7 @@ export default function CreateForPurchase({
                     </div>
 
                     {/* Form */}
-                    <form onSubmit={onSubmit} className="space-y-6 rounded-lg border bg-white p-6 shadow-md">
+                    <form onSubmit={onSubmit} className="space-y-6 rounded-lg border bg-background p-6 shadow-md">
                         {/* Date & Voucher */}
                         <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
                             <div>
@@ -113,7 +113,7 @@ export default function CreateForPurchase({
                         {/* Mode & Supplier (locked) */}
                         <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
                             <div>
-                                <label className="mb-1 block text-sm font-medium text-gray-700">Payment Mode</label>
+                                <label className="mb-1 block text-sm font-medium text-foreground">Payment Mode</label>
                                 <select
                                     className="w-full rounded border p-2"
                                     value={data.payment_mode_id}
@@ -132,7 +132,7 @@ export default function CreateForPurchase({
                             <div>
                                 <label className="mb-1 block text-sm font-medium text-gray-700">Supplier Ledger (Locked)</label>
                                 <input
-                                    className="w-full cursor-not-allowed rounded border bg-gray-100 p-2"
+                                    className="w-full cursor-not-allowed rounded border bg-background p-2"
                                     readOnly
                                     value={`${supplierLedger?.account_ledger_name || '—'} (ID: ${purchase.account_ledger_id})`}
                                 />
@@ -197,7 +197,7 @@ export default function CreateForPurchase({
 
 function SummaryBox({ label, value, danger }: { label: string; value: string; danger?: boolean }) {
     return (
-        <div className={`rounded border ${danger ? 'bg-rose-50' : 'bg-gray-50'} p-3`}>
+        <div className={`rounded border ${danger ? 'bg-background' : 'bg-background'} p-3`}>
             <div className="text-xs text-gray-500">{label}</div>
             <div className={`text-base font-semibold ${danger ? 'text-rose-600' : ''}`}>{value}</div>
         </div>

@@ -1,0 +1,18 @@
+/* Resetting any global icon styles that add a background/fill */
+.lucide { 
+  background: transparent !important;
+}
+.lucide * { 
+  fill: none !important;     /* prevent filled shapes */
+}
+/* Keep strokes using the current text color */
+.lucide, .lucide * {
+  stroke: currentColor;
+}
+/* Custom animation utility for repeated use */
+
+/* Smooth scrolling for anchor links */
+html {
+  scroll-behavior: smooth;
+}
+

@@ -40,8 +40,8 @@ export default function LedgerGroupSummaryFilter() {
     return (
         <AppLayout>
             <Head title="Ledger Group Summary" />
-            <div className="bg-gray-100 p-6 h-full w-screen lg:w-full">
-                <div className="bg-white h-full rounded-lg p-6">
+            <div className="bg-background p-6 h-full w-screen lg:w-full">
+                <div className="bg-background h-full rounded-lg p-6">
                     {/* <h1 className="text-xl font-semibold mb-4 text-gray-700">Ledger Group Summary</h1> */}
                     <PageHeader title="Ledger Group Summary" />
 

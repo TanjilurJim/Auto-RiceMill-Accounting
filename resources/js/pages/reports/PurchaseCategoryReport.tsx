@@ -51,7 +51,7 @@ export default function PurchaseCategoryReport({
                 <Head title="Category-wise Purchase Report" />
                 <Card className="shadow-lg">
                     {/* ── Header ───────────────────────────────────────────── */}
-                    <CardHeader className="bg-gray-50 py-6 text-center">
+                    <CardHeader className="bg-background py-6 text-center">
                         {/* company block */}
                         <div className="space-y-1">
                             {company?.logo_path && (
@@ -62,10 +62,10 @@ export default function PurchaseCategoryReport({
                                 />
                             )}
                             <h1 className="text-3xl font-bold uppercase">{company?.company_name ?? 'Company Name'}</h1>
-                            {company?.address && <p className="text-sm text-gray-700">{company?.address}</p>}
-                            {company?.mobile && <p className="text-sm text-gray-700">Phone: {company?.mobile}</p>}
+                            {company?.address && <p className="text-sm text-foreground">{company?.address}</p>}
+                            {company?.mobile && <p className="text-sm text-foreground">Phone: {company?.mobile}</p>}
                             {(company?.email || company?.website) && (
-                                <p className="text-sm text-gray-700">
+                                <p className="text-sm text-foreground">
                                     {company?.email && <span>{company?.email}</span>}
                                     {company?.email && company?.website && <span className="mx-1">|</span>}
                                     {company?.website && <span>{company?.website}</span>}
@@ -76,7 +76,7 @@ export default function PurchaseCategoryReport({
                         {/* title + date range */}
                         <div className="mt-4">
                             <h2 className="text-xl font-semibold underline">Category-wise Purchase Report</h2>
-                            <p className="text-sm text-gray-600">
+                            <p className="text-sm text-foreground">
                                 From: <strong>{filters.from_date}</strong>, To: <strong>{filters.to_date}</strong>
                             </p>
                         </div>
@@ -140,10 +140,10 @@ export default function PurchaseCategoryReport({
                                             </td>
                                         </tr>
                                     )}
-                                    <tr className="bg-gray-50">
+                                    <tr className="bg-background font-semibold print:bg-white">
                                         <td className="border px-2 py-2 text-sm font-medium" colSpan={9}>
                                             <strong>Total Qty by Unit:</strong>
-                                            <ul className="mt-1 list-disc space-y-0.5 pl-5 text-sm text-gray-700">
+                                            <ul className="mt-1 list-disc space-y-0.5 pl-5 text-sm text-foreground">
                                                 {Object.entries(qtyByUnit).map(([unit, qty]) => (
                                                     <li key={unit}>
                                                         {qty.toFixed(2)} {unit}
