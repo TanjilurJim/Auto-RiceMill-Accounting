@@ -110,7 +110,7 @@ export default function SaleCreate({
 
         cogs_ledger_id: '',
     });
-   
+
     /* ③ fetch items + lots from the new endpoint */
     useEffect(() => {
         if (!data.godown_id) {
@@ -133,8 +133,6 @@ export default function SaleCreate({
     const [showLedgerModal, setShowLedgerModal] = useState(false);
     const [newLedgerName, setNewLedgerName] = useState('');
     const [newGroupId, setNewGroupId] = useState('');
-
-  
 
     const customerLedgers = ledgers.filter((l) => l.mark_for_user);
 
@@ -234,20 +232,97 @@ export default function SaleCreate({
         post('/sales');
     };
 
+    function PricePreview({
+        prodUnit,
+        unitWeightKg,
+        onApplyUnitPrice,
+    }: {
+        prodUnit: string; // e.g. 'Bosta' or 'kg'
+        unitWeightKg: number; // kg per product unit (e.g. kg per bosta)
+        onApplyUnitPrice: (val: number) => void; // sets main_price (per product unit)
+    }) {
+        const [perKg, setPerKg] = useState<string>('');
+        const [perUnit, setPerUnit] = useState<string>('');
+
+        const isKgUnit = String(prodUnit).toLowerCase() === 'kg';
+        const safeUW = Number(unitWeightKg || 0);
+
+        // conversions
+        const kgToUnit = (kg: number) => (isKgUnit ? kg : safeUW > 0 ? kg * safeUW : NaN);
+        const unitToKg = (u: number) => (isKgUnit ? u : safeUW > 0 ? u / safeUW : NaN);
+
+        const perUnitFromKg = perKg ? kgToUnit(parseFloat(perKg)) : NaN;
+        const perKgFromUnit = perUnit ? unitToKg(parseFloat(perUnit)) : NaN;
+
+        return (
+            <div className="mt-2 space-y-2 rounded border p-2 text-xs">
+                {/* Try per-kg price */}
+                <div className="flex flex-wrap items-center gap-2">
+                    <span>Try per-kg:</span>
+                    <input
+                        type="number"
+                        placeholder="৳/kg"
+                        value={perKg}
+                        onChange={(e) => setPerKg(e.target.value)}
+                        className="w-28 rounded border p-1"
+                    />
+                    <span className="opacity-70">
+                        {Number.isFinite(perUnitFromKg) ? `→ ৳${perUnitFromKg.toFixed(2)}/${prodUnit}` : isKgUnit ? '' : '(set unit weight)'}
+                    </span>
+                    {Number.isFinite(perUnitFromKg) && (
+                        <button
+                            type="button"
+                            className="rounded bg-emerald-600 px-2 py-[2px] text-white hover:bg-emerald-500"
+                            onClick={() => onApplyUnitPrice(Number(perUnitFromKg))}
+                            title="Use this converted per-unit price"
+                        >
+                            Use
+                        </button>
+                    )}
+                </div>
+
+                {/* Try per-unit (product unit) price */}
+                <div className="flex flex-wrap items-center gap-2">
+                    <span>Try per-{prodUnit}:</span>
+                    <input
+                        type="number"
+                        placeholder={`৳/${prodUnit}`}
+                        value={perUnit}
+                        onChange={(e) => setPerUnit(e.target.value)}
+                        className="w-32 rounded border p-1"
+                    />
+                    <span className="opacity-70">
+                        {Number.isFinite(perKgFromUnit) ? `→ ৳${perKgFromUnit.toFixed(2)}/kg` : isKgUnit ? '' : '(set unit weight)'}
+                    </span>
+                    {perUnit && Number.isFinite(parseFloat(perUnit)) && (
+                        <button
+                            type="button"
+                            className="rounded bg-emerald-600 px-2 py-[2px] text-white hover:bg-emerald-500"
+                            onClick={() => onApplyUnitPrice(parseFloat(perUnit))}
+                            title="Use this per-unit price"
+                        >
+                            Use
+                        </button>
+                    )}
+                </div>
+            </div>
+        );
+    }
+
     return (
         <AppLayout>
             <Head title="Add Sale" />
-            <div className="h-full w-screen bg-background p-6 lg:w-full">
-                <div className="h-full rounded-lg bg-background p-6">
+            <div className="bg-background h-full w-screen p-6 lg:w-full">
+                <div className="bg-background h-full rounded-lg p-6">
                     {/* Header */}
 
                     <PageHeader title="Create Sale" addLinkHref="/sales" addLinkText="Back" />
 
                     {/* Form */}
-                    <form onSubmit={handleSubmit} className="space-y-8 rounded-lg border bg-background p-6">
+                    <form onSubmit={handleSubmit} className="bg-background space-y-8 rounded-lg border p-6">
                         {/* Section 1: Basic Sale Info */}
                         <div>
-                            <h2 className="mb-3 border-b pb-1 text-lg font-semibold text-foreground">Sale Information</h2>
+                            <h2 className="text-foreground mb-3 border-b pb-1 text-lg font-semibold">Sale Information</h2>
                             <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
                                 {/* Date */}
                                 <div>
@@ -257,13 +332,13 @@ export default function SaleCreate({
 
                                 {/* Voucher No */}
                                 <div>
-                                    <label className="mb-1 block text-sm font-medium text-foreground">Voucher No</label>
-                                    <input type="text" className="w-full rounded border bg-background p-2" value={data.voucher_no} readOnly />
+                                    <label className="text-foreground mb-1 block text-sm font-medium">Voucher No</label>
+                                    <input type="text" className="bg-background w-full rounded border p-2" value={data.voucher_no} readOnly />
                                 </div>
 
                                 {/* Godown */}
                                 <div>
-                                    <label className="mb-1 block text-sm font-medium text-foreground">Godown</label>
+                                    <label className="text-foreground mb-1 block text-sm font-medium">Godown</label>
                                     <select
                                         className="w-full rounded border p-2"
                                         value={data.godown_id}
@@ -281,7 +356,7 @@ export default function SaleCreate({
 
                                 {/* Salesman */}
                                 <div>
-                                    <label className="mb-1 block text-sm font-medium text-foreground">Salesman</label>
+                                    <label className="text-foreground mb-1 block text-sm font-medium">Salesman</label>
                                     <select
                                         className="w-full rounded border p-2"
                                         value={data.salesman_id}
@@ -299,7 +374,7 @@ export default function SaleCreate({
 
                                 {/* Party Ledger */}
                                 <div>
-                                    <label className="mb-1 block text-sm font-medium text-foreground">Customer Ledger</label>
+                                    <label className="text-foreground mb-1 block text-sm font-medium">Customer Ledger</label>
                                     <select
                                         className="w-full rounded border p-2"
                                         value={data.account_ledger_id}
@@ -314,7 +389,7 @@ export default function SaleCreate({
                                     </select>
 
                                     {/* Helper Text and Link */}
-                                    <div className="mt-1 text-sm text-foreground">
+                                    <div className="text-foreground mt-1 text-sm">
                                         Create Customer Ledger if not created yet.{' '}
                                         <a href="/account-ledgers/create" target="_blank" className="text-blue-600 underline hover:text-blue-800">
                                             Create New
@@ -326,7 +401,7 @@ export default function SaleCreate({
 
                                 {/* Phone */}
                                 <div>
-                                    <label className="mb-1 block text-sm font-medium text-foreground">Phone</label>
+                                    <label className="text-foreground mb-1 block text-sm font-medium">Phone</label>
                                     <input
                                         type="text"
                                         className="w-full rounded border p-2"
@@ -337,7 +412,7 @@ export default function SaleCreate({
 
                                 {/* Address */}
                                 <div>
-                                    <label className="mb-1 block text-sm font-medium text-foreground">Address</label>
+                                    <label className="text-foreground mb-1 block text-sm font-medium">Address</label>
                                     <input
                                         type="text"
                                         className="w-full rounded border p-2"
@@ -350,7 +425,7 @@ export default function SaleCreate({
 
                         {/* Section 2: Product Rows */}
                         <div>
-                            <h2 className="mb-3 border-b pb-1 text-lg font-semibold text-foreground">Products</h2>
+                            <h2 className="text-foreground mb-3 border-b pb-1 text-lg font-semibold">Products</h2>
 
                             {data.sale_items.map((item, index) => (
                                 // <div key={index} className="mb-3 grid grid-cols-12 items-end gap-2">
@@ -358,7 +433,7 @@ export default function SaleCreate({
                                     {/* Product */}
                                     {/* ───────── Product ───────── */}
                                     <div className="h-full w-full">
-                                        <label className="mb-1 block text-sm font-medium text-foreground">Product</label>
+                                        <label className="text-foreground mb-1 block text-sm font-medium">Product</label>
                                         <select
                                             className="h-fit w-full rounded border p-2"
                                             value={item.product_id}
@@ -378,7 +453,7 @@ export default function SaleCreate({
 
                                     {/* ───────── Lot ───────── */}
                                     <div className="h-full w-full">
-                                        <label className="mb-1 block text-sm font-medium text-foreground">Lot</label>
+                                        <label className="text-foreground mb-1 block text-sm font-medium">Lot</label>
                                         <select
                                             className="h-fit w-full rounded border p-2"
                                             value={item.lot_id}
@@ -402,7 +477,7 @@ export default function SaleCreate({
 
                                     {/* Qty */}
                                     <div className="h-full w-full">
-                                        <label className="mb-1 block text-sm font-medium text-foreground">Qty</label>
+                                        <label className="text-foreground mb-1 block text-sm font-medium">Qty</label>
                                         <input
                                             type="number"
                                             className="h-fit w-full rounded border p-2"
@@ -417,7 +492,7 @@ export default function SaleCreate({
                                     {/* Main Price */}
                                     {/* Sale Price */}
                                     <div className="h-full w-full">
-                                        <label className="mb-1 block text-sm font-medium text-foreground">Sale Price</label>
+                                        <label className="text-foreground mb-1 block text-sm font-medium">Sale Price</label>
                                         <input
                                             type="number"
                                             className="w-full rounded border p-2"
@@ -437,12 +512,14 @@ export default function SaleCreate({
                                             const toProdUnitFromPerKg = (perKg?: number | null) => {
                                                 if (perKg == null) return undefined;
                                                 if (String(prod.unit).toLowerCase() === 'kg') return perKg;
-                                                const uw = Number(lot.unit_weight || 0); // kg per bosta
-                                                return uw > 0 ? perKg * uw : perKg; // fallback if missing
+                                                const uw = Number(lot.unit_weight || 0); // kg per {prod.unit}, e.g. per bosta
+                                                return uw > 0 ? perKg * uw : undefined;
                                             };
 
+                                            const unitFromPerKg = toProdUnitFromPerKg(lot.per_kg_rate);
+
                                             return (
-                                                <div className="mt-1 space-y-1 text-xs text-gray-600">
+                                                <div className="mt-1 space-y-2 text-xs text-gray-700">
                                                     {/* 1) Saved unit cost (normalized to product unit) */}
                                                     {lot.saved_rate != null && (
                                                         <div className="flex items-center gap-2">
@@ -463,15 +540,31 @@ export default function SaleCreate({
                                                         </div>
                                                     )}
 
-                                                    {/* 2) Per-kg rate (always ৳/kg) + Use (converted to product unit) */}
+                                                    {/* 2) Per-kg rate + Use (converted to product unit) */}
                                                     {lot.per_kg_rate != null && (
                                                         <div className="flex items-center gap-2">
                                                             <span>
                                                                 Per-kg: <b>৳{Number(lot.per_kg_rate).toFixed(2)}/kg</b>
                                                             </span>
-                                                            
+                                                            {unitFromPerKg != null && (
+                                                                <button
+                                                                    type="button"
+                                                                    className="rounded bg-emerald-600 px-2 py-[2px] text-white hover:bg-emerald-500"
+                                                                    onClick={() => handleItemChange(index, 'main_price', String(unitFromPerKg))}
+                                                                    title={`Use converted rate (৳${unitFromPerKg.toFixed(2)}/${prod.unit})`}
+                                                                >
+                                                                    Use
+                                                                </button>
+                                                            )}
                                                         </div>
                                                     )}
+
+                                                    {/* 3) What-if converter (per-kg ↔ per-{prod.unit}) */}
+                                                    <PricePreview
+                                                        prodUnit={prod.unit}
+                                                        unitWeightKg={Number(lot.unit_weight || 0)}
+                                                        onApplyUnitPrice={(val) => handleItemChange(index, 'main_price', String(val))}
+                                                    />
                                                 </div>
                                             );
                                         })()}
@@ -479,7 +572,7 @@ export default function SaleCreate({
 
                                     {/* Discount */}
                                     <div className="h-full w-full">
-                                        <label className="mb-1 block text-sm font-medium text-foreground">Disc</label>
+                                        <label className="text-foreground mb-1 block text-sm font-medium">Disc</label>
                                         <input
                                             type="number"
                                             className="w-full rounded border p-2"
@@ -490,7 +583,7 @@ export default function SaleCreate({
 
                                     {/* Discount Type */}
                                     <div className="h-full w-full">
-                                        <label className="mb-1 block text-sm font-medium text-foreground">Type</label>
+                                        <label className="text-foreground mb-1 block text-sm font-medium">Type</label>
                                         <select
                                             className="w-full rounded border p-2"
                                             value={item.discount_type}
@@ -503,8 +596,8 @@ export default function SaleCreate({
 
                                     {/* Subtotal */}
                                     <div className="h-full w-full">
-                                        <label className="mb-1 block text-sm font-medium text-foreground">Subtotal</label>
-                                        <input type="number" className="w-full rounded border bg-background p-2" value={item.subtotal} readOnly />
+                                        <label className="text-foreground mb-1 block text-sm font-medium">Subtotal</label>
+                                        <input type="number" className="bg-background w-full rounded border p-2" value={item.subtotal} readOnly />
                                     </div>
 
                                     {/* Add/Remove Buttons */}
@@ -532,7 +625,7 @@ export default function SaleCreate({
                             ))}
                             {/* Section 2: Product Rows */}
                             <div>
-                                <h2 className="mb-3 border-b pb-1 text-lg font-semibold text-foreground">Products</h2>
+                                <h2 className="text-foreground mb-3 border-b pb-1 text-lg font-semibold">Products</h2>
 
                                 {data.sale_items.map((item, index) => (
                                     <div key={index} className="mb-3 grid grid-cols-12 items-end gap-2">
@@ -545,7 +638,7 @@ export default function SaleCreate({
                             <div className="mt-6 grid grid-cols-1 gap-4 md:grid-cols-3">
                                 {/* Inventory Ledger */}
                                 <div className="col-span-1">
-                                    <label className="mb-1 block flex items-center gap-1 text-sm font-semibold text-foreground">
+                                    <label className="text-foreground mb-1 block flex items-center gap-1 text-sm font-semibold">
                                         Inventory Ledger <span className="text-red-500">*</span>
                                         {/* Tooltip icon */}
                                         <div className="group relative cursor-pointer">
@@ -570,7 +663,7 @@ export default function SaleCreate({
                                             </option>
                                         ))}
                                     </select>
-                                    <div className="mt-1 text-sm text-foreground">
+                                    <div className="text-foreground mt-1 text-sm">
                                         Don’t see your ledger?{' '}
                                         <button onClick={() => setShowInventoryLedgerModal(true)} className="text-blue-600 underline">
                                             Create here
@@ -581,7 +674,7 @@ export default function SaleCreate({
                                 {/* Other Amount */}
                                 {/* COGS Ledger */}
                                 <div className="col-span-1">
-                                    <label className="mb-1 block flex items-center gap-1 text-sm font-semibold text-foreground">
+                                    <label className="text-foreground mb-1 block flex items-center gap-1 text-sm font-semibold">
                                         COGS Ledger <span className="text-red-500">*</span>
                                         <div className="group relative cursor-pointer">
                                             <span className="inline-block h-4 w-4 rounded-full bg-gray-300 text-center text-xs font-bold">?</span>
@@ -603,7 +696,7 @@ export default function SaleCreate({
                                             </option>
                                         ))}
                                     </select>
-                                    <div className="mt-1 text-sm text-foreground">
+                                    <div className="text-foreground mt-1 text-sm">
                                         Used to track cost of goods sold. Don’t see one?{' '}
                                         <button onClick={() => setShowCogsLedgerModal(true)} className="text-blue-600 underline">
                                             Create one
@@ -613,7 +706,7 @@ export default function SaleCreate({
                                 </div>
                                 {/* Receive Mode */}
                                 <div>
-                                    <label className="mb-1 block text-sm font-semibold text-foreground">Receive Mode</label>
+                                    <label className="text-foreground mb-1 block text-sm font-semibold">Receive Mode</label>
                                     <select
                                         className="w-full border p-2"
                                         value={data.received_mode_id || ''}
@@ -626,11 +719,11 @@ export default function SaleCreate({
                                             </option>
                                         ))}
                                     </select>
-                                    <div className="mt-1 text-sm text-foreground">Projected Closing Bal.: {uiClosingBal}</div>
+                                    <div className="text-foreground mt-1 text-sm">Projected Closing Bal.: {uiClosingBal}</div>
                                 </div>
                                 {/* Receive Amount */}
                                 <div>
-                                    <label className="mb-1 block text-sm font-semibold text-foreground">Receive Amount</label>
+                                    <label className="text-foreground mb-1 block text-sm font-semibold">Receive Amount</label>
                                     <input
                                         type="number"
                                         placeholder="0.00"
@@ -641,24 +734,24 @@ export default function SaleCreate({
                                 </div>
                                 {/* Total Due */}
                                 <div>
-                                    <label className="mb-1 block text-sm font-semibold text-foreground">Total Due</label>
-                                    <input type="number" readOnly className="w-full border bg-background p-2" value={uiTotalDue} />
+                                    <label className="text-foreground mb-1 block text-sm font-semibold">Total Due</label>
+                                    <input type="number" readOnly className="bg-background w-full border p-2" value={uiTotalDue} />
                                 </div>
                                 {/* Closing Balance */}
                                 <div>
-                                    <label className="mb-1 block text-sm font-semibold text-foreground">Closing Balance</label>
-                                    <input type="number" readOnly className="w-full border bg-background p-2" value={uiClosingBal} />
+                                    <label className="text-foreground mb-1 block text-sm font-semibold">Closing Balance</label>
+                                    <input type="number" readOnly className="bg-background w-full border p-2" value={uiClosingBal} />
                                 </div>
                             </div>
                         </div>
 
                         {/* Section 3: Shipping, Delivery, Truck Info */}
                         <div>
-                            <h2 className="mb-3 border-b pb-1 text-lg font-semibold text-foreground">Shipping & Truck Details</h2>
+                            <h2 className="text-foreground mb-3 border-b pb-1 text-lg font-semibold">Shipping & Truck Details</h2>
                             <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
                                 {/* Shipping Details */}
                                 <div>
-                                    <label className="mb-1 block text-sm font-medium text-foreground">Shipping Details</label>
+                                    <label className="text-foreground mb-1 block text-sm font-medium">Shipping Details</label>
                                     <textarea
                                         className="w-full rounded border p-2"
                                         rows={3}
@@ -669,7 +762,7 @@ export default function SaleCreate({
 
                                 {/* Delivered To */}
                                 <div>
-                                    <label className="mb-1 block text-sm font-medium text-foreground">Delivered To</label>
+                                    <label className="text-foreground mb-1 block text-sm font-medium">Delivered To</label>
                                     <textarea
                                         className="w-full rounded border p-2"
                                         rows={3}
@@ -682,7 +775,7 @@ export default function SaleCreate({
                             <div className="mt-4 grid grid-cols-1 gap-4 md:grid-cols-3">
                                 {/* Truck Rent */}
                                 <div>
-                                    <label className="mb-1 block text-sm font-medium text-foreground">Truck Rent</label>
+                                    <label className="text-foreground mb-1 block text-sm font-medium">Truck Rent</label>
                                     <input
                                         type="text"
                                         className="w-full rounded border p-2"
@@ -693,7 +786,7 @@ export default function SaleCreate({
 
                                 {/* Rent Advance */}
                                 <div>
-                                    <label className="mb-1 block text-sm font-medium text-foreground">Rent Advance</label>
+                                    <label className="text-foreground mb-1 block text-sm font-medium">Rent Advance</label>
                                     <input
                                         type="text"
                                         className="w-full rounded border p-2"
@@ -704,7 +797,7 @@ export default function SaleCreate({
 
                                 {/* Net Rent */}
                                 <div>
-                                    <label className="mb-1 block text-sm font-medium text-foreground">Due Rent</label>
+                                    <label className="text-foreground mb-1 block text-sm font-medium">Due Rent</label>
                                     <input
                                         type="text"
                                         className="w-full rounded border p-2"
@@ -715,7 +808,7 @@ export default function SaleCreate({
 
                                 {/* Truck Driver Name */}
                                 <div>
-                                    <label className="mb-1 block text-sm font-medium text-foreground">Truck Driver Name</label>
+                                    <label className="text-foreground mb-1 block text-sm font-medium">Truck Driver Name</label>
                                     <input
                                         type="text"
                                         className="w-full rounded border p-2"
@@ -726,7 +819,7 @@ export default function SaleCreate({
 
                                 {/* Driver Address */}
                                 <div>
-                                    <label className="mb-1 block text-sm font-medium text-foreground">Driver Address</label>
+                                    <label className="text-foreground mb-1 block text-sm font-medium">Driver Address</label>
                                     <input
                                         type="text"
                                         className="w-full rounded border p-2"
@@ -737,7 +830,7 @@ export default function SaleCreate({
 
                                 {/* Driver Mobile */}
                                 <div>
-                                    <label className="mb-1 block text-sm font-medium text-foreground">Driver Mobile</label>
+                                    <label className="text-foreground mb-1 block text-sm font-medium">Driver Mobile</label>
                                     <input
                                         type="text"
                                         className="w-full rounded border p-2"
@@ -771,7 +864,7 @@ export default function SaleCreate({
                     }}
                 >
                     <div className="w-full max-w-md rounded bg-white p-6 shadow-lg">
-                        <h2 className="mb-4 text-lg font-semibold text-foreground">Create Inventory Ledger</h2>
+                        <h2 className="text-foreground mb-4 text-lg font-semibold">Create Inventory Ledger</h2>
 
                         <input
                             type="text"
@@ -841,7 +934,7 @@ export default function SaleCreate({
                     }}
                 >
                     <div className="w-full max-w-md rounded bg-white p-6 shadow-lg">
-                        <h2 className="mb-4 text-lg font-semibold text-foreground">Create COGS Ledger</h2>
+                        <h2 className="text-foreground mb-4 text-lg font-semibold">Create COGS Ledger</h2>
 
                         <input
                             type="text"

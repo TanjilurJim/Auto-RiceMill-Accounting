@@ -18,26 +18,23 @@ class ProfitLossController extends Controller
     ------------------------------------------------------------------ */
     private array $groupMap = [
         // EXPENSE GROUPS
-        'Direct Expenses'         => 'expense',
-        'Indirect Expenses'       => 'expense',
-        'Vehicles & Transportation' => 'expense',
-        'Transportation'          => 'expense',
-        'Financial Expenses'      => 'expense',
-        'Misc. Expenses (Asset)'  => 'expense',
-        'Selling & Distribution'  => 'expense',
-        'Administrative Overhead' => 'expense',
-    
+        'Direct Expenses'            => 'expense',
+        'Indirect Expenses'          => 'expense',
+        'Vehicles & Transportation'  => 'expense',
+        'Transportation'             => 'expense',
+        'Financial Expenses'         => 'expense',
+        'Misc. Expenses (Asset)'     => 'expense',
+        'Selling & Distribution Exp' => 'expense', // ← exact table name
+        'Administrative Overhead'    => 'expense',
+
         // INCOME GROUPS
-        'Direct Income'           => 'income',
-        'Indirect Income'         => 'income',
-        'Non Operating Income'    => 'income',
-        'Rent Voucher Income'     => 'income',
-    
-        // OPTIONAL / INTERPRETED (based on usage in your app)
-        // 'Sundry Debtors'          => 'income',   // if used for customer income
-        // 'Customer Summary'        => 'income',
-        // 'Sundry Creditors'        => 'expense',  // if used for supplier expenses
-        // 'Supplier Summary'        => 'expense',
+        'Direct Income'              => 'income',
+        'Indirect Income'            => 'income',
+        'Non Operating Income'       => 'income',
+        'Crushing Income'            => 'income', // ← exists in your table
+
+        // Optional / custom if you actually use:
+        // 'Rent Voucher Income'     => 'income',
     ];
 
     /* ------------------------ filter view ------------------------ */
@@ -50,7 +47,7 @@ class ProfitLossController extends Controller
     public function index(Request $request)
     {
         $data = $this->getProfitLossData($request);
-        
+
 
         return Inertia::render('reports/ProfitLoss', [
             'from_date' => $data['from_date'],
@@ -68,7 +65,7 @@ class ProfitLossController extends Controller
         $data = $this->getProfitLossData($request);
 
         $pdf = PDF::loadView('exports.profit_loss_pdf', $data)
-                  ->setPaper('A4', 'portrait');
+            ->setPaper('A4', 'portrait');
 
         return $pdf->download('profit_loss_report.pdf');
     }
@@ -90,48 +87,46 @@ class ProfitLossController extends Controller
         $to   = $request->query('to_date')   ?: now()->endOfYear()->toDateString();
 
         $user = auth()->user();
-        $ids = user_scope_ids();
+        $ids  = user_scope_ids();
 
-        /* ---------- shared entry builder ---------- */
         $entries = JournalEntry::with(['ledger', 'journal'])
-            ->whereHas('journal', fn ($q) => $q->whereBetween('date', [$from, $to]));
-
-        // if (!auth()->user()->hasRole('admin')) {
-        //     $entries->whereHas('journal', fn ($q) => $q->where('created_by', auth()->id()));
-        // }
+            ->whereHas('journal', fn($q) => $q->whereBetween('date', [$from, $to]));
 
         if (!$user->hasRole('admin')) {
-            $entries->whereHas('journal', fn ($q) => $q->whereIn('created_by', $ids)); 
+            $entries->whereHas('journal', fn($q) => $q->whereIn('created_by', $ids));
         }
 
-        /* ---------- top‑level figures ---------- */
-        $sum = fn (string $type, string $drCr) => (clone $entries)
-            ->where('type', $drCr)
-            ->whereHas('ledger', fn ($q) => $q->where('ledger_type', $type))
-            ->sum('amount');
+        /** sum helper that supports multiple ledger types (for back-compat) */
+        $sum = function (array $ledgerTypes, string $drCr) use ($entries) {
+            return (clone $entries)
+                ->where('type', $drCr)
+                ->whereHas('ledger', fn($q) => $q->whereIn('ledger_type', $ledgerTypes))
+                ->sum('amount');
+        };
 
+        /* top-level figures (new types + legacy fallbacks) */
         $figures = [
-            'sales'       => (float) $sum('sales',   'credit'),
-            'cogs'        => (float) $sum('cogs',    'debit'),
-            'expenses'    => (float) $sum('expense', 'debit'),
-            'otherIncome' => (float) $sum('income',  'credit'),
+            'sales'        => (float) $sum(['sales_income', 'sales'], 'credit'),
+            'cogs'         => (float) $sum(['cogs'],                  'debit'),
+            'expenses'     => (float) $sum(['operating_expense', 'expense'], 'debit'),
+            'otherIncome'  => (float) $sum(['other_income', 'income'], 'credit'),
         ];
+
         $figures['grossProfit'] = $figures['sales'] - $figures['cogs'];
         $figures['netProfit']   = $figures['grossProfit'] - $figures['expenses'] + $figures['otherIncome'];
 
         /* ---------- per‑ledger breakdown ---------- */
-        $byLedger = (clone $entries)
-            ->selectRaw('account_ledger_id,
-                         SUM(CASE WHEN type="debit"  THEN amount ELSE 0 END) as debits,
-                         SUM(CASE WHEN type="credit" THEN amount ELSE 0 END) as credits')
-            ->groupBy('account_ledger_id')
-            ->get()
-            ->map(fn ($row) => [
-                'ledger'  => AccountLedger::find($row->account_ledger_id)->account_ledger_name ?? 'Unknown',
-                'type'    => AccountLedger::find($row->account_ledger_id)->ledger_type,
-                'debits'  => $row->debits,
-                'credits' => $row->credits,
-            ]);
+        $byLedger = JournalEntry::join('account_ledgers as al', 'journal_entries.account_ledger_id', '=', 'al.id')
+            ->join('journals as j', 'journal_entries.journal_id', '=', 'j.id')
+            ->whereBetween('j.date', [$from, $to])
+            ->when(!$user->hasRole('admin'), fn($q) => $q->whereIn('j.created_by', $ids))
+            ->selectRaw('al.account_ledger_name as ledger, al.ledger_type as type,
+                 SUM(CASE WHEN journal_entries.type="debit"  THEN journal_entries.amount ELSE 0 END) as debits,
+                 SUM(CASE WHEN journal_entries.type="credit" THEN journal_entries.amount ELSE 0 END) as credits')
+            ->groupBy('al.account_ledger_name', 'al.ledger_type')
+            ->orderBy('al.account_ledger_name')
+            ->get();
+
 
         /* ---------- group_under breakdown ---------- */
         $groupSums = JournalEntry::join('account_ledgers', 'journal_entries.account_ledger_id', '=', 'account_ledgers.id')
@@ -141,8 +136,10 @@ class ProfitLossController extends Controller
             // ->when(!auth()->user()->hasRole('admin'),
             //     fn ($q) => $q->where('journals.created_by', auth()->id()))
 
-            ->when(!$user->hasRole('admin'),
-                fn ($q) => $q->whereIn('journals.created_by', $ids))
+            ->when(
+                !$user->hasRole('admin'),
+                fn($q) => $q->whereIn('journals.created_by', $ids)
+            )
 
             ->selectRaw('group_unders.name as group_name,
                          journal_entries.type as dr_cr,
@@ -153,7 +150,7 @@ class ProfitLossController extends Controller
 
         $grouped = collect($this->groupMap)->map(function ($side, $gName) use ($groupSums) {
             $raw    = $groupSums->get($gName, collect());
-            $debit  = $raw->firstWhere('dr_cr', 'debit' )?->total ?? 0;
+            $debit  = $raw->firstWhere('dr_cr', 'debit')?->total ?? 0;
             $credit = $raw->firstWhere('dr_cr', 'credit')?->total ?? 0;
             $value  = $side === 'expense' ? ($debit - $credit) : ($credit - $debit);
 
@@ -162,7 +159,7 @@ class ProfitLossController extends Controller
                 'side'  => $side,   // 'expense' | 'income'
                 'value' => $value,
             ];
-        })->filter(fn ($row) => $row['value'] != 0)->values();
+        })->filter(fn($row) => $row['value'] != 0)->values();
 
         /* ---------- company info ---------- */
         $co = company_info();
@@ -186,12 +183,12 @@ class ProfitLossController extends Controller
             'byLedger'  => $byLedger,
             'grouped'   => $grouped,   // <-- new payload
             'company'   => [
-                'company_name'   => $co->company_name ,
-                'phone'          => $co->phone ,
-                'email'          => $co->email ,
-                'address'        => $co->address ,
-                'logo_url'       => $co->logo_url ,
-                'logo_thumb_url' => $co->logo_thumb_url ,
+                'company_name'   => $co->company_name,
+                'phone'          => $co->phone,
+                'email'          => $co->email,
+                'address'        => $co->address,
+                'logo_url'       => $co->logo_url,
+                'logo_thumb_url' => $co->logo_thumb_url,
             ],
         ];
     }

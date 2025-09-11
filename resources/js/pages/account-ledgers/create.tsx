@@ -1,9 +1,9 @@
 import AccountLedgerForm from '@/components/Form/AccountLedgerForm';
+import LedgerTypeCheatSheet from '@/components/LedgerTypeCheatSheet';
 import PageHeader from '@/components/PageHeader';
 import AppLayout from '@/layouts/app-layout';
 import { Head, useForm } from '@inertiajs/react';
 import React from 'react';
-import LedgerTypeCheatSheet from '@/components/LedgerTypeCheatSheet';
 
 export default function CreateAccountLedger({
     groupUnders,
@@ -21,8 +21,8 @@ export default function CreateAccountLedger({
         phone_number: '',
         email: '',
         opening_balance: '',
-        ledger_type: 'inventory',
-        debit_credit: 'debit',
+        ledger_type: '', // ← was 'inventory'
+        debit_credit: '', // let preset set it
         status: 'active',
         account_group_id: '',
         address: '',
@@ -33,7 +33,11 @@ export default function CreateAccountLedger({
 
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
-        if (!data.ledger_type) setData('ledger_type', 'inventory');
+        if (!data.ledger_type) {
+            // sensible fallback if you want:
+            setData('ledger_type', 'cash_bank');
+            setData('debit_credit', 'debit');
+        }
         post('/account-ledgers');
     };
 

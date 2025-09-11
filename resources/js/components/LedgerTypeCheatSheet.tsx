@@ -4,16 +4,23 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Button } from "@/components/ui/button";
 
 const cheatSheetData = [
+  // Assets
+  { type: "Customer (Accounts Receivable)", group: "Sundry Debtors", side: "Debit", rule: "Enter outstanding customer dues if migrating; else 0" },
+  { type: "Cash / Bank", group: "Cash-in-Hand / Bank Account", side: "Debit", rule: "Enter actual opening balance; else 0" },
   { type: "Inventory – Tracks goods in stock", group: "Current Assets", side: "Debit", rule: "0 for new; enter stock value if migrating" },
-  { type: "COGS – Cost of goods sold", group: "Direct Expenses", side: "Debit", rule: "Always 0; accumulates as sold" },
-  { type: "Sales Income – From customer sales", group: "Direct Income", side: "Credit", rule: "Always 0; accumulates with sales" },
-  { type: "Purchase Payable – Amounts owed to suppliers", group: "Current Liabilities / Sundry Creditors", side: "Credit", rule: "Enter outstanding payables if migrating; else 0" },
-  { type: "Cash / Bank – Your physical or bank balance", group: "Cash-in-Hand / Bank Account", side: "Debit", rule: "Enter actual opening cash/bank balance; else 0" },
-  { type: "Receive Mode – Where money is received", group: "Current Assets (control)", side: "Debit", rule: "Usually 0; transaction link only" },
-  { type: "Payment Mode – Where money is paid from", group: "Current Assets / Liabilities", side: "Credit/Debit", rule: "Usually 0; control account only" },
-  { type: "Expense – Regular operational expenses", group: "Indirect Expenses", side: "Debit", rule: "Always 0; accumulates as incurred" },
-  { type: "Other Income – Miscellaneous earnings", group: "Indirect Income", side: "Credit", rule: "Always 0; accumulates as transactions happen" },
-  { type: "Liability – Loans or obligations", group: "Loans (Liability) / Non-Current Liabilities", side: "Credit", rule: "Enter outstanding loan if migrating; else 0" },
+
+  // Liabilities & Equity
+  { type: "Supplier (Accounts Payable)", group: "Sundry Creditors", side: "Credit", rule: "Enter outstanding payables if migrating; else 0" },
+  { type: "Liability (General)", group: "Current Liabilities / Loans", side: "Credit", rule: "Enter outstanding loan/dues if migrating; else 0" },
+  { type: "Equity / Capital", group: "Capital Account", side: "Credit", rule: "Enter opening capital if migrating; else 0" },
+
+  // Income
+  { type: "Sales Income – From customer sales", group: "Direct Income", side: "Credit", rule: "Always 0; increases with sales vouchers" },
+  { type: "Other Income – Miscellaneous earnings", group: "Non Operating Income", side: "Credit", rule: "Always 0; increases with income entries" },
+
+  // Expenses
+  { type: "COGS (Cost of Goods Sold)", group: "Direct Expenses", side: "Debit", rule: "Always 0; system posts cost when items are sold" },
+  { type: "Operating Expense", group: "Indirect Expenses", side: "Debit", rule: "Always 0; increases as expenses are recorded" },
 ];
 
 export default function LedgerTypeCheatSheet() {
@@ -26,6 +33,7 @@ export default function LedgerTypeCheatSheet() {
         <DialogHeader>
           <DialogTitle>Ledger Type Mapping Guide</DialogTitle>
         </DialogHeader>
+
         <div className="overflow-auto">
           <Table>
             <TableHeader>
@@ -48,6 +56,12 @@ export default function LedgerTypeCheatSheet() {
             </TableBody>
           </Table>
         </div>
+
+        <p className="mt-2 text-xs text-muted-foreground">
+          Notes: A/R and A/P are <strong>Balance Sheet</strong> ledgers (Assets/Liabilities) and do not hit P&L. Only
+          Income/Expense (incl. COGS) affect the Profit &amp; Loss report. For Cash/Bank you may choose “Cash-in-Hand”
+          or “Bank Account” as the group. For “Other Income” you can use “Non Operating Income” (or “Indirect Income” if preferred).
+        </p>
       </DialogContent>
     </Dialog>
   );

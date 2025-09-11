@@ -10,7 +10,7 @@ import { initializeTheme } from './hooks/use-appearance';
 import { NotificationProvider } from '@/providers/NotificationProvider';
 
 
-const appName = 'Auto Rice MIll';
+const appName = 'Rice MIll ERP';
 
 createInertiaApp({
     title: (title) => `${title} | ${appName}`,

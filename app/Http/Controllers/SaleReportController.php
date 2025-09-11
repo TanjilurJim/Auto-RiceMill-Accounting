@@ -392,55 +392,65 @@ class SaleReportController extends Controller
     }
 
 
-    private function getAllProfitLossData(array $f): Collection
-    {
-        $allowedUserIds = $this->allowedUserIds();
+    private function getAllProfitLossData(array $f): \Illuminate\Support\Collection
+{
+    $allowedUserIds = $this->allowedUserIds();
 
-        $latestPurchases = DB::table('purchase_items')
-            ->select('product_id', DB::raw('MAX(id) as latest_id'))
-            ->groupBy('product_id');
+    // We will value COGS by the lot-level weighted-average cost kept in `stocks`.
+    // That’s exactly what FinalizeSaleService used to post COGS, so reports align.
 
-        if (!empty($f['year'])) {
-            // Year-based summary
-            return DB::table('sales')
-                ->join('sale_items', 'sale_items.sale_id', '=', 'sales.id')
-                ->join('items', 'items.id', '=', 'sale_items.product_id')
-                ->leftJoinSub($latestPurchases, 'lp', 'lp.product_id', '=', 'sale_items.product_id')
-                ->leftJoin('purchase_items', 'purchase_items.id', '=', 'lp.latest_id')
-                ->selectRaw('
-                MONTH(sales.date) as month,
-                SUM((sale_items.main_price - COALESCE(purchase_items.price,0)) * sale_items.qty) AS profit
-            ')
-                ->whereYear('sales.date', $f['year'])
-                ->when($allowedUserIds, fn($q, $ids) => $q->whereIn('sales.created_by', $ids))
-                ->groupBy(DB::raw('MONTH(sales.date)'))
-                ->orderBy('month')
-                ->get();
-        }
-
-        // Full detailed report
-        return DB::table('sales')
-            ->join('sale_items', 'sale_items.sale_id', '=', 'sales.id')
-            ->join('items', 'items.id', '=', 'sale_items.product_id')
-            ->leftJoinSub($latestPurchases, 'lp', 'lp.product_id', '=', 'sale_items.product_id')
-            ->leftJoin('purchase_items', 'purchase_items.id', '=', 'lp.latest_id')
+    if (!empty($f['year'])) {
+        // ── Month summary: profit = Σ((sale_price - lot_avg_cost) * qty)
+        return DB::table('sales as s')
+            ->join('sale_items as si', 'si.sale_id', '=', 's.id')
+            ->join('items as i', 'i.id', '=', 'si.product_id')
+            // lot-level cost
+            ->leftJoin('stocks as st', function ($j) {
+                $j->on('st.item_id', '=', 'si.product_id')
+                  ->on('st.godown_id', '=', 's.godown_id')
+                  ->on('st.lot_id', '=', 'si.lot_id')
+                  ->on('st.created_by', '=', 's.created_by');
+            })
             ->selectRaw('
-            sales.date,
-            sales.voucher_no,
-            items.item_name,
-            sale_items.qty,
-            units.name as unit_name,
-            sale_items.main_price as sale_price,
-            COALESCE(purchase_items.price, 0) as purchase_price,
-            (sale_items.main_price - COALESCE(purchase_items.price, 0)) * sale_items.qty as profit
-        ')
-            ->join('units', 'units.id', '=', 'items.unit_id')
-            ->whereBetween('sales.date', [$f['from_date'], $f['to_date']])
-            ->when($allowedUserIds, fn($q, $ids) => $q->whereIn('sales.created_by', $ids))
-            ->orderBy('sales.date')
-            ->orderBy('sales.voucher_no')
+                MONTH(s.date) as month,
+                SUM( (si.main_price - COALESCE(st.avg_cost, i.purchase_price, 0)) * si.qty ) as profit
+            ')
+            ->whereYear('s.date', $f['year'])
+            ->when($allowedUserIds, fn ($q, $ids) => $q->whereIn('s.created_by', $ids))
+            ->groupBy(DB::raw('MONTH(s.date)'))
+            ->orderBy('month')
             ->get();
     }
+
+    // ── Detailed rows
+    return DB::table('sales as s')
+        ->join('sale_items as si', 'si.sale_id', '=', 's.id')
+        ->join('items as i', 'i.id', '=', 'si.product_id')
+        ->join('units as u', 'u.id', '=', 'i.unit_id')
+        // lot-level cost
+        ->leftJoin('stocks as st', function ($j) {
+            $j->on('st.item_id', '=', 'si.product_id')
+              ->on('st.godown_id', '=', 's.godown_id')
+              ->on('st.lot_id', '=', 'si.lot_id')
+              ->on('st.created_by', '=', 's.created_by');
+        })
+        ->selectRaw('
+            s.date,
+            s.voucher_no,
+            i.item_name,
+            si.qty,
+            u.name as unit_name,
+            si.main_price as sale_price,
+            COALESCE(st.avg_cost, i.purchase_price, 0) as purchase_price,
+            (si.main_price - COALESCE(st.avg_cost, i.purchase_price, 0)) * si.qty as profit
+        ')
+        ->whereBetween('s.date', [$f['from_date'], $f['to_date']])
+        ->when($allowedUserIds, fn ($q, $ids) => $q->whereIn('s.created_by', $ids))
+        ->orderBy('s.date')
+        ->orderBy('s.voucher_no')
+        ->get();
+}
+
 
 
     public function export(Request $req, string $tab)

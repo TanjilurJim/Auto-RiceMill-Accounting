@@ -8,11 +8,19 @@ use App\Models\GroupUnder;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Illuminate\Support\Str;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Validation\Rule;
+
 
 use function godown_scope_ids;
 
 class AccountLedgerController extends Controller
 {
+     private const ALLOWED_TYPES = [
+        'accounts_receivable','accounts_payable','cash_bank','inventory',
+        'sales_income','other_income','cogs','operating_expense','liability','equity',
+    ];
+
     public function index()
     {
         $query = AccountLedger::with(['accountGroup', 'groupUnder', 'creator']);
@@ -49,49 +57,62 @@ class AccountLedgerController extends Controller
 
     public function store(Request $request)
     {
-        $request->validate([
-            'account_ledger_name' => 'required|string|max:255',
-            'phone_number' => 'required|string|max:20',
-            'ledger_type' => 'nullable|string',
-            'email' => 'nullable|email',
-            'opening_balance' => 'required|numeric',
-            'debit_credit' => 'required|in:debit,credit',
-            'status' => 'required|in:active,inactive',
-            'account_group_input' => 'required|string',
-            'address' => 'nullable|string',
-            'for_transition_mode' => 'nullable|boolean',
-            'mark_for_user' => 'nullable|boolean',
-            'reference_number' => 'nullable|string|unique:account_ledgers,reference_number'
-        ]);
+        return DB::transaction(function () use ($request) {
 
-        // Separate the prefix
-        $parts = explode('-', $request->account_group_input);
-        $type = $parts[0]; // 'group_under' or 'account_group'
-        $id = $parts[1];   // actual id
+            // ✅ validation + guardrails
+            $validated = $request->validate([
+                'account_ledger_name' => ['required','string','max:255'],
+                'ledger_type'         => ['required', Rule::in(self::ALLOWED_TYPES)],
+                'debit_credit'        => ['required', Rule::in(['debit','credit'])],
+                'opening_balance'     => ['nullable','numeric','min:0'],
+                'account_group_input' => ['required','string'], // will be parsed below
+                'mark_for_user'       => ['boolean'],
+                'status'              => ['required', Rule::in(['active','inactive'])],
+                'phone_number'        => ['nullable','string','max:255'],
+                'email'               => ['nullable','email','max:255'],
+                'address'             => ['nullable','string'],
+                'reference_number'    => ['nullable','string','max:64'],
+                'for_transition_mode' => ['boolean'],
+            ]);
 
-        $ledgerData = [
-            'account_ledger_name' => $request->account_ledger_name,
-            'phone_number' => $request->phone_number,
-            'email' => $request->email,
-            'opening_balance' => $request->opening_balance,
-            'debit_credit' => $request->debit_credit,
-            'status' => $request->status,
-            'address' => $request->address,
-            'for_transition_mode' => $request->boolean('for_transition_mode'),
-            'mark_for_user'       => $request->boolean('mark_for_user'),
-            'ledger_type' => $request->ledger_type,
-            'created_by' => auth()->id(),
-        ];
+            // If marked as customer, force A/R + debit
+            if ($request->boolean('mark_for_user')) {
+                $validated['ledger_type']  = 'accounts_receivable';
+                $validated['debit_credit'] = 'debit';
+            }
 
-        if ($type === 'group_under') {
-            $ledgerData['group_under_id'] = $id;
-        } elseif ($type === 'account_group') {
-            $ledgerData['account_group_id'] = $id;
-        }
+            // Parse "group_under-<id>" or "account_group-<id>"
+            $kind = null; $id = null;
+            if (str_contains($request->input('account_group_input'), '-')) {
+                [$kind, $id] = explode('-', $request->input('account_group_input'), 2);
+            }
+            if ($kind === 'group_under') {
+                $validated['group_under_id']   = (int) $id;
+                $validated['account_group_id'] = null;
+            } elseif ($kind === 'account_group') {
+                $validated['account_group_id'] = (int) $id;
+                $validated['group_under_id']   = null;
+            } else {
+                // bad input shape
+                abort(422, 'Invalid account group selection.');
+            }
+            unset($validated['account_group_input']); // not a column
 
-        AccountLedger::create($ledgerData);
+            // Preserve admin-provided reference_number; model will autogen only if empty
+            if ($request->filled('reference_number')) {
+                $validated['reference_number'] = $request->string('reference_number');
+            }
 
-        return redirect()->route('account-ledgers.index')->with('success', 'Account Ledger created successfully.');
+            // Create
+            AccountLedger::create($validated + [
+                'created_by' => auth()->id(),
+                'tenant_id'  => optional(auth()->user())->tenant_id, // if you use multi-tenant
+            ]);
+
+            return redirect()
+                ->route('account-ledgers.index')
+                ->with('success', 'Account ledger created successfully.');
+        });
     }
 
     public function edit(AccountLedger $accountLedger)
@@ -118,68 +139,47 @@ class AccountLedgerController extends Controller
 
     public function update(Request $request, AccountLedger $accountLedger)
     {
-
-        $user = auth()->user();
-
-        // Multi-level access control: only admin or allowed users can update
-        if (!$user->hasRole('admin')) {
-            $ids = godown_scope_ids();
-            if (!in_array($accountLedger->created_by, $ids)) {
-                abort(403, 'Unauthorized action.');
-            }
-        }
-
-
-        // Validate incoming data
-        $request->validate([
-            'account_ledger_name' => 'required|string|max:255',
-            'phone_number' => 'required|string|max:20',
-            'email' => 'nullable|email',
-            'ledger_type' => 'nullable|string',
-            'opening_balance' => 'required|numeric',
-            'debit_credit' => 'required|in:debit,credit',
-            'status' => 'required|in:active,inactive',
-            'account_group_input' => 'required|string',
-            'address' => 'nullable|string',
-            'for_transition_mode' => 'nullable|boolean',
-            'mark_for_user' => 'nullable|boolean',
-            'reference_number' => 'nullable|string', // Add validation for reference number if needed
+        $validated = $request->validate([
+            'account_ledger_name' => ['required','string','max:255'],
+            'ledger_type'         => ['required', Rule::in(self::ALLOWED_TYPES)],
+            'debit_credit'        => ['required', Rule::in(['debit','credit'])],
+            'opening_balance'     => ['nullable','numeric','min:0'],
+            'account_group_input' => ['required','string'],
+            'mark_for_user'       => ['boolean'],
+            'status'              => ['required', Rule::in(['active','inactive'])],
+            'phone_number'        => ['nullable','string','max:255'],
+            'email'               => ['nullable','email','max:255'],
+            'address'             => ['nullable','string'],
+            'reference_number'    => ['nullable','string','max:64'],
+            'for_transition_mode' => ['boolean'],
         ]);
 
-        // Update the ledger data
-        $parts = explode('-', $request->account_group_input);
-        $type = $parts[0];
-        $id = $parts[1];
-
-        $ledgerData = [
-            'account_ledger_name' => $request->account_ledger_name,
-            'phone_number' => $request->phone_number,
-            'email' => $request->email,
-            'opening_balance' => $request->opening_balance,
-            'debit_credit' => $request->debit_credit,
-            'status' => $request->status,
-            'address' => $request->address,
-            'ledger_type' => $request->ledger_type,
-            'for_transition_mode' => $request->has('for_transition_mode'),
-            'mark_for_user'       => $request->has('mark_for_user'),
-            'reference_number' => $request->reference_number, // Ensure reference number is updated if changed
-        ];
-
-        // Reset both before updating
-        $ledgerData['account_group_id'] = null;
-        $ledgerData['group_under_id'] = null;
-
-        if ($type === 'group_under') {
-            $ledgerData['group_under_id'] = $id;
-        } elseif ($type === 'account_group') {
-            $ledgerData['account_group_id'] = $id;
+        if ($request->boolean('mark_for_user')) {
+            $validated['ledger_type']  = 'accounts_receivable';
+            $validated['debit_credit'] = 'debit';
         }
 
-        // Update the Account Ledger
-        $accountLedger->update($ledgerData);
+        [$kind, $id] = explode('-', $request->input('account_group_input'), 2);
+        if ($kind === 'group_under') {
+            $validated['group_under_id']   = (int) $id;
+            $validated['account_group_id'] = null;
+        } else {
+            $validated['account_group_id'] = (int) $id;
+            $validated['group_under_id']   = null;
+        }
+        unset($validated['account_group_input']);
 
-        return redirect()->route('account-ledgers.index')->with('success', 'Account Ledger updated successfully.');
+        if ($request->filled('reference_number')) {
+            $validated['reference_number'] = $request->string('reference_number');
+        }
+
+        $accountLedger->update($validated);
+
+        return redirect()
+            ->route('account-ledgers.index')
+            ->with('success', 'Account ledger updated.');
     }
+
 
 
 

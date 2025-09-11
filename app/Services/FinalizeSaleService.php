@@ -11,6 +11,8 @@ use App\Models\JournalEntry;
 use App\Services\LedgerService;
 use App\Services\SalePaymentService;
 use Carbon\Carbon;
+use Illuminate\Validation\Rule;
+
 use Illuminate\Support\Facades\DB;
 
 class FinalizeSaleService
@@ -37,7 +39,7 @@ class FinalizeSaleService
             /* ------------------------------
              * 1️⃣  Reduce stock  +  collect COST
              * ----------------------------*/
-             $costByItem = [];            // [item_id => cost]
+            $costByItem = [];            // [item_id => cost]
 
             foreach ($sale->saleItems as $row) {
 
@@ -51,18 +53,18 @@ class FinalizeSaleService
 
                 // weighted-avg cost of that lot
                 $unitCost = Stock::where([
-                        'item_id'    => $row->product_id,
-                        'godown_id'  => $sale->godown_id,
-                        'lot_id'     => $row->lot_id,
-                        'created_by' => $sale->created_by,
-                    ])->value('avg_cost') ?? 0;
+                    'item_id'    => $row->product_id,
+                    'godown_id'  => $sale->godown_id,
+                    'lot_id'     => $row->lot_id,
+                    'created_by' => $sale->created_by,
+                ])->value('avg_cost') ?? 0;
 
                 if ($unitCost == 0) {
                     $unitCost = Item::find($row->product_id)->purchase_price ?? 0;
                 }
 
                 $costByItem[$row->product_id] = ($costByItem[$row->product_id] ?? 0)
-                                               + ($unitCost * $row->qty);
+                    + ($unitCost * $row->qty);
             }
 
             $totalCost = array_sum($costByItem);
@@ -124,7 +126,7 @@ class FinalizeSaleService
              * 5️⃣  Inventory / COGS
              * ----------------------------*/
             foreach ($costByItem as $itemId => $cost) {
-                $note = 'Inventory out (Item #'.$itemId.')';
+                $note = 'Inventory out (Item #' . $itemId . ')';
 
                 JournalEntry::create([
                     'journal_id'        => $journal->id,
@@ -139,7 +141,7 @@ class FinalizeSaleService
                     'account_ledger_id' => $sale->cogs_ledger_id,
                     'type'              => 'debit',
                     'amount'            => $cost,
-                    'note'              => 'COGS – '.$note,
+                    'note'              => 'COGS – ' . $note,
                 ]);
             }
 
@@ -160,15 +162,68 @@ class FinalizeSaleService
             }
         });
     }
+    private function validateRequest(Request $request)
+{
+    return $request->validate([
+        'date'         => 'required|date',
+        'godown_id'    => 'required|exists:godowns,id',
+        'salesman_id'  => 'required|exists:salesmen,id',
+
+        // customer ledger must be AR
+        'account_ledger_id' => [
+            'required',
+            Rule::exists('account_ledgers', 'id')->where(fn($q) => $q->where('ledger_type', 'accounts_receivable')),
+        ],
+
+        // inventory & cogs are required and type-checked
+        'inventory_ledger_id' => [
+            'required',
+            Rule::exists('account_ledgers','id')->where(fn($q) => $q->where('ledger_type','inventory')),
+        ],
+        'cogs_ledger_id' => [
+            'required',
+            Rule::exists('account_ledgers','id')->where(fn($q) => $q->where('ledger_type','cogs')),
+        ],
+
+        'sale_items'                 => 'required|array|min:1',
+        'sale_items.*.product_id'    => ['required','exists:items,id', function ($attr,$val,$fail) use ($request) {
+            if (!preg_match('/sale_items\.(\d+)\./',$attr,$m)) return;
+            $idx   = (int) $m[1];
+            $lotId = $request->input("sale_items.$idx.lot_id");
+            $ok = \App\Models\Lot::where('id',$lotId)->where('item_id',$val)->exists();
+            if (!$ok) $fail('Lot does not match item.');
+        }],
+        'sale_items.*.lot_id'        => 'required|exists:lots,id',
+        'sale_items.*.qty'           => 'required|numeric|min:0.01',
+        'sale_items.*.main_price'    => 'required|numeric|min:0',
+        'sale_items.*.discount'      => 'nullable|numeric|min:0',
+        'sale_items.*.discount_type' => 'required|in:bdt,percent',
+        'sale_items.*.subtotal'      => 'required|numeric|min:0',
+
+        'received_mode_id' => [
+            'nullable',
+            'exists:received_modes,id',
+            function ($attr, $val, $fail) use ($request) {
+                if (($request->amount_received ?? 0) > 0) {
+                    $lt = \App\Models\ReceivedMode::with('ledger')->find($val)?->ledger?->ledger_type;
+                    if ($lt !== 'cash_bank') {
+                        $fail('Selected receive mode must map to a Cash/Bank ledger.');
+                    }
+                }
+            },
+        ],
+        'amount_received' => 'nullable|numeric|min:0',
+    ]);
+}
 
     private function getSalesLedgerId(int $userId): int
     {
         return \App\Models\AccountLedger::firstOrCreate(
             [
-                'ledger_type'   => 'sales',
-                'mark_for_user' => 0,
+                'ledger_type'    => 'sales_income',  // ← change
+                'mark_for_user'  => 0,
                 'group_under_id' => 10,
-                'created_by'    => $userId,
+                'created_by'     => $userId,
             ],
             [
                 'account_ledger_name' => 'Sales Income',

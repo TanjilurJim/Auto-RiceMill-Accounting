@@ -77,17 +77,31 @@ class SaleController extends Controller
 
 
 
+    // SaleController.php
+
     public function create()
     {
         $ids = godown_scope_ids();
 
         return Inertia::render('sales/create', [
-            'godowns' => empty($ids) ? Godown::all() : Godown::whereIn('created_by', $ids)->get(),
+            'godowns'  => empty($ids) ? Godown::all() : Godown::whereIn('created_by', $ids)->get(),
             'salesmen' => empty($ids) ? Salesman::all() : Salesman::whereIn('created_by', $ids)->get(),
-            'ledgers' => empty($ids) ? AccountLedger::all() : AccountLedger::whereIn('created_by', $ids)->get(),
+
+            // send general ledgers with type + mark_for_user for client filtering
+            'ledgers'  => empty($ids)
+                ? AccountLedger::get(['id', 'account_ledger_name', 'ledger_type', 'mark_for_user'])
+                : AccountLedger::whereIn('created_by', $ids)->get(['id', 'account_ledger_name', 'ledger_type', 'mark_for_user']),
+
+            // inventory-only list
             'inventoryLedgers' => empty($ids)
-                ? AccountLedger::get(['id', 'account_ledger_name'])
-                : AccountLedger::whereIn('created_by', $ids)->get(['id', 'account_ledger_name']),
+                ? AccountLedger::where('ledger_type', 'inventory')->get(['id', 'account_ledger_name', 'ledger_type'])
+                : AccountLedger::where('ledger_type', 'inventory')->whereIn('created_by', $ids)->get(['id', 'account_ledger_name', 'ledger_type']),
+
+            // cogs-only list (add this; or filter on client)
+            'cogsLedgers' => empty($ids)
+                ? AccountLedger::where('ledger_type', 'cogs')->get(['id', 'account_ledger_name', 'ledger_type'])
+                : AccountLedger::where('ledger_type', 'cogs')->whereIn('created_by', $ids)->get(['id', 'account_ledger_name', 'ledger_type']),
+
             'items' => empty($ids) ? Item::all() : Item::whereIn('created_by', $ids)->get(),
             'accountGroups' => \App\Models\AccountGroup::get(['id', 'name']),
             'receivedModes' => empty($ids)
@@ -95,6 +109,7 @@ class SaleController extends Controller
                 : \App\Models\ReceivedMode::with('ledger')->whereIn('created_by', $ids)->get(['id', 'mode_name', 'ledger_id']),
         ]);
     }
+
 
     public function show(Sale $sale)
     {
@@ -248,10 +263,10 @@ class SaleController extends Controller
             'items' => empty($ids) ? Item::all() : Item::whereIn('created_by', $ids)->get(),
             'receivedModes' => empty($ids)
                 ? ReceivedMode::with(['ledger' => function ($q) {
-                    $q->where('ledger_type', 'received_mode');
+                    $q->where('ledger_type', 'cash_bank');
                 }])->get(['id', 'mode_name', 'ledger_id'])
                 : ReceivedMode::with(['ledger' => function ($q) {
-                    $q->where('ledger_type', 'received_mode');
+                    $q->where('ledger_type', 'cash_bank');
                 }])->whereIn('created_by', $ids)->get(['id', 'mode_name', 'ledger_id']),
             'accountGroups' => \App\Models\AccountGroup::get(['id', 'name']),
         ]);
@@ -468,10 +483,10 @@ class SaleController extends Controller
     {
         $ledger = AccountLedger::firstOrCreate(
             [
-                'ledger_type'     => 'sales',
-                'mark_for_user'   => 0,
-                'group_under_id'  => 10,
-                'created_by'      => auth()->id(),
+                'ledger_type'    => 'sales_income',  // ← change
+                'mark_for_user'  => 0,
+                'group_under_id' => 10,              // Direct Income
+                'created_by'     => auth()->id(),
             ],
             [
                 'account_ledger_name' => 'Sales Income',
@@ -946,8 +961,8 @@ class SaleController extends Controller
                             'stock_qty'       => (float) $s->qty,
                             'unit_weight'     => (float) ($lot->unit_weight ?? 0.0),
                             'saved_rate'      => $savedRate ?: null,                 // ⬅ add to API
-                            'saved_rate_unit' => $savedRateUnit,    
-                            'per_kg_rate'     => $perKg ?: null,  
+                            'saved_rate_unit' => $savedRateUnit,
+                            'per_kg_rate'     => $perKg ?: null,
                         ];
                     })->values(),
                 ];

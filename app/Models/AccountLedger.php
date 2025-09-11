@@ -30,8 +30,8 @@ class AccountLedger extends Model
         'ledger_type',
     ];
     protected $casts = [
-    'for_transition_mode' => 'boolean',
-    'mark_for_user'       => 'boolean',
+        'for_transition_mode' => 'boolean',
+        'mark_for_user'       => 'boolean',
     ];
 
     protected static function boot()
@@ -39,8 +39,9 @@ class AccountLedger extends Model
         parent::boot();
 
         static::creating(function ($model) {
-            // Generate the reference number automatically
-            $model->reference_number = 'RL' . strtoupper(Str::random(10)); // Example: RLXXXXXXXXXX
+            if (empty($model->reference_number)) {            // only when not provided
+                $model->reference_number = 'RL' . strtoupper(Str::random(10));
+            }
         });
     }
 

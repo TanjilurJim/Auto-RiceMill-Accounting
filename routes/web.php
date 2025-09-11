@@ -401,7 +401,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
 
 
     // received modes
-    Route::resource('received-modes', ReceivedModeController::class)->only(['index', 'show'])
+    Route::resource('received-modes', ReceivedModeController::class)->only(['index', ])
         ->middleware(perm('received-modes', 'view'));
     Route::resource('received-modes', ReceivedModeController::class)->only(['create', 'store'])
         ->middleware(perm('received-modes', 'create'));
@@ -409,6 +409,8 @@ Route::middleware(['auth', 'verified'])->group(function () {
         ->middleware(perm('received-modes', 'edit'));
     Route::resource('received-modes', ReceivedModeController::class)->only(['destroy'])
         ->middleware(perm('received-modes', 'delete'));
+        Route::resource('received-modes', ReceivedModeController::class)->only(['show', ])
+        ->middleware(perm('received-modes', 'view'));
 
     Route::resource('received-add', ReceivedAddController::class)->only(['index', 'show'])
         ->middleware(perm('received-add', 'view'));
