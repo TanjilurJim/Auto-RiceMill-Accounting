@@ -10,6 +10,7 @@ use App\Models\{
     ReceivedMode,
     AccountLedger,
     Item,
+    Lot,
     StockMove,
 };
 use Illuminate\Support\Facades\DB;
@@ -24,28 +25,18 @@ class FinalizePurchaseService
      */
     public function handle(Purchase $purchase, array $pay = []): void
     {
-        /* ------------------------------------------------------------------
-         |  Prep – pull figures once so we don't recalc inside loops
-         * -----------------------------------------------------------------*/
-        $amountPaid      = $pay['amount_paid']     ?? $purchase->amount_paid     ?? 0;
+        $amountPaid      = $pay['amount_paid']      ?? $purchase->amount_paid      ?? 0;
         $receivedModeId  = $pay['received_mode_id'] ?? $purchase->received_mode_id ?? null;
         $grandTotal      = $purchase->grand_total;
         $supplierLedger  = $purchase->account_ledger_id;
         $inventoryLedger = $purchase->inventory_ledger_id;
 
-        DB::transaction(function () use (
-            $purchase,
-            $amountPaid,
-            $receivedModeId,
-            $grandTotal,
-            $supplierLedger,
-            $inventoryLedger
-        ) {
+        // ↓ avoid N+1 when we read $line->lot
+        $purchase->loadMissing('purchaseItems.lot');
 
-            /* =============================================================
-             | 1️⃣  Increment stock (or create rows)                  |
-             * ============================================================*/
+        DB::transaction(function () use ($purchase, $amountPaid, $receivedModeId, $grandTotal, $supplierLedger, $inventoryLedger) {
 
+            /* 1) Stock & stock_moves */
             foreach ($purchase->purchaseItems as $line) {
                 $stock = Stock::firstOrNew([
                     'item_id'    => $line->product_id,
@@ -54,31 +45,40 @@ class FinalizePurchaseService
                     'created_by' => $purchase->created_by,
                 ]);
 
-                // if new, qty may be null → normalise to 0
                 $stock->qty = ($stock->qty ?? 0) + $line->qty;
                 $stock->save();
 
-                /* ░░ 2-b) Log the purchase in stock_moves  ░░ */
+                // per-kg rate from lot unit_weight (if set)
+                $lot = $line->lot ?? Lot::find($line->lot_id);
+                $perKg = null;
+                $unitWeight = $lot?->unit_weight; // kg per unit/bosta
+
+                if (!is_null($unitWeight) && $unitWeight > 0) {
+                    // price is per unit -> convert to per-kg
+                    $perKg = round(((float)$line->price) / (float)$unitWeight, 6);
+                }
+
                 StockMove::create([
                     'godown_id'  => $purchase->godown_id,
                     'item_id'    => $line->product_id,
                     'lot_id'     => $line->lot_id,
-                    'type'       => 'purchase',                 // 👈 your new enum value
+                    'type'       => 'purchase',
                     'qty'        => $line->qty,
-                    'unit_cost'  => $line->price,
-                    'reason'     => 'auto-purchase',            // keep or drop as you prefer
+                    'unit_cost'  => $line->price, // per unit/bosta
+                    'reason'     => 'auto-purchase',
+                    'meta'       => [
+                        // helps the Item detail screen compute fast
+                        'per_kg_rate' => $perKg,          // may be null if not computable
+                        'unit_weight' => $unitWeight,     // echo what we used
+                    ],
                     'created_by' => $purchase->created_by,
                 ]);
 
-                // ── b) items table – bump previous_stock ──────────
+                // maintain your “previous_stock” accumulator on items
                 Item::where('id', $line->product_id)->increment('previous_stock', $line->qty);
-            }   // ← ✅ close the foreach here
+            }
 
-            // ← now it’s persisted
-
-            /* =============================================================
-             | 2️⃣  Journal header                                       |
-             * ============================================================*/
+            /* 2) Journal header */
             $journal = $purchase->journal_id
                 ? Journal::find($purchase->journal_id)
                 : Journal::create([
@@ -89,46 +89,25 @@ class FinalizePurchaseService
                     'voucher_type' => 'Purchase',
                 ]);
 
-            // keep the link
-            if (! $purchase->journal_id) {
+            if (!$purchase->journal_id) {
                 $purchase->update(['journal_id' => $journal->id]);
             }
 
-            /* =============================================================
-             | 3️⃣  Core double-entry                                    |
-             * ============================================================*/
-            // Debit Inventory
+            /* 3) Double-entry: Dr Inventory / Cr Supplier */
             $this->entry($journal->id, $inventoryLedger, 'debit',  $grandTotal, 'Inventory received');
-            // Credit Supplier
             $this->entry($journal->id, $supplierLedger,  'credit', $grandTotal, 'Payable to Supplier');
 
-            /* =============================================================
-             | 4️⃣  Optional part-payment                                 |
-             * ============================================================*/
+            /* 4) Optional part payment */
             if ($amountPaid > 0 && $receivedModeId) {
                 $mode = ReceivedMode::with('ledger')->find($receivedModeId);
-
                 if ($mode && $mode->ledger) {
-                    // Credit Cash / Bank / bKash ledger
-                    $this->entry(
-                        $journal->id,
-                        $mode->ledger_id,
-                        'credit',
-                        $amountPaid,
-                        'Payment via ' . $mode->mode_name
-                    );
-                    // Debit Supplier (reduce payable)
-                    $this->entry(
-                        $journal->id,
-                        $supplierLedger,
-                        'debit',
-                        $amountPaid,
-                        'Partial payment to supplier'
-                    );
+                    $this->entry($journal->id, $mode->ledger_id, 'credit', $amountPaid, 'Payment via ' . $mode->mode_name);
+                    $this->entry($journal->id, $supplierLedger,  'debit',  $amountPaid, 'Partial payment to supplier');
                 }
             }
         });
     }
+
 
     /* --------------------------------------------------------------------
      | Helper – create entry + adjust ledger closing balance

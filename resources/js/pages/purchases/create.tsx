@@ -5,6 +5,7 @@ import PageHeader from '@/components/PageHeader';
 import AppLayout from '@/layouts/app-layout';
 import { Head, useForm } from '@inertiajs/react';
 import axios from 'axios';
+import dayjs from 'dayjs';
 import { useEffect, useState } from 'react';
 
 const scrollToFirstError = (errors: Record<string, any>) => {
@@ -80,7 +81,7 @@ export default function PurchaseCreate({
         address: '',
         shipping_details: '',
         delivered_to: '',
-        purchase_items: [{ product_id: '', qty: '', price: '', lot_no: '', discount: '', discount_type: 'bdt', subtotal: '' }],
+        purchase_items: [{ product_id: '', qty: '', price: '', lot_no: '', discount: '', discount_type: 'bdt', subtotal: '', unit_weight: '' }],
         received_mode_id: '', // 👈 new
         amount_paid: '',
     });
@@ -98,13 +99,12 @@ export default function PurchaseCreate({
 
     useEffect(() => {
         if (!data.voucher_no) {
-            const today = new Date();
-            const dateStr = today.toISOString().slice(0, 10).replace(/-/g, '');
+            const iso = dayjs().format('YYYY-MM-DD'); // storage format
+            const compact = iso.replace(/-/g, ''); // for voucher only
             const randomId = Math.floor(1000 + Math.random() * 9000);
-            const voucher = `PUR-${dateStr}-${randomId}`;
-            setData('voucher_no', voucher);
 
-            setData('date', dateStr);
+            setData('voucher_no', `PUR-${compact}-${randomId}`);
+            setData('date', iso); // keep dashes!
         }
     }, []);
 
@@ -124,6 +124,11 @@ export default function PurchaseCreate({
     const [partyBalance, setPartyBalance] = useState<number | null>(null);
     const [inventoryBalance, setInventoryBalance] = useState<number | null>(null);
     const [paymentLedgerBalance, setPaymentLedgerBalance] = useState<number | null>(null);
+
+    const [productOptionsByGodown, setProductOptionsByGodown] = useState<{ [k: number]: StockRow[] }>(stockItemsByGodown);
+
+    // convenience: items for currently selected godown
+    const godownItems: StockRow[] = data.godown_id ? (productOptionsByGodown[Number(data.godown_id)] ?? []) : [];
 
     const fetchBalance = async (ledgerId: string, type: 'party' | 'inventory' | 'payment') => {
         if (!ledgerId) {
@@ -155,7 +160,7 @@ export default function PurchaseCreate({
     const addProductRow = () =>
         setData('purchase_items', [
             ...data.purchase_items,
-            { product_id: '', lot_no: '', qty: '', price: '', discount: '', discount_type: 'bdt', subtotal: '' },
+            { product_id: '', lot_no: '', qty: '', price: '', discount: '', discount_type: 'bdt', subtotal: '', unit_weight: '' },
         ]);
 
     const removeProductRow = (index: number) => {
@@ -196,17 +201,63 @@ export default function PurchaseCreate({
     const [newLedgerName, setNewLedgerName] = useState('');
     const [newGroupId, setNewGroupId] = useState('');
     const [inventoryLedgerOptions, setInventoryLedgerOptions] = useState<Ledger[]>(inventoryLedgers);
-    const godownItems: StockRow[] = data.godown_id && stockItemsByGodown[data.godown_id] ? stockItemsByGodown[data.godown_id] : [];
+    // const godownItems: StockRow[] = data.godown_id && stockItemsByGodown[data.godown_id] ? stockItemsByGodown[data.godown_id] : [];
+
+    const createItemInline = async (rowIndex: number) => {
+        if (!data.godown_id) {
+            alert('Please select a Godown first.');
+            return;
+        }
+
+        const name = prompt('New product name');
+        if (!name || !name.trim()) return;
+
+        const wStr = prompt('Per-unit weight in kg (optional, e.g. 50)');
+        const weight = wStr && !isNaN(Number(wStr)) ? Number(wStr) : null;
+
+        try {
+            const res = await axios.post('/items/modal', {
+                item_name: name.trim(),
+                godown_id: Number(data.godown_id),
+                // unit_id / category_id optional – backend picks sensible defaults
+                weight: weight,
+            });
+
+            const created = res.data as { id: number; item_name: string; weight?: number | null };
+
+            // append to the current godown’s options (with 0 stock to start)
+            setProductOptionsByGodown((prev) => {
+                const gid = Number(data.godown_id);
+                const next = { ...prev };
+                const arr = next[gid] ? [...next[gid]] : [];
+                arr.push({
+                    id: created.id,
+                    qty: 0,
+                    item: { id: created.id, item_name: created.item_name, unit_name: '' },
+                });
+                next[gid] = arr;
+                return next;
+            });
+
+            // select it in the current row
+            handleItemChange(rowIndex, 'product_id', String(created.id));
+            if (created.weight) handleItemChange(rowIndex, 'unit_weight', String(created.weight));
+        } catch (e: any) {
+            console.error(e);
+            alert(e?.response?.data?.message ?? 'Failed to create product.');
+        }
+    };
+
     console.log(godownItems);
     return (
         <AppLayout>
             <Head title="Add Purchase" />
-            <div className="h-full w-screen bg-background p-6 lg:w-full">
-                <div className="h-full rounded-lg bg-background p-6">
+            <div className="bg-background h-full w-screen p-6 lg:w-full">
+                <div className="bg-background h-full rounded-lg p-6">
                     <PageHeader title="Purchase Information" addLinkHref="/purchases" addLinkText="Back" />
 
                     {/* Form Card */}
-                    <form onSubmit={handleSubmit} className="space-y-6 rounded-lg border bg-background p-6 shadow-md">
+                    <form onSubmit={handleSubmit} className="bg-background space-y-6 rounded-lg border p-6 shadow-md">
                         {/* Section 1 - Purchase Info */}
                         <div className="space-y-4">
                             <h2 className="border-b pb-1 text-lg font-semibold">Purchase Information</h2>
@@ -291,7 +342,7 @@ export default function PurchaseCreate({
 
                                     {/* Party balance label – put directly after the select */}
                                     {partyBalance !== null && (
-                                        <div className="col-span-2 py-0.5 text-xs text-foreground">
+                                        <div className="text-foreground col-span-2 py-0.5 text-xs">
                                             Party Balance: {Number(partyBalance).toFixed(2)}
                                         </div>
                                     )}
@@ -316,7 +367,9 @@ export default function PurchaseCreate({
                                         </select>
 
                                         {inventoryBalance !== null && (
-                                            <div className="mt-1 text-xs text-foreground">Inventory Balance: {Number(inventoryBalance).toFixed(2)}</div>
+                                            <div className="text-foreground mt-1 text-xs">
+                                                Inventory Balance: {Number(inventoryBalance).toFixed(2)}
+                                            </div>
                                         )}
 
                                         {/* Placeholder for Add Button — next step will handle modal */}
@@ -356,7 +409,7 @@ export default function PurchaseCreate({
 
                         {/* Section 2 - Product Table */}
                         <div>
-                            <h2 className="mb-3 border-b bg-background/80 pb-1 text-lg font-semibold">Products</h2>
+                            <h2 className="bg-background/80 mb-3 border-b pb-1 text-lg font-semibold">Products</h2>
                             <div className="overflow-x-auto rounded border">
                                 <table className="min-w-full text-left">
                                     <thead className="bg-text-foreground text-sm">
@@ -364,7 +417,8 @@ export default function PurchaseCreate({
                                             <th className="border px-2 py-1">Product</th>
                                             <th className="border px-2 py-1">Lot No</th>
                                             <th className="border px-2 py-1">Qty</th>
-                                            <th className="border px-2 py-1">Price</th>
+                                            <th className="border px-2 py-1">Bosta Weight (kg)</th>
+                                            <th className="border px-2 py-1">Rate</th>
                                             <th className="border px-2 py-1">Discount</th>
                                             <th className="border px-2 py-1">Type</th>
                                             <th className="border px-2 py-1">Subtotal</th>
@@ -375,25 +429,38 @@ export default function PurchaseCreate({
                                         {data.purchase_items.map((item, index) => (
                                             <tr key={index} className="hover:bg-background/80">
                                                 <td className="border px-2 py-1">
-                                                    <select
-                                                        className="w-full"
-                                                        value={item.product_id}
-                                                        onChange={(e) => handleItemChange(index, 'product_id', e.target.value)}
-                                                    >
-                                                        <option value="">Select</option>
-                                                        {godownItems.map((stock) => (
-                                                            <option key={stock.item.id} value={stock.item.id}>
-                                                                {stock.item.item_name} ({stock.qty} {stock.item.unit_name} in stock)
-                                                            </option>
-                                                        ))}
-                                                    </select>
+                                                    <div className="flex items-center gap-2">
+                                                        <select
+                                                            className="w-full"
+                                                            value={item.product_id}
+                                                            onChange={(e) => handleItemChange(index, 'product_id', e.target.value)}
+                                                        >
+                                                            <option value="">Select</option>
+                                                            {godownItems.map((stock) => (
+                                                                <option key={stock.item.id} value={stock.item.id}>
+                                                                    {stock.item.item_name} ({stock.qty} {stock.item.unit_name} in stock)
+                                                                </option>
+                                                            ))}
+                                                        </select>
+
+                                                        <button
+                                                            type="button"
+                                                            className="shrink-0 rounded bg-emerald-600 px-2 py-1 text-xs font-medium text-white hover:bg-emerald-700"
+                                                            onClick={() => createItemInline(index)}
+                                                            title="Create a new product"
+                                                        >
+                                                            + New
+                                                        </button>
+                                                    </div>
+
                                                     {/* Projected stock AFTER this purchase */}
                                                     {item.product_id && (
-                                                        <div className="text-xs text-foreground">
+                                                        <div className="text-foreground text-xs">
                                                             Projected stock:&nbsp;
                                                             {(
-                                                                (parseFloat(godownItems.find((s) => s.item.id == item.product_id)?.qty as any) || 0) +
-                                                                (parseFloat(item.qty) || 0)
+                                                                (parseFloat(
+                                                                    (godownItems.find((s) => s.item.id == item.product_id)?.qty as any) ?? 0,
+                                                                ) || 0) + (parseFloat(item.qty) || 0)
                                                             ).toFixed(2)}
                                                         </div>
                                                     )}
@@ -422,6 +489,21 @@ export default function PurchaseCreate({
                                                     <input
                                                         type="number"
                                                         className="w-full"
+                                                        value={item.unit_weight}
+                                                        onChange={(e) => handleItemChange(index, 'unit_weight', e.target.value)}
+                                                        placeholder="e.g. 50"
+                                                    />
+                                                    {/* Optional preview: line total weight */}
+                                                    {!!item.qty && !!item.unit_weight && (
+                                                        <div className="text-foreground text-xs">
+                                                            Row weight: {(Number(item.qty) * Number(item.unit_weight)).toFixed(2)} kg
+                                                        </div>
+                                                    )}
+                                                </td>
+                                                <td className="border px-2 py-1">
+                                                    <input
+                                                        type="number"
+                                                        className="w-full"
                                                         value={item.price}
                                                         onChange={(e) => handleItemChange(index, 'price', e.target.value)}
                                                     />
@@ -445,7 +527,7 @@ export default function PurchaseCreate({
                                                     </select>
                                                 </td>
                                                 <td className="border px-2 py-1">
-                                                    <input type="number" className="w-full bg-background" value={item.subtotal} readOnly />
+                                                    <input type="number" className="bg-background w-full" value={item.subtotal} readOnly />
                                                 </td>
                                                 <td className="border px-2 py-1 text-center">
                                                     <div className="flex justify-center space-x-1">
@@ -483,7 +565,7 @@ export default function PurchaseCreate({
                             <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                                 {/* Payment Mode */}
                                 <div className="col-span-1">
-                                    <label className="block text-sm font-medium text-foreground">Payment Mode</label>
+                                    <label className="text-foreground block text-sm font-medium">Payment Mode</label>
                                     <select
                                         className="w-full rounded border p-2"
                                         value={data.received_mode_id}
@@ -507,7 +589,7 @@ export default function PurchaseCreate({
                                         ))}
                                     </select>
                                     {paymentLedgerBalance !== null && (
-                                        <div className="mt-1 w-full text-xs text-foreground">
+                                        <div className="text-foreground mt-1 w-full text-xs">
                                             Payment Ledger Balance: {Number(paymentLedgerBalance).toFixed(2)}
                                         </div>
                                     )}
@@ -515,7 +597,7 @@ export default function PurchaseCreate({
 
                                 {/* Amount Paid */}
                                 <div className="col-span-1">
-                                    <label className="block text-sm font-medium text-foreground">Amount Paid</label>
+                                    <label className="text-foreground block text-sm font-medium">Amount Paid</label>
                                     <input
                                         type="number"
                                         className="w-full rounded border p-2"
@@ -534,7 +616,7 @@ export default function PurchaseCreate({
 
                                 {/* Remaining Due */}
                                 <div className="col-span-1 text-xs text-red-600 sm:col-span-2 lg:col-span-3">
-                                    <label className="block text-sm font-medium text-foreground">Remaining Due</label>
+                                    <label className="text-foreground block text-sm font-medium">Remaining Due</label>
                                     <div>{remainingDue.toFixed(2)}</div>
                                 </div>
                             </div>
@@ -544,20 +626,20 @@ export default function PurchaseCreate({
                         {/* Totals Section */}
                         <div className="mt-6">
                             <div className="grid-cols- grid gap-6 md:grid-cols-3">
-                                <div className="flex justify-between rounded border bg-text-foreground p-3 shadow-sm">
-                                    <span className="font-semibold text-foreground">Item Qty Total:</span>
+                                <div className="bg-text-foreground flex justify-between rounded border p-3 shadow-sm">
+                                    <span className="text-foreground font-semibold">Item Qty Total:</span>
                                     <span className="font-semibold">
                                         {data.purchase_items.reduce((sum, item) => sum + (parseFloat(item.qty) || 0), 0)}
                                     </span>
                                 </div>
-                                <div className="flex justify-between rounded border bg-text-foreground p-3 shadow-sm">
-                                    <span className="font-semibold text-foreground">Total Discount:</span>
+                                <div className="bg-text-foreground flex justify-between rounded border p-3 shadow-sm">
+                                    <span className="text-foreground font-semibold">Total Discount:</span>
                                     <span className="font-semibold">
                                         {data.purchase_items.reduce((sum, item) => sum + (parseFloat(item.discount) || 0), 0)}
                                     </span>
                                 </div>
-                                <div className="flex justify-between rounded border bg-text-foreground p-3 shadow-sm">
-                                    <span className="font-semibold text-foreground">All Total Amount:</span>
+                                <div className="bg-text-foreground flex justify-between rounded border p-3 shadow-sm">
+                                    <span className="text-foreground font-semibold">All Total Amount:</span>
                                     <span className="font-semibold">
                                         {data.purchase_items.reduce((sum, item) => sum + (parseFloat(item.subtotal) || 0), 0)}
                                     </span>
@@ -569,18 +651,18 @@ export default function PurchaseCreate({
                         <div className="col-span-2 grid grid-cols-1 gap-4 space-y-4 md:grid-cols-2">
                             {/* using this for supplier info and shipping details */}
                             <div>
-                                <label className="mb-1 block font-semibold text-foreground">Supplier Info</label>
+                                <label className="text-foreground mb-1 block font-semibold">Supplier Info</label>
                                 <textarea
-                                    className="w-full rounded border bg-background/80 p-2 shadow-sm focus:ring-1 focus:ring-blue-500 focus:outline-none"
+                                    className="bg-background/80 w-full rounded border p-2 shadow-sm focus:ring-1 focus:ring-blue-500 focus:outline-none"
                                     rows={3}
                                     value={data.delivered_to || ''}
                                     onChange={(e) => setData('delivered_to', e.target.value)}
                                 ></textarea>
                             </div>
                             <div className="">
-                                <label className="mb-1 block font-semibold text-foreground">Shipping Details</label>
+                                <label className="text-foreground mb-1 block font-semibold">Shipping Details</label>
                                 <textarea
-                                    className="w-full rounded border bg-background p-2 shadow-sm focus:ring-1 focus:ring-blue-500 focus:outline-none"
+                                    className="bg-background w-full rounded border p-2 shadow-sm focus:ring-1 focus:ring-blue-500 focus:outline-none"
                                     rows={3}
                                     value={data.shipping_details || ''}
                                     onChange={(e) => setData('shipping_details', e.target.value)}
@@ -603,7 +685,7 @@ export default function PurchaseCreate({
                     {showLedgerModal && (
                         <div className="bg-opacity-50 fixed inset-0 z-50 flex items-center justify-center bg-black">
                             <div className="w-full max-w-md rounded bg-white p-6 shadow-lg">
-                                <h2 className="mb-4 text-lg font-semibold text-foreground">Create New Inventory Ledger</h2>
+                                <h2 className="text-foreground mb-4 text-lg font-semibold">Create New Inventory Ledger</h2>
 
                                 <input
                                     type="text"

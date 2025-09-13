@@ -20,9 +20,13 @@ interface Row {
 interface Company {
     company_name: string;
     email?: string;
+    financial_year?: string;
+    website?: string;
+    logo_path?: string;
     mobile?: string;
     address?: string;
-    logo_path?: string;
+    logo_url?: string;
+    logo_thumb_url?: string;
 }
 
 export default function PurchasePartyReport({

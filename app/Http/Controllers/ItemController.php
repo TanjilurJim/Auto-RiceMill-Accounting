@@ -196,6 +196,63 @@ class ItemController extends Controller
 
 
 
+    public function storeFromModal(Request $request)
+    {
+        $request->validate([
+            'item_name'   => [
+                'required',
+                'string',
+                'max:255',
+                Rule::unique('items', 'item_name')->whereIn('created_by', user_scope_ids()),
+            ],
+            // we already know the target godown from the purchase form
+            'godown_id'   => ['required', 'exists:godowns,id'],
+
+            // optional shortcuts from the modal; we’ll pick smart defaults if omitted
+            'unit_id'     => ['nullable', 'exists:units,id'],
+            'weight'    => 'nullable|numeric|min:0',
+            'category_id' => ['nullable', 'exists:categories,id'],
+        ]);
+
+        // Pick sensible defaults for unit/category if the modal didn’t send them.
+        // Prefer tenant-scoped records, then fall back to any.
+        $unitId = $request->unit_id
+            ?? \App\Models\Unit::whereIn('created_by', user_scope_ids())->value('id')
+            ?? \App\Models\Unit::value('id');
+
+        $categoryId = $request->category_id
+            ?? \App\Models\Category::whereIn('created_by', user_scope_ids())->value('id')
+            ?? \App\Models\Category::value('id');
+
+        // Generate item_code similar to your main store()
+        do {
+            $nextId   = \App\Models\Item::max('id') + 1;
+            $itemCode = 'ITM' . str_pad($nextId, 4, '0', STR_PAD_LEFT);
+        } while (\App\Models\Item::where('item_code', $itemCode)->exists());
+
+        $item = \App\Models\Item::create([
+            'item_name'   => $request->item_name,
+            'item_code'   => $itemCode,
+            'weight'     => $request->weight ?? null,
+            'unit_id'     => $unitId,
+            'category_id' => $categoryId,
+            'godown_id'   => $request->godown_id,
+            'purchase_price'             => 0,
+            'sale_price'                 => 0,
+            'previous_stock'             => 0,                 // no opening from modal
+            'total_previous_stock_value' => 0,
+            'created_by'                 => auth()->id(),
+        ]);
+
+        // Return lean payload for the creatable select
+        return response()->json([
+            'id'        => $item->id,
+            'item_name' => $item->item_name,
+            'unit_id'   => $item->unit_id,
+            'category_id' => $item->category_id,
+            'weight' => $item->weight,
+        ]);
+    }
 
 
     public function edit(Item $item)

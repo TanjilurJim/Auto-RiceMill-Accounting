@@ -60,45 +60,45 @@ class PurchaseController extends Controller
     }
     // Show list of purchases
     public function index()
-{
-    $user = auth()->user(); // [multi-level access]
+    {
+        $user = auth()->user(); // [multi-level access]
 
-    $base = Purchase::with([
-        'godown',
-        'salesman',
-        'accountLedger',
-        'purchaseItems.item',
-        'creator',
-    ])
-    // sum of additional settlements linked via PaymentAdd.purchase_id
-    ->withSum('payments as extra_paid', 'amount');
+        $base = Purchase::with([
+            'godown',
+            'salesman',
+            'accountLedger',
+            'purchaseItems.item',
+            'creator',
+        ])
+            // sum of additional settlements linked via PaymentAdd.purchase_id
+            ->withSum('payments as extra_paid', 'amount');
 
-    if ($user->hasRole('admin')) {
-        $purchases = $base->orderByDesc('id')->paginate(10);
-    } else {
-        $ids = godown_scope_ids(); // [multi-level access]
-        $purchases = $base
-            ->whereIn('created_by', $ids)
-            ->orderByDesc('id')
-            ->paginate(10);
+        if ($user->hasRole('admin')) {
+            $purchases = $base->orderByDesc('id')->paginate(10);
+        } else {
+            $ids = godown_scope_ids(); // [multi-level access]
+            $purchases = $base
+                ->whereIn('created_by', $ids)
+                ->orderByDesc('id')
+                ->paginate(10);
+        }
+
+        $purchases->getCollection()->transform(function ($p) {
+            $initialPaid = (float) ($p->amount_paid ?? 0);
+            $extraPaid   = (float) ($p->extra_paid ?? 0); // from withSum alias
+            $paidTotal   = $initialPaid + $extraPaid;
+
+            // expose both for the frontend
+            $p->paid_total = $paidTotal;
+            $p->due        = max(0, (float) $p->grand_total - $paidTotal);
+
+            return $p;
+        });
+
+        return Inertia::render('purchases/index', [
+            'purchases' => $purchases,
+        ]);
     }
-
-    $purchases->getCollection()->transform(function ($p) {
-        $initialPaid = (float) ($p->amount_paid ?? 0);
-        $extraPaid   = (float) ($p->extra_paid ?? 0); // from withSum alias
-        $paidTotal   = $initialPaid + $extraPaid;
-
-        // expose both for the frontend
-        $p->paid_total = $paidTotal;
-        $p->due        = max(0, (float) $p->grand_total - $paidTotal);
-
-        return $p;
-    });
-
-    return Inertia::render('purchases/index', [
-        'purchases' => $purchases,
-    ]);
-}
 
 
 
@@ -153,7 +153,8 @@ class PurchaseController extends Controller
     {
         /* 1️⃣  Validation – unchanged */
         $request->validate([
-            'date' => 'required|date',
+            'date' => 'required|date_format:Y-m-d',
+
             'voucher_no' => 'nullable|unique:purchases,voucher_no',
             'godown_id' => 'required|exists:godowns,id',
             'salesman_id' => 'required|exists:salesmen,id',
@@ -164,6 +165,7 @@ class PurchaseController extends Controller
             'purchase_items.*.qty' => 'required|numeric|min:0.01',
             'purchase_items.*.price' => 'required|numeric|min:0',
             'purchase_items.*.discount' => 'nullable|numeric|min:0',
+            'purchase_items.*.unit_weight' => 'nullable|numeric|min:0',
             'purchase_items.*.lot_no' => 'required|string|max:50',
             'purchase_items.*.discount_type' => 'required|in:bdt,percent',
             'purchase_items.*.subtotal' => 'required|numeric|min:0',
@@ -376,6 +378,7 @@ class PurchaseController extends Controller
             'purchase_items.*.qty'        => 'required|numeric|min:0.01',
             'purchase_items.*.lot_no' => 'required|string|max:50',
             'purchase_items.*.price'      => 'required|numeric|min:0',
+            'purchase_items.*.unit_weight' => 'nullable|numeric|min:0',
             'purchase_items.*.discount'   => 'nullable|numeric|min:0',
             'purchase_items.*.discount_type' => 'required|in:bdt,percent',
             'purchase_items.*.subtotal'   => 'required|numeric|min:0',
@@ -475,8 +478,13 @@ class PurchaseController extends Controller
                 [
                     'received_at' => $request->date,
                     'created_by'  => auth()->id(),
+                    'unit_weight' => $row['unit_weight'] ?? null, // ← NEW
                 ]
             );
+            if (isset($row['unit_weight']) && $row['unit_weight'] !== null && $lot->unit_weight === null) {
+                $lot->unit_weight = (float)$row['unit_weight'];
+                $lot->save();
+            }
 
 
             $purchase->purchaseItems()->create([
@@ -586,9 +594,9 @@ class PurchaseController extends Controller
             'godown',
             'salesman',
             'accountLedger',
-            'approvals.user',   
+            'approvals.user',
             'payments.paymentMode',
-            'payments.accountLedger' 
+            'payments.accountLedger'
         ]);
 
         $initialPaid = (float) ($purchase->amount_paid ?? 0);
@@ -601,12 +609,12 @@ class PurchaseController extends Controller
         return Inertia::render('purchases/show', [
             'purchase' => $purchase,
             'paid_summary'  => [
-            'grand_total'   => (float) $purchase->grand_total,
-            'initial_paid'  => $initialPaid,
-            'extra_paid'    => $extraPaid,
-            'paid_total'    => $paidTotal,
-            'remaining_due' => $remainingDue,
-        ],
+                'grand_total'   => (float) $purchase->grand_total,
+                'initial_paid'  => $initialPaid,
+                'extra_paid'    => $extraPaid,
+                'paid_total'    => $paidTotal,
+                'remaining_due' => $remainingDue,
+            ],
         ]);
     }
 
