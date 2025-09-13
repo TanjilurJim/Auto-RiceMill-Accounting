@@ -70,7 +70,7 @@ export default function ItemShow({ item, stocks, summary, godowns, filters }: It
                 className: 'text-right',
             },
             {
-                header: 'Weight / Unit (kg)',
+                header: 'Weight / Unit',
                 accessor: (r: StockRow) => {
                     const per = r.weight_per_unit ?? (typeof item.weight === 'number' ? item.weight : null);
                     return per !== null ? per.toFixed(2) : '—';
@@ -88,7 +88,7 @@ export default function ItemShow({ item, stocks, summary, godowns, filters }: It
             },
 
             {
-                header: 'Rate (TK)',
+                header: 'Rate (TK)/KG',
                 accessor: (r: StockRow) => (r.rate ?? 0).toFixed(2),
                 className: 'text-right',
             },

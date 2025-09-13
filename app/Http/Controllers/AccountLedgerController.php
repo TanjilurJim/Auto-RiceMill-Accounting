@@ -68,7 +68,7 @@ class AccountLedgerController extends Controller
                 'account_group_input' => ['required','string'], // will be parsed below
                 'mark_for_user'       => ['boolean'],
                 'status'              => ['required', Rule::in(['active','inactive'])],
-                'phone_number'        => ['nullable','string','max:255'],
+                'phone_number'        => ['required','string','max:255'],
                 'email'               => ['nullable','email','max:255'],
                 'address'             => ['nullable','string'],
                 'reference_number'    => ['nullable','string','max:64'],
@@ -147,7 +147,7 @@ class AccountLedgerController extends Controller
             'account_group_input' => ['required','string'],
             'mark_for_user'       => ['boolean'],
             'status'              => ['required', Rule::in(['active','inactive'])],
-            'phone_number'        => ['nullable','string','max:255'],
+            'phone_number'        => ['required','string','max:255'],
             'email'               => ['nullable','email','max:255'],
             'address'             => ['nullable','string'],
             'reference_number'    => ['nullable','string','max:64'],
