@@ -66,7 +66,7 @@ export default function LedgerGroupSummaryFilter() {
                         </div>
 
                         <div className="mb-4">
-                            <label className="text-sm font-medium text-gray-700">Group Under </label>
+                            <label className="text-sm font-medium text-forground">Group Under </label>
                             <select
                                 name="group_under_id"
                                 value={form.group_under_id}

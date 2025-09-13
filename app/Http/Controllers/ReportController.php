@@ -871,13 +871,6 @@ class ReportController extends Controller
 
         $company = \App\Models\CompanySetting::where('created_by', auth()->id())->first();
 
-        // 👇 Admin gets all users; non-admin gets self + users they created
-        // $allowedUserIds = $isAdmin
-        //     ? \App\Models\User::pluck('id')
-        //     : \App\Models\User::where('created_by', $authUser->id)
-        //     ->orWhere('id', $authUser->id)
-        //     ->pluck('id');
-
         // Use user_scope_ids() for multi-level access
         $allowedUserIds = $isAdmin ? \App\Models\User::pluck('id') : user_scope_ids();
 
@@ -914,8 +907,12 @@ class ReportController extends Controller
             ->when($userId, fn($q) => $q->where('created_by', $userId))
             ->when(!$isAdmin, fn($q) => $q->whereIn('created_by', $allowedUserIds));
 
-        // ✅ Purchase
-        if (!$type || $type === 'Purchase') {
+        // =========================
+        // Voucher blocks ONLY when explicitly selected
+        // =========================
+
+        // Purchase
+        if ($type === 'Purchase') {
             $entries = $entries->merge(
                 $applyFilters(\App\Models\Purchase::query())
                     ->with(['creator', 'accountLedger'])
@@ -933,8 +930,8 @@ class ReportController extends Controller
             );
         }
 
-        // ✅ Purchase Return
-        if (!$type || $type === 'Purchase Return') {
+        // Purchase Return
+        if ($type === 'Purchase Return') {
             $entries = $entries->merge(
                 \App\Models\PurchaseReturn::query()
                     ->whereBetween('date', [$from, $to])
@@ -955,8 +952,8 @@ class ReportController extends Controller
             );
         }
 
-        // ✅ Sale
-        if (!$type || $type === 'Sale') {
+        // Sale
+        if ($type === 'Sale') {
             $entries = $entries->merge(
                 \App\Models\Sale::query()
                     ->whereBetween('date', [$from, $to])
@@ -977,8 +974,8 @@ class ReportController extends Controller
             );
         }
 
-        // ✅ Sale Return
-        if (!$type || $type === 'Sale Return') {
+        // Sale Return
+        if ($type === 'Sale Return') {
             $entries = $entries->merge(
                 \App\Models\SalesReturn::query()
                     ->whereBetween('return_date', [$from, $to])
@@ -999,17 +996,17 @@ class ReportController extends Controller
             );
         }
 
-        // ✅ Receive
-        if (!$type || $type === 'Receive') {
+        // Receive
+        if ($type === 'Receive') {
             $entries = $entries->merge(
                 $applyFilters(\App\Models\ReceivedAdd::query())
-                    ->with(['accountLedger', 'creator']) // ✅ eager load both
+                    ->with(['accountLedger', 'creator'])
                     ->get()
                     ->map(fn($r) => [
                         'date' => $r->date,
                         'voucher_no' => $r->voucher_no,
                         'type' => 'Receive',
-                        'ledger' => optional($r->accountLedger)->account_ledger_name ?? '-', // ✅ correctly access ledger name
+                        'ledger' => optional($r->accountLedger)->account_ledger_name ?? '-',
                         'debit' => $r->amount,
                         'credit' => 0,
                         'note' => $r->description ?? '-',
@@ -1018,9 +1015,8 @@ class ReportController extends Controller
             );
         }
 
-
-        // ✅ Payment
-        if (!$type || $type === 'Payment') {
+        // Payment
+        if ($type === 'Payment') {
             $entries = $entries->merge(
                 $applyFilters(\App\Models\PaymentAdd::query())
                     ->with(['creator', 'accountLedger'])
@@ -1038,8 +1034,8 @@ class ReportController extends Controller
             );
         }
 
-        // ✅ Contra
-        if (!$type || $type === 'Contra') {
+        // Contra
+        if ($type === 'Contra') {
             $entries = $entries->merge(
                 $applyFilters(\App\Models\ContraAdd::query())
                     ->with('creator')
@@ -1057,7 +1053,9 @@ class ReportController extends Controller
             );
         }
 
-        // ✅ Journal
+        // =========================
+        // Journal lines by default (balanced)
+        // =========================
         if (!$type || $type === 'Journal') {
             $entries = $entries->merge(
                 $applyFilters(\App\Models\Journal::query())
@@ -1098,6 +1096,7 @@ class ReportController extends Controller
         ]);
     }
 
+
     // getDayBookEntries
     private function getDayBookEntries(Request $request, $allowedUserIds, $isAdmin)
     {
@@ -1113,8 +1112,9 @@ class ReportController extends Controller
             ->when($userId, fn($q) => $q->where('created_by', $userId))
             ->when(!$isAdmin, fn($q) => $q->whereIn('created_by', $allowedUserIds));
 
-        // ✅ Purchase
-        if (!$type || $type === 'Purchase') {
+        // Voucher blocks ONLY when explicitly selected
+
+        if ($type === 'Purchase') {
             $entries = $entries->merge(
                 $applyFilters(\App\Models\Purchase::query())
                     ->with(['creator', 'accountLedger'])
@@ -1132,8 +1132,7 @@ class ReportController extends Controller
             );
         }
 
-        // ✅ Purchase Return
-        if (!$type || $type === 'Purchase Return') {
+        if ($type === 'Purchase Return') {
             $entries = $entries->merge(
                 \App\Models\PurchaseReturn::query()
                     ->whereBetween('date', [$from, $to])
@@ -1154,8 +1153,7 @@ class ReportController extends Controller
             );
         }
 
-        // ✅ Sale
-        if (!$type || $type === 'Sale') {
+        if ($type === 'Sale') {
             $entries = $entries->merge(
                 \App\Models\Sale::query()
                     ->whereBetween('date', [$from, $to])
@@ -1176,8 +1174,7 @@ class ReportController extends Controller
             );
         }
 
-        // ✅ Sale Return
-        if (!$type || $type === 'Sale Return') {
+        if ($type === 'Sale Return') {
             $entries = $entries->merge(
                 \App\Models\SalesReturn::query()
                     ->whereBetween('return_date', [$from, $to])
@@ -1198,8 +1195,7 @@ class ReportController extends Controller
             );
         }
 
-        // ✅ Receive
-        if (!$type || $type === 'Receive') {
+        if ($type === 'Receive') {
             $entries = $entries->merge(
                 $applyFilters(\App\Models\ReceivedAdd::query())
                     ->with(['accountLedger', 'creator'])
@@ -1217,8 +1213,7 @@ class ReportController extends Controller
             );
         }
 
-        // ✅ Payment
-        if (!$type || $type === 'Payment') {
+        if ($type === 'Payment') {
             $entries = $entries->merge(
                 $applyFilters(\App\Models\PaymentAdd::query())
                     ->with(['creator', 'accountLedger'])
@@ -1236,8 +1231,7 @@ class ReportController extends Controller
             );
         }
 
-        // ✅ Contra
-        if (!$type || $type === 'Contra') {
+        if ($type === 'Contra') {
             $entries = $entries->merge(
                 $applyFilters(\App\Models\ContraAdd::query())
                     ->with('creator')
@@ -1255,7 +1249,7 @@ class ReportController extends Controller
             );
         }
 
-        // ✅ Journal
+        // Journal lines by default (balanced)
         if (!$type || $type === 'Journal') {
             $entries = $entries->merge(
                 $applyFilters(\App\Models\Journal::query())
@@ -1281,6 +1275,7 @@ class ReportController extends Controller
         return $entries->sortBy(['date', 'voucher_no'])->values();
     }
 
+
     // dayBookExcel 
     public function dayBookExcel(Request $request)
     {
@@ -1292,11 +1287,7 @@ class ReportController extends Controller
         $authUser = auth()->user();
         $isAdmin = $authUser->hasRole('admin');
 
-        // $allowedUserIds = $isAdmin
-        //     ? \App\Models\User::pluck('id')
-        //     : \App\Models\User::where('created_by', $authUser->id)->orWhere('id', $authUser->id)->pluck('id');
 
-        // Use user_scope_ids() for multi-level access
         $allowedUserIds = $isAdmin
             ? User::pluck('id')
             : user_scope_ids();
@@ -1328,11 +1319,7 @@ class ReportController extends Controller
         $authUser = auth()->user();
         $isAdmin = $authUser->hasRole('admin');
 
-        // $allowedUserIds = $isAdmin
-        //     ? \App\Models\User::pluck('id')
-        //     : \App\Models\User::where('created_by', $authUser->id)->orWhere('id', $authUser->id)->pluck('id');
 
-        // Use user_scope_ids() for multi-level access
         $allowedUserIds = $isAdmin
             ? User::pluck('id')
             : user_scope_ids();
@@ -1367,13 +1354,7 @@ class ReportController extends Controller
         $user = auth()->user();
         $ids = user_scope_ids();
 
-        // ── 1.  Ledgers for the filter drop-down ─────────────────────────────────────
-        // $ledgers = AccountLedger::select('id', 'account_ledger_name')
-        //     ->when(
-        //         !auth()->user()->hasRole('admin'),
-        //         fn($q) => $q->where('created_by', auth()->id())
-        //     )
-        //     ->get();
+
 
         $ledgers = AccountLedger::select('id', 'account_ledger_name')
             ->when(
