@@ -10,7 +10,7 @@ import { initializeTheme } from './hooks/use-appearance';
 import { NotificationProvider } from '@/providers/NotificationProvider';
 
 
-const appName = 'Rice MIll ERP';
+const appName = 'Rice MIll ERP - Auto Rice Mill Software';
 
 createInertiaApp({
     title: (title) => `${title} | ${appName}`,
@@ -39,4 +39,4 @@ createInertiaApp({
    progress: { color: '#4B5563' },
  });
 
- initializeTheme();  
+ initializeTheme();
