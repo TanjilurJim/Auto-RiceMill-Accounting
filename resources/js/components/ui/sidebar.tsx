@@ -205,7 +205,7 @@ function Sidebar({
 
   return (
     <div
-      className="group peer text-sidebar-foreground hidden lg:block"
+      className="group peer text-sidebar-foreground hidden md:block"
       data-state={state}
       data-collapsible={state === "collapsed" ? collapsible : ""}
       data-variant={variant}
@@ -263,8 +263,8 @@ function SidebarTrigger({
       size="icon"
       className={cn("h-7 w-7", className)}
       onClick={(event) => {
-        onClick?.(event)
-        toggleSidebar()
+        onClick?.(event);
+        toggleSidebar();
       }}
       {...props}
     >
