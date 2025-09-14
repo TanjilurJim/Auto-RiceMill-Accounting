@@ -1235,7 +1235,7 @@
                                 class="text-sm font-bold uppercase mb-6 tracking-wider text-gray-900 flex items-center gap-2">
                                 <div class="w-1 h-6 bg-gradient-to-b from-[#B71F25] to-red-600 rounded-full"></div>
                                 <span class="lang-en">About US</span>
-                                <span class="lang-bn hidden">আমাদের সম্পর্কে</span>
+                                <span class="lang-bn" style="display: none;">আমাদের সম্পর্কে</span>
                             </h4>
                             <div
                                 class="bg-gradient-to-br from-gray-50/80 to-gray-100/50 p-6 rounded-xl backdrop-blur-sm border border-gray-200/80 shadow-lg">
@@ -1245,7 +1245,7 @@
                                         seamlessly connects procurement, milling, inventory, sales, and finance on one
                                         dashboard.
                                     </span>
-                                    <span class="lang-bn hidden">
+                                    <span class="lang-bn" style="display: none;">
                                         রাইসমিল ইআরপি হল বিশ্বব্যাপী চাল শিল্প নেতাদের জন্য অল-ইন-ওয়ান প্ল্যাটফর্ম। এটি
                                         নির্বিঘ্নে সংযোগ করে ক্রয়, মিলিং, ইনভেন্টরি, বিক্রয় এবং অর্থ।
                                     </span>
@@ -1259,7 +1259,7 @@
                         <h4 class="text-sm font-bold uppercase mb-6 tracking-wider text-gray-900 flex items-center gap-2">
                             <div class="w-1 h-6 bg-gradient-to-b from-[#B71F25] to-red-600 rounded-full"></div>
                             <span class="lang-en">Contact US</span>
-                            <span class="lang-bn hidden">যোগাযোগ</span>
+                            <span class="lang-bn" style="display: none;">যোগাযোগ</span>
                         </h4>
                         <div class="space-y-4">
                             <div
@@ -1268,7 +1268,9 @@
                                     class="w-10 h-10 bg-gradient-to-br from-[#B71F25] to-red-600 rounded-lg flex items-center justify-center">
                                     <i data-lucide="phone" class="w-5 h-5 text-white"></i>
                                 </div>
-                                <span class="font-medium text-gray-800 flex-1">+880 1234-567890</span>
+                                <span class="font-medium text-gray-800 flex-1 lang-en">01234-567890</span>
+                                <span class="font-medium text-gray-800 flex-1 lang-bn" style="display: none;">০১২৩৪-৫৬৭৮৯০</span>
+
                                 <button onclick="copyToClipboard('+880 1234-567890', this)"
                                     class="opacity-0 group-hover:opacity-100 w-8 h-8 bg-gray-200/80 hover:bg-[#B71F25] hover:text-white text-gray-600 rounded-lg flex items-center justify-center transition-all duration-300 ml-2"
                                     title="Copy phone number">
@@ -1294,7 +1296,9 @@
                                     class="w-10 h-10 bg-gradient-to-br from-[#B71F25] to-red-600 rounded-lg flex items-center justify-center">
                                     <i data-lucide="map-pin" class="w-5 h-5 text-white"></i>
                                 </div>
-                                <span class="font-medium text-gray-800">123 Rice Mill Road, Dhaka</span>
+                                <span class="font-medium text-gray-800 lang-en">123 Rice Mill Road, Dhaka</span>
+                                <span class="font-medium text-gray-800 lang-bn" style="display: none;">১২৩ রাইস মিল রোড,
+                                    ঢাকা</span>
                             </div>
                         </div>
                     </div>
@@ -1311,25 +1315,29 @@
                                     class="text-gray-700 hover:text-[#B71F25] hover:translate-x-2 transition-all duration-300 flex items-center gap-2 group">
                                     <i data-lucide="chevron-right"
                                         class="w-4 h-4 text-[#B71F25] group-hover:text-red-600"></i>
-                                    <span class="lang-en">Features</span><span class="lang-bn hidden">বৈশিষ্ট্য</span>
+                                    <span class="lang-en">Features</span><span class="lang-bn"
+                                        style="display: none;">বৈশিষ্ট্য</span>
                                 </a></li>
                             <li><a href="#benefits"
                                     class="text-gray-700 hover:text-[#B71F25] hover:translate-x-2 transition-all duration-300 flex items-center gap-2 group">
                                     <i data-lucide="chevron-right"
                                         class="w-4 h-4 text-[#B71F25] group-hover:text-red-600"></i>
-                                    <span class="lang-en">Benefits</span><span class="lang-bn hidden">সুবিধা</span>
+                                    <span class="lang-en">Benefits</span><span class="lang-bn"
+                                        style="display: none;">সুবিধা</span>
                                 </a></li>
                             <li><a href="#pricing"
                                     class="text-gray-700 hover:text-[#B71F25] hover:translate-x-2 transition-all duration-300 flex items-center gap-2 group">
                                     <i data-lucide="chevron-right"
                                         class="w-4 h-4 text-[#B71F25] group-hover:text-red-600"></i>
-                                    <span class="lang-en">Pricing</span><span class="lang-bn hidden">মূল্য নির্ধারণ</span>
+                                    <span class="lang-en">Pricing</span><span class="lang-bn"
+                                        style="display: none;">মূল্য নির্ধারণ</span>
                                 </a></li>
                             <li><a href="#footer"
                                     class="text-gray-700 hover:text-[#B71F25] hover:translate-x-2 transition-all duration-300 flex items-center gap-2 group">
                                     <i data-lucide="chevron-right"
                                         class="w-4 h-4 text-[#B71F25] group-hover:text-red-600"></i>
-                                    <span class="lang-en">Contact</span><span class="lang-bn hidden">যোগাযোগ</span>
+                                    <span class="lang-en">Contact</span><span class="lang-bn"
+                                        style="display: none;">যোগাযোগ</span>
                                 </a></li>
                         </ul>
                     </div>
@@ -1339,7 +1347,7 @@
                         <h4 class="text-sm font-bold uppercase mb-6 tracking-wider text-gray-900 flex items-center gap-2">
                             <div class="w-1 h-6 bg-gradient-to-b from-[#B71F25] to-red-600 rounded-full"></div>
                             <span class="lang-en">Our Location</span>
-                            <span class="lang-bn hidden">আমাদের অবস্থান</span>
+                            <span class="lang-bn" style="display: none;">আমাদের অবস্থান</span>
                         </h4>
                         <div
                             class="rounded-xl overflow-hidden shadow-lg border border-gray-200/80 bg-gradient-to-br from-gray-50/80 to-gray-100/50 backdrop-blur-sm">
@@ -1363,15 +1371,15 @@
                     <div class="flex flex-col md:flex-row md:items-center gap-4 md:gap-8 text-center md:text-left">
                         <a href="#" class="text-gray-700 hover:text-[#B71F25] transition-colors duration-300">
                             <span class="lang-en">Privacy Policy</span>
-                            <span class="lang-bn hidden">গোপনীয়তা নীতি</span>
+                            <span class="lang-bn" style="display: none;">গোপনীয়তা নীতি</span>
                         </a>
                         <a href="#" class="text-gray-700 hover:text-[#B71F25] transition-colors duration-300">
                             <span class="lang-en">Terms of Service</span>
-                            <span class="lang-bn hidden">সেবার শর্তাবলী</span>
+                            <span class="lang-bn" style="display: none;">সেবার শর্তাবলী</span>
                         </a>
                         <a href="#" class="text-gray-700 hover:text-[#B71F25] transition-colors duration-300">
                             <span class="lang-en">Cookie Settings</span>
-                            <span class="lang-bn hidden">কুকি সেটিংস</span>
+                            <span class="lang-bn" style="display: none;">কুকি সেটিংস</span>
                         </a>
                     </div>
                 </div>
@@ -1405,7 +1413,7 @@
                         class="flex items-center justify-center md:justify-end gap-3 bg-gray-100/80 px-4 py-2 rounded-lg border border-gray-200/80 cursor-pointer hover:bg-gray-200/80 transition-all duration-300 shadow-sm">
                         <i data-lucide="globe" class="w-5 h-5 text-[#B71F25]"></i>
                         <span class="lang-en text-gray-800">English</span>
-                        <span class="lang-bn hidden text-gray-800">বাংলা</span>
+                        <span class="lang-bn text-gray-800" style="display: none;">বাংলা</span>
                     </div>
                 </div>
             </div>
