@@ -191,61 +191,7 @@ class EmployeeController extends Controller
         ]);
     }
 
-    // public function update(Request $request, Employee $employee)
-    // {
-    //     // Validate the incoming request
-    //     $request->validate([
-    //         'name' => 'required|string|max:255',
-    //         'mobile' => 'required|string|max:15',
-    //         'email' => 'required|email|max:255|unique:employees,email,' . $employee->id,
-    //         'nid' => 'required|string|max:20|unique:employees,nid,' . $employee->id,
-    //         'present_address' => 'required|string|max:255',
-    //         'permanent_address' => 'required|string|max:255',
-    //         'salary' => 'required|numeric',
-    //         'joining_date' => 'required|date',
-    //         'status' => 'required|in:Active,Inactive',
-    //         'advance_amount' => 'nullable|numeric',
-    //         'department_id' => 'required|exists:departments,id',
-    //         'designation_id' => 'required|exists:designations,id',
-    //         'shift_id' => 'required|exists:shifts,id',
-    //         'reference_by' => 'nullable|exists:employees,id', // Optional: Employee who referred
-    //     ]);
 
-    //     // Update the employee
-    //     $employee->update([
-    //         'name' => $request->name,
-    //         'mobile' => $request->mobile,
-    //         'email' => $request->email,
-    //         'nid' => $request->nid,
-    //         'present_address' => $request->present_address,
-    //         'permanent_address' => $request->permanent_address,
-    //         'salary' => $request->salary,
-    //         'joining_date' => $request->joining_date,
-    //         'status' => $request->status,
-    //         'advance_amount' => $request->advance_amount,
-    //         'department_id' => $request->department_id,
-    //         'designation_id' => $request->designation_id,
-    //         'shift_id' => $request->shift_id,
-    //         'reference_by' => $request->reference_by,
-    //     ]);
-    //     // ─── keep the linked ledger in sync ────────────────────────────
-    //     if ($employee->ledger) {
-    //         $employee->ledger->update([
-    //             'account_ledger_name' => $employee->name,
-    //             'phone_number'        => $employee->mobile,
-    //             'email'               => $employee->email,
-    //             'address'             => $employee->present_address,
-    //             // DO NOT touch:
-    //             // 'ledger_type'  => 'employee';
-    //             // 'debit_credit' => 'credit';
-    //         ]);
-    //     }
-
-
-
-    //     // Redirect with a success message
-    //     return redirect()->route('employees.index')->with('success', 'Employee updated successfully.');
-    // }
 
     public function update(Request $request, Employee $employee)
     {
@@ -300,14 +246,7 @@ class EmployeeController extends Controller
     }
 
 
-    // public function destroy(Employee $employee)
-    // {
-    //     // Delete the employee
-    //     $employee->delete();
-
-    //     // Redirect with a success message
-    //     return redirect()->route('employees.index')->with('success', 'Employee deleted successfully.');
-    // }
+    
 
     public function destroy(Employee $employee)
     {

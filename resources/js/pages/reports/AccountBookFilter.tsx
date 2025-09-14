@@ -6,7 +6,7 @@ import AppLayout from '@/layouts/app-layout';
 import { Head, router, useForm } from '@inertiajs/react';
 import Select from 'react-select';
 import PageHeader from '@/components/PageHeader';
-
+import dayjs from 'dayjs';
 interface Props {
     ledgers: { id: number; account_ledger_name: string }[];
 }
@@ -48,10 +48,12 @@ const selectStyles = {
   menuPortal: (base: any) => ({ ...base, zIndex: 60 }), // adjust to your stack
 };
 export default function AccountBookFilter({ ledgers }: Props) {
+        const today = dayjs().format('YYYY-MM-DD');
+    
     const { data, setData, processing } = useForm({
         ledger_id: '',
-        from_date: 'today',
-        to_date: 'today',
+        from_date: today,
+        to_date: today,
     });
 
     const handleSubmit = (e: React.FormEvent) => {
@@ -70,14 +72,7 @@ export default function AccountBookFilter({ ledgers }: Props) {
 
                     <Card className="rounded-lg border shadow-sm">
                         
-                        {/* <CardHeader className="border-b px-6 py-4">
-                            <CardTitle className="text-xl font-semibold text-gray-800">
-                                Account Book Filter
-                            </CardTitle>
-                            <p className="text-sm text-gray-500 mt-1">
-                                Select ledger and date range to generate the report
-                            </p>
-                        </CardHeader> */}
+                      
 
                         <CardContent className="p-6">
                             <form onSubmit={handleSubmit} className="space-y-6">

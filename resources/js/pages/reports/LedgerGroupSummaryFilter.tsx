@@ -4,18 +4,20 @@ import AppLayout from '@/layouts/app-layout';
 import { Button } from '@/components/ui/button';
 import PageHeader from '@/components/PageHeader';
 import InputCalendar from '@/components/Btn&Link/InputCalendar';
-
+import dayjs from 'dayjs';
 interface GroupUnder {
     id: number;
     name: string;
 }
 
 export default function LedgerGroupSummaryFilter() {
+        const today = dayjs().format('YYYY-MM-DD');
+
     const { group_unders = [] } = usePage().props as { group_unders: GroupUnder[] };
 
     const [form, setForm] = React.useState({
-        from_date: '',
-        to_date: '',
+        from_date: today,
+        to_date: today,
         group_under_id: '',
     });
 

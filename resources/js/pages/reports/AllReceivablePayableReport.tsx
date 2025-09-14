@@ -23,6 +23,8 @@ interface Props extends PageProps {
     phone: string;
     address: string;
     logo_path?: string;
+    logo_url?: string;
+    logo_thumb_url?: string;
     // email?: string; // add if you want to show email in footer
   };
 }
@@ -65,13 +67,9 @@ export default function AllReceivablePayableReport({
 
         {/* Company header */}
         <div className="mb-4 text-center print:text-sm">
-          {company?.logo_path && (
-            <img
-              src={company.logo_path}
-              alt="Company Logo"
-              className="mx-auto mb-2 h-16 w-16 object-cover"
-            />
-          )}
+          {company?.logo_url && (
+                                <img src={company.logo_url} alt="Company Logo" className="mx-auto mb-2 h-20 object-contain print:h-12" />
+                            )}
           <h1 className="text-xl font-bold">{company?.company_name}</h1>
           <p className="text-sm bg-foreground-600">{company?.address}</p>
           <p className="text-sm bg-foreground-600">Phone: {company?.phone}</p>

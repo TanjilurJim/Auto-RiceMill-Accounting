@@ -3,60 +3,56 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\DB;
-use App\Models\Journal;
 use App\Models\JournalEntry;
-
 use App\Models\AccountLedger;
-use App\Models\ReceivedAdd;
-use App\Models\PaymentAdd;
 use Barryvdh\DomPDF\Facade\Pdf;
-
-use App\Models\AccountGroup;
-use App\Models\CompanySetting;
-use App\Models\Sale;
-use App\Models\Purchase;
-use App\Models\SalesReturn;
-use App\Models\PurchaseReturn;
-
-
 use Maatwebsite\Excel\Facades\Excel;
 use App\Exports\ReceivablePayableExport;
-
-
 use Inertia\Inertia;
 
 use function user_scope_ids;
-
+use function company_info;
 
 class AllReceivablePayableReportController extends Controller
 {
+    /** Which GroupUnder names belong to AR vs AP */
+    private array $receivableGroups = [
+        'Sundry Debtors',
+        'Customer Summary',
+        'Loan & Advance (Asset)',
+        'Advance Deposit and Pre-Payment',
+        'Deposit (Assets)',
+    ];
+
+    private array $payableGroups = [
+        'Sundry Creditors',
+        'Supplier Summary',
+        'Current Liabilities',
+        'Loans (Liability)',
+    ];
+
     public function index(Request $request)
     {
         $from = $request->input('from_date');
         $to   = $request->input('to_date');
 
         $report  = $this->generateReport($from, $to);
-        $company = CompanySetting::where('created_by', auth()->id())->first();
 
         return Inertia::render('reports/AllReceivablePayableReport', [
             'from_date'   => $from,
             'to_date'     => $to,
             'receivables' => $report['receivables'],
             'payables'    => $report['payables'],
-            'company'     => $company,
+            'company'     => company_info(),
         ]);
     }
-
-
 
     public function filter()
     {
         $user = auth()->user();
-        $ids = user_scope_ids();
+        $ids  = user_scope_ids();
 
-        $ledgers = AccountLedger::when(
-            !$user->hasRole('admin'),
+        $ledgers = AccountLedger::when(!$user->hasRole('admin'),
             fn($q) => $q->whereIn('created_by', $ids)
         )->get(['id', 'account_ledger_name']);
 
@@ -65,21 +61,18 @@ class AllReceivablePayableReportController extends Controller
         ]);
     }
 
-
     public function exportPdf(Request $request)
     {
-        $from = $request->input('from_date');
-        $to = $request->input('to_date');
-
+        $from   = $request->input('from_date');
+        $to     = $request->input('to_date');
         $report = $this->generateReport($from, $to);
-        $company = $this->getCompany();
 
         $pdf = Pdf::loadView('exports.receivable-payable-pdf', [
-            'from_date' => $from,
-            'to_date' => $to,
+            'from_date'   => $from,
+            'to_date'     => $to,
             'receivables' => $report['receivables'],
-            'payables' => $report['payables'],
-            'company' => $company,
+            'payables'    => $report['payables'],
+            'company'     => company_info(),
         ])->setPaper('a4', 'portrait');
 
         return $pdf->download("receivable-payable-{$from}-{$to}.pdf");
@@ -87,21 +80,29 @@ class AllReceivablePayableReportController extends Controller
 
     public function excel(Request $request)
     {
-        $from = $request->input('from_date');
-        $to = $request->input('to_date');
-
+        $from   = $request->input('from_date');
+        $to     = $request->input('to_date');
         $report = $this->generateReport($from, $to);
 
-        return Excel::download(new ReceivablePayableExport($report['receivables'], $report['payables'], $from, $to), "receivable-payable-{$from}-{$to}.xlsx");
+        return Excel::download(
+            new ReceivablePayableExport($report['receivables'], $report['payables'], $from, $to),
+            "receivable-payable-{$from}-{$to}.xlsx"
+        );
     }
 
-    private function generateReport($from, $to)
+    private function generateReport(?string $from, ?string $to): array
     {
-        // 1) Ledgers in scope
-        $ledgers = $this->applyUserScope(
-            AccountLedger::with('groupUnder')
-                ->select('id', 'account_ledger_name', 'opening_balance', 'debit_credit', 'group_under_id')
-        )->get();
+        $user = auth()->user();
+        $ids  = user_scope_ids();
+
+        // Only ledgers that live in AR/AP group_under buckets
+        $ledgers = AccountLedger::with('groupUnder:id,name')
+            ->select('id', 'account_ledger_name', 'opening_balance', 'debit_credit', 'group_under_id', 'created_by')
+            ->when(!$user->hasRole('admin'), fn($q) => $q->whereIn('created_by', $ids))
+            ->whereHas('groupUnder', function ($q) {
+                $q->whereIn('name', array_merge($this->receivableGroups, $this->payableGroups));
+            })
+            ->get();
 
         if ($ledgers->isEmpty()) {
             return ['receivables' => collect(), 'payables' => collect()];
@@ -109,16 +110,17 @@ class AllReceivablePayableReportController extends Controller
 
         $ledgerIds = $ledgers->pluck('id')->all();
 
-        // Helper: apply tenant scope to Journal inside whereHas
-        $scopeJournal = function ($q) {
-            // applyUserScope expects a Builder; Journal has created_by
-            $this->applyUserScope($q);
+        // Helper: scope journals by tenant
+        $scopeJournal = function ($q) use ($user, $ids) {
+            if (!$user->hasRole('admin')) {
+                $q->whereIn('created_by', $ids);
+            }
         };
 
-        // 2a) B/F movements (before 'from') – only if from provided
+        // Movements BEFORE "from" (B/F)
         $bf = collect();
         if ($from) {
-            $bf = \App\Models\JournalEntry::query()
+            $bf = JournalEntry::query()
                 ->whereIn('account_ledger_id', $ledgerIds)
                 ->whereHas('journal', function ($q) use ($from, $scopeJournal) {
                     $scopeJournal($q);
@@ -126,16 +128,16 @@ class AllReceivablePayableReportController extends Controller
                 })
                 ->select(
                     'account_ledger_id',
-                    \DB::raw("SUM(CASE WHEN type = 'debit'  THEN amount ELSE 0 END) as dr"),
-                    \DB::raw("SUM(CASE WHEN type = 'credit' THEN amount ELSE 0 END) as cr")
+                    \DB::raw("SUM(CASE WHEN type='debit'  THEN amount ELSE 0 END) as dr"),
+                    \DB::raw("SUM(CASE WHEN type='credit' THEN amount ELSE 0 END) as cr")
                 )
                 ->groupBy('account_ledger_id')
                 ->get()
                 ->keyBy('account_ledger_id');
         }
 
-        // 2b) Period movements within [from, to] (if no dates, take all in-scope)
-        $period = \App\Models\JournalEntry::query()
+        // Movements IN the period [from..to] (or all, if null)
+        $period = JournalEntry::query()
             ->whereIn('account_ledger_id', $ledgerIds)
             ->whereHas('journal', function ($q) use ($from, $to, $scopeJournal) {
                 $scopeJournal($q);
@@ -144,72 +146,86 @@ class AllReceivablePayableReportController extends Controller
             })
             ->select(
                 'account_ledger_id',
-                \DB::raw("SUM(CASE WHEN type = 'debit'  THEN amount ELSE 0 END) as dr"),
-                \DB::raw("SUM(CASE WHEN type = 'credit' THEN amount ELSE 0 END) as cr")
+                \DB::raw("SUM(CASE WHEN type='debit'  THEN amount ELSE 0 END) as dr"),
+                \DB::raw("SUM(CASE WHEN type='credit' THEN amount ELSE 0 END) as cr")
             )
             ->groupBy('account_ledger_id')
             ->get()
             ->keyBy('account_ledger_id');
 
-        // 3) Compute balances
-        $rows = [];
+        $receivables = [];
+        $payables    = [];
+
         foreach ($ledgers as $l) {
-            $open = (float) ($l->opening_balance ?? 0);
+            $groupName = $l->groupUnder->name ?? '(Ungrouped)';
 
-            $bfDr = (float) ($bf[$l->id]->dr ?? 0);
-            $bfCr = (float) ($bf[$l->id]->cr ?? 0);
+            // Opening balance by side
+            $open      = (float) ($l->opening_balance ?? 0);
+            $openDr    = $l->debit_credit === 'debit'  ? $open : 0.0;
+            $openCr    = $l->debit_credit === 'credit' ? $open : 0.0;
 
-            $perDr = (float) ($period[$l->id]->dr ?? 0);
-            $perCr = (float) ($period[$l->id]->cr ?? 0);
+            // Movement sums
+            $bfDr      = (float) ($bf[$l->id]->dr ?? 0);
+            $bfCr      = (float) ($bf[$l->id]->cr ?? 0);
+            $perDr     = (float) ($period[$l->id]->dr ?? 0);
+            $perCr     = (float) ($period[$l->id]->cr ?? 0);
 
-            $net = ($bfDr - $bfCr) + ($perDr - $perCr);
-            $balance = $open + $net;
+            // Closing DR/CR totals and net
+            $totalDr   = $openDr + $bfDr + $perDr;
+            $totalCr   = $openCr + $bfCr + $perCr;
+            $net       = $totalDr - $totalCr;  // >0 => DR balance, <0 => CR balance
 
-            if (abs($balance) < 0.01) {
-                continue;
+            if (abs($net) < 0.01) {
+                continue; // skip zero balances
             }
 
-            // presentation (your existing convention)
-            $type = $balance >= 0
-                ? ($l->debit_credit === 'credit' ? 'CR' : 'DR')
-                : ($l->debit_credit === 'credit' ? 'DR' : 'CR');
+            $amount = round(abs($net), 2);
+            $side   = $net > 0 ? 'DR' : 'CR';
 
-            $rows[] = [
-                'ledger_id'   => $l->id,
-                'ledger_name' => $l->account_ledger_name,
-                'group_name'  => optional($l->groupUnder)->name,
-                'balance'     => abs($balance),
-                'type'        => $type,
-            ];
+            $isRecvGroup = in_array($groupName, $this->receivableGroups, true);
+            $isPayGroup  = in_array($groupName, $this->payableGroups, true);
+
+            // Only classify AR/AP groups; add suffix for advances/overpayments
+            if ($isRecvGroup && $side === 'DR') {
+                $receivables[] = [
+                    'ledger_id'   => $l->id,
+                    'ledger_name' => $l->account_ledger_name,
+                    'group_name'  => $groupName,
+                    'balance'     => $amount,
+                    'type'        => 'DR',
+                ];
+            } elseif ($isRecvGroup && $side === 'CR') {
+                // Customer overpayment
+                $payables[] = [
+                    'ledger_id'   => $l->id,
+                    'ledger_name' => $l->account_ledger_name . ' (Overpayment)',
+                    'group_name'  => $groupName,
+                    'balance'     => $amount,
+                    'type'        => 'CR',
+                ];
+            } elseif ($isPayGroup && $side === 'CR') {
+                $payables[] = [
+                    'ledger_id'   => $l->id,
+                    'ledger_name' => $l->account_ledger_name,
+                    'group_name'  => $groupName,
+                    'balance'     => $amount,
+                    'type'        => 'CR',
+                ];
+            } elseif ($isPayGroup && $side === 'DR') {
+                // Advance given to supplier
+                $receivables[] = [
+                    'ledger_id'   => $l->id,
+                    'ledger_name' => $l->account_ledger_name . ' (Advance)',
+                    'group_name'  => $groupName,
+                    'balance'     => $amount,
+                    'type'        => 'DR',
+                ];
+            }
         }
 
         return [
-            'receivables' => collect($rows)->where('type', 'DR')->values(),
-            'payables'    => collect($rows)->where('type', 'CR')->values(),
+            'receivables' => collect($receivables)->values(),
+            'payables'    => collect($payables)->values(),
         ];
-    }
-
-
-
-
-    // private function applyUserScope($query)
-    // {
-    //     return $query->when(!auth()->user()->hasRole('admin'), function ($query) {
-    //         $query->where(function ($q) {
-    //             $q->where('created_by', auth()->id())
-    //                 ->orWhereHas('creator', fn($q2) => $q2->where('created_by', auth()->id()));
-    //         });
-    //     });
-    // }
-
-    protected function applyUserScope($query)
-    {
-        $user = auth()->user();
-        $ids = user_scope_ids();
-
-        return $query->when(
-            !$user->hasRole('admin'),
-            fn($q) => $q->whereIn('created_by', $ids)
-        );
     }
 }

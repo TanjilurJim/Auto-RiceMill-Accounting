@@ -37,14 +37,14 @@ interface CompanyInfo {
 
 interface ByLedgerRow {
     ledger: string;
-    type: string | null;
+    ledger_type: string | null; 
     debits: number;
     credits: number;
 }
 
 interface GroupRow {
     group: string;
-    side: 'expense' | 'income';
+    side: 'expense' | 'income' | 'neutral';
     value: number;
 }
 
@@ -109,7 +109,9 @@ export default function ProfitLossRevamp({ from_date, to_date, figures, byLedger
     const [q, setQ] = useState('');
     const filtered = useMemo(() => {
         const needle = q.trim().toLowerCase();
-        const rows = needle ? byLedger.filter((r) => `${r.ledger} ${r.type ?? ''}`.toLowerCase().includes(needle)) : byLedger;
+        const rows = needle
+  ? byLedger.filter((r) => `${r.ledger} ${r.ledger_type ?? ''}`.toLowerCase().includes(needle))
+  : byLedger;
         const withNet = rows.map((r) => ({ ...r, net: (r.credits || 0) - (r.debits || 0) }));
         const total = withNet.reduce(
             (acc, r) => {
@@ -261,7 +263,7 @@ export default function ProfitLossRevamp({ from_date, to_date, figures, byLedger
                                 {filtered.rows.map((r, i) => (
                                     <tr key={`${r.ledger}-${i}`} className={i % 2 ? 'bg-muted/20' : undefined}>
                                         <td className="border px-3 py-2">{r.ledger}</td>
-                                        <td className="border px-3 py-2">{r.type ?? '—'}</td>
+                                        <td className="border px-3 py-2">{r.ledger_type ?? '—'}</td>
                                         <td className="border px-3 py-2 text-right tabular-nums">{fmt(r.debits)}</td>
                                         <td className="border px-3 py-2 text-right tabular-nums">{fmt(r.credits)}</td>
                                         <td

@@ -6,11 +6,13 @@ import InputCalendar from '@/components/Btn&Link/InputCalendar';
 import AppLayout from '@/layouts/app-layout'
 import PageHeader from '@/components/PageHeader'
 import { Head, router, useForm } from '@inertiajs/react'
-
+import dayjs from 'dayjs'
 export default function AllReceivedPaymentFilter() {
+          const today = dayjs().format('YYYY-MM-DD');
+
   const { data, setData, processing } = useForm({
-    from_date: '',
-    to_date: '',
+    from_date: today,
+    to_date: today,
   })
 
   const handleSubmit = (e: React.FormEvent) => {

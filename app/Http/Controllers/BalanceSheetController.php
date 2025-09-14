@@ -179,7 +179,7 @@ class BalanceSheetController extends Controller
         // Income ledger types in your system
         $incomeTypes  = ['sales_income', 'other_income'];
         // Expense ledger types in your system
-        $expenseTypes = ['operating_expense', 'cogs'];
+        $expenseTypes = ['operating_expense', 'cogs', 'expense'];
 
         $base = JournalEntry::query()
             ->join('account_ledgers', 'journal_entries.account_ledger_id', '=', 'account_ledgers.id')
@@ -216,7 +216,7 @@ class BalanceSheetController extends Controller
     ): float {
         // Match your chart of accounts classification
         $incomeTypes  = ['sales_income', 'other_income'];
-        $expenseTypes = ['operating_expense', 'cogs'];
+        $expenseTypes = ['operating_expense', 'cogs', 'expense'];
 
         $base = \App\Models\JournalEntry::query()
             ->join('account_ledgers', 'journal_entries.account_ledger_id', '=', 'account_ledgers.id')

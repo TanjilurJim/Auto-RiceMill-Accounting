@@ -380,7 +380,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
         'salary-receives' => 'salaryReceive',
     ]);
     //Sales Return
-    Route::resource('sales-returns', SalesReturnController::class)->only(['index', 'show'])
+    Route::resource('sales-returns', SalesReturnController::class)->only(['index', ])
         ->middleware(perm('sales-return', 'view'));
     Route::resource('sales-returns', SalesReturnController::class)->only(['create', 'store'])
         ->middleware(perm('sales-return', 'create'));
@@ -388,6 +388,8 @@ Route::middleware(['auth', 'verified'])->group(function () {
         ->middleware(perm('sales-return', 'edit'));
     Route::resource('sales-returns', SalesReturnController::class)->only(['destroy'])
         ->middleware(perm('sales-return', 'delete'));
+        Route::resource('sales-returns', SalesReturnController::class)->only(['show', ])
+        ->middleware(perm('sales-return', 'view'));
 
 
 
@@ -412,7 +414,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::resource('received-modes', ReceivedModeController::class)->only(['show',])
         ->middleware(perm('received-modes', 'view'));
 
-    Route::resource('received-add', ReceivedAddController::class)->only(['index', 'show'])
+    Route::resource('received-add', ReceivedAddController::class)->only(['index', ])
         ->middleware(perm('received-add', 'view'));
     Route::resource('received-add', ReceivedAddController::class)->only(['create', 'store'])
         ->middleware(perm('received-add', 'create'));
@@ -420,7 +422,8 @@ Route::middleware(['auth', 'verified'])->group(function () {
         ->middleware(perm('received-add', 'edit'));
     Route::resource('received-add', ReceivedAddController::class)->only(['destroy'])
         ->middleware(perm('received-add', 'delete'));
-
+    Route::resource('received-add', ReceivedAddController::class)->only(['show', ])
+        ->middleware(perm('received-add', 'view'));
 
     // routes/web.php
     Route::post('/items/modal', [\App\Http\Controllers\ItemController::class, 'storeFromModal'])
@@ -430,7 +433,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('/received-add/{receivedAdd}/print', [ReceivedAddController::class, 'print'])->name('received-add.print');
 
 
-    Route::resource('payment-add', PaymentAddController::class)->only(['index', 'show'])
+    Route::resource('payment-add', PaymentAddController::class)->only(['index', ])
         ->middleware(perm('payment-add', 'view'));
     Route::resource('payment-add', PaymentAddController::class)->only(['create', 'store'])
         ->middleware(perm('payment-add', 'create'));
@@ -438,6 +441,8 @@ Route::middleware(['auth', 'verified'])->group(function () {
         ->middleware(perm('payment-add', 'edit'));
     Route::resource('payment-add', PaymentAddController::class)->only(['destroy'])
         ->middleware(perm('payment-add', 'delete'));
+         Route::resource('payment-add', PaymentAddController::class)->only(['show', ])
+        ->middleware(perm('payment-add', 'view'));
 
     Route::get('/payment-add/{paymentAdd}/print', [PaymentAddController::class, 'print'])->name('payment-add.print');
 
@@ -479,7 +484,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
 |  CONTRA / JOURNAL
 |=========================*/
 
-    Route::resource('contra-add', ContraAddController::class)->only(['index', 'show'])
+    Route::resource('contra-add', ContraAddController::class)->only(['index',])
         ->middleware(perm('contra-add', 'view'));
     Route::resource('contra-add', ContraAddController::class)->only(['create', 'store'])
         ->middleware(perm('contra-add', 'create'));
@@ -487,11 +492,13 @@ Route::middleware(['auth', 'verified'])->group(function () {
         ->middleware(perm('contra-add', 'edit'));
     Route::resource('contra-add', ContraAddController::class)->only(['destroy'])
         ->middleware(perm('contra-add', 'delete'));
+        Route::resource('contra-add', ContraAddController::class)->only(['show',])
+        ->middleware(perm('contra-add', 'view'));
 
     Route::get('/contra-add/{voucher}/print', [ContraAddController::class, 'print'])->name('contra-add.print');
 
 
-    Route::resource('journal-add', JournalAddController::class)->only(['index', 'show'])
+    Route::resource('journal-add', JournalAddController::class)->only(['index', ])
         ->middleware(perm('journal-add', 'view'));
     Route::resource('journal-add', JournalAddController::class)->only(['create', 'store'])
         ->middleware(perm('journal-add', 'create'));
@@ -499,6 +506,8 @@ Route::middleware(['auth', 'verified'])->group(function () {
         ->middleware(perm('journal-add', 'edit'));
     Route::resource('journal-add', JournalAddController::class)->only(['destroy'])
         ->middleware(perm('journal-add', 'delete'));
+        Route::resource('journal-add', JournalAddController::class)->only(['show', ])
+        ->middleware(perm('journal-add', 'view'));
 
     Route::get('/journal-add/{voucher_no}/print', [JournalAddController::class, 'print'])->name('journal-add.print');
 
@@ -506,7 +515,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
 |  STOCK TRANSFER / PRODUCTION
 |=========================*/
 
-    Route::resource('stock-transfers', StockTransferController::class)->only(['index', 'show'])
+    Route::resource('stock-transfers', StockTransferController::class)->only(['index',])
         ->middleware(perm('stock-transfer', 'view'));
     Route::resource('stock-transfers', StockTransferController::class)->only(['create', 'store'])
         ->middleware(perm('stock-transfer', 'create'));
@@ -514,8 +523,10 @@ Route::middleware(['auth', 'verified'])->group(function () {
         ->middleware(perm('stock-transfer', 'edit'));
     Route::resource('stock-transfers', StockTransferController::class)->only(['destroy'])
         ->middleware(perm('stock-transfer', 'delete'));
+    Route::resource('stock-transfers', StockTransferController::class)->only(['show',])
+        ->middleware(perm('stock-transfer', 'view'));
 
-    Route::resource('working-orders', ProductionController::class)->only(['index', 'show'])
+    Route::resource('working-orders', ProductionController::class)->only(['index',])
         ->middleware(perm('working-orders', 'view'));
     Route::resource('working-orders', ProductionController::class)->only(['create', 'store'])
         ->middleware(perm('working-orders', 'create'));
@@ -523,13 +534,15 @@ Route::middleware(['auth', 'verified'])->group(function () {
         ->middleware(perm('working-orders', 'edit'));
     Route::resource('working-orders', ProductionController::class)->only(['destroy'])
         ->middleware(perm('working-orders', 'delete'));
+        Route::resource('working-orders', ProductionController::class)->only(['show',])
+        ->middleware(perm('working-orders', 'view'));
 
 
     Route::post('/production/{id}/mark-as-produced', [ProductionController::class, 'markAsProduced'])->name('production.markAsProduced');
 
     // finished-products
 
-    Route::resource('finished-products', FinishedProductController::class)->only(['index', 'show'])
+    Route::resource('finished-products', FinishedProductController::class)->only(['index', ])
         ->middleware(perm('finished-products', 'view'));
     Route::resource('finished-products', FinishedProductController::class)->only(['create', 'store'])
         ->middleware(perm('finished-products', 'create'));
@@ -537,6 +550,8 @@ Route::middleware(['auth', 'verified'])->group(function () {
         ->middleware(perm('finished-products', 'edit'));
     Route::resource('finished-products', FinishedProductController::class)->only(['destroy'])
         ->middleware(perm('finished-products', 'delete'));
+    Route::resource('finished-products', FinishedProductController::class)->only(['show', ])
+        ->middleware(perm('finished-products', 'view'));
 
     Route::get(
         'finished-products/{id}/print',
@@ -547,7 +562,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
     // Tawhid Add
 
     // departments
-    Route::resource('departments', DepartmentController::class)->only(['index', 'show'])
+    Route::resource('departments', DepartmentController::class)->only(['index', ])
         ->middleware(perm('departments', 'view'));
     Route::resource('departments', DepartmentController::class)->only(['create', 'store'])
         ->middleware(perm('departments', 'create'));
@@ -555,6 +570,8 @@ Route::middleware(['auth', 'verified'])->group(function () {
         ->middleware(perm('departments', 'edit'));
     Route::resource('departments', DepartmentController::class)->only(['destroy'])
         ->middleware(perm('departments', 'delete'));
+        Route::resource('departments', DepartmentController::class)->only(['show', ])
+        ->middleware(perm('departments', 'view'));
 
 
     Route::get('/users/{user}/lineage', [UserController::class, 'lineage'])
@@ -563,7 +580,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
         ->name('users.extendTrial');
 
     // designations
-    Route::resource('designations', DesignationController::class)->only(['index', 'show'])
+    Route::resource('designations', DesignationController::class)->only(['index', ])
         ->middleware(perm('designations', 'view'));
     Route::resource('designations', DesignationController::class)->only(['create', 'store'])
         ->middleware(perm('designations', 'create'));
@@ -571,9 +588,11 @@ Route::middleware(['auth', 'verified'])->group(function () {
         ->middleware(perm('designations', 'edit'));
     Route::resource('designations', DesignationController::class)->only(['destroy'])
         ->middleware(perm('designations', 'delete'));
+        Route::resource('designations', DesignationController::class)->only(['show', ])
+        ->middleware(perm('designations', 'view'));
 
     // shifts
-    Route::resource('shifts', ShiftController::class)->only(['index', 'show'])
+    Route::resource('shifts', ShiftController::class)->only(['index', ])
         ->middleware(perm('shifts', 'view'));
     Route::resource('shifts', ShiftController::class)->only(['create', 'store'])
         ->middleware(perm('shifts', 'create'));
@@ -581,9 +600,10 @@ Route::middleware(['auth', 'verified'])->group(function () {
         ->middleware(perm('shifts', 'edit'));
     Route::resource('shifts', ShiftController::class)->only(['destroy'])
         ->middleware(perm('shifts', 'delete'));
-
+        Route::resource('shifts', ShiftController::class)->only(['show', ])
+        ->middleware(perm('shifts', 'view'));
     // employees
-    Route::resource('employees', EmployeeController::class)->only(['index', 'show'])
+    Route::resource('employees', EmployeeController::class)->only(['index', ])
         ->middleware(perm('employees', 'view'));
     Route::resource('employees', EmployeeController::class)->only(['create', 'store'])
         ->middleware(perm('employees', 'create'));
@@ -591,9 +611,11 @@ Route::middleware(['auth', 'verified'])->group(function () {
         ->middleware(perm('employees', 'edit'));
     Route::resource('employees', EmployeeController::class)->only(['destroy'])
         ->middleware(perm('employees', 'delete'));
+        Route::resource('employees', EmployeeController::class)->only(['show', ])
+        ->middleware(perm('employees', 'view'));
 
     // salary-slips
-    Route::resource('salary-slips', SalarySlipController::class)->only(['index', 'show'])
+    Route::resource('salary-slips', SalarySlipController::class)->only(['index', ])
         ->middleware(perm('salary-slips', 'view'));
     Route::resource('salary-slips', SalarySlipController::class)->only(['create', 'store'])
         ->middleware(perm('salary-slips', 'create'));
@@ -602,6 +624,8 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::resource('salary-slips', SalarySlipController::class)->only(['destroy'])
         ->middleware(perm('salary-slips', 'delete'));
 
+        Route::resource('salary-slips', SalarySlipController::class)->only(['show', ])
+        ->middleware(perm('salary-slips', 'view'));
     // employee salary report
     Route::get(
         'employees/{employee}/salary-report',
@@ -916,6 +940,10 @@ Route::get('/reports/all-received-payment/pdf', [AllReceivedPaymentReportControl
 
 Route::get('/reports/all-received-payment/excel', [AllReceivedPaymentReportController::class, 'exportExcel'])
     ->name('reports.all-received-payment.excel');
+
+    Route::get('/privacy-policy', function(){
+        return view('privacy-policy');
+    });
 
 require __DIR__ . '/settings.php';
 require __DIR__ . '/auth.php';

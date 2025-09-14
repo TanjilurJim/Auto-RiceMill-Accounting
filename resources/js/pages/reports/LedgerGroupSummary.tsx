@@ -8,6 +8,8 @@ interface Company {
     company_name: string;
     address?: string;
     mobile?: string;
+    logo_path?: string;
+
     logo_url?: string;
     logo_thumb_url?: string;
     website?: string;
@@ -67,9 +69,9 @@ export default function LedgerGroupSummary({
 
             {/* ── Company header (print-friendly) ───────────────── */}
             <div className="mb-6 text-center">
-            {company?.logo_path && (
-                <img src={company?.logo_path} alt="Logo" className="mx-auto mb-2 h-16" />
-            )}
+            {company?.logo_url && (
+                                <img src={company.logo_url} alt="Company Logo" className="mx-auto mb-2 h-20 object-contain print:h-12" />
+                            )}
 
                     <h2 className="text-2xl font-bold">{company?.company_name}</h2>
 
