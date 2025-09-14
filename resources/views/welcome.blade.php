@@ -1269,7 +1269,8 @@
                                     <i data-lucide="phone" class="w-5 h-5 text-white"></i>
                                 </div>
                                 <span class="font-medium text-gray-800 flex-1 lang-en">01234-567890</span>
-                                <span class="font-medium text-gray-800 flex-1 lang-bn" style="display: none;">০১২৩৪-৫৬৭৮৯০</span>
+                                <span class="font-medium text-gray-800 flex-1 lang-bn"
+                                    style="display: none;">০১২৩৪-৫৬৭৮৯০</span>
 
                                 <button onclick="copyToClipboard('+880 1234-567890', this)"
                                     class="opacity-0 group-hover:opacity-100 w-8 h-8 bg-gray-200/80 hover:bg-[#B71F25] hover:text-white text-gray-600 rounded-lg flex items-center justify-center transition-all duration-300 ml-2"
