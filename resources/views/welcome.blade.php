@@ -1225,7 +1225,7 @@
                     <div>
                         <h4 class="text-xs font-bold uppercase mb-4 tracking-wider dark:text-white">
                             <span class="lang-en">About US</span>
-                            <span class="lang-bn hidden">আমাদের সম্পর্কে</span>
+                            <span class="lang-bn" style="display:none">আমাদের সম্পর্কে</span>
                         </h4>
                         <div class="space-y-3">
                             <p class="text-justify">
@@ -1236,7 +1236,7 @@
                                     recovery rates, reduce waste, unlock growth, and cultivate a more profitable,
                                     sustainable operation.
                                 </span>
-                                <span class="lang-bn hidden">
+                                <span class="lang-bn" style="display:none">
                                     রাইসমিল ইআরপি হল বিশ্বব্যাপী চাল শিল্প নেতাদের জন্য অল-ইন-ওয়ান প্ল্যাটফর্ম। এটি
                                     নির্বিঘ্নে সংযোগ করে ক্রয়, মিলিং, ইনভেন্টরি (চাল, ভূষি, ভাঙা, খোসা), বিক্রয় এবং এক
                                     ড্যাশবোর্ডে অর্থ। বাস্তব সময়ের ডেটা এবং বিশ্লেষণের সাথে অনুমান কাজের বাইরে যান
@@ -1250,7 +1250,7 @@
                     <div>
                         <h4 class="text-xs font-bold uppercase mb-4 tracking-wider dark:text-white">
                             <span class="lang-en">Contact US</span>
-                            <span class="lang-bn hidden">যোগাযোগ</span>
+                            <span class="lang-bn" style="display:none">যোগাযোগ</span>
                         </h4>
                         <div class="space-y-3">
                             <div class="flex flex-col gap-2 mt-2">
