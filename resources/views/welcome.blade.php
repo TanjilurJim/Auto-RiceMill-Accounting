@@ -1216,150 +1216,196 @@
 
 
     <!-- Footer Section -->
-    <div id="footer" class="text-gray-900">
-        <footer class="pt-16 pb-8">
+    <div id="footer" class="relative bg-white text-gray-900 overflow-hidden border-t border-gray-200">
+        <!-- Background Pattern -->
+        <div class="absolute inset-0 opacity-5">
+            <div class="absolute inset-0"
+                style="background-image: radial-gradient(circle at 25% 25%, #B71F25 2px, transparent 2px), radial-gradient(circle at 75% 75%, #B71F25 2px, transparent 2px); background-size: 50px 50px;">
+            </div>
+        </div>
+
+        <footer class="relative pt-20 pb-10">
             <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                 <!-- Top grid -->
-                <div class="grid grid-cols-2 md:grid-cols-3 justify-items-normal gap-8 md:text-left mb-10">
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-12 mb-16">
                     <!-- About US -->
-                    <div>
-                        <h4 class="text-xs font-bold uppercase mb-4 tracking-wider dark:text-white">
-                            <span class="lang-en">About US</span>
-                            <span class="lang-bn" style="display:none">আমাদের সম্পর্কে</span>
-                        </h4>
-                        <div class="space-y-3">
-                            <p class="text-justify">
-                                <span class="lang-en">
-                                    Ricemill ERP is the all-in-one platform for global rice industry leaders. It seamlessly
-                                    connects procurement, milling, inventory (rice, bran, brokens, husk), sales, and finance
-                                    on one dashboard. Move beyond guesswork with real-time data and analytics to optimize
-                                    recovery rates, reduce waste, unlock growth, and cultivate a more profitable,
-                                    sustainable operation.
-                                </span>
-                                <span class="lang-bn" style="display:none">
-                                    রাইসমিল ইআরপি হল বিশ্বব্যাপী চাল শিল্প নেতাদের জন্য অল-ইন-ওয়ান প্ল্যাটফর্ম। এটি
-                                    নির্বিঘ্নে সংযোগ করে ক্রয়, মিলিং, ইনভেন্টরি (চাল, ভূষি, ভাঙা, খোসা), বিক্রয় এবং এক
-                                    ড্যাশবোর্ডে অর্থ। বাস্তব সময়ের ডেটা এবং বিশ্লেষণের সাথে অনুমান কাজের বাইরে যান
-                                    পুনরুদ্ধার হার অপ্টিমাইজ করতে, বর্জ্য কমাতে, বৃদ্ধি আনলক করতে, এবং আরও লাভজনক, টেকসই
-                                    অপারেশন চাষ করতে।
-                                </span>
-                            </p>
+                    <div class="space-y-6">
+                        <div>
+                            <h4
+                                class="text-sm font-bold uppercase mb-6 tracking-wider text-gray-900 flex items-center gap-2">
+                                <div class="w-1 h-6 bg-gradient-to-b from-[#B71F25] to-red-600 rounded-full"></div>
+                                <span class="lang-en">About US</span>
+                                <span class="lang-bn hidden">আমাদের সম্পর্কে</span>
+                            </h4>
+                            <div
+                                class="bg-gradient-to-br from-gray-50/80 to-gray-100/50 p-6 rounded-xl backdrop-blur-sm border border-gray-200/80 shadow-lg">
+                                <p class="text-gray-700 leading-relaxed text-sm">
+                                    <span class="lang-en">
+                                        Ricemill ERP is the all-in-one platform for global rice industry leaders. It
+                                        seamlessly connects procurement, milling, inventory, sales, and finance on one
+                                        dashboard.
+                                    </span>
+                                    <span class="lang-bn hidden">
+                                        রাইসমিল ইআরপি হল বিশ্বব্যাপী চাল শিল্প নেতাদের জন্য অল-ইন-ওয়ান প্ল্যাটফর্ম। এটি
+                                        নির্বিঘ্নে সংযোগ করে ক্রয়, মিলিং, ইনভেন্টরি, বিক্রয় এবং অর্থ।
+                                    </span>
+                                </p>
+                            </div>
                         </div>
                     </div>
+
                     <!-- Contact US -->
-                    <div>
-                        <h4 class="text-xs font-bold uppercase mb-4 tracking-wider dark:text-white">
+                    <div class="space-y-6">
+                        <h4 class="text-sm font-bold uppercase mb-6 tracking-wider text-gray-900 flex items-center gap-2">
+                            <div class="w-1 h-6 bg-gradient-to-b from-[#B71F25] to-red-600 rounded-full"></div>
                             <span class="lang-en">Contact US</span>
-                            <span class="lang-bn" style="display:none">যোগাযোগ</span>
+                            <span class="lang-bn hidden">যোগাযোগ</span>
                         </h4>
-                        <div class="space-y-3">
-                            <div class="flex flex-col gap-2 mt-2">
-                                <div class="flex items-center gap-2">
-                                    <i data-lucide="phone" class="w-5 h-5 text-bgPrimary"></i>
-                                    <span class="font-medium text-gray-800 dark:text-white">+880 1234-567890</span>
+                        <div class="space-y-4">
+                            <div
+                                class="flex items-center gap-3 p-3 rounded-lg bg-gray-50/80 border border-gray-200/80 hover:bg-gray-100/80 transition-all duration-300 shadow-sm group">
+                                <div
+                                    class="w-10 h-10 bg-gradient-to-br from-[#B71F25] to-red-600 rounded-lg flex items-center justify-center">
+                                    <i data-lucide="phone" class="w-5 h-5 text-white"></i>
                                 </div>
-                                <div class="flex items-center gap-2">
-                                    <i data-lucide="mail" class="w-5 h-5 text-bgPrimary"></i>
-                                    <span class="font-medium text-gray-800 dark:text-white">info@ricemillerp.com</span>
-                                </div>
-                                <div class="flex items-center gap-2">
-                                    <i data-lucide="map-pin" class="w-5 h-5 text-bgPrimary"></i>
-                                    <span class="font-medium text-gray-800 dark:text-white">123 Rice Mill Road, Dhaka,
-                                        Bangladesh</span>
-                                </div>
+                                <span class="font-medium text-gray-800 flex-1">+880 1234-567890</span>
+                                <button onclick="copyToClipboard('+880 1234-567890', this)"
+                                    class="opacity-0 group-hover:opacity-100 w-8 h-8 bg-gray-200/80 hover:bg-[#B71F25] hover:text-white text-gray-600 rounded-lg flex items-center justify-center transition-all duration-300 ml-2"
+                                    title="Copy phone number">
+                                    <i data-lucide="copy" class="w-4 h-4"></i>
+                                </button>
                             </div>
-                            <div class="mt-4 rounded-lg overflow-hidden shadow-lg border border-gray-200">
-                                <iframe class="w-full h-40 md:h-32 lg:h-40" frameborder="0" style="border:0"
-                                    allowfullscreen loading="lazy"
-                                    src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3651.902019857726!2d90.3915633154316!3d23.75090339460159!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x3755b8b8b8b8b8b8%3A0x123456789abcdef!2sDhaka!5e0!3m2!1sen!2sbd!4v1630000000000!5m2!1sen!2sbd"></iframe>
+                            <div
+                                class="flex items-center gap-3 p-3 rounded-lg bg-gray-50/80 border border-gray-200/80 hover:bg-gray-100/80 transition-all duration-300 shadow-sm group">
+                                <div
+                                    class="w-10 h-10 bg-gradient-to-br from-[#B71F25] to-red-600 rounded-lg flex items-center justify-center">
+                                    <i data-lucide="mail" class="w-5 h-5 text-white"></i>
+                                </div>
+                                <span class="font-medium text-gray-800 flex-1">info@ricemillerp.com</span>
+                                <button onclick="copyToClipboard('info@ricemillerp.com', this)"
+                                    class="opacity-0 group-hover:opacity-100 w-8 h-8 bg-gray-200/80 hover:bg-[#B71F25] hover:text-white text-gray-600 rounded-lg flex items-center justify-center transition-all duration-300 ml-2"
+                                    title="Copy email">
+                                    <i data-lucide="copy" class="w-4 h-4"></i>
+                                </button>
+                            </div>
+                            <div
+                                class="flex items-center gap-3 p-3 rounded-lg bg-gray-50/80 border border-gray-200/80 hover:bg-gray-100/80 transition-all duration-300 shadow-sm">
+                                <div
+                                    class="w-10 h-10 bg-gradient-to-br from-[#B71F25] to-red-600 rounded-lg flex items-center justify-center">
+                                    <i data-lucide="map-pin" class="w-5 h-5 text-white"></i>
+                                </div>
+                                <span class="font-medium text-gray-800">123 Rice Mill Road, Dhaka</span>
                             </div>
                         </div>
                     </div>
+
                     <!-- Menu -->
-                    <div>
-                        <h4 class="text-xs font-bold uppercase dark:text-white mb-4 tracking-wider">
-                            <span class="lang-en">Menu</span>
-                            <span class="lang-bn" style="display:none">মেনু</span>
+                    <div class="space-y-6">
+                        <h4 class="text-sm font-bold uppercase mb-6 tracking-wider text-gray-900 flex items-center gap-2">
+                            <div class="w-1 h-6 bg-gradient-to-b from-[#B71F25] to-red-600 rounded-full"></div>
+                            <span class="lang-en">Quick Links</span>
+                            <span class="lang-bn hidden">দ্রুত লিংক</span>
                         </h4>
-                        <ul class="space-y-1">
-                            <ul class="space-y-1">
-                                <li><a href="#" class="hover:underline dark:text-darkTextSecondary"><span
-                                            class="lang-en">Features</span><span class="lang-bn"
-                                            style="display:none">বৈশিষ্ট্য</span></a>
-                                </li>
-                                <li><a href="#" class="hover:underline dark:text-darkTextSecondary"><span
-                                            class="lang-en">Benefits</span><span class="lang-bn"
-                                            style="display:none">সুবিধা</span></a>
-                                </li>
-                                <li><a href="#pricing" class="hover:underline dark:text-darkTextSecondary"><span
-                                            class="lang-en">Pricing</span><span class="lang-bn"
-                                            style="display:none">মূল্য নির্ধারণ</span></a>
-                                </li>
-                                <li><a href="#" class="hover:underline dark:text-darkTextSecondary"><span
-                                            class="lang-en">Contact</span><span class="lang-bn"
-                                            style="display:none">যোগাযোগ</span></a></li>
-                            </ul>
+                        <ul class="space-y-3">
+                            <li><a href="#main_features"
+                                    class="text-gray-700 hover:text-[#B71F25] hover:translate-x-2 transition-all duration-300 flex items-center gap-2 group">
+                                    <i data-lucide="chevron-right"
+                                        class="w-4 h-4 text-[#B71F25] group-hover:text-red-600"></i>
+                                    <span class="lang-en">Features</span><span class="lang-bn hidden">বৈশিষ্ট্য</span>
+                                </a></li>
+                            <li><a href="#benefits"
+                                    class="text-gray-700 hover:text-[#B71F25] hover:translate-x-2 transition-all duration-300 flex items-center gap-2 group">
+                                    <i data-lucide="chevron-right"
+                                        class="w-4 h-4 text-[#B71F25] group-hover:text-red-600"></i>
+                                    <span class="lang-en">Benefits</span><span class="lang-bn hidden">সুবিধা</span>
+                                </a></li>
+                            <li><a href="#pricing"
+                                    class="text-gray-700 hover:text-[#B71F25] hover:translate-x-2 transition-all duration-300 flex items-center gap-2 group">
+                                    <i data-lucide="chevron-right"
+                                        class="w-4 h-4 text-[#B71F25] group-hover:text-red-600"></i>
+                                    <span class="lang-en">Pricing</span><span class="lang-bn hidden">মূল্য নির্ধারণ</span>
+                                </a></li>
+                            <li><a href="#footer"
+                                    class="text-gray-700 hover:text-[#B71F25] hover:translate-x-2 transition-all duration-300 flex items-center gap-2 group">
+                                    <i data-lucide="chevron-right"
+                                        class="w-4 h-4 text-[#B71F25] group-hover:text-red-600"></i>
+                                    <span class="lang-en">Contact</span><span class="lang-bn hidden">যোগাযোগ</span>
+                                </a></li>
                         </ul>
+                    </div>
+
+                    <!-- Location -->
+                    <div class="space-y-6">
+                        <h4 class="text-sm font-bold uppercase mb-6 tracking-wider text-gray-900 flex items-center gap-2">
+                            <div class="w-1 h-6 bg-gradient-to-b from-[#B71F25] to-red-600 rounded-full"></div>
+                            <span class="lang-en">Our Location</span>
+                            <span class="lang-bn hidden">আমাদের অবস্থান</span>
+                        </h4>
+                        <div
+                            class="rounded-xl overflow-hidden shadow-lg border border-gray-200/80 bg-gradient-to-br from-gray-50/80 to-gray-100/50 backdrop-blur-sm">
+                            <iframe class="w-full h-48" frameborder="0" style="border:0" allowfullscreen loading="lazy"
+                                src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3651.902019857726!2d90.3915633154316!3d23.75090339460159!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x3755b8b8b8b8b8b8%3A0x123456789abcdef!2sDhaka!5e0!3m2!1sen!2sbd!4v1630000000000!5m2!1sen!2sbd"></iframe>
+                        </div>
                     </div>
                 </div>
 
                 <!-- Divider -->
-                <hr class="my-8 border-gray-200" />
+                <div
+                    class="border-t border-gray-300/50 bg-gradient-to-r from-transparent via-gray-300/50 to-transparent h-px mb-10">
+                </div>
 
                 <!-- Bottom -->
-                <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-6 md:gap-0">
-                    <div class="text-center md:text-left text-sm text-gray-500 dark:text-darkTextSecondary mb-2 md:mb-0">
+                <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-8 md:gap-0 mb-8">
+                    <div class="text-center md:text-left text-sm text-gray-600">
                         <span class="lang-en">Rice Mill ERP © 2025, All rights reserved.</span>
-                        <span class="lang-bn" style="display:none">রাইসমিল ইআরপি © ২০২৫, সকল অধিকার সংরক্ষিত।</span>
+                        <span class="lang-bn hidden">রাইসমিল ইআরপি © ২০২৫, সকল অধিকার সংরক্ষিত।</span>
                     </div>
-                    <div class="flex flex-col md:flex-row md:items-center gap-2 md:gap-6 text-center md:text-left">
-                        <a href="#" class="font-medium text-gray-900 dark:text-darkTextSecondary hover:underline">
-                            <span class="lang-en">Privacy
-                                notice</span>
-                            <span class="lang-bn" style="display:none">গোপনীয়তা
-                                নোটিশ</span>
+                    <div class="flex flex-col md:flex-row md:items-center gap-4 md:gap-8 text-center md:text-left">
+                        <a href="#" class="text-gray-700 hover:text-[#B71F25] transition-colors duration-300">
+                            <span class="lang-en">Privacy Policy</span>
+                            <span class="lang-bn hidden">গোপনীয়তা নীতি</span>
                         </a>
-                        <a href="#" class="font-medium text-gray-900 dark:text-darkTextSecondary hover:underline">
-                            <span class="lang-en">Legal</span>
-                            <span class="lang-bn" style="display:none">আইনগত</span>
+                        <a href="#" class="text-gray-700 hover:text-[#B71F25] transition-colors duration-300">
+                            <span class="lang-en">Terms of Service</span>
+                            <span class="lang-bn hidden">সেবার শর্তাবলী</span>
                         </a>
-                        <a href="#"
-                            class="font-medium text-gray-900 dark:text-darkTextSecondary hover:underline"><span
-                                class="lang-en">Cookie
-                                settings</span>
-                            <span class="lang-bn" style="display:none">কুকি
-                                সেটিংস</span>
+                        <a href="#" class="text-gray-700 hover:text-[#B71F25] transition-colors duration-300">
+                            <span class="lang-en">Cookie Settings</span>
+                            <span class="lang-bn hidden">কুকি সেটিংস</span>
                         </a>
                     </div>
                 </div>
 
                 <!-- Socials & Language -->
-                <div class="flex flex-col md:flex-row md:items-center md:justify-between mt-8 gap-4 md:gap-0">
+                <div
+                    class="flex flex-col md:flex-row md:items-center md:justify-between pt-8 border-t border-gray-300/50 gap-6 md:gap-0">
                     <div class="flex justify-center md:justify-start gap-4">
                         <a href="#" aria-label="LinkedIn"
-                            class="dark:hover:text-white dark:text-darkTextSecondary">
+                            class="w-10 h-10 bg-gray-100/80 hover:bg-gradient-to-br hover:from-[#B71F25] hover:to-red-600 text-gray-700 hover:text-white rounded-lg flex items-center justify-center transition-all duration-300 hover:scale-110 shadow-sm">
                             <i data-lucide="linkedin" class="w-5 h-5"></i>
                         </a>
                         <a href="#" aria-label="Facebook"
-                            class="dark:hover:text-white dark:text-darkTextSecondary">
+                            class="w-10 h-10 bg-gray-100/80 hover:bg-gradient-to-br hover:from-[#B71F25] hover:to-red-600 text-gray-700 hover:text-white rounded-lg flex items-center justify-center transition-all duration-300 hover:scale-110 shadow-sm">
                             <i data-lucide="facebook" class="w-5 h-5"></i>
                         </a>
-                        <a href="#" aria-label="X" class="dark:hover:text-white dark:text-darkTextSecondary">
+                        <a href="#" aria-label="Twitter"
+                            class="w-10 h-10 bg-gray-100/80 hover:bg-gradient-to-br hover:from-[#B71F25] hover:to-red-600 text-gray-700 hover:text-white rounded-lg flex items-center justify-center transition-all duration-300 hover:scale-110 shadow-sm">
                             <i data-lucide="twitter" class="w-5 h-5"></i>
                         </a>
                         <a href="#" aria-label="Instagram"
-                            class="dark:hover:text-white dark:text-darkTextSecondary">
+                            class="w-10 h-10 bg-gray-100/80 hover:bg-gradient-to-br hover:from-[#B71F25] hover:to-red-600 text-gray-700 hover:text-white rounded-lg flex items-center justify-center transition-all duration-300 hover:scale-110 shadow-sm">
                             <i data-lucide="instagram" class="w-5 h-5"></i>
                         </a>
-                        <a href="#" aria-label="YouTube" class="dark:hover:text-white dark:text-darkTextSecondary">
+                        <a href="#" aria-label="YouTube"
+                            class="w-10 h-10 bg-gray-100/80 hover:bg-gradient-to-br hover:from-[#B71F25] hover:to-red-600 text-gray-700 hover:text-white rounded-lg flex items-center justify-center transition-all duration-300 hover:scale-110 shadow-sm">
                             <i data-lucide="youtube" class="w-5 h-5"></i>
                         </a>
                     </div>
                     <div
-                        class="flex items-center justify-center md:justify-end gap-2 text-gray-900 dark:text-darkTextSecondary cursor-pointer hover:text-gray-600 dark:hover:text-white transition-all duration-300">
-                        <i data-lucide="globe" class="w-5 h-5"></i>
-                        <span class="lang-en">English</span>
-                        <span class="lang-bn" style="display:none">বাংলা</span>
+                        class="flex items-center justify-center md:justify-end gap-3 bg-gray-100/80 px-4 py-2 rounded-lg border border-gray-200/80 cursor-pointer hover:bg-gray-200/80 transition-all duration-300 shadow-sm">
+                        <i data-lucide="globe" class="w-5 h-5 text-[#B71F25]"></i>
+                        <span class="lang-en text-gray-800">English</span>
+                        <span class="lang-bn hidden text-gray-800">বাংলা</span>
                     </div>
                 </div>
             </div>
@@ -1390,6 +1436,42 @@
                 btn.textContent = lang === 'en' ? 'বাংলা' : 'Eng:';
             });
         }
+
+        // Copy to clipboard function
+        function copyToClipboard(text, button) {
+            navigator.clipboard.writeText(text).then(function() {
+                // Show success feedback
+                const originalIcon = button.innerHTML;
+                button.innerHTML = '<i data-lucide="check" class="w-4 h-4"></i>';
+                button.classList.add('bg-green-500', 'text-white');
+                button.classList.remove('bg-gray-200/80', 'hover:bg-[#B71F25]');
+
+                // Reset after 2 seconds
+                setTimeout(function() {
+                    button.innerHTML = originalIcon;
+                    button.classList.remove('bg-green-500', 'text-white');
+                    button.classList.add('bg-gray-200/80', 'hover:bg-[#B71F25]');
+                    // Re-initialize Lucide icons
+                    if (typeof lucide !== 'undefined') {
+                        lucide.createIcons();
+                    }
+                }, 2000);
+
+                // Re-initialize Lucide icons for the check icon
+                if (typeof lucide !== 'undefined') {
+                    lucide.createIcons();
+                }
+            }).catch(function(err) {
+                console.error('Could not copy text: ', err);
+                // Show error feedback
+                button.classList.add('bg-red-500', 'text-white');
+                setTimeout(function() {
+                    button.classList.remove('bg-red-500', 'text-white');
+                    button.classList.add('bg-gray-200/80', 'hover:bg-[#B71F25]');
+                }, 2000);
+            });
+        }
+
         // Attach event listeners to all toggle buttons
         document.addEventListener('DOMContentLoaded', function() {
             let currentLang = 'en';
