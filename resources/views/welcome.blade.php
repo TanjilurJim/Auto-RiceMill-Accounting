@@ -40,6 +40,10 @@
                         <span class="lang-en">Contact</span>
                         <span class="lang-bn" style="display:none">যোগাযোগ</span>
                     </a>
+                    <a href="{{route('privacy-policy')}}" class="font-semibold dark:text-white">
+                        <span class="lang-en">Privacy-Policy</span>
+                        <span class="lang-bn" style="display:none">গোপনীয়তা নীতি</span>
+                    </a>
                 </div>
 
                 <!-- Action buttons -->
@@ -194,7 +198,7 @@
                                 <span class="lang-bn" style="display:none">আমরা আপনার ডেটা সম্পর্কে যত্নশীল আমাদের</span>
 
                                 <a class="underline text-bgPrimary dark:text-white hover:text-primary-700 dark:hover:text-primary-300 transition-colors duration-200"
-                                    href="page-privacy.html"><span class="lang-en">privacy policy</span>
+                                    href="{{route('privacy-policy')}}"><span class="lang-en">privacy policy</span>
                                     <span class="lang-bn" style="display:none">গোপনীয়তা নীতি</span>
                                 </a>.
                             </p>
@@ -1369,7 +1373,7 @@
                         <span class="lang-bn hidden">রাইসমিল ইআরপি © ২০২৫, সকল অধিকার সংরক্ষিত।</span>
                     </div>
                     <div class="flex flex-col md:flex-row md:items-center gap-4 md:gap-8 text-center md:text-left">
-                        <a href="#" class="text-gray-700 hover:text-[#B71F25] transition-colors duration-300">
+                        <a href="{{route('privacy-policy')}}" class="text-gray-700 hover:text-[#B71F25] transition-colors duration-300">
                             <span class="lang-en">Privacy Policy</span>
                             <span class="lang-bn" style="display: none;">গোপনীয়তা নীতি</span>
                         </a>

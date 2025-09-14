@@ -943,7 +943,7 @@ Route::get('/reports/all-received-payment/excel', [AllReceivedPaymentReportContr
 
     Route::get('/privacy-policy', function(){
         return view('privacy-policy');
-    });
+    })->name('privacy-policy');
 
 require __DIR__ . '/settings.php';
 require __DIR__ . '/auth.php';
