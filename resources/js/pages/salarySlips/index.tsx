@@ -124,7 +124,7 @@ export default function SalarySlipIndex({ salarySlips, employees }: Props) {
     return (
         <AppLayout>
             <Head title="Salary Slips" />
-            <div className="bg-gray-100 p-6 h-full w-screen lg:w-full">
+            <div className="p-4 md:p-12 h-full w-screen lg:w-full">
                 <div className="bg-white h-full rounded-lg p-6">
                     <PageHeader title="Salary Slips" addLinkHref="/salary-slips/create" addLinkText="+ Add New" />
 

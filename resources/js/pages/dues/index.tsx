@@ -74,8 +74,8 @@ export default function DueIndex({ sales, filters }: Props) {
         <AppLayout>
             <Head title="Outstanding Dues" />
 
-            <div className="min-h-screen bg-background p-6">
-                <div className="mx-auto max-w-6xl space-y-6">
+            <div className="bg-background p-4 md:p-12">
+                <div className=" space-y-6">
                     <PageHeader title="Outstanding Dues" addLinkHref="/sales" addLinkText="Back to Sales" />
 
                     {/* flash msg */}

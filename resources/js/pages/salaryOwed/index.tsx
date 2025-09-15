@@ -84,7 +84,7 @@ export default function Index() {
     return (
         <AppLayout>
             <Head title="Outstanding Salaries" />
-            <div className="h-full w-screen bg-gray-100 p-6 lg:w-full">
+            <div className="h-full w-screen p-4 md:p-12 lg:w-full">
                 {/* KPI cards */}
                 {/* <div className="mb-6 grid grid-cols-2 gap-4 md:grid-cols-4">
           <Card title="Employees"    value={totals.headcount} />
@@ -94,7 +94,7 @@ export default function Index() {
         </div> */}
 
                 {/* Filters */}
-                
+
 
                 <div className="rounded-lg bg-white p-6">
                     <PageHeader title="Outstanding Salaries" addLinkHref="/dashboard" addLinkText="Dashboard" />

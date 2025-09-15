@@ -19,52 +19,52 @@ interface Move {
 }
 
 const columns = [
-        {
-            header: 'Date',
-            accessor: (m: Move) => fmtDate(m.created_at.slice(0, 10)),
-            className: 'px-4 py-2',
-        },
-        {
-            header: 'Godown',
-            accessor: (m: Move) => m.godown?.name,
-            className: 'px-4 py-2',
-        },
-        {
-            header: 'Item',
-            accessor: (m: Move) => m.item?.item_name,
-            className: 'px-4 py-2',
-        },
-        {
-            header: 'Lot #',
-            accessor: (m: Move) => m.lot?.lot_no ?? '—',
-            className: 'px-4 py-2',
-        },
-        {
-            header: 'Type',
-            accessor: (m: Move) => <span className="capitalize">{m.type}</span>,
-            className: 'px-4 py-2',
-        },
-        {
-            header: 'Qty',
-            accessor: (m: Move) => m.qty,
-            className: 'px-4 py-2',
-        },
-        {
-            header: 'Cost',
-            accessor: (m: Move) => m.unit_cost ?? '—',
-            className: 'px-4 py-2',
-        },
-        {
-            header: 'Reason',
-            accessor: (m: Move) => m.reason ?? '—',
-            className: 'px-4 py-2',
-        },
-        {
-            header: 'By',
-            accessor: (m: Move) => m.creator?.name,
-            className: 'px-4 py-2',
-        },
-    ];
+    {
+        header: 'Date',
+        accessor: (m: Move) => fmtDate(m.created_at.slice(0, 10)),
+        className: 'px-4 py-2',
+    },
+    {
+        header: 'Godown',
+        accessor: (m: Move) => m.godown?.name,
+        className: 'px-4 py-2',
+    },
+    {
+        header: 'Item',
+        accessor: (m: Move) => m.item?.item_name,
+        className: 'px-4 py-2',
+    },
+    {
+        header: 'Lot #',
+        accessor: (m: Move) => m.lot?.lot_no ?? '—',
+        className: 'px-4 py-2',
+    },
+    {
+        header: 'Type',
+        accessor: (m: Move) => <span className="capitalize">{m.type}</span>,
+        className: 'px-4 py-2',
+    },
+    {
+        header: 'Qty',
+        accessor: (m: Move) => m.qty,
+        className: 'px-4 py-2',
+    },
+    {
+        header: 'Cost',
+        accessor: (m: Move) => m.unit_cost ?? '—',
+        className: 'px-4 py-2',
+    },
+    {
+        header: 'Reason',
+        accessor: (m: Move) => m.reason ?? '—',
+        className: 'px-4 py-2',
+    },
+    {
+        header: 'By',
+        accessor: (m: Move) => m.creator?.name,
+        className: 'px-4 py-2',
+    },
+];
 
 export default function StockMoveIndex({ moves }: { moves: Paginated<Move[]> }) {
     return (

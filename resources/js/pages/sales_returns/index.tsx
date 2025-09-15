@@ -54,8 +54,8 @@ export default function SalesReturnIndex({ salesReturns }: { salesReturns: Pagin
   return (
     <AppLayout>
       <Head title="All Sales Returns" />
-      <div className="bg-gray-100 p-6 h-full w-screen lg:w-full">
-        <div className="bg-white h-full rounded-lg p-6">
+      <div className="h-full w-screen lg:w-full">
+        <div className="bg-white h-full rounded-lg p-4 md:p-12">
 
           <PageHeader title='Sales Return List' addLinkHref='/sales-returns/create' addLinkText='+ Add Sales Return' />
 

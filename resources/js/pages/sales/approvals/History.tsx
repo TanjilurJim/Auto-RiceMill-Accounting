@@ -41,7 +41,7 @@ const fmtTk = (n: string | number) => `${new Intl.NumberFormat('en-BD', { minimu
 export default function History({ approvals }: { approvals: Paginator }) {
     return (
         <AppLayout title="My Approval History">
-            <div className="p-6">
+            <div className="p-4 md:p-12">
                 <PageHeader title="Approval Log"></PageHeader>
 
                 <div className="overflow-x-auto rounded-lg border border-gray-200 bg-white shadow-sm dark:border-neutral-700 dark:bg-neutral-900">
@@ -89,9 +89,8 @@ export default function History({ approvals }: { approvals: Paginator }) {
                         </tbody>
                     </table>
                 </div>
+                <Pagination links={approvals.links} currentPage={approvals.current_page} lastPage={approvals.last_page} total={approvals.total} />
             </div>
-
-            <Pagination links={approvals.links} currentPage={approvals.current_page} lastPage={approvals.last_page} total={approvals.total} />
         </AppLayout>
     );
 }

@@ -32,7 +32,7 @@ export default function DepartmentIndex({ departments }: { departments: Departme
     return (
         <AppLayout>
             <Head title="Departments" />
-            <div className="bg-gray-100 p-6 h-full w-screen lg:w-full">
+            <div className="p-4 md:p-12 h-full w-screen lg:w-full">
                 <div className="bg-white h-full rounded-lg p-6">
 
                     <PageHeader title="Departments" addLinkHref='/departments/create' addLinkText="+ Add New" />

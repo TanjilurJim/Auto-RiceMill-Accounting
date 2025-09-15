@@ -46,8 +46,8 @@ export default function Index({ receivedAdds }: { receivedAdds: PaginatedReceive
         <AppLayout>
             <Head title="Received Vouchers" />
 
-            <div className="bg-gray-100 p-6 h-full w-screen lg:w-full">
-                <div className="bg-white h-full rounded-lg p-6">
+            <div className="h-full w-screen lg:w-full">
+                <div className="bg-white h-full rounded-lg p-4 md:p-12">
                     <PageHeader title="All List of Received" addLinkHref="/received-add/create" addLinkText="+ Add New" />
 
                     <TableComponent

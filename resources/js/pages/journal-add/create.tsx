@@ -62,8 +62,8 @@ export default function Create({ accountLedgers = [] }: any) {
     return (
         <AppLayout>
             <Head title="Add Journal Entry" />
-            <div className="bg-gray-100 p-6 h-full w-screen lg:w-full">
-                <div className="bg-white h-full rounded-lg p-6">
+            <div className="h-full w-screen lg:w-full">
+                <div className="bg-white h-full rounded-lg p-4 md:p-12">
                     <PageHeader title="Add Journal Entries" addLinkHref="/journal-add" addLinkText='Back' />
 
                     <form onSubmit={handleSubmit} className="space-y-6">

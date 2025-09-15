@@ -107,7 +107,7 @@ const EmployeeLedger: React.FC = () => {
     return (
         <AppLayout>
             <Head title="Employee Ledger Report" />
-            <div className="max-w-full bg-white p-4 sm:p-6 md:p-8 lg:p-10 xl:p-12" ref={reportRef}>
+            <div className="max-w-full p-4 md:p-12" ref={reportRef}>
                 {/* Company Info */}
                 <div className="mb-4 text-center">
                     {company?.logo_path && <img src={company.logo_path} alt="Company Logo" className="mx-auto mb-2 h-16 w-16 object-cover" />}

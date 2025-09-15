@@ -1,7 +1,7 @@
+import PageHeader from '@/components/PageHeader';
 import Pagination from '@/components/Pagination';
 import AppLayout from '@/layouts/app-layout';
-import { Link, Head } from '@inertiajs/react';
-import PageHeader from '@/components/PageHeader';
+import { Head, Link } from '@inertiajs/react';
 
 /* ---------- types --------------------------------------------------------- */
 interface ApprovalRow {
@@ -42,12 +42,11 @@ const fmtTk = (n: string | number) => `${new Intl.NumberFormat('en-BD', { minimu
 export default function History({ approvals }: { approvals: Paginator }) {
     return (
         <AppLayout title="My Purchase-Approval History">
-      <Head title="Approval Log" />
+            <Head title="Approval Log" />
 
-
-            <div className="h-full w-screen bg-background p-6 lg:w-full">
-                <div className="h-full rounded-lg bg-background p-6">
-                  <PageHeader title= "Approval Log"></PageHeader>
+            <div className="bg-background h-full w-screen p-6 lg:w-full">
+                <div className="bg-background h-full rounded-lg p-6">
+                    <PageHeader title="Approval Log"></PageHeader>
                     <div className="overflow-x-auto rounded-lg border border-gray-200 bg-white shadow-sm dark:border-neutral-700 dark:bg-neutral-900">
                         <table className="w-full text-sm">
                             <thead className="border-b border-gray-200 bg-gray-50 text-left text-xs tracking-wider text-gray-600 uppercase dark:border-neutral-700 dark:bg-neutral-800 dark:text-gray-400">

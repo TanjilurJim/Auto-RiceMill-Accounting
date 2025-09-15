@@ -34,7 +34,7 @@ export default function DesignationIndex({ designations }: { designations: Desig
     return (
         <AppLayout>
             <Head title="Designations" />
-            <div className="bg-gray-100 p-6 h-full w-screen lg:w-full">
+            <div className="p-4 md:p-12 h-full w-screen lg:w-full">
                 <div className="bg-white h-full rounded-lg p-6">
 
                     <PageHeader title='Designations' addLinkHref='/designations/create' addLinkText="+ Add New" />

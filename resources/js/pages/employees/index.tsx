@@ -48,7 +48,7 @@ export default function EmployeeIndex({ employees }: { employees: Paginated<Empl
         <AppLayout>
             <Head title="Employees" />
 
-            <div className="h-full w-screen bg-gray-100 p-6 lg:w-full">
+            <div className="h-full w-screen p-4 md:p-12 lg:w-full">
                 <div className="h-full rounded-lg bg-white p-6">
                     <PageHeader title="Employees" addLinkHref="/employees/create" addLinkText="+ Add Employee" />
 

@@ -21,8 +21,8 @@ export default function EditDepartment({
     return (
         <AppLayout>
             <Head title={`Edit Department - ${department.name}`} />
-            <div className="bg-gray-100 p-6 h-full w-screen lg:w-full">
-                <div className="bg-white h-full rounded-lg p-6">
+            <div className="h-full w-screen lg:w-full">
+                <div className="bg-white h-full rounded-lg p-4 md:p-12">
                     <PageHeader title="Edit Department" addLinkHref='/departments' addLinkText="Back" />
                     <form onSubmit={handleSubmit} className="space-y-4 rounded-lg bg-white p-4 border dark:bg-neutral-900">
 

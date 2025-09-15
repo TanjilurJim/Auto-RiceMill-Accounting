@@ -54,8 +54,7 @@ export default function GodownIndex({ godowns }: { godowns: PaginatedGodowns }) 
   return (
     <AppLayout>
       <Head title="All List Of Godowns" />
-      <div className="p-6 h-full bg-background w-screen lg:w-full">
-        <div className="mx-auto rounded-xl border bg-card p-6 text-card-foreground shadow-sm">
+        <div className="p-4 md:p-12 text-card-foreground shadow-sm">
           <PageHeader title="All List Of Godowns" addLinkHref="/godowns/create" addLinkText="+ Add New" />
 
           {/* 🔍 Search Bar */}
@@ -98,7 +97,7 @@ export default function GodownIndex({ godowns }: { godowns: PaginatedGodowns }) 
             }}
           />
         </div>
-      </div>
+
     </AppLayout>
   );
 }

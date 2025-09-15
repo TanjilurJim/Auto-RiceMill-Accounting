@@ -48,7 +48,7 @@ export default function EmployeeReport() {
         <AppLayout>
             <Head title="Employee Salary Report" />
 
-            <div className="h-full w-screen bg-gray-100 p-6 lg:w-full">
+            <div className="h-full w-screen p-4 md:p-12 lg:w-full">
                 <div className="rounded-lg bg-white p-6">
                     <PageHeader title="Employee Salary Report" />
 
