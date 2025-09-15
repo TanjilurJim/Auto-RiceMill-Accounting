@@ -145,7 +145,7 @@ export default function Dashboard({ runningDryers }: DashboardProps) {
             </div>
 
             {/* Running dryers + Payables */}
-            <div className="mt-4 grid gap-4 lg:grid-cols-2">
+            <div className="m-2 mt-4 grid gap-4 lg:grid-cols-2">
                 <Card>
                     <CardHeader>
                         <div className="flex items-center justify-between">
@@ -218,7 +218,7 @@ export default function Dashboard({ runningDryers }: DashboardProps) {
             </div>
 
             {/* Charts */}
-            <div className="mt-6 grid gap-6 lg:grid-cols-2">
+            <div className="m-2 mt-6 grid gap-6 lg:grid-cols-2">
                 <Card className="p-4">
                     <CardHeader className="text-lg font-medium">Monthly Sales vs Purchases&nbsp;(lakh&nbsp;BDT)</CardHeader>
                     <CardContent className="h-64">
