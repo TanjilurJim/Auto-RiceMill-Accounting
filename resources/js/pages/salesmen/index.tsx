@@ -39,9 +39,9 @@ export default function SalesmanIndex({ salesmen }: { salesmen: Salesman[] }) {
       <Head title="All Salesmen" />
 
       {/* Page background adapts to theme */}
-      <div className="min-h-svh bg-background p-6">
+      <div className="bg-background h-full w-screen md:p-6 lg:w-full">
         {/* Card surface with border + correct text color */}
-        <div className="mx-auto rounded-xl border bg-card p-6 text-card-foreground shadow-sm">
+        <div className="bg-background h-full rounded-lg p-3 md:p-6">
           <PageHeader title="All Salesmen" addLinkHref="/salesmen/create" addLinkText="+ Add New" />
 
           <TableComponent

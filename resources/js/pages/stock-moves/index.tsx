@@ -1,8 +1,9 @@
 // resources/js/pages/stock-moves/index.tsx
-import { Button } from '@/components/ui/button';
+import PageHeader from '@/components/PageHeader';
+import TableComponent from '@/components/TableComponent';
 import AppLayout from '@/layouts/app-layout';
-import { Head, Link, router } from '@inertiajs/react';
 import { fmtDate } from '@/utils/format';
+import { Head } from '@inertiajs/react';
 
 interface Move {
     id: number;
@@ -17,64 +18,65 @@ interface Move {
     creator: { name: string };
 }
 
+const columns = [
+        {
+            header: 'Date',
+            accessor: (m: Move) => fmtDate(m.created_at.slice(0, 10)),
+            className: 'px-4 py-2',
+        },
+        {
+            header: 'Godown',
+            accessor: (m: Move) => m.godown?.name,
+            className: 'px-4 py-2',
+        },
+        {
+            header: 'Item',
+            accessor: (m: Move) => m.item?.item_name,
+            className: 'px-4 py-2',
+        },
+        {
+            header: 'Lot #',
+            accessor: (m: Move) => m.lot?.lot_no ?? '—',
+            className: 'px-4 py-2',
+        },
+        {
+            header: 'Type',
+            accessor: (m: Move) => <span className="capitalize">{m.type}</span>,
+            className: 'px-4 py-2',
+        },
+        {
+            header: 'Qty',
+            accessor: (m: Move) => m.qty,
+            className: 'px-4 py-2',
+        },
+        {
+            header: 'Cost',
+            accessor: (m: Move) => m.unit_cost ?? '—',
+            className: 'px-4 py-2',
+        },
+        {
+            header: 'Reason',
+            accessor: (m: Move) => m.reason ?? '—',
+            className: 'px-4 py-2',
+        },
+        {
+            header: 'By',
+            accessor: (m: Move) => m.creator?.name,
+            className: 'px-4 py-2',
+        },
+    ];
+
 export default function StockMoveIndex({ moves }: { moves: Paginated<Move[]> }) {
     return (
         <AppLayout>
             <Head title="Stock Movements" />
-            <div className="space-y-4 p-6">
-                <div className="flex items-center justify-between">
-                    <h1 className="text-xl font-semibold">Stock Movements</h1>
-                    <Link href="/stock-moves/create">
-                        <Button>Add Stock</Button>
-                    </Link>
-                </div>
 
-                <div className="overflow-x-auto rounded-lg border bg-white">
-                    <table className="min-w-full text-sm">
-                        <thead>
-                            <tr className="border-b bg-gray-50 text-left font-medium">
-                                <th className="px-4 py-2">Date</th>
-                                <th className="px-4 py-2">Godown</th>
-                                <th className="px-4 py-2">Item</th>
-                                <th className="px-4 py-2">Lot #</th>
-                                <th className="px-4 py-2">Type</th>
-                                <th className="px-4 py-2">Qty</th>
-                                <th className="px-4 py-2">Cost</th>
-                                <th className="px-4 py-2">Reason</th>
-                                <th className="px-4 py-2">By</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {moves.data.map((m) => (
-                                <tr key={m.id} className="border-b last:border-0">
-                                    <td className="px-4 py-1">{fmtDate(m.created_at.slice(0, 10))}</td>
-                                    <td className="px-4 py-1">{m.godown?.name}</td>
-                                    <td className="px-4 py-1">{m.item?.item_name}</td>
-                                    <td className="px-4 py-1">{m.lot?.lot_no ?? '—'}</td>
-                                    <td className="px-4 py-1 capitalize">{m.type}</td>
-                                    <td className="px-4 py-1 ">{m.qty}</td>
-                                    <td className="px-4 py-1 ">{m.unit_cost ?? '—'}</td>
-                                    <td className="px-4 py-1">{m.reason ?? '—'}</td>
-                                    <td className="px-4 py-1">{m.creator?.name}</td>
-                                </tr>
-                            ))}
-                        </tbody>
-                    </table>
-                </div>
+            <div className="bg-background h-full w-screen md:p-6 lg:w-full">
+                {/* Card surface with border + correct text color */}
+                <div className="bg-background h-full rounded-lg p-3 md:p-6">
+                    <PageHeader title="Stock Movements" addLinkHref="/stock-moves/create" addLinkText="+ Add Stock" />
 
-                {/* simple pager */}
-                <div className="flex gap-2 justify-end">
-                    {moves.links.map((link) => (
-                        <Button
-                            key={link.label}
-                            variant={link.active ? 'default' : 'outline'}
-                            size="sm"
-                            disabled={!link.url}
-                            onClick={() => link.url && router.visit(link.url)}
-                        >
-                            <span dangerouslySetInnerHTML={{ __html: link.label }} />
-                        </Button>
-                    ))}
+                    <TableComponent columns={columns} data={moves.data} noDataMessage="No stock movements found." />
                 </div>
             </div>
         </AppLayout>

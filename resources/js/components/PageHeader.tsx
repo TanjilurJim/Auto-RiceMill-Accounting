@@ -21,9 +21,9 @@ const PageHeader: React.FC<PageHeaderProps> = ({
   const HeadingTag = `h${headingLevel}` as keyof JSX.IntrinsicElements;
 
   return (
-    <div className="mb-4 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+    <div className="mb-4 flex flex-col md:flex-row md:gap-2 md:items-center justify-between">
       {/* Use token so it adapts to light/dark */}
-      <HeadingTag className="text-2xl font-semibold tracking-tight text-foreground">
+      <HeadingTag className="text-lg md:text-2xl font-semibold tracking-tight text-foreground">
         {title}
       </HeadingTag>
 

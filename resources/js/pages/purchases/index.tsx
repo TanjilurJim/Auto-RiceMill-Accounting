@@ -39,7 +39,8 @@ export default function PurchaseIndex({ purchases }: { purchases: PaginatedPurch
         { header: 'Vch. No', accessor: 'voucher_no' },
         {
             header: 'Ledger',
-            accessor: (purchase: Purchase) => `${purchase.account_ledger.account_ledger_name} - ${purchase.account_ledger.reference_number}`,
+            accessor: (purchase: Purchase) =>
+                purchase.account_ledger ? `${purchase.account_ledger.account_ledger_name} - ${purchase.account_ledger.reference_number}` : 'N/A',
         },
         {
             header: 'Item + Price',
@@ -91,8 +92,8 @@ export default function PurchaseIndex({ purchases }: { purchases: PaginatedPurch
     return (
         <AppLayout>
             <Head title="All Purchases" />
-            <div className="h-full w-screen bg-background p-6 lg:w-full">
-                <div className="h-full rounded-lg bg-background p-6">
+            <div className="bg-background h-full w-screen p-6 lg:w-full">
+                <div className="bg-background h-full rounded-lg md:p-6">
                     {/* Use the PageHeader component  */}
                     <PageHeader title="Purchase List" addLinkHref="/purchases/create" addLinkText="+ Add New" />
 
