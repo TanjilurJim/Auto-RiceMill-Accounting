@@ -1,5 +1,5 @@
 // components/TrialBanner.tsx
-import { Link, usePage } from '@inertiajs/react';
+import { usePage } from '@inertiajs/react';
 import { AlertTriangle, Info } from 'lucide-react';
 import React from 'react';
 import { FaWhatsapp } from 'react-icons/fa';
@@ -77,14 +77,16 @@ export default function TrialBanner() {
     // Inactive state stays as-is
     if (trial.inactive || msRemaining <= 0) {
         return (
-            <div className="mb-4 rounded-md border border-red-300 bg-red-50 p-3">
-                <div className="flex items-center gap-3">
-                    <span className="relative inline-flex h-3 w-3">
-                        <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-red-400 opacity-75"></span>
-                        <span className="relative inline-flex h-3 w-3 rounded-full bg-red-500"></span>
-                    </span>
-                    <AlertTriangle className="h-5 w-5 text-red-600" />
-                    <div className="text-sm font-medium text-red-700">Your trial has ended and your account is inactive.</div>
+            <div className="m-2 mb-4 rounded-md border border-red-300 bg-red-50 p-3">
+                <div className="flex items-center justify-between gap-3">
+                    <div className="flex items-center gap-3">
+                        <span className="relative inline-flex h-3 w-3">
+                            <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-red-400 opacity-75"></span>
+                            <span className="relative inline-flex h-3 w-3 rounded-full bg-red-500"></span>
+                        </span>
+                        <AlertTriangle className="h-10 w-10 text-red-600 md:h-5 md:w-5" />
+                        <div className="text-sm font-medium text-red-700">Your trial has ended and your account is inactive.</div>
+                    </div>
                     <a
                         href="https://wa.me/8801744333888?text=Hi%20%2C%20I%20need%20help%20logging%20in."
                         target="_blank"
@@ -92,7 +94,7 @@ export default function TrialBanner() {
                         className="ml-auto inline-flex items-center rounded bg-emerald-600 px-3 py-1.5 text-sm font-semibold text-white hover:bg-emerald-700"
                     >
                         <FaWhatsapp className="mr-2 h-4 w-4" />
-                        Contact us
+                        Contact
                     </a>
                 </div>
             </div>
@@ -113,12 +115,12 @@ export default function TrialBanner() {
                         Trial ends in <span className="font-semibold">{compactClock(parts)}</span> — <span>{humanLabel(parts)}</span>.
                     </div>
                     <a
-                       href="https://wa.me/8801744333888?text=Hi%20%2C%20I%20need%20help%20logging%20in."
+                        href="https://wa.me/8801744333888?text=Hi%20%2C%20I%20need%20help%20logging%20in."
                         target="_blank"
                         rel="noopener noreferrer"
                         className="ml-auto inline-flex items-center rounded bg-amber-600 px-3 py-1.5 text-sm font-semibold text-white hover:bg-amber-700"
                     >
-                      <FaWhatsapp className="mr-2 h-4 w-4" />
+                        <FaWhatsapp className="mr-2 h-4 w-4" />
                         Talk to us
                     </a>
                 </div>

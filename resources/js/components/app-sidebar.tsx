@@ -523,7 +523,7 @@ const footerNavItems: NavItem[] = [
     //     icon: BookOpen,
     // },
     {
-    
+
         title: 'Support: 01744333888',
         href: 'https://wa.me/8801744333888',
         icon: Phone,
@@ -586,7 +586,6 @@ export function AppSidebar() {
             {/* ---------- Footer ---------- */}
             <SidebarFooter>
                 <NavFooter items={footerNavItems} className="mt-auto" />
-
                 <NavUser />
             </SidebarFooter>
         </Sidebar>
