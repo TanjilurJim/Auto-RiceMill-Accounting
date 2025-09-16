@@ -176,7 +176,7 @@ export default function DayBookIndex({ rows, totals, byType, filters }) {
     return (
         <AppLayout>
             <Head title="Day-Book" />
-            <div className="space-y-6 p-4 md:p-6">
+            <div className="space-y-6 p-4 md:p-12">
                 <PageHeader title="Day-Book">
                     <button onClick={() => window.print()} className="rounded-md bg-green-600 px-4 py-2 text-sm text-white print:hidden">
                         Print

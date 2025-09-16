@@ -52,7 +52,7 @@ export default function PartyStockConvertIndex({ conversions, pagination }: Prop
     return (
         <AppLayout>
             <Head title="Conversions" />
-            <div className="p-4 sm:p-6 lg:p-8">
+            <div className="p-4 md:p-12">
                 <div className="mb-5 flex items-center justify-between">
                     <h1 className="text-2xl font-bold text-foreground">Stock Conversions</h1>
                     <Link

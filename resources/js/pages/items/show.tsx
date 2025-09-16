@@ -115,19 +115,19 @@ export default function ItemShow({ item, stocks, summary, godowns, filters }: It
     return (
         <AppLayout>
             <Head title={`Item · ${item.item_name}`} />
-            <div className="h-full bg-gray-100 p-6">
-                <div className="h-full rounded-lg bg-white p-6">
+            <div className="h-ful p-4 md:p-12">
+                <div className="h-full rounded-lg">
                     <PageHeader title={`Item: ${item.item_name}`} addLinkHref="/items" addLinkText="Back" />
 
                     {/* Totals + filters */}
-                    <div className="mb-6 flex flex-col gap-4 lg:flex-row lg:items-center">
+                    <div className="mb-6 flex flex-col gap-4 lg:flex-row lg:justify-center">
                         {/* Snapshot card */}
                         <div className="flex-grow rounded-2xl border bg-white p-4 shadow-sm">
                             <h2 className="text-lg font-semibold">
                                 {item.item_name} <span className="text-sm text-gray-500">({item.item_code})</span>
                             </h2>
 
-                            <div className="mt-3 grid grid-cols-2 gap-4 text-sm sm:grid-cols-4">
+                            <div className="mt-3 grid grid-cols-5 gap-4 text-sm ">
                                 <Snapshot label="Total Qty">
                                     {summary.total_qty.toLocaleString()} {summary.unit}
                                 </Snapshot>

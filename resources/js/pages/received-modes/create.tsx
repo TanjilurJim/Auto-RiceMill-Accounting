@@ -30,8 +30,8 @@ export default function Create() {
         <AppLayout>
             <Head title="Create Received Mode" />
 
-            <div className="bg-gray-100 p-6 h-full w-screen lg:w-full">
-                <div className="bg-white h-full rounded-lg p-6">
+            <div className="p-4 md:p-12 h-full w-screen lg:w-full">
+                <div className="h-full rounded-lg">
 
                     <PageHeader title='Create Received Mode' addLinkHref='/received-modes' addLinkText='Back' />
 

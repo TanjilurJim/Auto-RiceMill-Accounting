@@ -82,8 +82,8 @@ export default function Index({ dryers, filters }: PageProps) {
     <AppLayout title="Dryers">
       <Head title="Dryers" />
 
-      <div className="w-full p-4 sm:p-6">
-        <div className="rounded-sm border bg-background p-4 sm:p-6 text-foreground">
+      <div className="w-full p-4 md:p-12">
+        <div className=" text-foreground">
           <PageHeader title="Dryers" addLinkHref="/dryers/create" addLinkText="+ Add New" />
 
           {/* Search box (optional) */}

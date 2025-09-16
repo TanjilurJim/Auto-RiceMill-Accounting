@@ -26,7 +26,16 @@ interface Category {
 export default function CategoryIndex({ categories }: { categories: PaginatedCategories }) {
     const [editCategory, setEditCategory] = useState<Category | null>(null);
 
-    const { data, setData, post, put, delete: destroy, processing, reset, errors } = useForm({
+    const {
+        data,
+        setData,
+        post,
+        put,
+        delete: destroy,
+        processing,
+        reset,
+        errors,
+    } = useForm({
         name: '',
     });
 
@@ -36,11 +45,9 @@ export default function CategoryIndex({ categories }: { categories: PaginatedCat
     };
 
     const handleDelete = (id: number) => {
-        confirmDialog(
-            {}, () => {
-                destroy(`/categories/${id}`);
-            }
-        );
+        confirmDialog({}, () => {
+            destroy(`/categories/${id}`);
+        });
     };
 
     const handleSubmit = (e: React.FormEvent) => {
@@ -73,12 +80,7 @@ export default function CategoryIndex({ categories }: { categories: PaginatedCat
         { header: 'Category Name', accessor: 'name' },
         {
             header: 'Action',
-            accessor: (category: Category) => (
-                <ActionButtons
-                    onEdit={() => handleEdit(category)}
-                    onDelete={() => handleDelete(category.id)}
-                />
-            ),
+            accessor: (category: Category) => <ActionButtons onEdit={() => handleEdit(category)} onDelete={() => handleDelete(category.id)} />,
             className: 'text-center',
         },
     ];
@@ -86,29 +88,17 @@ export default function CategoryIndex({ categories }: { categories: PaginatedCat
     return (
         <AppLayout>
             <Head title="Category Manage" />
-            <div className="h-full bg-background p-6">
-                <div className="h-full text-foreground rounded-lg p-6">
-                    <div className="flex flex-col-reverse justify-between gap-4 md:flex-row h-full">
-                        {/* Left: List */}
-                        <div className="space-y-4 rounded bg-background p-4 shadow w-full md:w-2/3 border">
-                            <PageHeader title="All Category Manage" />
-                            <TableComponent
-                                columns={columns}
-                                data={categories.data}
-                                noDataMessage="No categories found."
-                            />
+            <div className="text-foreground w-full p-4 md:p-12">
+                <div className="grid grid-cols-12 gap-4">
+                    {/* Left: List */}
+                    <div className="col-span-12 lg:col-span-8">
+                        <PageHeader title="All Category Manage" />
+                        <TableComponent columns={columns} data={categories.data} noDataMessage="No categories found." />
+                    </div>
 
-                            {/* Pagination */}
-                            <Pagination
-                                links={categories.links}
-                                currentPage={categories.current_page}
-                                lastPage={categories.last_page}
-                                total={categories.total}
-                            />
-                        </div>
-
-                        {/* Right: Form */}
-                        <div className="rounded bg-background p-4 shadow w-full md:w-1/3 border">
+                    {/* Right: Form */}
+                    <div className="col-span-12 lg:col-span-4">
+                        <div className="bg-background space-y-3 rounded-md border p-4">
                             <PageHeader title={editCategory ? 'Edit Category' : 'Add Category'} />
                             <form onSubmit={handleSubmit} className="space-y-3">
                                 <input
@@ -138,6 +128,8 @@ export default function CategoryIndex({ categories }: { categories: PaginatedCat
                         </div>
                     </div>
                 </div>
+                {/* Pagination */}
+                <Pagination links={categories.links} currentPage={categories.current_page} lastPage={categories.last_page} total={categories.total} />
             </div>
         </AppLayout>
     );

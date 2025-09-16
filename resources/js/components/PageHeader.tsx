@@ -37,7 +37,7 @@ const PageHeader: React.FC<PageHeaderProps> = ({
           </Link>
         )}
 
-        {addLinkText && (
+        {addLinkText && addLinkHref && (
           <Link
             href={addLinkHref}
             className="inline-flex items-center rounded-md border bg-primary px-4 py-2 text-sm font-medium text-primary-foreground shadow-sm transition-colors hover:bg-primary/90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"

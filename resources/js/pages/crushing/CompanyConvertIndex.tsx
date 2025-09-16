@@ -45,7 +45,7 @@ export default function CompanyConvertIndex({ conversions, pagination }: Props) 
     return (
         <AppLayout>
             <Head title="Company Conversions" />
-            <div className="p-4 sm:p-6 lg:p-8">
+            <div className="p-4 md:p-12">
                 <div className="mb-5 flex items-center justify-between">
                     <h1 className="text-2xl font-bold text-foreground">Company Stock Conversions</h1>
 
@@ -110,7 +110,7 @@ export default function CompanyConvertIndex({ conversions, pagination }: Props) 
                                                         onClick={() => window.print()}
                                                         className="inline-flex items-center rounded border px-2 py-1 text-sm hover:bg-slate-50"
                                                         title="Print"
-                                                        
+
                                                     >
                                                         <Printer size={18} />
                                                     </button> */}

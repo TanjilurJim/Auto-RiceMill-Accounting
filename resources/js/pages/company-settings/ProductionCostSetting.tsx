@@ -39,7 +39,7 @@ export default function ProductionCostSetting({ presets, basisOptions }: Props) 
     return (
         <AppLayout title="Production Cost Setting">
             <Head title="Production Cost Setting" />
-            <div className="mx-auto w-full p-6">
+            <div className="mx-auto w-full p-4 md:p-12">
                 <h1 className="mb-4 text-2xl font-bold">Production Cost Setting</h1>
 
                 <form onSubmit={onSubmit} className="space-y-4">

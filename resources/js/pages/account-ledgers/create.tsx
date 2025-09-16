@@ -132,11 +132,11 @@ export default function CreateAccountLedger({
   return (
     <AppLayout>
       <Head title="Add Account Ledger" />
-      <div className="bg-background min-h-svh p-6">
-        <div className="bg-card text-card-foreground mx-auto rounded-xl border p-6 shadow-sm">
+      <div className="bg-background min-h-svh">
+        <div className="p-4 md:p-12">
           <PageHeader title="Add Account Ledger" addLinkHref="/account-ledgers" addLinkText="Back" />
 
-          <div className="mt-4">
+          <div className="mt-4 mb-2">
             <LedgerTypeCheatSheet />
           </div>
 
