@@ -1,6 +1,8 @@
 import ActionFooter from '@/components/ActionFooter';
 import InputCalendar from '@/components/Btn&Link/InputCalendar';
 import PageHeader from '@/components/PageHeader';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
 import AppLayout from '@/layouts/app-layout';
 import { Head, useForm } from '@inertiajs/react';
 import axios from 'axios';
@@ -333,7 +335,7 @@ export default function SaleCreate({
                                 {/* Voucher No */}
                                 <div>
                                     <label className="text-foreground mb-1 block text-sm font-medium">Voucher No</label>
-                                    <input type="text" className="bg-background w-full rounded border p-2" value={data.voucher_no} readOnly />
+                                    <Input type="text" className="bg-background w-full rounded border p-1" value={data.voucher_no} readOnly />
                                 </div>
 
                                 {/* Godown */}
@@ -614,10 +616,10 @@ export default function SaleCreate({
                                         {index === data.sale_items.length - 1 && (
                                             <button
                                                 type="button"
-                                                className="bg-primary hover:bg-primary-hover w-full rounded px-3 py-2 text-white md:w-fit"
+                                                className="bg-primary hover:bg-primary-hover w-full rounded px-3 py-2 text-white md:w-fit cursor-pointer"
                                                 onClick={addProductRow}
                                             >
-                                                +
+                                                + Add Product
                                             </button>
                                         )}
                                     </div>

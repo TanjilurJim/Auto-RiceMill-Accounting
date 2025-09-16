@@ -1,4 +1,5 @@
 import ActionFooter from '@/components/ActionFooter';
+import InputCalendar from '@/components/Btn&Link/InputCalendar';
 import { confirmDialog } from '@/components/confirmDialog';
 import PageHeader from '@/components/PageHeader';
 import AppLayout from '@/layouts/app-layout';
@@ -99,26 +100,20 @@ export default function PurchaseReturnCreate({
     return (
         <AppLayout>
             <Head title="Add Purchase Return" />
-            <div className="h-full w-screen bg-background p-6 lg:w-full">
-                <div className="h-full rounded-lg bg-background p-6">
+            <div className="bg-background h-full w-screen p-6 lg:w-full">
+                <div className="bg-background h-full rounded-lg p-6">
                     <PageHeader title="Create Purchase Return" addLinkText="Back" addLinkHref="/purchase-returns" />
 
                     {/* Form Card */}
-                    <form onSubmit={handleSubmit} className="space-y-6 rounded-lg border bg-background p-6">
+                    <form onSubmit={handleSubmit} className="bg-background space-y-6 rounded-lg border p-6">
                         {/* Return Info */}
                         <div className="space-y-4">
                             <h2 className="border-b pb-1 text-lg font-semibold">Return Information</h2>
                             <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-                                <input
-                                    type="date"
-                                    className="border p-2"
-                                    placeholder="Date"
-                                    value={data.date}
-                                    onChange={(e) => setData('date', e.target.value)}
-                                />
+                                <InputCalendar value={data.date} onChange={(val) => setData('date', val)} label="Date" />
                                 <input
                                     type="text"
-                                    className="border p-2"
+                                    className="border p-1"
                                     placeholder="Return Voucher No"
                                     value={data.return_voucher_no}
                                     onChange={(e) => setData('return_voucher_no', e.target.value)}
@@ -168,7 +163,7 @@ export default function PurchaseReturnCreate({
 
                         {/* Return Items Table */}
                         <div>
-                            <h2 className="mb-3 border-b bg-background pb-1 text-lg font-semibold">Return Items</h2>
+                            <h2 className="bg-background mb-3 border-b pb-1 text-lg font-semibold">Return Items</h2>
                             <div className="overflow-x-auto rounded border">
                                 <table className="min-w-full text-left">
                                     <thead className="bg-background text-sm">
@@ -227,7 +222,7 @@ export default function PurchaseReturnCreate({
                                                     />
                                                 </td>
                                                 <td className="border px-2 py-1">
-                                                    <input type="number" className="w-full bg-background" value={item.subtotal} readOnly />
+                                                    <input type="number" className="bg-background w-full" value={item.subtotal} readOnly />
                                                 </td>
                                                 <td className="border px-2 py-1 text-center">
                                                     <div className="flex justify-center space-x-1">
@@ -261,14 +256,14 @@ export default function PurchaseReturnCreate({
                         {/* Totals */}
                         <div className="mt-6 flex justify-between gap-4">
                             <div className="flex w-full flex-col gap-2.5 md:flex-row">
-                                <div className="flex w-full justify-between rounded border bg-background p-3 shadow-sm">
-                                    <span className="font-semibold text-foreground0">Total Qty:</span>
+                                <div className="bg-background flex w-full justify-between rounded border p-3 shadow-sm">
+                                    <span className="text-foreground0 font-semibold">Total Qty:</span>
                                     <span className="font-semibold">
                                         {data.return_items.reduce((sum, item) => sum + (parseFloat(item.qty) || 0), 0)}
                                     </span>
                                 </div>
-                                <div className="flex w-full justify-between rounded border bg-background p-3 shadow-sm">
-                                    <span className="font-semibold text-foreground0">Total Return Value:</span>
+                                <div className="bg-background flex w-full justify-between rounded border p-3 shadow-sm">
+                                    <span className="text-foreground0 font-semibold">Total Return Value:</span>
                                     <span className="font-semibold">
                                         {data.return_items.reduce((sum, item) => sum + (parseFloat(item.subtotal) || 0), 0)} Tk
                                     </span>
@@ -355,7 +350,7 @@ export default function PurchaseReturnCreate({
                             ))}
                         </div>
 
-                        <div className="mt-2 text-right text-sm text-foreground">
+                        <div className="text-foreground mt-2 text-right text-sm">
                             Total Refunded: {data.refund_modes.reduce((sum, r) => sum + (parseFloat(r.amount_paid) || 0), 0)} Tk
                         </div>
 

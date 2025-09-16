@@ -4,6 +4,7 @@ import AppLayout from '@/layouts/app-layout';
 import { Head, useForm } from '@inertiajs/react';
 import React, { useEffect, useState } from 'react';
 import axios from 'axios';
+import InputCalendar from '@/components/Btn&Link/InputCalendar';
 
 interface Props {
     ledgers: { id: number; name: string }[];
@@ -132,12 +133,9 @@ export default function SalesOrderCreate({ ledgers, salesmen, products, units, g
                             <h3 className="mb-3 text-lg font-semibold text-gray-700">Order Details</h3>
                             <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
                                 <div>
-                                    <label className="mb-1 block text-sm font-medium">Date</label>
-                                    <input
-                                        type="date"
+                                    <InputCalendar
                                         value={data.date}
-                                        onChange={(e) => setData('date', e.target.value)}
-                                        className="w-full rounded border px-3 py-2"
+                                        onChange={(val) => setData('date', val)}
                                     />
                                 </div>
                                 <div>

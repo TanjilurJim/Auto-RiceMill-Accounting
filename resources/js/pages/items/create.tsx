@@ -30,8 +30,8 @@ export default function ItemCreate({ categories, units, godowns }: { categories:
         sale_price: '',
         previous_stock: '',
         total_previous_stock_value: '',
-        weight: '',   
-        total_weight: '',  
+        weight: '',
+        total_weight: '',
         description: '',
         lot_no: '', // ← NEW
         received_at: '',

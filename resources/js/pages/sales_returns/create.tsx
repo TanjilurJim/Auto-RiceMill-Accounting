@@ -1,7 +1,8 @@
 import ActionFooter from '@/components/ActionFooter';
+import InputCalendar from '@/components/Btn&Link/InputCalendar';
 import PageHeader from '@/components/PageHeader';
 import AppLayout from '@/layouts/app-layout';
-import { Head, Link, useForm } from '@inertiajs/react';
+import { Head, useForm } from '@inertiajs/react';
 import axios from 'axios';
 import { useEffect, useState } from 'react';
 
@@ -119,8 +120,6 @@ export default function SalesReturnCreate({
         setData('amount_received', refundAmount.toFixed(2));
     }, [data.sales_return_items]);
 
-
-
     const handleItemChange = (index: number, field: string, value: any) => {
         const updatedItems = [...data.sales_return_items];
         updatedItems[index][field] = value;
@@ -159,8 +158,8 @@ export default function SalesReturnCreate({
     return (
         <AppLayout>
             <Head title="Create Sales Return" />
-            <div className="bg-gray-100 p-6 h-full w-screen lg:w-full">
-                <div className="bg-white h-full rounded-lg p-6">
+            <div className="h-full w-screen bg-gray-100 p-6 lg:w-full">
+                <div className="h-full rounded-lg bg-white p-6">
                     {/* <div className="mb-6 flex items-center justify-between">
                     <h1 className="text-2xl font-semibold text-gray-800">Create Sales Return</h1>
                     <Link href="/sales-returns" className="rounded bg-gray-300 px-5 py-2 text-sm font-medium text-gray-700 hover:bg-gray-400">
@@ -180,7 +179,11 @@ export default function SalesReturnCreate({
 
                             <div>
                                 <label className="mb-1 block text-sm font-medium">Related Sale</label>
-                                <select className="w-full rounded border p-2" value={data.sale_id} onChange={(e) => setData('sale_id', e.target.value)}>
+                                <select
+                                    className="w-full rounded border p-2"
+                                    value={data.sale_id}
+                                    onChange={(e) => setData('sale_id', e.target.value)}
+                                >
                                     <option value="">Select Sale (optional)</option>
                                     {sales.map((sale) => (
                                         <option key={sale.id} value={sale.id}>
@@ -238,7 +241,7 @@ export default function SalesReturnCreate({
                             </div>
 
                             {/* COGS Ledger */}
-                            
+
                             <div>
                                 <label className="mb-1 block text-sm font-medium">COGS Ledger</label>
                                 <select
@@ -328,13 +331,7 @@ export default function SalesReturnCreate({
                             </div>
 
                             <div>
-                                <label className="mb-1 block text-sm font-medium">Return Date</label>
-                                <input
-                                    type="date"
-                                    className="w-full rounded border p-2"
-                                    value={data.return_date}
-                                    onChange={(e) => setData('return_date', e.target.value)}
-                                />
+                                <InputCalendar value={data.return_date} onChange={(val) => setData('return_date', val)} label="Return Date" />
                             </div>
 
                             <div>
@@ -435,13 +432,17 @@ export default function SalesReturnCreate({
                                             <button
                                                 type="button"
                                                 onClick={() => removeProductRow(index)}
-                                                className="rounded bg-danger hover:bg-danger-hover px-3 py-1 text-white"
+                                                className="bg-danger hover:bg-danger-hover rounded px-3 py-1 text-white"
                                             >
                                                 &minus;
                                             </button>
                                         )}
                                         {index === data.sales_return_items.length - 1 && (
-                                            <button type="button" onClick={addProductRow} className="rounded bg-primary hover:bg-primary-hover px-3 py-1 text-white">
+                                            <button
+                                                type="button"
+                                                onClick={addProductRow}
+                                                className="bg-primary hover:bg-primary-hover rounded px-3 py-1 text-white"
+                                            >
                                                 +
                                             </button>
                                         )}
@@ -498,7 +499,6 @@ export default function SalesReturnCreate({
                             submitText={processing ? 'Saving...' : 'Save Sales Return'} // Text for the submit button
                             cancelText="Cancel" // Text for the cancel button
                         />
-
                     </form>
                 </div>
             </div>

@@ -57,7 +57,7 @@ const ItemForm: React.FC<ItemFormProps> = ({
     }, [data.previous_stock, data.weight]);
 
     return (
-        <form onSubmit={handleSubmit} className="space-y-4 rounded border bg-background p-6">
+        <form onSubmit={handleSubmit} className="bg-background space-y-4 rounded border p-6">
             <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
                 {/* Item Name */}
                 <div>
@@ -73,7 +73,7 @@ const ItemForm: React.FC<ItemFormProps> = ({
 
                 {/* Unit */}
                 <div>
-                    <label className="mb-1 block font-medium">Unit</label>
+                    <label className="mb-1 block font-medium">Unittttt</label>
                     <select value={data.unit_id} onChange={(e) => setData('unit_id', e.target.value)} className="w-full rounded border p-2">
                         <option value="">Select Unit</option>
                         {units.map((unit) => (
@@ -98,6 +98,8 @@ const ItemForm: React.FC<ItemFormProps> = ({
                     </select>
                     {errors.category_id && <p className="text-sm text-red-500">{errors.category_id}</p>}
                 </div>
+
+                {/* Godown */}
                 <div>
                     <label className="mb-1 block font-medium">Godown</label>
                     <select value={data.godown_id} onChange={(e) => setData('godown_id', e.target.value)} className="w-full rounded border p-2">
@@ -127,7 +129,7 @@ const ItemForm: React.FC<ItemFormProps> = ({
                 </div>
 
                 {/* Received-at */}
-                <div>
+                <div className='mt-3'>
                     <InputCalendar value={data.received_at} onChange={(val) => setData('received_at', val)} label="Received Date" required />
                     {errors.received_at && <p className="text-sm text-red-500">{errors.received_at}</p>}
                 </div>
