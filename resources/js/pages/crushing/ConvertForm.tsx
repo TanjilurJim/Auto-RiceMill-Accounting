@@ -631,15 +631,14 @@ export default function ConvertForm({
     return (
         <AppLayout>
             <Head title="Conversion / Transfer" />
-            <div className="bg-background h-full w-screen p-6 lg:w-full">
-                <div className="mb-4">
-                    <Link href={route('party-stock.transfer.index')} className="text-blue-600 hover:underline">
-                        ← Back to list
-                    </Link>
-                </div>
-
-                <div className="bg-background rounded-lg p-6">
-                    <h1 className="mb-4 text-xl font-bold">পণ্য রূপান্তর (Crushing → Output)</h1>
+            <div className="bg-background h-full w-screen p-4 md:p-12 lg:w-full">
+                <div className="bg-background rounded-lg">
+                    <div className='flex items-center justify-between'>
+                        <h1 className="mb-4 text-xl font-bold">পণ্য রূপান্তর (Crushing → Output)</h1>
+                        <Link href={route('party-stock.transfer.index')} className="text-blue-600 hover:underline">
+                            ← Back to list
+                        </Link>
+                    </div>
 
                     <form onSubmit={submit} className="space-y-6">
                         {/* Header grid */}
@@ -708,7 +707,7 @@ export default function ConvertForm({
                             {/* ref no */}
                             <div>
                                 <label className="mb-1 block font-medium">রেফারেন্স</label>
-                                <input readOnly className="w-full rounded border bg-background p-2" value={data.ref_no} />
+                                <input readOnly className="bg-background w-full rounded border p-2" value={data.ref_no} />
                             </div>
 
                             {/* dryer — header-level, not per row */}
@@ -781,13 +780,13 @@ export default function ConvertForm({
                                 </div>
 
                                 {/* Production cost */}
-                                <div className="rounded-lg border bg-background p-3">
+                                <div className="bg-background rounded-lg border p-3">
                                     <div className="text-[11px] text-gray-500">প্রোডাকশন কস্ট (৳)</div>
                                     <div className="mt-1 text-lg font-semibold tabular-nums">{prod.toFixed(2)}</div>
                                 </div>
 
                                 {/* By-product total */}
-                                <div className="rounded-lg border bg-background p-3">
+                                <div className="bg-background rounded-lg border p-3">
                                     <div className="text-[11px] text-gray-500">বাই-প্রোডাক্ট (৳)</div>
                                     <div className="mt-1 text-lg font-semibold tabular-nums">{byp.toFixed(2)}</div>
                                 </div>
@@ -795,7 +794,7 @@ export default function ConvertForm({
 
                             {/* Main kg & final preview */}
                             <div className="mt-3 grid grid-cols-1 gap-3 lg:grid-cols-3">
-                                <div className="rounded-lg border bg-background p-3">
+                                <div className="bg-background rounded-lg border p-3">
                                     <div className="text-[11px] text-gray-500">উৎপাদিত চাল (মেইন) – মোট ওজন</div>
                                     <div className="mt-1 text-lg font-semibold tabular-nums">
                                         {mainKg || 0} <span className="text-sm">কেজি</span>
@@ -803,13 +802,13 @@ export default function ConvertForm({
                                     <div className="mt-1 text-[11px] text-gray-500">মেইন রো-তে weight দিন</div>
                                 </div>
 
-                                <div className="rounded-lg border bg-background p-3">
+                                <div className="bg-background rounded-lg border p-3">
                                     <div className="text-[11px] text-gray-500">বেস চালমূল্য (৳)</div>
                                     <div className="mt-1 text-lg font-semibold tabular-nums">{mainValue.toFixed(2)}</div>
                                     <div className="mt-1 text-[11px] text-gray-500">= ভিত্তি দর (৳/কেজি) × মোট চাল (কেজি)</div>
                                 </div>
 
-                                <div className="rounded-lg border bg-background p-3">
+                                <div className="bg-background rounded-lg border p-3">
                                     <div className="text-[11px] text-gray-500">প্রতি কেজি (ফাইনাল প্রিভিউ)</div>
                                     <div className="mt-1 tabular-nums">
                                         <span className="text-foreground text-sm">
@@ -821,13 +820,13 @@ export default function ConvertForm({
                                         <span className="text-foreground text-sm"> ৳/কেজি</span>
                                     </div>
                                 </div>
-                                <div className="rounded-lg border bg-background p-3">
+                                <div className="bg-background rounded-lg border p-3">
                                     <div className="text-[11px] text-gray-500">টোটাল চালের মূল্য</div>
                                     <div className="mt-1 tabular-nums">
                                         <span className="text-foreground text-sm">
                                             {Number.isFinite(perKgToUse) && mainKg > 0 ? `${perKgToUse.toFixed(2)} × ${mainKg} = ` : '—'}
                                         </span>
-                                        <span className="rounded bg-background px-2 py-[2px] text-lg font-semibold text-foreground">
+                                        <span className="bg-background text-foreground rounded px-2 py-[2px] text-lg font-semibold">
                                             {mainKg > 0 ? totalByPerKg.toFixed(2) : '—'}
                                         </span>
                                         <span className="text-foreground text-sm"> টাকার চাল স্টকে ঢুকবে </span>

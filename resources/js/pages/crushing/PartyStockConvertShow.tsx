@@ -76,7 +76,7 @@ export default function PartyStockConvertShow({ header, consumed, generated }: P
         <AppLayout>
             <Head title={`Conversion ${header.ref_no}`} />
 
-            <div className="p-4 sm:p-6 lg:p-8">
+            <div className="p-4 md:p-12">
                 {/* ── Header & Back Link ─────────────────── */}
                 <div className="mb-6 flex flex-wrap items-center justify-between gap-4">
                     <h1 className="text-2xl font-bold text-slate-800">Stock Conversion Details</h1>

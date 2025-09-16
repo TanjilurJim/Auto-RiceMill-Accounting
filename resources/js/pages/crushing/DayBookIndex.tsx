@@ -41,7 +41,7 @@ const FilterBar: React.FC<{
     );
 
     return (
-        <div className="flex flex-wrap items-end gap-4 rounded-lg border border-background bg-background p-4 print:hidden">
+        <div className="flex flex-wrap items-end gap-4 print:hidden">
             {/* dates */}
             <div className="flex-grow">
                 <InputCalendar

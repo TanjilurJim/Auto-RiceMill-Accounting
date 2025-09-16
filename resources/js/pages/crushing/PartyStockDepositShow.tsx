@@ -37,8 +37,8 @@ export default function PartyStockDepositShow({ header, items, balances = [] }: 
     return (
         <AppLayout>
             <Head title={`Deposit ${header.ref_no ?? ''}`} />
-            <div className="h-full w-screen bg-gray-100 p-6 lg:w-full">
-                <div className="rounded-lg bg-white p-6">
+            <div className="h-full w-screen p-4 md:p-12 lg:w-full">
+                <div className="rounded-lg">
                     <div className="mb-4 flex items-center justify-between">
                         <h1 className="text-xl font-bold">Party Stock Deposit</h1>
                         <Link

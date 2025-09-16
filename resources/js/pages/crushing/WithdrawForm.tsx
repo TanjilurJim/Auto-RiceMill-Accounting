@@ -188,7 +188,7 @@ export default function WithdrawForm({ parties, godowns, units, today, generated
                     <h1 className="mb-4 text-xl font-bold">পণ্য উত্তোলন ফর্ম</h1>
 
                     {/* Available stock panel */}
-                    <div className="mb-4 rounded-md bg-background p-4">
+                    <div className="mb-4 rounded-md bg-background">
                         {data.party_ledger_id && available_stock[data.party_ledger_id] ? (
                             <>
                                 <h2 className="text-lg font-semibold">Selected Party Stock</h2>

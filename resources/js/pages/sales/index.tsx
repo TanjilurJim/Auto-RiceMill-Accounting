@@ -6,7 +6,7 @@ import TableComponent from '@/components/TableComponent';
 import AppLayout from '@/layouts/app-layout';
 import { Head, Link, router } from '@inertiajs/react';
 import React, { MouseEvent, useEffect, useState } from 'react';
-import { fmtDate } from '@/utils/format'; 
+import { fmtDate } from '@/utils/format';
 
 const miniBtn = 'px-2 py-1 text-xs rounded font-medium text-white transition';
 
@@ -200,7 +200,7 @@ export default function SaleIndex({ sales }: { sales: PaginatedSales }) {
                                             Gate Pass
                                         </Link>
                                     </div>
-                                )}
+                                )}  
                             </div>
                         )}
                     />

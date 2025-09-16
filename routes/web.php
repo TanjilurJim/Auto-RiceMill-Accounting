@@ -233,7 +233,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
         ->middleware(perm('salesman', 'delete'));
 
     // godowns
-    Route::resource('godowns', GodownController::class)->only(['index', ])
+    Route::resource('godowns', GodownController::class)->only(['index',])
         ->middleware(perm('godowns', 'view'));
     Route::resource('godowns', GodownController::class)->only(['create', 'store'])
         ->middleware(perm('godowns', 'create'));
@@ -277,7 +277,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
         ->middleware(perm('items', 'view'));
     Route::resource('items', ItemController::class)->only(['create', 'store'])
         ->middleware(perm('items', 'create'));
-        Route::resource('items', ItemController::class)->only(['show',])
+    Route::resource('items', ItemController::class)->only(['show',])
         ->middleware(perm('items', 'view'));
     Route::resource('items', ItemController::class)->only(['edit', 'update'])
         ->middleware(perm('items', 'edit'));
@@ -318,14 +318,14 @@ Route::middleware(['auth', 'verified'])->group(function () {
         ->middleware(perm('purchases', 'edit'));
     Route::resource('purchases', PurchaseController::class)->only(['destroy'])
         ->middleware(perm('purchases', 'delete'));
-    Route::resource('purchases', PurchaseController::class)->only([ 'show'])
+    Route::resource('purchases', PurchaseController::class)->only(['show'])
         ->middleware(perm('purchases', 'view'));
 
     // Purchase returns (seeder key: 'purchases-return')
     Route::get('purchase-returns/{purchase_return}/invoice', [PurchaseReturnController::class, 'invoice'])
         ->middleware(perm('purchases-return', 'view'))->name('purchase-returns.invoice');
 
-    Route::resource('purchase-returns', PurchaseReturnController::class)->only(['index', ])
+    Route::resource('purchase-returns', PurchaseReturnController::class)->only(['index',])
         ->middleware(perm('purchases-return', 'view'));
     Route::resource('purchase-returns', PurchaseReturnController::class)->only(['create', 'store'])
         ->middleware(perm('purchases-return', 'create'));
@@ -349,7 +349,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('purchase-returns/{purchase_return}/invoice', [PurchaseReturnController::class, 'invoice'])->name('purchase-returns.invoice');
 
     // Sale Routes
-    Route::resource('sales', SaleController::class)->only(['index', ])
+    Route::resource('sales', SaleController::class)->only(['index',])
         ->middleware(perm('sales', 'view'));
     Route::resource('sales', SaleController::class)->only(['create', 'store'])
         ->middleware(perm('sales', 'create'));
@@ -357,7 +357,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
         ->middleware(perm('sales', 'edit'));
     Route::resource('sales', SaleController::class)->only(['destroy'])
         ->middleware(perm('sales', 'delete'));
-        Route::resource('sales', SaleController::class)->only([ 'show'])
+    Route::resource('sales', SaleController::class)->only(['show'])
         ->middleware(perm('sales', 'view'));
 
 
@@ -380,7 +380,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
         'salary-receives' => 'salaryReceive',
     ]);
     //Sales Return
-    Route::resource('sales-returns', SalesReturnController::class)->only(['index', 'show'])
+    Route::resource('sales-returns', SalesReturnController::class)->only(['index',])
         ->middleware(perm('sales-return', 'view'));
     Route::resource('sales-returns', SalesReturnController::class)->only(['create', 'store'])
         ->middleware(perm('sales-return', 'create'));
@@ -388,6 +388,8 @@ Route::middleware(['auth', 'verified'])->group(function () {
         ->middleware(perm('sales-return', 'edit'));
     Route::resource('sales-returns', SalesReturnController::class)->only(['destroy'])
         ->middleware(perm('sales-return', 'delete'));
+    Route::resource('sales-returns', SalesReturnController::class)->only(['show',])
+        ->middleware(perm('sales-return', 'view'));
 
 
 
@@ -401,7 +403,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
 
 
     // received modes
-    Route::resource('received-modes', ReceivedModeController::class)->only(['index', ])
+    Route::resource('received-modes', ReceivedModeController::class)->only(['index',])
         ->middleware(perm('received-modes', 'view'));
     Route::resource('received-modes', ReceivedModeController::class)->only(['create', 'store'])
         ->middleware(perm('received-modes', 'create'));
@@ -409,7 +411,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
         ->middleware(perm('received-modes', 'edit'));
     Route::resource('received-modes', ReceivedModeController::class)->only(['destroy'])
         ->middleware(perm('received-modes', 'delete'));
-        Route::resource('received-modes', ReceivedModeController::class)->only(['show', ])
+    Route::resource('received-modes', ReceivedModeController::class)->only(['show',])
         ->middleware(perm('received-modes', 'view'));
 
     Route::resource('received-add', ReceivedAddController::class)->only(['index', 'show'])
@@ -457,7 +459,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
         ->middleware(perm('company-settings', 'edit'))->name('company-settings.costings.update');
 
 
-    Route::resource('financial-years', FinancialYearController::class)->only(['index', ])
+    Route::resource('financial-years', FinancialYearController::class)->only(['index',])
         ->middleware(perm('financial-year', 'view'));
     Route::resource('financial-years', FinancialYearController::class)->only(['create', 'store'])
         ->middleware(perm('financial-year', 'create'));
@@ -465,7 +467,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
         ->middleware(perm('financial-year', 'edit'));
     Route::resource('financial-years', FinancialYearController::class)->only(['destroy'])
         ->middleware(perm('financial-year', 'delete'));
-        Route::resource('financial-years', FinancialYearController::class)->only(['show', ])
+    Route::resource('financial-years', FinancialYearController::class)->only(['show',])
         ->middleware(perm('financial-year', 'view'));
 
 
@@ -553,9 +555,9 @@ Route::middleware(['auth', 'verified'])->group(function () {
 
 
     Route::get('/users/{user}/lineage', [UserController::class, 'lineage'])
-    ->name('users.lineage');
+        ->name('users.lineage');
     Route::patch('/users/{user}/extend-trial', [UserController::class, 'extendTrial'])
-    ->name('users.extendTrial');
+        ->name('users.extendTrial');
 
     // designations
     Route::resource('designations', DesignationController::class)->only(['index', 'show'])
@@ -843,18 +845,18 @@ Route::middleware(['auth', 'verified'])->group(function () {
 
     // routes/web.php
     Route::prefix('dues')->name('dues.')->group(function () {
-    Route::get('/',  [DueController::class, 'index'])
-        ->middleware(perm('dues','view'))->name('index');
+        Route::get('/',  [DueController::class, 'index'])
+            ->middleware(perm('dues', 'view'))->name('index');
 
-    Route::get('/settled', [DueController::class, 'settled'])
-        ->middleware(perm('dues-settled','view'))->name('settled');
+        Route::get('/settled', [DueController::class, 'settled'])
+            ->middleware(perm('dues-settled', 'view'))->name('settled');
 
-    Route::get('/{sale}', [DueController::class, 'show'])
-        ->middleware(perm('dues','view'))->name('show');
+        Route::get('/{sale}', [DueController::class, 'show'])
+            ->middleware(perm('dues', 'view'))->name('show');
 
-    Route::post('/{sale}/pay', [DueController::class, 'store'])
-        ->middleware(perm('dues','create'))->name('pay');
-});
+        Route::post('/{sale}/pay', [DueController::class, 'store'])
+            ->middleware(perm('dues', 'create'))->name('pay');
+    });
 
 
     // Crushing party stock report page
@@ -896,7 +898,7 @@ Route::prefix('reports')->name('reports.')->group(function () {
 Route::get('/reports/account-book/export/excel', [ReportController::class, 'exportAccountBookExcel'])->name('reports.account-book.excel');
 Route::get('/reports/account-book/export/pdf', [ReportController::class, 'exportAccountBookPDF'])->name('reports.account-book.pdf');
 
-// Account Group Summary Report pdf and excel 
+// Account Group Summary Report pdf and excel
 Route::get('/reports/ledger-group-summary/excel', [LedgerGroupReportController::class, 'exportExcel'])->name('reports.ledger-group-summary.excel');
 Route::get('/reports/ledger-group-summary/pdf', [LedgerGroupReportController::class, 'exportPDF'])->name('reports.ledger-group-summary.pdf');
 

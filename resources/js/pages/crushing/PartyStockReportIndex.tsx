@@ -42,42 +42,38 @@ export default function PartyStockReportIndex({ parties, items, rows, totals, fi
         return p;
     };
     const selectStyles = {
-  control: (base: any, state: any) => ({
-    ...base,
-    backgroundColor: 'var(--input)',
-    borderColor: state.isFocused ? 'var(--ring)' : 'var(--input)',
-    boxShadow: state.isFocused ? '0 0 0 2px var(--ring)' : 'none',
-    color: 'var(--foreground)',
-    minHeight: '2.5rem',
-    borderRadius: 'var(--radius-md)',
-  }),
-  singleValue: (base: any) => ({ ...base, color: 'var(--foreground)' }),
-  input:       (base: any) => ({ ...base, color: 'var(--foreground)' }),
-  placeholder: (base: any) => ({ ...base, color: 'var(--muted-foreground)' }),
+        control: (base: any, state: any) => ({
+            ...base,
+            backgroundColor: 'var(--input)',
+            borderColor: state.isFocused ? 'var(--ring)' : 'var(--input)',
+            boxShadow: state.isFocused ? '0 0 0 2px var(--ring)' : 'none',
+            color: 'var(--foreground)',
+            minHeight: '2.5rem',
+            borderRadius: 'var(--radius-md)',
+        }),
+        singleValue: (base: any) => ({ ...base, color: 'var(--foreground)' }),
+        input: (base: any) => ({ ...base, color: 'var(--foreground)' }),
+        placeholder: (base: any) => ({ ...base, color: 'var(--muted-foreground)' }),
 
-  menu: (base: any) => ({
-    ...base,
-    backgroundColor: 'var(--popover)',
-    color: 'var(--popover-foreground)',
-    border: '1px solid var(--border)',
-  }),
-  option: (base: any, state: any) => ({
-    ...base,
-    backgroundColor: state.isSelected
-      ? 'var(--primary)'
-      : state.isFocused
-      ? 'var(--accent)'
-      : 'transparent',
-    color: state.isSelected ? 'var(--primary-foreground)' : 'var(--popover-foreground)',
-  }),
+        menu: (base: any) => ({
+            ...base,
+            backgroundColor: 'var(--popover)',
+            color: 'var(--popover-foreground)',
+            border: '1px solid var(--border)',
+        }),
+        option: (base: any, state: any) => ({
+            ...base,
+            backgroundColor: state.isSelected ? 'var(--primary)' : state.isFocused ? 'var(--accent)' : 'transparent',
+            color: state.isSelected ? 'var(--primary-foreground)' : 'var(--popover-foreground)',
+        }),
 
-  indicatorSeparator: (b: any) => ({ ...b, backgroundColor: 'var(--border)' }),
-  dropdownIndicator:  (b: any) => ({ ...b, color: 'var(--muted-foreground)' }),
-  clearIndicator:     (b: any) => ({ ...b, color: 'var(--muted-foreground)' }),
+        indicatorSeparator: (b: any) => ({ ...b, backgroundColor: 'var(--border)' }),
+        dropdownIndicator: (b: any) => ({ ...b, color: 'var(--muted-foreground)' }),
+        clearIndicator: (b: any) => ({ ...b, color: 'var(--muted-foreground)' }),
 
-  // if you render into a portal (recommended to avoid overflow issues)
-  menuPortal: (base: any) => ({ ...base, zIndex: 60 }), // adjust to your stack
-};
+        // if you render into a portal (recommended to avoid overflow issues)
+        menuPortal: (base: any) => ({ ...base, zIndex: 60 }), // adjust to your stack
+    };
 
     const apply = () => {
         if (!dateTo) {
@@ -129,13 +125,14 @@ export default function PartyStockReportIndex({ parties, items, rows, totals, fi
         <AppLayout>
             <Head title="Crushing – Party Stock Report" />
 
-            <div className="bg-background p-6 print:p-0">
-                <div className="rounded-lg bg-background p-6 shadow-lg print:p-4 print:shadow-none">
+            <div className="p-4 md:p-12 print:p-0">
+                <div className="print:p-4 print:shadow-none">
                     <PageHeader title="Party Stock Report" />
 
                     {/* filter bar */}
-                    <div className="mb-6 grid w-full grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 print:hidden">
-                        <div className="space-y-1">
+                    <div className="mb-6 grid w-full grid-cols-1 gap-4 lg:grid-cols-2 xl:grid-cols-5 print:hidden">
+                        {/* Party */}
+                        <div className="">
                             <label htmlFor="">Party</label>
                             <Select
                                 options={partyOpts}
@@ -145,30 +142,28 @@ export default function PartyStockReportIndex({ parties, items, rows, totals, fi
                                 onChange={(o) => setPartyId(o?.value ?? '')}
                                 isClearable
                                 className="min-w-[180px]"
-                                                                     styles={selectStyles}
-
+                                styles={selectStyles}
                             />
                         </div>
-                        <div className="space-y-1">
+                        {/* Items */}
+                        <div className="">
                             <label htmlFor="">Items</label>
-                        <Select
-                            options={itemOpts}
-                            classNamePrefix="rs"
-                            placeholder="All Items"
-                            value={itemOpts.find((o) => o.value === itemId) || null}
-                            onChange={(o) => setItemId(o?.value ?? '')}
-                            isClearable
-                            className="min-w-[180px]"
-                                                                 styles={selectStyles}
-
-                        />
+                            <Select
+                                options={itemOpts}
+                                classNamePrefix="rs"
+                                placeholder="All Items"
+                                value={itemOpts.find((o) => o.value === itemId) || null}
+                                onChange={(o) => setItemId(o?.value ?? '')}
+                                isClearable
+                                className="min-w-[180px]"
+                                styles={selectStyles}
+                            />
                         </div>
 
                         {/* From */}
                         <InputCalendar label="From" value={dateFrom} onChange={setDateFrom} max={dateTo || dayjs().format('YYYY-MM-DD')} />
 
                         {/* To */}
-                        
                         <InputCalendar
                             label="To"
                             value={dateTo}
@@ -176,12 +171,19 @@ export default function PartyStockReportIndex({ parties, items, rows, totals, fi
                             min={dateFrom || undefined}
                             max={dayjs().format('YYYY-MM-DD')}
                         />
-                        
-                        <div className="flex gap-2 self-end">
-                            <button onClick={apply} className="inline-flex items-center rounded-md bg-purple-600 px-3 py-1 text-sm font-medium text-white shadow-sm hover:bg-purple-700">
+
+                        {/* Apply and reset buttons */}
+                        <div className="flex gap-2 items-center mt-3">
+                            <button
+                                onClick={apply}
+                                className="inline-flex items-center rounded-md bg-purple-600 px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-purple-700"
+                            >
                                 Apply
                             </button>
-                            <button onClick={reset} className="inline-flex items-center rounded-md border bg-white px-4 py-2 text-sm text-gray-700 shadow-sm hover:bg-gray-50">
+                            <button
+                                onClick={reset}
+                                className="inline-flex items-center rounded-md border bg-white px-4 py-2 text-sm text-gray-700 shadow-sm hover:bg-gray-50"
+                            >
                                 Reset
                             </button>
                         </div>
