@@ -259,12 +259,14 @@ export default function AdminDashboard() {
             <Head title="Super Admin Dashboard" />
 
             {/* Top header & quick actions */}
-            <div className="mb-4 flex flex-col items-start justify-between gap-3 p-6 sm:flex-row sm:items-center">
+            <div className="mb-4 mt-2 grid grid-cols-1 md:grid-cols-2 justify-center md:justify-between gap-3 px-2">
                 <div>
-                    <h1 className="text-2xl font-semibold tracking-tight">Super Admin Dashboard</h1>
-                    <p className="text-muted-foreground mt-1 text-sm">Organization-wide user overview, activity, and onboarding.</p>
+                    <h1 className="text-center md:text-left text-2xl font-semibold tracking-tight">Super Admin Dashboard</h1>
+                    <p className="text-center md:text-left  text-muted-foreground mt-1 text-sm">Organization-wide user overview, activity, and onboarding.</p>
                 </div>
-                <div className="flex items-center gap-2">
+
+                {/* Manage Users and New User buttons */}
+                <div className="flex items-center justify-center md:justify-end gap-2">
                     <Link href={route('users.index')} className="inline-flex items-center">
                         <Button variant="default" className="gap-2">
                             <Users className="h-4 w-4" />

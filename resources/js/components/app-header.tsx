@@ -24,9 +24,9 @@ import {
     Folder,
     Layers3,
     LayoutGrid,
-    Maximize,        // ⬅️  add these two lines
-   Minimize, 
-    Menu,
+    Maximize,
+    Menu, // ⬅️  add these two lines
+    Minimize,
     Package,
     Search,
     ShoppingCart,
@@ -215,11 +215,11 @@ export function AppHeader({ breadcrumbs = [] }: AppHeaderProps) {
                         onClick={toggleFullscreen}
                         type="button"
                         className={cn(
-                            'ml-2', 'inline-flex items-center gap-1 rounded-md px-3 py-1.5 text-sm font-medium text-black',
+                            'ml-2',
+                            'inline-flex items-center gap-1 rounded-md px-3 py-1.5 text-sm font-medium text-black',
                             'shadow transition hover:-translate-y-0.5 hover:shadow-md',
                             'bg-slate-600',
                         )}
-                        
                     >
                         {isFullscreen ? <Minimize className="h-4 w-4" /> : <Maximize className="h-4 w-4" />}
                         <span className="hidden sm:inline">{isFullscreen ? 'Exit' : 'Full'}</span>

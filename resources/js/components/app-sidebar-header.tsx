@@ -51,7 +51,8 @@ export function AppSidebarHeader({ breadcrumbs = [] }: { breadcrumbs?: Breadcrum
     };
 
     return (
-        <header className="border-sidebar-border/50 flex h-16 shrink-0 items-center justify-between gap-2 border-b px-6 transition-[width,height] ease-linear group-has-data-[collapsible=icon]/sidebar-wrapper:h-12 md:px-4">
+        <header className="border-sidebar-border/50 flex h-16 shrink-0 items-center justify-between gap-2 border-b px-1 transition-[width,height] ease-linear group-has-data-[collapsible=icon]/sidebar-wrapper:h-12">
+            {/* Ghost button + Dashboard title  */}
             <div className="flex items-center gap-2">
                 <SidebarTrigger className="print:hidden cursor-pointer" />
 
@@ -83,7 +84,7 @@ export function AppSidebarHeader({ breadcrumbs = [] }: { breadcrumbs?: Breadcrum
             </div>
 
             {/* <div className="mb-4 flex flex-wrap items-center gap-2 ml-2"> */}
-            <div className="mb-2 ml-0 hidden w-full flex-wrap items-center justify-center gap-2 sm:mb-0 sm:ml-2 sm:w-auto sm:justify-end md:flex">
+            <div className="mb-2 w-full flex items-center justify-end gap-2">
                 <button
                     onClick={toggleFullscreen}
                     type="button"
