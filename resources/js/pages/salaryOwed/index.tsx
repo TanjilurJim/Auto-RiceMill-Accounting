@@ -75,7 +75,7 @@ export default function Index() {
 
     /* Table columns (without Outstanding, added later) */
     const columns = [
-        { header: '#', accessor: (_: Row, i: number) => i + 1, className: 'text-center' },
+        { header: '#', accessor: (_: Row, i?: number) => <span>{(i ?? 0) + 1}</span>, className: 'text-center' },
         { header: 'Name', accessor: 'name' },
         { header: 'Total', accessor: (r: Row) => money(r.gross_sum) },
         { header: 'Paid', accessor: (r: Row) => money(r.paid_sum) },
@@ -95,14 +95,12 @@ export default function Index() {
 
                 {/* Filters */}
 
-
-                <div className="rounded-lg bg-white p-6">
+                <div className="rounded-lg bg-white">
                     <PageHeader title="Outstanding Salaries" addLinkHref="/dashboard" addLinkText="Dashboard" />
-                    <SearchBar endpoint={route('salary-owed.index')} searchQuery={filters.search ?? ''} />
+                    <SearchBar endpoint={route('salary-owed.index')} />
 
-                    <div className="max-h-[70vh] overflow-x-auto">
+                    <div className="max-h-[70vh] overflow-x-auto mt-5">
                         <TableComponent
-                            stickyHeader
                             columns={[
                                 ...columns,
                                 {

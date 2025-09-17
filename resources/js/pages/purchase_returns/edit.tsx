@@ -1,4 +1,5 @@
 import ActionFooter from '@/components/ActionFooter';
+import InputCalendar from '@/components/Btn&Link/InputCalendar';
 import { confirmDialog } from '@/components/confirmDialog';
 import PageHeader from '@/components/PageHeader';
 import AppLayout from '@/layouts/app-layout';
@@ -105,7 +106,7 @@ export default function PurchaseReturnEdit({
                         <div className="space-y-4">
                             <h2 className="border-b pb-1 text-lg font-semibold">Return Information</h2>
                             <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-                                <input type="date" className="border p-2" value={data.date} onChange={(e) => setData('date', e.target.value)} />
+                                <InputCalendar value={data.date} label="" onChange={(val) => setData('date', val)} />
                                 <input type="text" className="border p-2" value={data.return_voucher_no} readOnly />
                                 <select className="border p-2" value={data.godown_id} onChange={(e) => setData('godown_id', e.target.value)}>
                                     <option value="">Select Godown</option>

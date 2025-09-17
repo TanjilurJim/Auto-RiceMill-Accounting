@@ -1,4 +1,5 @@
 import ActionFooter from '@/components/ActionFooter';
+import InputCalendar from '@/components/Btn&Link/InputCalendar';
 import PageHeader from '@/components/PageHeader';
 import AppLayout from '@/layouts/app-layout';
 import { Head, useForm } from '@inertiajs/react';
@@ -59,21 +60,15 @@ export default function Edit({ journal, accountLedgers, errors }: any) {
     return (
         <AppLayout>
             <Head title="Edit Journal Entry" />
-            <div className="bg-gray-100 p-6 h-full w-screen lg:w-full">
-                <div className="bg-white h-full rounded-lg p-6">
+            <div className="h-full w-screen lg:w-full">
+                <div className="h-full rounded-lg p-4 md:p-12">
 
                     <PageHeader title="Edit Journal Entry" addLinkHref="/journal-add" addLinkText='Back' />
 
                     <form onSubmit={handleSubmit} className="space-y-6">
                         <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
                             <div>
-                                <label className="mb-1 block text-sm font-medium">Date</label>
-                                <input
-                                    type="date"
-                                    value={data.date}
-                                    onChange={(e) => setData('date', e.target.value)}
-                                    className="w-full rounded border-gray-300 px-3 py-2 shadow-sm focus:border-blue-500 focus:ring-blue-500"
-                                />
+                                <InputCalendar value={data.date} label="Date" onChange={(val) => setData('date', val)} />
                                 {errors.date && <p className="mt-1 text-sm text-red-500">{errors.date}</p>}
                             </div>
                             <div>

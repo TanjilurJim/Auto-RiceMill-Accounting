@@ -4,6 +4,7 @@ import { PlusCircleIcon, TrashIcon } from '@heroicons/react/24/outline';
 import { useState } from 'react';
 import PageHeader from '@/components/PageHeader';
 import ActionFooter from '@/components/ActionFooter';
+import InputCalendar from '@/components/Btn&Link/InputCalendar';
 
 interface Godown {
   id: number;
@@ -121,25 +122,18 @@ const WorkingOrderEdit: React.FC<Props> = ({ workingOrder, products, godowns }) 
       <Head title="Edit Working Order" />
 
       <div className="mx-auto w-full h-full ">
-        <div className="h-full border border-gray-200 bg-gray-100 p-6">
+        <div className="h-full border p-4 md:p-12">
           <div className="w-full h-full bg-white rounded-md p-6 ">
             <PageHeader title="Edit Working Order" addLinkText="Back to Orders" addLinkHref="/working-orders" />
 
-            <form onSubmit={handleSubmit} className="space-y-8 px-6 py-5">
+            <form onSubmit={handleSubmit} className="space-y-8 py-5">
               <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
                 <div>
-                  <label className="mb-1 block text-xs font-medium text-gray-600">Date</label>
-                  <input
-                    type="date"
-                    value={date}
-                    onChange={(e) => setDate(e.target.value)}
-                    className="w-full rounded border border-gray-400 px-3 py-2 text-sm"
-                    required
-                  />
+                  <InputCalendar value={date} label="Date" onChange={(val) => setDate(val)} />
                 </div>
 
                 <div>
-                  <label className="mb-1 block text-xs font-medium text-gray-600">Voucher No</label>
+                  <label className="mb-1 block font-medium text-gray-600">Voucher No</label>
                   <input
                     type="text"
                     value={workingOrder.voucher_no}
@@ -149,7 +143,7 @@ const WorkingOrderEdit: React.FC<Props> = ({ workingOrder, products, godowns }) 
                 </div>
 
                 <div>
-                  <label className="mb-1 block text-xs font-medium text-gray-600">Reference No</label>
+                  <label className="mb-1 block font-medium text-gray-600">Reference No</label>
                   <input
                     type="text"
                     value={referenceNo}
@@ -285,7 +279,7 @@ const WorkingOrderEdit: React.FC<Props> = ({ workingOrder, products, godowns }) 
                     key={idx}
                     className="grid grid-cols-1 gap-4 rounded border border-gray-100 bg-gray-50 p-4 shadow-md sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-6 xl:grid-cols-12"
                   >
-                    
+
                     <div className="col-span-1 lg:col-span-5">
                       <label className="mb-2 block text-sm font-medium text-gray-700">Title</label>
                       <input
@@ -298,7 +292,7 @@ const WorkingOrderEdit: React.FC<Props> = ({ workingOrder, products, godowns }) 
                         required
                       />
                     </div>
-                    
+
                     <div className="col-span-1 lg:col-span-2">
                       <label className="mb-2 block text-sm font-medium text-gray-700">Qty</label>
                       <input
@@ -309,7 +303,7 @@ const WorkingOrderEdit: React.FC<Props> = ({ workingOrder, products, godowns }) 
                         className="w-full rounded border border-black px-2 py-1 text-xs text-right"
                       />
                     </div>
-                    
+
                     <div className="col-span-1 lg:col-span-2">
                       <label className="mb-2 block text-sm font-medium text-gray-700">Price</label>
                       <input
@@ -320,11 +314,11 @@ const WorkingOrderEdit: React.FC<Props> = ({ workingOrder, products, godowns }) 
                         className="w-full rounded border border-black px-2 py-1 text-xs text-right"
                       />
                     </div>
-                    
+
                     <div className="col-span-1 lg:col-span-2 flex items-center justify-end">
                       <span className="text-sm font-medium text-indigo-600">{Number(row.total).toFixed(2)}</span>
                     </div>
-                    
+
                     <div className="col-span-1 flex items-center justify-end">
                       <button
                         type="button"

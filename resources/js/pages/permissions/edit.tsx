@@ -29,7 +29,7 @@ export default function EditPermission({ permission }: { permission: Permission 
         <AppLayout breadcrumbs={breadcrumbs}>
             <Head title={`Edit - ${permission.name}`} />
 
-            <div className="mx-auto max-w-xl p-6">
+            <div className="p-4 md:p-12">
                 <h1 className="mb-6 text-2xl font-bold">Edit Permission</h1>
 
                 <form onSubmit={submit} className="space-y-4 rounded bg-white p-4 shadow dark:bg-neutral-900">

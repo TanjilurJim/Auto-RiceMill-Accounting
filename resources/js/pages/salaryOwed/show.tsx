@@ -52,8 +52,8 @@ export default function Show() {
         <AppLayout>
             <Head title={`Salary Statement – ${employee.name}`} />
 
-            <div className="h-full w-screen bg-gray-100 p-6 lg:w-full">
-                <div className="rounded-lg bg-white p-6">
+            <div className="h-full w-screen lg:w-full">
+                <div className="rounded-lg p-4 md:p-12">
                     <div className='no-print'>
                     <PageHeader title={`Salary Statement – ${employee.name}`} addLinkHref={route('salary-owed.index')} addLinkText="← Back to List" />
                     </div>

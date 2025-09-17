@@ -66,7 +66,7 @@ export default function Profile({ mustVerifyEmail, status }: { mustVerifyEmail: 
         <AppLayout breadcrumbs={breadcrumbs}>
             <Head title="Profile settings" />
             <TrialBanner />
-            <Card className="mb-6">
+            <Card className="m-4">
                 <CardHeader>
                     <CardTitle className="flex items-center gap-2">
                         Account status

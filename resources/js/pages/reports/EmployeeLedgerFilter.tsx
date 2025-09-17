@@ -45,6 +45,7 @@ const EmployeeLedgerFilter: React.FC<Props> = ({ employees }) => {
       <div className="p-4 md:p-12 h-full w-screen lg:w-full">
         <div className="bg-white h-full rounded-lg p-6">
           <PageHeader title="Employee Ledger Report" />
+
           <form onSubmit={handleSubmit} className="space-y-4">
             {/* Employee Dropdown */}
             <div>

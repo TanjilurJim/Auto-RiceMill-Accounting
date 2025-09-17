@@ -1,4 +1,5 @@
 import ActionFooter from '@/components/ActionFooter';
+import InputCalendar from '@/components/Btn&Link/InputCalendar';
 import PageHeader from '@/components/PageHeader';
 import AppLayout from '@/layouts/app-layout';
 import { Head, router } from '@inertiajs/react';
@@ -92,28 +93,26 @@ export default function Edit({ voucher_no, date: initDate, description: initDesc
         <AppLayout>
             <Head title="Edit Payment" />
 
-            <div className="bg-background p-6 h-full w-screen lg:w-full">
+            <div className="bg-background h-full w-screen p-6 lg:w-full">
                 <div className="bg-background h-full rounded-lg p-6">
-
                     <PageHeader title="Edit Payment" addLinkHref="/payment-add" addLinkText="Back" />
 
                     <form onSubmit={handleSubmit} className="space-y-4">
-                        <div className="grid grid-cols-3 gap-4">
+                        <div className="grid grid-cols-2 items-center gap-4 md:grid-cols-3">
                             <div>
-                                <label className="mb-1 block font-medium">Date</label>
-                                <input type="date" value={date} onChange={(e) => setDate(e.target.value)} className="w-full rounded border px-3 py-2" />
+                                <InputCalendar value={date} label="Date" onChange={(val) => setDate(val)} />
                             </div>
                             <div>
                                 <label className="mb-1 block font-medium">Voucher No</label>
-                                <input type="text" value={voucherNo} readOnly className="w-full rounded border bg-background px-3 py-2" />
+                                <input type="text" value={voucherNo} readOnly className="bg-background w-full rounded border px-3 py-2" />
                             </div>
                         </div>
 
                         <div>
                             <label className="mb-1 block font-medium">Payments</label>
 
-                            <div className="mb-4 rounded border p-3">
-                                <div className="mb-1 grid grid-cols-6 gap-2 text-xs font-semibold text-gray-600">
+                            <div className="mb-4 rounded border p-2">
+                                <div className="mb-1 grid grid-cols-5 gap-1 text-center text-xs font-semibold text-gray-600">
                                     <div>Payment Mode</div>
                                     <div>Account Ledger</div>
                                     <div>Amount</div>
@@ -122,7 +121,7 @@ export default function Edit({ voucher_no, date: initDate, description: initDesc
                                 </div>
 
                                 {rows.map((row, index) => (
-                                    <div key={index} className="mb-2 grid grid-cols-6 items-center gap-2">
+                                    <div key={index} className="mb-2 grid grid-cols-5 items-center gap-1">
                                         <div>
                                             <select
                                                 className="w-full rounded border px-2 py-1 text-sm"
@@ -193,7 +192,11 @@ export default function Edit({ voucher_no, date: initDate, description: initDesc
 
                         <div>
                             <label className="mb-1 block font-medium">Description</label>
-                            <textarea value={description} onChange={(e) => setDescription(e.target.value)} className="w-full rounded border px-3 py-2" />
+                            <textarea
+                                value={description}
+                                onChange={(e) => setDescription(e.target.value)}
+                                className="w-full rounded border px-3 py-2"
+                            />
                         </div>
 
                         {/* <div className="flex items-center gap-2">
@@ -202,8 +205,6 @@ export default function Edit({ voucher_no, date: initDate, description: initDesc
                         </div> */}
 
                         <div className="text-right font-bold">Total: {totalAmount.toFixed(2)}</div>
-                        
-
 
                         <ActionFooter
                             className="justify-end"
@@ -216,7 +217,6 @@ export default function Edit({ voucher_no, date: initDate, description: initDesc
                     </form>
                 </div>
             </div>
-
         </AppLayout>
     );
 }

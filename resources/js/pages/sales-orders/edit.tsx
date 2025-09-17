@@ -1,4 +1,5 @@
 import ActionFooter from '@/components/ActionFooter';
+import InputCalendar from '@/components/Btn&Link/InputCalendar';
 import PageHeader from '@/components/PageHeader';
 import AppLayout from '@/layouts/app-layout';
 import { Head, useForm } from '@inertiajs/react';
@@ -93,13 +94,7 @@ export default function SalesOrderEdit({ salesOrder, ledgers, salesmen, products
                             <h3 className="mb-3 text-lg font-semibold text-gray-700">Order Details</h3>
                             <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
                                 <div>
-                                    <label className="mb-1 block text-sm font-medium">Date</label>
-                                    <input
-                                        type="date"
-                                        value={data.date}
-                                        onChange={(e) => setData('date', e.target.value)}
-                                        className="w-full rounded border px-3 py-2"
-                                    />
+                                    <InputCalendar value={data.date} label="Date" onChange={(val) => setData('date', val)} />
                                 </div>
                                 <div>
                                     <label className="mb-1 block text-sm font-medium">Voucher No</label>

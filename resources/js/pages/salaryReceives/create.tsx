@@ -1,5 +1,7 @@
 import ActionFooter from '@/components/ActionFooter';
+import InputCalendar from '@/components/Btn&Link/InputCalendar';
 import PageHeader from '@/components/PageHeader';
+import { Input } from '@/components/ui/input';
 import AppLayout from '@/layouts/app-layout';
 import { Head, useForm } from '@inertiajs/react';
 
@@ -123,20 +125,19 @@ export default function Create({ employees, receivedModes, salarySlipEmployees }
         <AppLayout>
             <Head title="Create Salary Receive" />
 
-            <div className="h-full w-screen bg-gray-100 p-6 lg:w-full">
-                <div className="h-full rounded-lg bg-white p-6">
+            <div className="h-full w-screen p-4 md:p-12 lg:w-full">
+                <div className="h-full rounded-lg ">
                     <PageHeader title="Create Salary Receive" addLinkHref="/salary-receives" addLinkText="Back" />
 
                     <form onSubmit={handleSubmit} className="space-y-6 rounded-lg border bg-white p-6">
                         <div className="grid gap-4 md:grid-cols-2">
                             {/* Voucher No */}
                             <div>
-                                <label className="block font-medium">Voucher No</label>
-                                <input
+                                <label className="block font-medium mb-1">Voucher No</label>
+                                <Input
                                     type="text"
                                     value={data.vch_no}
                                     onChange={(e) => setData('vch_no', e.target.value)}
-                                    className="w-full rounded border px-3 py-2"
                                     required
                                 />
                                 {errors.vch_no && <div className="text-red-600">{errors.vch_no}</div>}
@@ -144,19 +145,7 @@ export default function Create({ employees, receivedModes, salarySlipEmployees }
 
                             {/* Date */}
                             <div>
-                                <label className="block font-medium">Date</label>
-                                <DatePicker
-                                    selected={selectedDate}
-                                    onChange={(date: Date | null) => {
-                                        setSelectedDate(date);
-                                        setData('date', date ? dayjs(date).format('YYYY-MM-DD') : '');
-                                    }}
-                                    dateFormat="dd/MM/yyyy"
-                                    placeholderText="dd/mm/yyyy"
-                                    className="w-full rounded border px-3 py-2"
-                                    showPopperArrow={false}
-                                    required
-                                />
+                                <InputCalendar value={data.date} label="Date" onChange={(val) => setData('date', val)} />
                                 {errors.date && <div className="text-red-600">{errors.date}</div>}
                             </div>
 
@@ -199,7 +188,7 @@ export default function Create({ employees, receivedModes, salarySlipEmployees }
                             </div>
 
                             {/* Slip line (filtered by employee) */}
-                            <div className="md:col-span-2">
+                            <div className="">
                                 <label className="block font-medium">Salary Slip (required)</label>
                                 <select
                                     value={data.salary_slip_employee_id}
@@ -247,12 +236,11 @@ export default function Create({ employees, receivedModes, salarySlipEmployees }
                             {/* Amount */}
                             <div>
                                 <label className="block font-medium">Amount</label>
-                                <input
+                                <Input
                                     type="number"
                                     step="0.01"
                                     value={data.amount}
                                     onChange={(e) => setData('amount', e.target.value)}
-                                    className="w-full rounded border px-3 py-2"
                                     required
                                 />
                                 {errors.amount && <div className="text-red-600">{errors.amount}</div>}

@@ -1,4 +1,5 @@
 import ActionFooter from '@/components/ActionFooter';
+import InputCalendar from '@/components/Btn&Link/InputCalendar';
 import PageHeader from '@/components/PageHeader';
 import AppLayout from '@/layouts/app-layout';
 import { Head, Link, useForm } from '@inertiajs/react';
@@ -93,12 +94,12 @@ export default function SalesReturnEdit({
   return (
     <AppLayout>
       <Head title="Edit Sales Return" />
-      <div className="bg-gray-100 p-6 h-full w-screen lg:w-full">
-        <div className="bg-white h-full rounded-lg p-6">
+      <div className=" h-full w-screen lg:w-full">
+        <div className=" h-full rounded-lg p-4 md:p-12">
 
           <PageHeader title='Edit Sales Return' addLinkHref='/sales-returns' addLinkText='Back' />
 
-          <form onSubmit={handleSubmit} className="space-y-6 rounded bg-white p-6 shadow-md">
+          <form onSubmit={handleSubmit} className="space-y-6 rounded">
             <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
               <div>
                 <label className="block text-sm font-medium mb-1">Voucher No</label>
@@ -154,8 +155,7 @@ export default function SalesReturnEdit({
               </div>
 
               <div>
-                <label className="block text-sm font-medium mb-1">Return Date</label>
-                <input type="date" className="w-full border rounded p-2" value={data.return_date} onChange={(e) => setData('return_date', e.target.value)} />
+                <InputCalendar value={data.return_date} label="Return Date" onChange={(val) => setData('return_date', val)} />
               </div>
 
               <div>

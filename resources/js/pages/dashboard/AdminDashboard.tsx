@@ -1,3 +1,4 @@
+import { Select, SelectContent, SelectGroup, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 // resources/ts/Pages/dashboard/AdminDashboard.tsx
 import { NotificationsPanel as NotificationsPanelBase } from '@/components/dashboard/NotificationsPanel';
 import { RevenueChart as RevenueChartBase } from '@/components/dashboard/RevenueChart';
@@ -105,31 +106,38 @@ const RecentRegistrationsCard = memo(function RecentRegistrationsCard({
                             <Search className="text-muted-foreground absolute top-1/2 left-2.5 h-4 w-4 -translate-y-1/2" />
                         </div>
 
+                        {/* Role (native select) */}
                         <div className="relative">
-                            <select
-                                value={roleFilter}
-                                onChange={(e) => setRoleFilter(e.target.value)}
-                                className="border-input bg-background focus:ring-ring h-9 w-[160px] rounded-md border px-3 text-sm leading-none outline-none focus:ring-2"
-                            >
-                                {allRoles.map((r) => (
-                                    <option key={r} value={r}>
-                                        {r === 'all' ? 'All roles' : r}
-                                    </option>
-                                ))}
-                            </select>
+                            <Select value={roleFilter} onValueChange={setRoleFilter}>
+                                <SelectTrigger className="border-input bg-background focus:ring-ring h-9 w-[160px] rounded-md border px-3 text-sm leading-none outline-none focus:ring-2 cursor-pointer">
+                                    <SelectValue placeholder="All roles" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    <SelectGroup>
+                                        {allRoles.map((r) => (
+                                            <SelectItem className="cursor-pointer" key={r} value={r}>
+                                                {r === 'all' ? 'All roles' : r}
+                                            </SelectItem>
+                                        ))}
+                                    </SelectGroup>
+                                </SelectContent>
+                            </Select>
                         </div>
 
                         {/* Status (native select) */}
                         <div className="relative">
-                            <select
-                                value={statusFilter}
-                                onChange={(e) => setStatusFilter(e.target.value)}
-                                className="border-input bg-background focus:ring-ring h-9 w-[140px] rounded-md border px-3 text-sm leading-none outline-none focus:ring-2"
-                            >
-                                <option value="all">All status</option>
-                                <option value="active">Active</option>
-                                <option value="inactive">Inactive</option>
-                            </select>
+                            <Select value={statusFilter} onValueChange={setStatusFilter}>
+                                <SelectTrigger className="border-input bg-background focus:ring-ring h-9 w-[160px] rounded-md border px-3 text-sm leading-none outline-none focus:ring-2">
+                                    <SelectValue placeholder="All status" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    <SelectGroup>
+                                        <SelectItem value="all">All status</SelectItem>
+                                        <SelectItem value="active">Active</SelectItem>
+                                        <SelectItem value="inactive">Inactive</SelectItem>
+                                    </SelectGroup>
+                                </SelectContent>
+                            </Select>
                         </div>
                     </div>
                 </div>
@@ -259,14 +267,16 @@ export default function AdminDashboard() {
             <Head title="Super Admin Dashboard" />
 
             {/* Top header & quick actions */}
-            <div className="mb-4 mt-2 grid grid-cols-1 md:grid-cols-2 justify-center md:justify-between gap-3 px-2">
+            <div className="mt-2 mb-4 grid grid-cols-1 justify-center gap-3 px-2 md:grid-cols-2 md:justify-between">
                 <div>
-                    <h1 className="text-center md:text-left text-2xl font-semibold tracking-tight">Super Admin Dashboard</h1>
-                    <p className="text-center md:text-left  text-muted-foreground mt-1 text-sm">Organization-wide user overview, activity, and onboarding.</p>
+                    <h1 className="text-center text-2xl font-semibold tracking-tight md:text-left">Super Admin Dashboard</h1>
+                    <p className="text-muted-foreground mt-1 text-center text-sm md:text-left">
+                        Organization-wide user overview, activity, and onboarding.
+                    </p>
                 </div>
 
                 {/* Manage Users and New User buttons */}
-                <div className="flex items-center justify-center md:justify-end gap-2">
+                <div className="flex items-center justify-center gap-2 md:justify-end">
                     <Link href={route('users.index')} className="inline-flex items-center">
                         <Button variant="default" className="gap-2">
                             <Users className="h-4 w-4" />
@@ -286,11 +296,11 @@ export default function AdminDashboard() {
             {/* <QuickStats /> */}
 
             {/* User Stats Cards */}
-            <div className="mt-6 grid gap-4 p-2 sm:grid-cols-2 lg:grid-cols-4 ">
-                <Card className="shadow-sm transition duration-300 ease-in-out hover:text-primary">
-                    <CardHeader className="flex flex-row items-center justify-between pb-2 ">
-                        <CardTitle className="text-sm font-medium ">
-                            <Link href="/users" >Total Users</Link>
+            <div className="mt-6 grid gap-4 p-2 sm:grid-cols-2 lg:grid-cols-4">
+                <Card className="hover:text-primary shadow-sm transition duration-300 ease-in-out">
+                    <CardHeader className="flex flex-row items-center justify-between pb-2">
+                        <CardTitle className="text-sm font-medium">
+                            <Link href="/users">Total Users</Link>
                         </CardTitle>
                         <Users className="text-muted-foreground h-5 w-5" />
                     </CardHeader>
@@ -300,8 +310,8 @@ export default function AdminDashboard() {
                     </CardContent>
                 </Card>
 
-                <Card className="shadow-sm transition duration-300 ease-in-out hover:text-primary">
-                    <CardHeader className="flex flex-row items-center justify-between pb-2 ">
+                <Card className="hover:text-primary shadow-sm transition duration-300 ease-in-out">
+                    <CardHeader className="flex flex-row items-center justify-between pb-2">
                         <CardTitle className="text-sm font-medium">
                             <Link href="/users?filter=active"> Active Users</Link>
                         </CardTitle>
@@ -344,7 +354,7 @@ export default function AdminDashboard() {
             {/* Revenue Chart & Stats */}
             <div className="mt-6 grid gap-4 px-2 lg:grid-cols-3">
                 {/* <RevenueChart /> */}
-                <div className=" lg:col-span-2">
+                <div className="lg:col-span-2">
                     <NotificationsPanel expiring={Array.isArray(expiringSoon) ? expiringSoon : []} />
                 </div>
                 <Card className="shadow-sm lg:col-span-1">

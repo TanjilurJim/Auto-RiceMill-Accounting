@@ -1,4 +1,5 @@
 import ActionFooter from '@/components/ActionFooter';
+import InputCalendar from '@/components/Btn&Link/InputCalendar';
 import PageHeader from '@/components/PageHeader';
 import AppLayout from '@/layouts/app-layout';
 import { Head, router } from '@inertiajs/react';
@@ -29,16 +30,15 @@ export default function Edit({ contra, modes }: any) {
     return (
         <AppLayout>
             <Head title="Edit Contra Entry" />
-            <div className="bg-gray-100 p-6 h-full w-screen lg:w-full">
-                <div className="bg-white h-full rounded-lg p-6">
+            <div className="p-4 md:p-12 h-full w-screen lg:w-full">
+                <div className="h-full rounded-lg">
 
                     <PageHeader title='Edit Contra Entry' addLinkHref='/contra-add' addLinkText='Back' />
 
                     <form onSubmit={handleSubmit} className="space-y-4">
                         <div className="grid md:grid-cols-2 gap-4 border p-6 rounded-2xl">
                             <div>
-                                <label className="mb-1 block font-medium">Date</label>
-                                <input type="date" value={date} onChange={(e) => setDate(e.target.value)} className="w-full rounded border px-3 py-2" />
+                                <InputCalendar value={date} label="Date" onChange={(val) => setDate(val)} />
                             </div>
                             <div>
                                 <label className="mb-1 block font-medium">Voucher No</label>

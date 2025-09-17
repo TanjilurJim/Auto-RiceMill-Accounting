@@ -1,4 +1,5 @@
 import ActionFooter from '@/components/ActionFooter';
+import InputCalendar from '@/components/Btn&Link/InputCalendar';
 import PageHeader from '@/components/PageHeader';
 import AppLayout from '@/layouts/app-layout';
 import { Head, useForm } from '@inertiajs/react';
@@ -72,8 +73,8 @@ export default function Edit({ receivedAdd, receivedModes, accountLedgers }: Pro
     return (
         <AppLayout>
             <Head title="Edit Received Voucher" />
-            <div className="bg-gray-100 p-6 h-full w-screen lg:w-full">
-                <div className="bg-white h-full rounded-lg p-6">
+            <div className="h-full w-screen lg:w-full">
+                <div className="h-full rounded-lg p-4 md:p-12">
 
                     <PageHeader title='Edit Received Voucher' addLinkText='Back' addLinkHref='/received-add' />
 
@@ -83,13 +84,7 @@ export default function Edit({ receivedAdd, receivedModes, accountLedgers }: Pro
                             <h2 className="mb-4 border-b pb-2 text-lg font-semibold text-gray-700">Voucher Details</h2>
                             <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
                                 <div>
-                                    <label className="mb-1 block text-sm font-medium text-gray-700">Date</label>
-                                    <input
-                                        type="date"
-                                        value={data.date}
-                                        onChange={(e) => setData('date', e.target.value)}
-                                        className="w-full rounded-md border border-gray-300 px-4 py-2 text-sm shadow focus:border-blue-500 focus:ring-blue-500"
-                                    />
+                                    <InputCalendar value={data.date} label="Date" onChange={(val) => setData('date', val)} />
                                     {errors.date && <p className="mt-1 text-xs text-red-500">{errors.date}</p>}
                                 </div>
                                 <div>

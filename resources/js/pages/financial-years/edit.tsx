@@ -3,6 +3,7 @@ import { Head, useForm } from '@inertiajs/react';
 import AppLayout from '@/layouts/app-layout';
 import ActionFooter from '@/components/ActionFooter';
 import PageHeader from '@/components/PageHeader';
+import InputCalendar from '@/components/Btn&Link/InputCalendar';
 
 interface FinancialYear {
   id: number;
@@ -49,31 +50,13 @@ export default function Edit({ financialYear }: { financialYear: FinancialYear }
 
             {/* Start Date */}
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Start Date <span className="text-red-500">*</span>
-              </label>
-              <input
-                type="date"
-                className="w-full rounded-md border border-gray-300 px-4 py-2 text-sm font-semibold shadow focus:border-blue-500 focus:ring-blue-500"
-                value={data.start_date}
-                onChange={(e) => setData('start_date', e.target.value)}
-                disabled={data.is_closed}
-              />
+              <InputCalendar value={data.start_date} label="Start Date" onChange={(val) => setData('start_date', val)} />
               {errors.start_date && <p className="text-sm text-red-600 mt-1">{errors.start_date}</p>}
             </div>
 
             {/* End Date */}
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                End Date <span className="text-red-500">*</span>
-              </label>
-              <input
-                type="date"
-                className="w-full rounded-md border border-gray-300 px-4 py-2 text-sm font-semibold shadow focus:border-blue-500 focus:ring-blue-500"
-                value={data.end_date}
-                onChange={(e) => setData('end_date', e.target.value)}
-                disabled={data.is_closed}
-              />
+              <InputCalendar value={data.end_date} label="End Date" onChange={(val) => setData('end_date', val)} />
               {errors.end_date && <p className="text-sm text-red-600 mt-1">{errors.end_date}</p>}
             </div>
 

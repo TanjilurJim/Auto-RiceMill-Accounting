@@ -1,4 +1,5 @@
 import ActionFooter from '@/components/ActionFooter';
+import InputCalendar from '@/components/Btn&Link/InputCalendar';
 import PageHeader from '@/components/PageHeader';
 import AppLayout from '@/layouts/app-layout';
 import { PlusCircleIcon, TrashIcon } from '@heroicons/react/24/outline';
@@ -53,7 +54,7 @@ export default function Edit({ finishedProduct, workingOrders, products, godowns
             quantity: String(item.quantity),
             unit_price: String(item.unit_price),
             total: Number(item.total),
-        }))
+        })),
     );
 
     const workingOrderOptions = workingOrders.map((wo) => ({
@@ -98,14 +99,15 @@ export default function Edit({ finishedProduct, workingOrders, products, godowns
     return (
         <AppLayout>
             <Head title="Edit Finished Product" />
-            <div className="mx-auto bg-gray-100 p-6 border">
-                <div className="h-full bg-white rounded-lg p-6">
-                    <PageHeader title='Edit Finished Product' addLinkHref='/finished-products' addLinkText="Back" />
-                    <form onSubmit={handleSubmit} className="space-y-6 rounded border bg-white p-6 shadow-md">
+            <div className="mx-auto border ">
+                <div className="h-full rounded-lg p-4 md:p-12">
+                    <PageHeader title="Edit Finished Product" addLinkHref="/finished-products" addLinkText="Back" />
 
-                        <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
+                    <form onSubmit={handleSubmit} className="space-y-6 rounded border bg-white p-6 shadow-md">
+                        <div className="grid grid-cols-2 md:grid-cols-4  gap-4">
+                            {/* Working Order */}
                             <div>
-                                <label className="text-sm font-medium text-gray-700">Working Order</label>
+                                <label className="font-medium text-gray-700">Working Order</label>
                                 <Select
                                     options={workingOrderOptions}
                                     onChange={(opt) => setSelectedWOId(opt?.value || null)}
@@ -113,20 +115,13 @@ export default function Edit({ finishedProduct, workingOrders, products, godowns
                                     isClearable
                                 />
                             </div>
-
+                            {/* Date */}
                             <div>
-                                <label className="text-sm font-medium text-gray-700">Date</label>
-                                <input
-                                    type="date"
-                                    value={date}
-                                    onChange={(e) => setDate(e.target.value)}
-                                    className="w-full rounded border px-2 py-2"
-                                    required
-                                />
+                                <InputCalendar value={date} label="Date" onChange={(val) => setDate(val)} />
                             </div>
-
+                            {/* Voucher No */}
                             <div>
-                                <label className="text-sm font-medium text-gray-700">Voucher No</label>
+                                <label className="font-medium text-gray-700">Voucher No</label>
                                 <input
                                     type="text"
                                     value={voucherNo}
@@ -134,7 +129,7 @@ export default function Edit({ finishedProduct, workingOrders, products, godowns
                                     className="w-full cursor-not-allowed rounded border bg-gray-100 px-2 py-2"
                                 />
                             </div>
-
+                            {/* Reference No */}
                             <div>
                                 <label className="text-sm font-medium text-gray-700">Reference No</label>
                                 <input
@@ -150,18 +145,17 @@ export default function Edit({ finishedProduct, workingOrders, products, godowns
                         <div className="space-y-2">
                             <div className="flex items-center justify-between">
                                 <h3 className="font-semibold text-gray-800">Product Output</h3>
-                                <button
-                                    type="button"
-                                    onClick={addRow}
-                                    className="flex items-center gap-1 text-sm text-indigo-600 hover:underline"
-                                >
+                                <button type="button" onClick={addRow} className="flex items-center gap-1 text-sm text-indigo-600 hover:underline">
                                     <PlusCircleIcon className="h-5 w-5" />
                                     Add Row
                                 </button>
                             </div>
 
                             {rows.map((row, idx) => (
-                                <div key={idx} className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 xl:grid-cols-12 items-center gap-2 rounded bg-gray-50 p-2">
+                                <div
+                                    key={idx}
+                                    className="grid grid-cols-2 items-center gap-2 rounded bg-gray-50 md:grid-cols-4 lg:grid-cols-6 xl:grid-cols-12"
+                                >
                                     <div className="col-span-2">
                                         <label className="text-sm font-medium text-gray-700">Item</label>
                                         <select
@@ -222,20 +216,14 @@ export default function Edit({ finishedProduct, workingOrders, products, godowns
                                         />
                                     </div>
 
-                                    <div className="col-span-2 font-medium text-indigo-600 flex flex-col lg:items-center">
+                                    <div className="col-span-2 flex flex-col font-medium text-indigo-600 lg:items-center">
                                         <label className="text-sm font-medium text-gray-700">Total</label>
-                                        <span>
-                                            {row.total.toFixed(2)}
-                                        </span>
+                                        <span>{row.total.toFixed(2)}</span>
                                     </div>
 
                                     <div className="col-span-2 flex flex-col lg:items-center">
                                         <label className="text-sm font-medium text-gray-700">Action</label>
-                                        <button
-                                            type="button"
-                                            onClick={() => removeRow(idx)}
-                                            className="text-danger hover:text-danger"
-                                        >
+                                        <button type="button" onClick={() => removeRow(idx)} className="text-danger hover:text-danger">
                                             <TrashIcon className="h-5 w-5" />
                                         </button>
                                     </div>

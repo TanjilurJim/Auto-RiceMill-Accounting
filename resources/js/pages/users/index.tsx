@@ -67,9 +67,10 @@ export default function UserIndex({ users, filter, search }: { users: Pagination
     };
 
     const columns = [
-        { header: '#', accessor: (_: any, index: number) => index + 1, className: 'py-2 align-middle text-center' },
-        { header: 'Name', accessor: 'name', className: 'py-2 align-middle text-center' },
-        { header: 'Email', accessor: 'email', className: 'py-2 align- text-center' },
+        { header: '#', accessor: (_: User, index: number) => index + 1, className: 'py-2 align-middle' },
+        { header: 'Name', accessor: 'name', className: 'py-2 align-middle' },
+        { header: 'Email', accessor: 'email', className: 'py-2 align-middle' },
+        // Status
         {
             header: 'Status',
             accessor: (row: User) => (
@@ -81,21 +82,21 @@ export default function UserIndex({ users, filter, search }: { users: Pagination
                     {row.status}
                 </span>
             ),
-            className: 'py-2 align-middle text-center',
+            className: 'py-2 align-middle',
         },
-        ...(authUser?.roles?.some((r: any) => r.name === 'admin')
+        ...(authUser?.roles?.some((r: { id: number; name: string }) => r.name === 'admin')
             ? [
                   {
                       header: 'Created By',
                       accessor: (row: User) => row.created_by?.name || 'N/A',
-                      className: 'py-2 align-middle text-center',
+                      className: 'py-2 align-middle',
                   },
               ]
             : []),
         {
             header: 'Roles',
             accessor: (row: User) => (
-                <div className="flex items-center justify-center gap-1">
+                <div className="flex items-center gap-1">
                     {row.roles.length > 0 ? (
                         row.roles.map((role) => (
                             <span key={role.id} className="inline-block rounded bg-blue-500 px-2 py-1 text-xs text-white">
@@ -107,12 +108,12 @@ export default function UserIndex({ users, filter, search }: { users: Pagination
                     )}
                 </div>
             ),
-            className: 'py-2 align-middle text-center ',
+            className: 'py-2 align-middle',
         },
         {
             header: 'Actions',
             accessor: (row: User) => (
-                <div className="flex flex-wrap justify-center space-x-1">
+                <div className="flex flex-wrap space-x-1">
                     {!row.deleted_at ? (
                         <ActionButtons
                             printHref={`/users/${row.id}`}
@@ -144,7 +145,7 @@ export default function UserIndex({ users, filter, search }: { users: Pagination
             <Head title="Users" />
             <div className="h-full w-screen bg-background p-6 lg:w-full">
                 <div className="h-full rounded-lg bg-background p-6">
-                    <PageHeader title="Users" addLinkHref="users/create" addLinkText="+ Create User" />
+                    <PageHeader title="User" addLinkHref="users/create" addLinkText="+ Create User" />
 
                     <div className="mb-6 flex space-x-2">
                         {['all', 'active', 'inactive', 'trashed'].map((type) => (

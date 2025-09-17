@@ -72,7 +72,7 @@ export default function EditRole({
                     {/* Permissions Checkboxes */}
                     <div>
                         <label className="block mb-1 font-medium">Assigned Permissions</label>
-                        <div className="grid grid-cols-2 gap-2">
+                        <div className="grid grid-cols-2 md:grid-cols-6 gap-2">
                             {permissions.map((perm) => (
                                 <label key={perm.id} className="flex items-center gap-2 text-sm">
                                     <input
@@ -105,7 +105,7 @@ export default function EditRole({
                             {processing ? 'Saving...' : 'Save Changes'}
                         </button>
                     </div> */}
-                    <ActionFooter 
+                    <ActionFooter
                         processing={processing}
                         onSubmit={submit}
                         submitText={processing ? 'Saving...' : 'Save Changes'}

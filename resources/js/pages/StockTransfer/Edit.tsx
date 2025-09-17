@@ -3,6 +3,7 @@ import PageHeader from '@/components/PageHeader';
 import ActionFooter from '@/components/ActionFooter';
 import { Head, useForm } from '@inertiajs/react';
 import { useEffect, useState } from 'react';
+import InputCalendar from '@/components/Btn&Link/InputCalendar';
 
 export default function Edit({ stockTransfer, godowns, items, stocks, errors }) {
     const { data, setData, put, processing } = useForm({
@@ -74,8 +75,8 @@ export default function Edit({ stockTransfer, godowns, items, stocks, errors }) 
     return (
         <AppLayout>
             <Head title="Edit Stock Transfer" />
-            <div className="bg-gray-100 p-6 h-full w-screen lg:w-full">
-                <div className="bg-white h-full rounded-lg p-6">
+            <div className="p-4 md:p-12 h-full w-screen lg:w-full">
+                <div className=" h-full rounded-lg">
                     {/* <h1 className="text-2xl font-bold text-gray-800 mb-8 border-b pb-4">Edit Stock Transfer</h1> */}
 
                     <PageHeader title='Edit Stock Transfer' addLinkHref='/stock-transfers' addLinkText='Back' />
@@ -83,8 +84,7 @@ export default function Edit({ stockTransfer, godowns, items, stocks, errors }) 
                     <form onSubmit={handleSubmit} className="space-y-6">
                         <div className="grid grid-cols-2 gap-4">
                             <div>
-                                <label>Date</label>
-                                <input type="date" name="date" value={data.date} onChange={handleChange} className="w-full rounded border px-3 py-2" />
+                                <InputCalendar value={data.date} label="Date" onChange={(val) => setData('date', val)} />
                                 {errors.date && <div className="text-sm text-red-500">{errors.date}</div>}
                             </div>
 

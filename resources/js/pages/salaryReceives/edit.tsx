@@ -1,5 +1,7 @@
 import ActionFooter from '@/components/ActionFooter';
+import InputCalendar from '@/components/Btn&Link/InputCalendar';
 import PageHeader from '@/components/PageHeader';
+import { Input } from '@/components/ui/input';
 import AppLayout from '@/layouts/app-layout';
 import { Head, useForm, } from '@inertiajs/react';
 import React from 'react';
@@ -26,8 +28,8 @@ export default function Edit({ salaryReceive, employees, receivedModes, salarySl
         <AppLayout>
             <Head title="Edit Salary Receive" />
 
-            <div className="bg-gray-100 p-6 h-full w-screen lg:w-full">
-                <div className="bg-white h-full rounded-lg p-6">
+            <div className="p-4 md:p-12 h-full w-screen lg:w-full">
+                <div className="h-full rounded-lg ">
                     <PageHeader title="Edit Salary Receive" addLinkHref='/salary-receives' addLinkText="Back" />
 
                     <form onSubmit={handleSubmit} className="space-y-6 rounded-lg bg-white p-6 border">
@@ -35,24 +37,18 @@ export default function Edit({ salaryReceive, employees, receivedModes, salarySl
                             {/* Voucher No (read-only) */}
                             <div>
                                 <label className="block mb-1 font-medium">Voucher No</label>
-                                <input
+                                <Input
                                     type="text"
                                     value={data.vch_no}
                                     readOnly
-                                    className="w-full border px-3 py-2 rounded bg-gray-100 text-gray-600 cursor-not-allowed"
+                                    
                                 />
                                 {errors.vch_no && <div className="text-red-500 text-sm">{errors.vch_no}</div>}
                             </div>
 
                             {/* Date */}
                             <div>
-                                <label className="block mb-1 font-medium">Date</label>
-                                <input
-                                    type="date"
-                                    value={data.date}
-                                    onChange={(e) => setData('date', e.target.value)}
-                                    className="w-full border px-3 py-2 rounded"
-                                />
+                                <InputCalendar value={data.date} label="Date" onChange={(val) => setData('date', val)} />
                                 {errors.date && <div className="text-red-500 text-sm">{errors.date}</div>}
                             </div>
 
