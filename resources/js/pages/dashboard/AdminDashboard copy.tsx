@@ -3,16 +3,16 @@ import { NotificationsPanel as NotificationsPanelBase } from '@/components/dashb
 import { RevenueChart as RevenueChartBase } from '@/components/dashboard/RevenueChart';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
-import { Button } from '@/components/ui/button';
-import { CheckCircle2, CircleUser, Crown, Shield, UserPlus, Users } from 'lucide-react';
-import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
+import { CheckCircle2, CircleUser, Crown } from 'lucide-react';
 
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import AppLayout from '@/layouts/app-layout';
 import { Head, Link, usePage } from '@inertiajs/react';
-import { ArrowRight, Search } from 'lucide-react';
+import { ArrowRight, Search, Shield, UserPlus, Users } from 'lucide-react';
 import { memo, useDeferredValue, useMemo, useState } from 'react';
 
 const RevenueChart = memo(RevenueChartBase);
@@ -93,15 +93,14 @@ const RecentRegistrationsCard = memo(function RecentRegistrationsCard({
     return (
         <Card className="shadow-sm lg:col-span-2">
             <CardHeader className="pb-0">
-                <div className="grid grid-cols-1 lg:grid-cols-2 items-center justify-center lg:justify-between gap-4">
+                <div className="flex flex-col md:flex-row items-center justify-between gap-3">
                     <div>
-                        <CardTitle className="text-center text-base md:text-left">Recent Registrations</CardTitle>
+                        <CardTitle className="text-base text-center md:text-left">Recent Registrations</CardTitle>
                         <p className="text-muted-foreground mt-1 text-xs">Newest user accounts and their status</p>
                     </div>
-
-                    <div className="grid grid-cols-3 gap-2 items-center justify-center">
+                    <div className="flex items-center gap-2">
                         {/* Search name or email */}
-                        <div className="relative">
+                        <div className="relative w-56">
                             <Input value={query} onChange={(e) => setQuery(e.target.value)} placeholder="Search name or email..." className="pl-9" />
                             <Search className="text-muted-foreground absolute top-1/2 left-2.5 h-4 w-4 -translate-y-1/2" />
                         </div>
@@ -111,7 +110,7 @@ const RecentRegistrationsCard = memo(function RecentRegistrationsCard({
                             <select
                                 value={roleFilter}
                                 onChange={(e) => setRoleFilter(e.target.value)}
-                                className="border-input bg-background focus:ring-ring rounded-md border p-2 text-sm leading-none outline-none focus:ring-2"
+                                className="border-input bg-background focus:ring-ring h-9 w-[160px] rounded-md border px-3 text-sm leading-none outline-none focus:ring-2"
                             >
                                 {allRoles.map((r) => (
                                     <option key={r} value={r}>
@@ -126,7 +125,7 @@ const RecentRegistrationsCard = memo(function RecentRegistrationsCard({
                             <select
                                 value={statusFilter}
                                 onChange={(e) => setStatusFilter(e.target.value)}
-                                className="border-input bg-background focus:ring-ring rounded-md border p-2 text-sm leading-none outline-none focus:ring-2"
+                                className="border-input bg-background focus:ring-ring h-9 w-[140px] rounded-md border px-3 text-sm leading-none outline-none focus:ring-2"
                             >
                                 <option value="all">All status</option>
                                 <option value="active">Active</option>
@@ -264,36 +263,36 @@ export default function AdminDashboard() {
             <Head title="Super Admin Dashboard" />
 
             {/* Top header & quick actions */}
-                        <div className="mt-2 mb-4 grid grid-cols-1 justify-center gap-3 px-2 md:grid-cols-2 md:justify-between">
-                            <div>
-                                <h1 className="text-center text-2xl font-semibold tracking-tight md:text-left">Super Admin Dashboard</h1>
-                                <p className="text-muted-foreground mt-1 text-center text-sm md:text-left">
-                                    Organization-wide user overview, activity, and onboarding.
-                                </p>
-                            </div>
+            <div className="mt-2 mb-4 grid grid-cols-1 justify-center gap-3 px-2 md:grid-cols-2 md:justify-between">
+                <div>
+                    <h1 className="text-center text-2xl font-semibold tracking-tight md:text-left">Super Admin Dashboard</h1>
+                    <p className="text-muted-foreground mt-1 text-center text-sm md:text-left">
+                        Organization-wide user overview, activity, and onboarding.
+                    </p>
+                </div>
 
-                            {/* Manage Users and New User buttons */}
-                            <div className="flex items-center justify-center gap-2 md:justify-end">
-                                <Link href={route('users.index')} className="inline-flex items-center">
-                                    <Button variant="default" className="gap-2">
-                                        <Users className="h-4 w-4" />
-                                        Manage Users
-                                    </Button>
-                                </Link>
-                                <Link href={route('users.create')} className="inline-flex items-center">
-                                    <Button variant="secondary" className="gap-2 hover:bg-amber-300">
-                                        <UserPlus className="h-4 w-4" />
-                                        New User
-                                    </Button>
-                                </Link>
-                            </div>
-                        </div>
+                {/* Manage Users and New User buttons */}
+                <div className="flex items-center justify-center gap-2 md:justify-end">
+                    <Link href={route('users.index')} className="inline-flex items-center">
+                        <Button variant="default" className="gap-2">
+                            <Users className="h-4 w-4" />
+                            Manage Users
+                        </Button>
+                    </Link>
+                    <Link href={route('users.create')} className="inline-flex items-center">
+                        <Button variant="secondary" className="gap-2 hover:bg-amber-300">
+                            <UserPlus className="h-4 w-4" />
+                            New User
+                        </Button>
+                    </Link>
+                </div>
+            </div>
 
             {/* Quick Stats */}
             {/* <QuickStats /> */}
 
             {/* User Stats Cards */}
-            <div className="mt-6 grid gap-4 grid-cols-2 lg:grid-cols-4 p-2">
+            <div className="mt-6 grid gap-4 p-2 sm:grid-cols-2 lg:grid-cols-4 ">
                 <Card className="shadow-sm transition duration-300 ease-in-out hover:text-primary">
                     <CardHeader className="flex flex-row items-center justify-between pb-2 ">
                         <CardTitle className="text-sm font-medium ">
@@ -345,11 +344,9 @@ export default function AdminDashboard() {
                     </CardContent>
                 </Card>
             </div>
-
             <div className="px-2">
                 <RecentRegistrationsCard recentUsers={Array.isArray(recentUsers) ? recentUsers : []} rolesSummary={safeStats.rolesSummary} />
             </div>
-
             {/* Revenue Chart & Stats */}
             <div className="mt-6 grid gap-4 px-2 lg:grid-cols-3">
                 {/* <RevenueChart /> */}
@@ -383,12 +380,10 @@ export default function AdminDashboard() {
             </div>
 
             {/* Roles distribution & filters */}
-            <div className="mt-6 grid gap-4 lg:grid-cols-3">
-                {/* Recent registrations panel */}
-            </div>
+            <div className="mt-6 grid gap-4 lg:grid-cols-3">{/* Recent registrations panel */}</div>
 
-            {/* Onboarding & activity tab */}
-            <div className="mt-6 mb-2 mx-2">
+            {/* Onboarding & activity tabs (placeholder for future widgets) */}
+            <div className="mt-6">
                 <Tabs defaultValue="onboarding" className="w-full">
                     <TabsList>
                         <TabsTrigger value="onboarding">Onboarding</TabsTrigger>
