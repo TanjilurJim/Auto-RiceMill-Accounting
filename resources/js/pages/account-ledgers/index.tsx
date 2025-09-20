@@ -65,7 +65,7 @@ export default function AccountLedgerIndex({ accountLedgers }: { accountLedgers:
             {/* Page background picks up tokens */}
             <div className="bg-background h-full w-screen md:p-6 lg:w-full">
                 {/* Card container uses card tokens + border */}
-                <div className="bg-background h-full rounded-lg p-3 md:p-6">
+                <div className="bg-background h-full rounded-lg p-4 md:p-12">
                     <PageHeader title="List of Account Ledgers" addLinkHref="/account-ledgers/create" addLinkText="+ Add New" />
 
                     <TableComponent
@@ -78,7 +78,7 @@ export default function AccountLedgerIndex({ accountLedgers }: { accountLedgers:
                     />
 
                     {/* Pagination (dark-friendly) */}
-                    <div className="mt-6 flex justify-end gap-1">
+                    {/* <div className="mt-6 flex justify-end gap-1">
                         {accountLedgers.links.map((link, index) => {
                             const isActive = link.active;
                             const isDisabled = !link.url;
@@ -100,7 +100,7 @@ export default function AccountLedgerIndex({ accountLedgers }: { accountLedgers:
                                 />
                             );
                         })}
-                    </div>
+                    </div> */}
                 </div>
             </div>
         </AppLayout>

@@ -47,7 +47,7 @@ export default function Index({
     const modes = safeReceivedModes.data || [];
 
     const columns = [
-        { header: 'SL', accessor: (_: ReceivedMode, index?: number) => <span>{(index ?? 0) + 1}</span>, className: 'text-center' },
+        { header: 'SL', accessor: (_: ReceivedMode, index?: number) => <span>{(index ?? 0) + 1}</span>, className: '' },
         { header: 'Mode Name', accessor: 'mode_name' },
         // { header: 'Opening Balance', accessor: 'opening_balance' },
         // { header: 'Closing Balance', accessor: 'closing_balance' },

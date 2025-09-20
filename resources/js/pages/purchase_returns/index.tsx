@@ -69,8 +69,8 @@ export default function PurchaseReturnIndex({ returns }: { returns: PaginatedRet
     return (
         <AppLayout>
             <Head title="All Purchase Returns" />
-            <div className="bg-background p-6 h-full w-screen lg:w-full">
-                <div className="bg-background h-full rounded-lg p-6">
+            <div className="bg-background p-4 md:p-12 h-full w-screen lg:w-full">
+                <div className="bg-background h-full rounded-lg">
                     {/* Header */}
                     <PageHeader title='Purchase Return List' addLinkHref='/purchase-returns/create' addLinkText='+ Add Return' />
                     {/* Table */}

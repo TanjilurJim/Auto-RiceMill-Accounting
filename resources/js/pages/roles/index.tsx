@@ -1,12 +1,12 @@
 import ActionButtons from '@/components/ActionButtons';
 import { confirmDialog } from '@/components/confirmDialog';
 import PageHeader from '@/components/PageHeader';
+import Pagination from '@/components/Pagination';
 import TableComponent from '@/components/TableComponent';
 import AppLayout from '@/layouts/app-layout';
 import { type BreadcrumbItem } from '@/types';
 import { Head, router } from '@inertiajs/react';
 import { Pencil, Trash2 } from 'lucide-react';
-import Pagination from '@/components/Pagination';
 interface Role {
     id: number;
     name: string;
@@ -39,12 +39,12 @@ export default function RoleIndex({ roles }: Props) {
     };
 
     const columns = [
-        { header: '#', accessor: (_: any, index: number) => index + 1, className: 'py-2 align-middle text-center' },
-        { header: 'Name', accessor: 'name', className: 'py-2 align-middle text-center' },
+        { header: '#', accessor: (_: any, index: number) => index + 1, className: 'py-2 align-middle' },
+        { header: 'Name', accessor: 'name', className: 'py-2 align-middle' },
         {
             header: 'Created At',
             accessor: (row: Role) => new Date(row.created_at).toLocaleDateString(),
-            className: 'py-2 align-middle text-center',
+            className: 'py-2 align-middle',
         },
         {
             header: 'Actions',
@@ -53,27 +53,29 @@ export default function RoleIndex({ roles }: Props) {
                     editHref={`/roles/${row.id}/edit`}
                     onDelete={() => handleDelete(row.id)}
                     deleteText={
-                        <>
-                            <Trash2 size={14} className="mr-1 inline-block" /> Delete
-                        </>
+                        <div className="flex items-center">
+                            <Trash2 size={14} className="mr-1" />
+                            <span className='hidden md:inline'>Delete</span>
+                        </div>
                     }
                     editText={
-                        <>
-                            <Pencil size={14} className="mr-1 inline-block" /> Edit
-                        </>
+                        <div className="flex items-center">
+                            <Pencil size={14} className="mr-1" />
+                             <span className='hidden md:inline'>Edit</span>
+                        </div>
                     }
-                    className="justify-end"
+                    className="justify-items-center"
                 />
             ),
-            className: 'py-2 align-middle text-center',
+            className: 'py-2 align-middle',
         },
     ];
 
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
             <Head title="Roles" />
-            <div className="h-full w-screen bg-background p-6 lg:w-full">
-                <div className="h-full rounded-lg bg-background p-6">
+            <div className="bg-background h-full w-screen p-6 lg:w-full">
+                <div className="bg-background h-full rounded-lg p-6">
                     <PageHeader title="Roles" addLinkHref="/roles/create" addLinkText="+ Create Role" />
 
                     {/* Table */}
@@ -86,13 +88,10 @@ export default function RoleIndex({ roles }: Props) {
                     />
 
                     <Pagination
-                    
-                    links = {roles.links}
-                    currentPage={roles.current_page}
-                    lastPage={Math.ceil(roles.total/roles.per_page)}
-                    total={roles.total}
-
-
+                        links={roles.links}
+                        currentPage={roles.current_page}
+                        lastPage={Math.ceil(roles.total / roles.per_page)}
+                        total={roles.total}
                     />
                 </div>
             </div>

@@ -93,9 +93,9 @@ const RecentRegistrationsCard = memo(function RecentRegistrationsCard({
     return (
         <Card className="shadow-sm lg:col-span-2">
             <CardHeader className="pb-0">
-                <div className="flex flex-col md:flex-row items-center justify-between gap-3">
+                <div className="flex flex-col items-center justify-between gap-3 md:flex-row">
                     <div>
-                        <CardTitle className="text-base text-center md:text-left">Recent Registrations</CardTitle>
+                        <CardTitle className="text-center text-base md:text-left">Recent Registrations</CardTitle>
                         <p className="text-muted-foreground mt-1 text-xs">Newest user accounts and their status</p>
                     </div>
                     <div className="flex items-center gap-2">
@@ -141,10 +141,10 @@ const RecentRegistrationsCard = memo(function RecentRegistrationsCard({
                     <Table>
                         <TableHeader>
                             <TableRow>
-                                <TableHead className="w-[40%]">User</TableHead>
-                                <TableHead className="w-[20%]">Roles</TableHead>
-                                <TableHead className="w-[20%]">Joined</TableHead>
-                                <TableHead className="w-[20%] text-right">Status</TableHead>
+                                <TableHead className="w-[100px]">User</TableHead>
+                                <TableHead className="w-[100px]">Roles</TableHead>
+                                <TableHead className="w-[100px]">Joined</TableHead>
+                                <TableHead className="w-[100px] text-right">Status</TableHead>
                             </TableRow>
                         </TableHeader>
                         <TableBody>
@@ -262,7 +262,7 @@ export default function AdminDashboard() {
         <AppLayout breadcrumbs={[{ title: 'Super Admin Dashboard', href: '/admin/dashboard' }]}>
             <Head title="Super Admin Dashboard" />
 
-            {/* Top header & quick actions */}
+            {/* Top header & quick actions: No responsive issues */}
             <div className="mt-2 mb-4 grid grid-cols-1 justify-center gap-3 px-2 md:grid-cols-2 md:justify-between">
                 <div>
                     <h1 className="text-center text-2xl font-semibold tracking-tight md:text-left">Super Admin Dashboard</h1>
@@ -288,15 +288,12 @@ export default function AdminDashboard() {
                 </div>
             </div>
 
-            {/* Quick Stats */}
-            {/* <QuickStats /> */}
-
-            {/* User Stats Cards */}
-            <div className="mt-6 grid gap-4 p-2 sm:grid-cols-2 lg:grid-cols-4 ">
-                <Card className="shadow-sm transition duration-300 ease-in-out hover:text-primary">
-                    <CardHeader className="flex flex-row items-center justify-between pb-2 ">
-                        <CardTitle className="text-sm font-medium ">
-                            <Link href="/users" >Total Users</Link>
+            {/* User Stats Cards: No responsive issues */}
+            <div className="mt-6 grid grid-cols-2 gap-4 p-2 lg:grid-cols-4">
+                <Card className="hover:text-primary shadow-sm transition duration-300 ease-in-out">
+                    <CardHeader className="flex flex-row items-center justify-between pb-2">
+                        <CardTitle className="text-sm font-medium">
+                            <Link href="/users">Total Users</Link>
                         </CardTitle>
                         <Users className="text-muted-foreground h-5 w-5" />
                     </CardHeader>
@@ -306,8 +303,8 @@ export default function AdminDashboard() {
                     </CardContent>
                 </Card>
 
-                <Card className="shadow-sm transition duration-300 ease-in-out hover:text-primary">
-                    <CardHeader className="flex flex-row items-center justify-between pb-2 ">
+                <Card className="hover:text-primary shadow-sm transition duration-300 ease-in-out">
+                    <CardHeader className="flex flex-row items-center justify-between pb-2">
                         <CardTitle className="text-sm font-medium">
                             <Link href="/users?filter=active"> Active Users</Link>
                         </CardTitle>
@@ -344,9 +341,11 @@ export default function AdminDashboard() {
                     </CardContent>
                 </Card>
             </div>
+
             <div className="px-2">
                 <RecentRegistrationsCard recentUsers={Array.isArray(recentUsers) ? recentUsers : []} rolesSummary={safeStats.rolesSummary} />
             </div>
+
             {/* Revenue Chart & Stats */}
             <div className="mt-6 grid gap-4 px-2 lg:grid-cols-3">
                 {/* <RevenueChart /> */}
@@ -382,8 +381,8 @@ export default function AdminDashboard() {
             {/* Roles distribution & filters */}
             <div className="mt-6 grid gap-4 lg:grid-cols-3">{/* Recent registrations panel */}</div>
 
-            {/* Onboarding & activity tabs (placeholder for future widgets) */}
-            <div className="mt-6">
+            {/* Onboarding & activity tab */}
+            <div className="mx-2 mt-6 mb-2">
                 <Tabs defaultValue="onboarding" className="w-full">
                     <TabsList>
                         <TabsTrigger value="onboarding">Onboarding</TabsTrigger>

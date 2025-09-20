@@ -1,4 +1,5 @@
 import ActionFooter from '@/components/ActionFooter';
+import InputCalendar from '@/components/Btn&Link/InputCalendar';
 import PageHeader from '@/components/PageHeader';
 import AppLayout from '@/layouts/app-layout';
 import { type BreadcrumbItem } from '@/types';
@@ -136,7 +137,8 @@ export default function CreateUser({ roles }: { roles: Role[] }) {
                                     </button>
 
                                     <div className="flex items-center gap-2">
-                                        <input
+                                        <InputCalendar label="" value={data.trial_date ?? ''} onChange={(val) => setData({ ...data, trial_date: val })} />
+                                        {/* <input
                                             type="date"
                                             min={new Date().toISOString().split('T')[0]}
                                             value={data.trial_date ?? ''}
@@ -149,7 +151,7 @@ export default function CreateUser({ roles }: { roles: Role[] }) {
                                                 })
                                             }
                                             className="rounded-md border p-2 text-sm dark:border-neutral-700 dark:bg-neutral-800"
-                                        />
+                                        /> */}
                                         {data.trial_date && (
                                             <button
                                                 type="button"

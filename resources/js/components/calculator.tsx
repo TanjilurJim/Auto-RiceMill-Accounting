@@ -330,20 +330,20 @@ export default function Calculator() {
     return (
         <div className="mx-auto max-h-screen w-full max-w-sm space-y-4 rounded-3xl bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 p-6 shadow-2xl">
             {/* expression history */}
-            <div className="min-h-[24px] text-right font-mono text-sm text-slate-400" aria-live="polite">
+            {/* <div className="min-h-[24px] text-right font-mono text-sm text-slate-400" aria-live="polite">
                 {expression || ' '}
-            </div>
+            </div> */}
 
             {/* display */}
-            <div className="rounded-2xl border border-slate-700/50 bg-slate-950/50 p-6 text-right backdrop-blur-sm">
+            <div className="mt-4 rounded-2xl border border-slate-700/50 bg-slate-950/50 p-6 text-right backdrop-blur-sm">
                 <div className={cn('text-5xl leading-tight font-light break-all text-white', error && 'text-red-400')}>{formatDisplay(display)}</div>
             </div>
 
             {/* quick actions */}
-            <div className="flex items-center justify-between">
-                <div className="text-sm text-slate-400">{memory !== 0 && `M: ${memory}`}</div>
+            <div className="flex items-center justify-end mr-3">
+                {/* <div className="text-sm text-slate-400">{memory !== 0 && `M: ${memory}`}</div> */}
 
-                <div className="flex gap-3">
+                <div className="">
                     <Button
                         onClick={copyValue}
                         size="icon"
@@ -355,19 +355,13 @@ export default function Calculator() {
                         title="Copy result (Ctrl+C)"
                         aria-label="Copy result"
                     >
-                        {copied ? (
-                            <Check className="animate-ping-once h-5 w-5" /> // a quick ping
-                        ) : (
-                            <Copy className="h-5 w-5" />
-                        )}
+                        {copied ? <Check className="animate-ping-once h-5 w-5" /> : <Copy className="h-5 w-5" />}
                     </Button>
                 </div>
             </div>
 
-            {/* memory buttons */}
-
             {/* keypad */}
-            <div className="grid grid-cols-4 gap-3">
+            <div className="grid grid-cols-4 justify-items-center gap-3">
                 <Button
                     onClick={clearAll}
                     className={cn(

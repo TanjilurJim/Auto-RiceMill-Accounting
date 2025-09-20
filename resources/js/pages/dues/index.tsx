@@ -1,5 +1,6 @@
 import PageHeader from '@/components/PageHeader';
 import Pagination from '@/components/Pagination';
+import TableComponent from '@/components/TableComponent';
 import AppLayout from '@/layouts/app-layout';
 import { Head, Link, router, usePage } from '@inertiajs/react';
 import { useEffect, useState } from 'react';
@@ -10,7 +11,7 @@ type Row = {
     date: string; // ISO
     voucher_no: string;
     customer: string;
-    sale_items: string; // ‘Rice, Oil, Sugar’
+    sale_items: string; // 'Rice, Oil, Sugar'
     extra_count: number; // how many items were truncated
     outstanding: number;
 };
@@ -20,6 +21,7 @@ interface Props {
         data: Row[];
         current_page: number;
         last_page: number;
+        total?: number;
         links: any[];
     };
     filters: { q: string | null };
@@ -38,6 +40,43 @@ export default function DueIndex({ sales, filters }: Props) {
     const { flash } = usePage().props as any;
     const [search, setSearch] = useState(filters.q ?? '');
 
+    // Define table columns for TableComponent
+    const tableColumns = [
+        {
+            header: 'Date',
+            accessor: (row: Row) => formatDate(row.date),
+        },
+        {
+            header: 'Voucher',
+            accessor: (row: Row) => row.voucher_no,
+        },
+        {
+            header: 'Customer',
+            accessor: (row: Row) => row.customer,
+        },
+        {
+            header: 'Items',
+            accessor: (row: Row) => (
+                <div className="text-foreground/80 text-xs">
+                    {row.sale_items}
+                    {row.extra_count > 0 && <span className="text-gray-400"> +{row.extra_count} more</span>}
+                </div>
+            ),
+        },
+        {
+            header: 'Outstanding (৳)',
+            accessor: (row: Row) => <span className="font-medium">{fmt(row.outstanding)}</span>,
+            className: 'text-right',
+        },
+    ];
+
+    // Define actions for each row
+    const renderActions = (row: Row) => (
+        <Link href={route('dues.show', row.id)} className="text-xs rounded bg-blue-600 px-3 py-1 text-white hover:bg-blue-700">
+            Receive Payment
+        </Link>
+    );
+
     const handleReset = () => {
         setSearch(''); // clear local input
         router.get(
@@ -52,9 +91,8 @@ export default function DueIndex({ sales, filters }: Props) {
     };
 
     /* debounce search ------------------------------------------------*/
-    /* debounce search ------------------------------------------------*/
     useEffect(() => {
-        // if value coming from the server == what’s in the input → no need to re-hit the server
+        // if value coming from the server == what's in the input → no need to re-hit the server
         if (search === (filters.q ?? '')) return;
 
         const t = setTimeout(() => {
@@ -64,7 +102,7 @@ export default function DueIndex({ sales, filters }: Props) {
                 search.trim() ? { q: search.trim() } : {}, //   <- change is here
                 { preserveState: true, replace: true },
             );
-        }, 400); // 0.4 s “lazy” typing
+        }, 400); // 0.4 s "lazy" typing
 
         return () => clearTimeout(t);
     }, [search, filters.q]);
@@ -74,12 +112,12 @@ export default function DueIndex({ sales, filters }: Props) {
         <AppLayout>
             <Head title="Outstanding Dues" />
 
-            <div className="bg-background p-4 md:p-12">
-                <div className=" space-y-6">
+            <div className="">
+                <div className="bg-background h-full w-screen lg:w-full p-4 md:p-12">
                     <PageHeader title="Outstanding Dues" addLinkHref="/sales" addLinkText="Back to Sales" />
 
                     {/* flash msg */}
-                    {flash?.success && <div className="rounded bg-background p-3 text-green-800">{flash.success}</div>}
+                    {flash?.success && <div className="bg-background rounded p-3 text-green-800">{flash.success}</div>}
 
                     {/* search bar */}
                     <div className="mb-3 flex items-center gap-2">
@@ -104,54 +142,7 @@ export default function DueIndex({ sales, filters }: Props) {
                     </div>
 
                     {/* table */}
-                    <div className="overflow-x-auto rounded-lg border bg-background">
-                        <table className="min-w-full table-auto text-sm text-foreground">
-                            <thead className="sticky top-0 bg-background text-left text-xs font-semibold tracking-wide uppercase">
-                                <tr>
-                                    <th className="px-4 py-3">Date</th>
-                                    <th className="px-4 py-3">Voucher</th>
-                                    <th className="px-4 py-3">Customer</th>
-                                    <th className="px-4 py-3">Items</th>
-                                    <th className="px-4 py-3 text-right">Outstanding (৳)</th>
-                                    <th className="px-4 py-3"></th>
-                                </tr>
-                            </thead>
-
-                            <tbody>
-                                {sales.data.length === 0 && (
-                                    <tr>
-                                        <td colSpan={6} className="py-10 text-center text-foreground/70">
-                                            🎉 No dues — all caught up.
-                                        </td>
-                                    </tr>
-                                )}
-
-                                {sales.data.map((s) => (
-                                    <tr key={s.id} className="border-t even:bg-background-50/50 ">
-                                        <td className="px-4 py-2">{formatDate(s.date)}</td>
-                                        <td className="px-4 py-2">{s.voucher_no}</td>
-                                        <td className="px-4 py-2">{s.customer}</td>
-
-                                        {/* show up to 3 item names, then “+ n more” */}
-                                        <td className="px-4 py-2 text-xs text-foreground/80">
-                                            {s.sale_items}
-                                            {s.extra_count > 0 && <span className="text-gray-400"> +{s.extra_count} more</span>}
-                                        </td>
-
-                                        <td className="px-4 py-2 text-right font-medium">{fmt(s.outstanding)}</td>
-                                        <td className="px-4 py-2 text-right">
-                                            <Link
-                                                href={route('dues.show', s.id)}
-                                                className="rounded bg-blue-600 px-3 py-1 text-white hover:bg-blue-700"
-                                            >
-                                                Receive&nbsp;Payment
-                                            </Link>
-                                        </td>
-                                    </tr>
-                                ))}
-                            </tbody>
-                        </table>
-                    </div>
+                    <TableComponent columns={tableColumns} data={sales.data} actions={renderActions} noDataMessage="🎉 No dues — all caught up." />
 
                     {/* paginator */}
                     {sales.data.length > 0 && (
@@ -159,8 +150,7 @@ export default function DueIndex({ sales, filters }: Props) {
                             links={sales.links}
                             currentPage={sales.current_page}
                             lastPage={sales.last_page}
-                            total={sales.total}
-                            className="mt-4"
+                            total={sales.total || sales.data.length}
                         />
                     )}
                 </div>

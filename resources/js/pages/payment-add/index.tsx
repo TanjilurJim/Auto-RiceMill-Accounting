@@ -1,4 +1,5 @@
 import ActionButtons from '@/components/ActionButtons';
+import InputCalendar from '@/components/Btn&Link/InputCalendar';
 import { confirmDialog } from '@/components/confirmDialog';
 import PageHeader from '@/components/PageHeader';
 import TableComponent from '@/components/TableComponent';
@@ -91,17 +92,15 @@ export default function Index({ paymentAdds, filters, paymentModes }: Props) {
                                 </option>
                             ))}
                         </select>
-                        <input
-                            type="date"
+                        <InputCalendar
                             value={fromDate}
-                            onChange={(e) => setFromDate(e.target.value)}
-                            className="rounded border px-3 py-2 text-sm"
+                            label=""
+                            onChange={(val) => setFromDate(val)}
                         />
-                        <input
-                            type="date"
+                        <InputCalendar
                             value={toDate}
-                            onChange={(e) => setToDate(e.target.value)}
-                            className="rounded border px-3 py-2 text-sm"
+                            label=""
+                            onChange={(val) => setToDate(val)}
                         />
                     </div>
 

@@ -1,13 +1,23 @@
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { SidebarTrigger } from '@/components/ui/sidebar';
 import { type BreadcrumbItem as BreadcrumbItemType } from '@/types';
 import { Link, usePage } from '@inertiajs/react';
-import { Dialog, DialogTrigger, DialogContent, DialogTitle } from '@radix-ui/react-dialog';
-import { Banknote, BookOpenCheck, BookText, Calculator as CalculatorIcon, CreditCard, Layers3, Maximize, Minimize, Package, ShoppingCart } from 'lucide-react';
+import {
+    Banknote,
+    BookOpenCheck,
+    BookText,
+    Calculator as CalculatorIcon,
+    CreditCard,
+    Layers3,
+    Maximize,
+    Minimize,
+    Package,
+    ShoppingCart,
+} from 'lucide-react';
 import * as React from 'react';
 import Calculator from './calculator';
-import { DialogHeader } from './ui/dialog';
 const quickLinks = [
-    // { label: 'Calculator', href: '#', icon: CalculatorIcon, color: 'bg-slate-700', isCalculator: true },
+    { label: 'Calculator', href: '#', icon: CalculatorIcon, color: 'bg-slate-700', isCalculator: true },
     { label: 'Received', href: '/received-add', icon: Banknote, color: 'bg-green-600' },
     { label: 'Payment', href: '/payment-add?from_date=&to_date=', icon: CreditCard, color: 'bg-red-500' },
     { label: 'Purchases', href: '/purchases', icon: ShoppingCart, color: 'bg-amber-500' },
@@ -63,78 +73,15 @@ export function AppSidebarHeader({ breadcrumbs = [] }: { breadcrumbs?: Breadcrum
                         'Dashboard'
                     )}
                 </div>
-
-                {/* <div className="mb-2 ml-0 hidden w-full flex-wrap items-end justify-start gap-2 sm:mb-0 sm:ml-2 sm:w-auto sm:justify-end md:flex">
-                👇 logo button (left of calculator)
-                {company?.logo_url && (
-                    <img
-                        src={company.logo_url}
-                        alt={company?.name ?? 'Company'}
-                        className="h-12 w-full max-w-[120px] items-start justify-items-start sm:max-w-[150px] md:max-w-[180px]"
-                    />
-                )}
-            </div> */}
-
-                {/* <div className="mb-2 grid w-full grid-cols-4 md:grid-cols-6 lg:grid-cols-8 items-center justify-end gap-2">
-                <button
-                    onClick={toggleFullscreen}
-                    type="button"
-                    className={cn(
-                        'font-large inline-flex items-center gap-1 rounded-md px-3 py-1.5 text-xl text-black',
-                        'shadow transition hover:shadow-md focus-visible:ring focus-visible:outline-none',
-                    )}
-                >
-                    {isFullscreen ? <Minimize className="h-4 w-4" /> : <Maximize className="h-4 w-4" />}
-                    <span className="hidden xl:inline">{isFullscreen}</span>
-                </button>
-
-                {quickLinks.map(({ label, href, icon: Icon, color, isCalculator }) =>
-                    isCalculator ? (
-                        <Dialog key={label}>
-                            <DialogTrigger asChild>
-                                <button
-                                    className={cn(
-                                        'inline-flex items-center gap-1 rounded-md px-3 py-1.5 text-sm font-medium text-white',
-                                        'shadow transition hover:-translate-y-0.5 hover:shadow-md focus-visible:ring focus-visible:outline-none',
-                                        color,
-                                    )}
-                                >
-                                    <Icon className="h-4 w-4" />
-                                    <span className="hidden xl:inline">{label}</span>
-                                </button>
-                            </DialogTrigger>
-                            <DialogContent className="border-none bg-transparent p-0 sm:max-w-xs">
-                                <DialogHeader className="sr-only">
-                                    <DialogTitle>{label}</DialogTitle>
-                                </DialogHeader>
-                                <Calculator />
-                            </DialogContent>
-                        </Dialog>
-                    ) : (
-                        <a
-                            key={label}
-                            href={href}
-                            className={cn(
-                                'inline-flex items-center gap-1 rounded-md px-3 py-1.5 text-sm font-medium text-white',
-                                'shadow transition hover:-translate-y-0.5 hover:shadow-md focus-visible:ring focus-visible:outline-none',
-                                color,
-                            )}
-                        >
-                            <Icon className="h-4 w-4" />
-                            <span className="hidden xl:inline">{label}</span>
-                        </a>
-                    ),
-                )}
-            </div> */}
             </header>
 
             {/* Quick buttons */}
-            <div className="my-2 grid w-full grid-cols-4 items-center justify-between gap-2 md:grid-cols-6 lg:grid-cols-8 px-2">
+            <div className="my-4 grid w-full grid-cols-3 items-center justify-between gap-3 px-2 sm:grid-cols-3 lg:grid-cols-9">
                 <button
                     onClick={toggleFullscreen}
                     type="button"
                     className={cn(
-                        'font-large items-center gap-1 rounded-md px-3 py-1.5 text-xl text-black',
+                        'font-large items-center gap-1 rounded-md px-3 py-2 text-xl text-black',
                         'shadow transition hover:shadow-md focus-visible:ring focus-visible:outline-none',
                     )}
                 >
@@ -148,7 +95,7 @@ export function AppSidebarHeader({ breadcrumbs = [] }: { breadcrumbs?: Breadcrum
                             <DialogTrigger asChild>
                                 <button
                                     className={cn(
-                                        'inline-flex items-center gap-1 rounded-md px-3 py-1.5 text-sm font-medium text-white',
+                                        'flex items-center gap-1 rounded-md px-2 py-2 text-sm font-medium text-white',
                                         'shadow transition hover:-translate-y-0.5 hover:shadow-md focus-visible:ring focus-visible:outline-none',
                                         color,
                                     )}
@@ -157,7 +104,7 @@ export function AppSidebarHeader({ breadcrumbs = [] }: { breadcrumbs?: Breadcrum
                                     <span className="hidden md:inline">{label}</span>
                                 </button>
                             </DialogTrigger>
-                            <DialogContent className="border-none bg-transparent p-0 sm:max-w-xs">
+                            <DialogContent className="max-w-fit border-none bg-transparent p-0">
                                 <DialogHeader className="sr-only">
                                     <DialogTitle>{label}</DialogTitle>
                                 </DialogHeader>
@@ -169,7 +116,7 @@ export function AppSidebarHeader({ breadcrumbs = [] }: { breadcrumbs?: Breadcrum
                             key={label}
                             href={href}
                             className={cn(
-                                'flex items-center gap-1 rounded-md px-3 py-1.5 text-sm font-medium text-white',
+                                'flex items-center gap-1 rounded-md px-3 py-2 text-sm font-medium text-white',
                                 'shadow transition hover:-translate-y-0.5 hover:shadow-md focus-visible:ring focus-visible:outline-none',
                                 color,
                             )}

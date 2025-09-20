@@ -54,7 +54,7 @@ export default function ActionButtons({
     className = '',
 }: Props) {
     return (
-        <div className={`flex justify-center gap-2 ${className}`}>
+        <div className={`flex justify-items-center gap-2 ${className}`}>
             {/* View */}
             {viewHref && (
                 <Link href={viewHref} className={viewClassName ?? `${btn(size)} bg-blue-600 hover:bg-blue-700`}>

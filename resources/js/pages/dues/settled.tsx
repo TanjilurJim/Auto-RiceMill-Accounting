@@ -1,80 +1,86 @@
-import AppLayout   from '@/layouts/app-layout';
-import PageHeader  from '@/components/PageHeader';
-import { Head }    from '@inertiajs/react';
-import React       from 'react';
+import PageHeader from '@/components/PageHeader';
+import TableComponent from '@/components/TableComponent';
+import AppLayout from '@/layouts/app-layout';
+import { Head, Link } from '@inertiajs/react';
+import { route } from 'ziggy-js';
 
 type Row = {
-  id: number;
-  date: string;
-  voucher_no: string;
-  customer: string;
-  total_sale: number;
-  interest_paid: number;
-  total_paid: number;
-  cleared_on: string|null;
+    id: number;
+    date: string;
+    voucher_no: string;
+    customer: string;
+    total_sale: number;
+    interest_paid: number;
+    total_paid: number;
+    cleared_on: string | null;
 };
-interface Props { sales: Row[]; }
+interface Props {
+    sales: Row[];
+}
 
-const fmt = (n: number) =>
-  new Intl.NumberFormat('en-US', { minimumFractionDigits: 2 }).format(n);
+const fmt = (n: number) => new Intl.NumberFormat('en-US', { minimumFractionDigits: 2 }).format(n);
 
 export default function Settled({ sales }: Props) {
-  return (
-    <AppLayout>
-      <Head title="Settled dues" />
-      <div className="h-full w-full bg-background p-4 md:p-12">
-        <div className="space-y-6">
-          <PageHeader
-            title="Settled dues"
-            addLinkHref="/dues"
-            addLinkText="Back to outstanding"
-          />
+    // Define actions for each row
+    const renderActions = (row: Row) => (
+        <Link href={route('dues.show', row.id)} className="text-blue-600 hover:underline">
+            View&nbsp;log
+        </Link>
+    );
+    return (
+        <AppLayout>
+            <Head title="Settled dues" />
+            <div className="bg-background h-full w-screen p-4 md:p-12 lg:w-full">
+                <div className="space-y-6">
+                    <PageHeader title="Settled dues" addLinkHref="/dues" addLinkText="Back to outstanding" />
 
-          {sales.length === 0 ? (
-            <p className="rounded bg-green-50 p-4 text-sm text-green-700">
-              Great! No dues have been settled yet.
-            </p>
-          ) : (
-            <div className="overflow-x-auto rounded border bg-white">
-              <table className="min-w-full border-collapse text-sm">
-                <thead className="bg-gray-100">
-                  <tr className="border-b text-left">
-                    <th className="px-3 py-2">Date</th>
-                    <th className="px-3 py-2">Voucher</th>
-                    <th className="px-3 py-2">Customer</th>
-                    <th className="px-3 py-2 text-right">Sale ৳</th>
-                    <th className="px-3 py-2 text-right">Interest ৳</th>
-                    <th className="px-3 py-2 text-right">Paid ৳</th>
-                    <th className="px-3 py-2">Cleared on</th>
-                    <th className="px-3 py-2" />
-                  </tr>
-                </thead>
-                <tbody>
-                  {sales.map((s) => (
-                    <tr key={s.id} className="border-b last:border-0">
-                      <td className="px-3 py-2">{s.date}</td>
-                      <td className="px-3 py-2">{s.voucher_no}</td>
-                      <td className="px-3 py-2">{s.customer}</td>
-                      <td className="px-3 py-2 text-right">{fmt(s.total_sale)}</td>
-                      <td className="px-3 py-2 text-right">{fmt(s.interest_paid)}</td>
-                      <td className="px-3 py-2 text-right">{fmt(s.total_paid)}</td>
-                      <td className="px-3 py-2">{s.cleared_on ?? '—'}</td>
-                      <td className="px-3 py-2">
-                        <a
-                          href={route('dues.show', s.id)}
-                          className="text-blue-600 hover:underline"
-                        >
-                          View&nbsp;log
-                        </a>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
+                    {sales.length === 0 ? (
+                        <p className="rounded bg-green-50 p-4 text-sm text-green-700">Great! No dues have been settled yet.</p>
+                    ) : (
+                        <TableComponent
+                            columns={tableColumns}
+                            data={sales}
+                            actions={renderActions}
+                            noDataMessage="Great! No dues have been settled yet."
+                        />
+                    )}
+                </div>
             </div>
-          )}
-        </div>
-      </div>
-    </AppLayout>
-  );
+        </AppLayout>
+    );
 }
+
+// Define table columns for TableComponent
+const tableColumns = [
+    {
+        header: 'Date',
+        accessor: (row: Row) => row.date,
+    },
+    {
+        header: 'Voucher',
+        accessor: (row: Row) => row.voucher_no,
+    },
+    {
+        header: 'Customer',
+        accessor: (row: Row) => row.customer,
+    },
+    {
+        header: 'Sale ৳',
+        accessor: (row: Row) => fmt(row.total_sale),
+        className: 'text-right',
+    },
+    {
+        header: 'Interest ৳',
+        accessor: (row: Row) => fmt(row.interest_paid),
+        className: 'text-right',
+    },
+    {
+        header: 'Paid ৳',
+        accessor: (row: Row) => fmt(row.total_paid),
+        className: 'text-right',
+    },
+    {
+        header: 'Cleared on',
+        accessor: (row: Row) => row.cleared_on ?? '—',
+    },
+];

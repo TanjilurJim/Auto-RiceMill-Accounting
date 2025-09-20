@@ -49,7 +49,7 @@ export default function EditRole({
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
             <Head title={`Edit ${role.name}`} />
-            <div className="p-6 w-full md:h-screen mx-auto bg-background">
+            <div className="p-4 md:p-12 w-full md:h-screen mx-auto bg-background">
                 {/* <h1 className="text-2xl font-bold mb-6">Edit Role</h1> */}
                 <PageHeader title="Edit Role" addLinkHref='/roles' addLinkText="Back" />
 
