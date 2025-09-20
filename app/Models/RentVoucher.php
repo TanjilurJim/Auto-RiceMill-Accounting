@@ -40,4 +40,29 @@ class RentVoucher extends Model
     {
         return $this->belongsTo(Godown::class);
     }
+
+     public function receipts()
+    {
+        return $this->belongsToMany(ReceivedAdd::class, 'rent_voucher_receipts')
+            ->withPivot('amount')->withTimestamps();
+    }
+
+    /** Total received including the amount received at voucher creation */
+    public function receivedTotal(): float
+    {
+        return (float) $this->received_amount + $this->allocatedTotal();
+    }
+
+    /** Allocations made later via the pivot */
+    public function allocatedTotal(): float
+    {
+        return (float) $this->receipts()->sum('rent_voucher_receipts.amount');
+    }
+
+    /** Remaining due for THIS voucher only (ignores ledger carryovers) */
+    public function dueAmount(): float
+    {
+        return max(0, (float) $this->grand_total - $this->receivedTotal());
+    }
 }
+

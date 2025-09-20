@@ -10,6 +10,9 @@ interface Company {
     address?: string;
     phone?: string;
     logo_path?: string;
+       logo_url?: string;
+    logo_thumb_url?: string;
+
     mobile?: string;
     email?: string;
     website?: string;
@@ -110,7 +113,9 @@ const EmployeeLedger: React.FC = () => {
             <div className="max-w-full p-4 md:p-12" ref={reportRef}>
                 {/* Company Info */}
                 <div className="mb-4 text-center">
-                    {company?.logo_path && <img src={company.logo_path} alt="Company Logo" className="mx-auto mb-2 h-16 w-16 object-cover" />}
+                    {company?.logo_url && (
+                                <img src={company.logo_url} alt="Company Logo" className="mx-auto mb-2 h-20 object-contain print:h-12" />
+                            )}
                     <h2 className="text-xl font-bold sm:text-2xl lg:text-3xl">{company?.company_name || company?.name || '—'}</h2>
                     {company?.address && <p className="text-sm sm:text-base">{company.address}</p>}
                     {company?.mobile && <p className="text-sm sm:text-base">{company.mobile}</p>}

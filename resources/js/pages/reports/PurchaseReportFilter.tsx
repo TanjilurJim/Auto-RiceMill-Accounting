@@ -5,6 +5,7 @@ import AppLayout from '@/layouts/app-layout';
 import { Head, useForm } from '@inertiajs/react';
 import React, { useState } from 'react';
 import InputCalendar from '@/components/Btn&Link/InputCalendar';
+import dayjs from 'dayjs';
 
 interface Props {
     tab: 'category' | 'item' | 'party' | 'return' | 'all';
@@ -22,11 +23,13 @@ const tabs = [
 ];
 
 export default function PurchaseReportFilter({ tab, categories, items, suppliers }: Props) {
+            const today = dayjs().format('YYYY-MM-DD');
+    
     const [activeTab, setActiveTab] = useState(tab ?? 'category');
 
     const { data, setData, get, processing, errors } = useForm({
-        from_date: '',
-        to_date: '',
+        from_date: today,
+        to_date: today,
         category_id: '',
         item_id: '',
         supplier_id: '',

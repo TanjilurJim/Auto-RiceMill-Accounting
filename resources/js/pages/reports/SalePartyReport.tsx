@@ -16,6 +16,10 @@ interface Company {
   mobile?: string;
   address?: string;
   logo_path?: string;
+  logo_url?: string;
+  logo_thumb_url?: string;
+  website?: string;
+  financial_year?: string; // <-- string, not varChar
 }
 
 export default function SalePartyReport({
@@ -37,13 +41,9 @@ export default function SalePartyReport({
       <div className="max-w-full space-y-4 p-4">
         <Card className="shadow-lg">
           <CardHeader className="bg-background py-6 text-center relative">
-            {company?.logo_path && (
-              <img
-                src={company?.logo_path}
-                alt="Company Logo"
-                className="mx-auto mb-2 h-16 w-16 object-cover"
-              />
-            )}
+            {company?.logo_url && (
+                                <img src={company.logo_url} alt="Company Logo" className="mx-auto mb-2 h-20 object-contain print:h-12" />
+                            )}
             <h1 className="text-3xl font-bold uppercase">{company?.company_name}</h1>
             {company?.address && <p className="text-sm">{company?.address}</p>}
             {company?.mobile && <p className="text-sm">Phone: {company?.mobile}</p>}

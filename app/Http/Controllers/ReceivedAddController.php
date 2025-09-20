@@ -10,6 +10,7 @@ use App\Models\AccountLedger;
 use App\Models\Journal;
 use App\Models\JournalEntry;
 
+use Illuminate\Support\Facades\DB;
 use App\Models\CompanySetting;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Http\Request;
@@ -19,115 +20,70 @@ use function user_scope_ids;
 
 class ReceivedAddController extends Controller
 {
-    // public function create()
-    // {
-    //     $query = ReceivedMode::query();
-    //     $ledgerQuery = AccountLedger::query();
 
-    //     // Only show own data if not admin
-    //     if (!auth()->user()->hasRole('admin')) {
-    //         $query->where('created_by', auth()->id());
-    //         $ledgerQuery->where('created_by', auth()->id());
-    //     }
-
-    //     return Inertia::render('received-add/create', [
-    //         'receivedModes' => $query->select('id', 'mode_name', 'ledger_id')->get(), // ✅ Add 'ledger_id'
-    //         'accountLedgers' => $ledgerQuery
-    //             ->select('id', 'account_ledger_name', 'phone_number', 'opening_balance', 'closing_balance')
-    //             ->get(),
-    //     ]);
-    // }
+    private function generateVoucherNo(string $prefix = 'RCV'): string
+    {
+        return $prefix . '-' . now()->format('Ymd') . '-' . random_int(1000, 9999);
+    }
 
     public function create()
     {
-        $user = auth()->user();
+        $user    = auth()->user();
         $userIds = user_scope_ids();
 
-        $query = ReceivedMode::query();
-        $ledgerQuery = AccountLedger::query();
+        $modeQ   = ReceivedMode::query();
+        $ledgerQ = AccountLedger::query();
 
-        if (!$user->hasRole('admin')) {
-            $query->whereIn('created_by', $userIds);
-            $ledgerQuery->whereIn('created_by', $userIds);
+        if (! $user->hasRole('admin')) {
+            $modeQ->whereIn('created_by', $userIds);
+            $ledgerQ->whereIn('created_by', $userIds);
         }
 
         return Inertia::render('received-add/create', [
-            'receivedModes' => $query->select('id', 'mode_name', 'ledger_id')->get(),
-            'accountLedgers' => $ledgerQuery
-                ->select('id', 'account_ledger_name', 'phone_number', 'opening_balance', 'closing_balance')
-                ->get(),
+            'receivedModes'  => $modeQ->select('id', 'mode_name', 'ledger_id')->get(),
+            'accountLedgers' => $ledgerQ->select('id', 'account_ledger_name', 'phone_number', 'opening_balance', 'closing_balance')->get(),
         ]);
     }
 
     public function store(Request $request)
-    {
-        $request->validate([
-            'date' => 'required|date',
-            'voucher_no' => 'required|string|unique:received_adds,voucher_no',
-            'received_mode_id' => 'required|exists:received_modes,id',
-            'account_ledger_id' => 'required|exists:account_ledgers,id',
-            'amount' => 'required|numeric|min:0.01',
-            'description' => 'nullable|string',
-            'send_sms' => 'boolean',
+{
+    $request->validate([
+        'date'              => 'required|date',
+        'voucher_no'        => 'nullable|string|unique:received_adds,voucher_no',
+        'received_mode_id'  => 'required|exists:received_modes,id',
+        'account_ledger_id' => 'required|exists:account_ledgers,id',
+        'amount'            => 'required|numeric|min:0.01',
+        'description'       => 'nullable|string',
+        'reference'         => 'nullable|string|max:100',
+        'remarks'           => 'nullable|string|max:500',
+        'send_sms'          => 'boolean',
+    ]);
+
+    DB::transaction(function () use ($request) {
+        $voucherNo = $request->voucher_no ?: $this->generateVoucherNo();
+
+        $received = \App\Models\ReceivedAdd::create([
+            'date'              => $request->date,
+            'voucher_no'        => $voucherNo,          // ✅ always set
+            'received_mode_id'  => $request->received_mode_id,
+            'account_ledger_id' => $request->account_ledger_id,
+            'amount'            => $request->amount,
+            'description'       => $request->description,
+            'reference'         => $request->reference,
+            'remarks'           => $request->remarks,
+            'send_sms'          => (bool) $request->send_sms,
+            'created_by'        => auth()->id(),
+            'tenant_id'         => optional(auth()->user())->tenant_id,
         ]);
 
-        // 💾 Create ReceivedAdd entry
-        $received = ReceivedAdd::create([
-            ...$request->only([
-                'date',
-                'voucher_no',
-                'received_mode_id',
-                'account_ledger_id',
-                'amount',
-                'description',
-                'send_sms',
-            ]),
-            'created_by' => auth()->id(),
-        ]);
+        $received->postToLedgersAndJournal(); // ✅ single posting path
+    });
 
-        // 📤 Credit from payer (account ledger)
-        $payerLedger = AccountLedger::findOrFail($request->account_ledger_id);
-        $payerLedger->closing_balance = ($payerLedger->closing_balance ?? $payerLedger->opening_balance) - $request->amount;
-        $payerLedger->save();
+    return redirect()->route('received-add.index')
+        ->with('success', 'Received voucher saved and journal posted successfully!');
+}
 
-        // 📥 Debit into receiver (received_mode → ledger)
-        $receivedMode = ReceivedMode::with('ledger')->findOrFail($request->received_mode_id);
-        $receiverLedger = $receivedMode->ledger;
-        $receiverLedger->closing_balance = ($receiverLedger->closing_balance ?? $receiverLedger->opening_balance) + $request->amount;
-        $receiverLedger->save();
-
-        // 📘 Journal entry
-        $journal = Journal::create([
-            'date' => $request->date,
-            'voucher_no' => $request->voucher_no,
-            'narration' => $request->description ?? 'Received from ' . $payerLedger->account_ledger_name,
-            'created_by' => auth()->id(),
-            'voucher_type' => 'Received',
-        ]);
-
-        JournalEntry::insert([
-            [
-                'journal_id' => $journal->id,
-                'account_ledger_id' => $receiverLedger->id,
-                'type' => 'debit',
-                'amount' => $request->amount,
-                'note' => 'Received via ' . $receivedMode->mode_name,
-                'created_at' => now(),
-                'updated_at' => now(),
-            ],
-            [
-                'journal_id' => $journal->id,
-                'account_ledger_id' => $payerLedger->id,
-                'type' => 'credit',
-                'amount' => $request->amount,
-                'note' => 'Received from ' . $payerLedger->account_ledger_name,
-                'created_at' => now(),
-                'updated_at' => now(),
-            ],
-        ]);
-
-        return redirect()->route('received-add.index')->with('success', 'Received voucher saved and journal posted successfully!');
-    }
+    
 
 
     // public function index()
@@ -288,5 +244,4 @@ class ReceivedAddController extends Controller
             'amountWords'  => numberToWords((int) $receivedAdd->amount),
         ]);
     }
-
 }

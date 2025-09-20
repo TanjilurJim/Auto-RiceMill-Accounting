@@ -20,7 +20,7 @@ class RentVoucherController extends Controller
             'today'            => now()->toDateString(),
             'generated_vch_no' => 'RV-' . now()->format('Ymd') . '-' . random_int(1000, 9999),
 
-            'parties' => AccountLedger::whereIn('ledger_type', ['sales', 'income'])
+            'parties' => AccountLedger::whereIn('ledger_type', ['accounts_receivable',])
                 ->get(['id', 'account_ledger_name']),
 
             'items'   => PartyItem::with('unit:id,name')
@@ -124,10 +124,43 @@ class RentVoucherController extends Controller
     }
 
     /* ----------  SHOW / PRINTABLE VIEW  ---------- */
+    /* ----------  SHOW / PRINTABLE VIEW  ---------- */
+    // App/Http/Controllers/RentVoucherController.php
+
     public function show(RentVoucher $voucher)
     {
-        // eager-load the relation
-        $voucher->load(['party', 'receivedMode', 'lines.item']);
+        $voucher->load(['party', 'receivedMode', 'lines.item', 'receipts.receivedMode', 'receipts.creator']);
+
+        // Build payment history (include the initial receive as the first row, if > 0)
+        $payments = collect();
+
+        if ($voucher->received_amount > 0) {
+            $payments->push([
+                'id'            => null,
+                'date'          => $voucher->date,
+                'amount'        => (float) $voucher->received_amount,
+                'reference'     => 'Initial',
+                'notes'         => $voucher->remarks,
+                'received_mode' => $voucher->receivedMode ? $voucher->receivedMode->only(['mode_name', 'phone_number']) : null,
+                'user'          => $voucher->creator ? ['name' => optional($voucher->creator)->name] : null,
+            ]);
+        }
+
+        // Later allocations coming from ReceivedAdd via pivot
+        foreach ($voucher->receipts as $rcpt) {
+            $payments->push([
+                'id'            => $rcpt->id,
+                'date'          => $rcpt->date, // assumes ReceivedAdd has `date`
+                'amount'        => (float) $rcpt->pivot->amount,
+                'reference'     => $rcpt->reference ?? null,   // assumes ReceivedAdd has `reference`
+                'notes'         => $rcpt->remarks ?? null,     // assumes ReceivedAdd has `remarks`
+                'received_mode' => $rcpt->receivedMode ? $rcpt->receivedMode->only(['mode_name', 'phone_number']) : null,
+                'user'          => $rcpt->creator ? ['name' => optional($rcpt->creator)->name] : null,
+            ]);
+        }
+
+        // Provide modes to populate the "Settle Due" dialog
+        $modes = ReceivedMode::orderBy('mode_name')->get(['id', 'mode_name', 'phone_number']);
 
         return Inertia::render('crushing/RentVoucherShow', [
             'voucher' => $voucher->only([
@@ -137,15 +170,16 @@ class RentVoucherController extends Controller
                 'grand_total',
                 'previous_balance',
                 'balance',
+                'party_ledger_id',
                 'received_amount',
-                'remarks',
+                'remarks'
             ]) + [
-                // ship the mode in a compact form
-                'received_mode' => $voucher->receivedMode
-                    ? $voucher->receivedMode->only(['mode_name', 'phone_number'])
-                    : null,
-                'party' => $voucher->party->only(['account_ledger_name']),
+                'received_mode'  => $voucher->receivedMode ? $voucher->receivedMode->only(['mode_name', 'phone_number']) : null,
+                'party'          => $voucher->party->only(['account_ledger_name']),
+                'received_total' => $voucher->receivedTotal(),
+                'remaining_due'  => $voucher->dueAmount(),
             ],
+
             'lines' => $voucher->lines->map(fn($l) => [
                 'item'      => $l->item->item_name,
                 'qty'       => $l->qty,
@@ -153,8 +187,14 @@ class RentVoucherController extends Controller
                 'rate'      => $l->rate,
                 'amount'    => $l->amount,
             ]),
+
+            'payments' => $payments->sortBy('date')->values(),
+            'modes'    => $modes,
         ]);
     }
+
+
+
 
     /* ----------  EDIT FORM  ---------- */
     public function edit(RentVoucher $voucher)
@@ -204,6 +244,56 @@ class RentVoucherController extends Controller
                 ->get(['id', 'mode_name', 'phone_number']),
         ]);
     }
+
+    private function generateReceiptVoucherNo(string $prefix = 'RCV'): string
+    {
+        return $prefix . '-' . now()->format('Ymd') . '-' . random_int(1000, 9999);
+    }
+
+    // App/Http/Controllers/RentVoucherController.php
+
+    public function settle(Request $r, RentVoucher $voucher)
+    {
+        $data = $r->validate([
+            'date'             => ['required', 'date'],
+            'received_mode_id' => ['required', 'exists:received_modes,id'],
+            'amount'           => ['required', 'numeric', 'min:0.01'],
+            'reference'        => ['nullable', 'string', 'max:100'],
+            'notes'            => ['nullable', 'string', 'max:500'],
+        ]);
+
+        $remaining = $voucher->dueAmount();
+        if ($data['amount'] > $remaining + 1e-6) {
+            return back()->withErrors(['amount' => 'Amount exceeds remaining due (' . number_format($remaining, 2) . ').']);
+        }
+
+        DB::transaction(function () use ($voucher, $data) {
+            $receipt = \App\Models\ReceivedAdd::create([
+                'date'              => $data['date'],
+                'voucher_no'        => $this->generateReceiptVoucherNo(), // ✅ important
+                'received_mode_id'  => $data['received_mode_id'],
+                'account_ledger_id' => $voucher->party_ledger_id,          // ✅ important
+                'amount'            => $data['amount'],
+                'reference'         => $data['reference'] ?? null,
+                'remarks'           => $data['notes'] ?? null,
+                'description'       => $data['notes'] ?? null,
+                'created_by'        => auth()->id(),
+                'tenant_id'         => optional(auth()->user())->tenant_id,
+            ]);
+
+            $receipt->postToLedgersAndJournal();
+
+            $voucher->receipts()->attach($receipt->id, [
+                'amount'     => $data['amount'],
+                'created_at' => now(),
+                'updated_at' => now(),
+            ]);
+        });
+
+        return redirect()->route('party-stock.rent-voucher.show', $voucher->id)
+            ->with('success', 'Due settled successfully.');
+    }
+
 
     /* ----------  UPDATE  ---------- */
     public function update(Request $r, RentVoucher $voucher)

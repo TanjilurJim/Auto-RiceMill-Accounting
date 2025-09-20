@@ -25,7 +25,7 @@ class PartyStockMoveController extends Controller
         $generatedRefNo = "PSD-$dateStr-$random";
 
         return Inertia::render('crushing/PartyStockDepositForm', [
-            'parties' => AccountLedger::whereIn('ledger_type', ['sales', 'income'])
+            'parties' => AccountLedger::whereIn('ledger_type', ['accounts_receivable'])
 
                 ->get(['id', 'account_ledger_name']),
             // 'items'   => Item::where(createdByMeOnly())->get(['id', 'item_name', 'unit_id']),
@@ -239,6 +239,191 @@ class PartyStockMoveController extends Controller
             'items'     => $items,
             'balances'  => $balances, // 👈 send to front-end
         ]);
+    }
+
+    public function edit($id)
+    {
+        $row   = PartyStockMove::findOrFail($id);
+        $refNo = $row->ref_no;
+
+        $moves = PartyStockMove::with(['partyItem', 'partyLedger', 'godownTo'])
+            ->where('move_type', 'deposit')
+            ->where('ref_no', $refNo)
+            ->orderBy('id')
+            ->get();
+
+        if ($moves->isEmpty()) abort(404);
+
+        $first = $moves->first();
+
+        $deposits = $moves->map(function ($m) {
+            $meta = is_array($m->meta) ? $m->meta : (json_decode($m->meta ?? '{}', true) ?: []);
+            return [
+                'item_name'    => $m->partyItem->item_name ?? '',
+                'unit_name'    => $m->unit_name ?? '',
+                'qty'          => (string) $m->qty,
+                'rate'         => $m->rate !== null ? (string) $m->rate : '',
+                'total'        => (float) ($m->total ?? 0),
+                'bosta_weight' => isset($meta['bosta_weight']) ? (string)$meta['bosta_weight'] : '',
+                'weight'       => $m->weight !== null ? (float)$m->weight : 0,
+            ];
+        })->values();
+
+        return Inertia::render('crushing/PartyStockDepositEdit', [
+            'doc_id'  => $first->id, // any row id under this ref_no
+            'parties' => AccountLedger::whereIn('ledger_type', ['accounts_receivable'])
+                ->get(['id', 'account_ledger_name']),
+            'units'   => Unit::all(['id', 'name']),
+            'godowns' => Godown::all(['id', 'name']),
+            'form'    => [
+                'date'            => $first->date,
+                'party_ledger_id' => (string) $first->party_ledger_id,
+                'godown_id_to'    => (string) $first->godown_id_to,
+                'ref_no'          => $refNo, // keep same ref by default
+                'remarks'         => $first->remarks ?? '',
+                'deposits'        => $deposits,
+            ],
+        ]);
+    }
+
+    /**
+     * Update a deposit DOC (replace rows safely and fix PartyJobStock)
+     */
+    public function update(Request $request, $id)
+    {
+        $validated = $request->validate([
+            'date'             => ['required', 'date'],
+            'party_ledger_id'  => ['required', 'exists:account_ledgers,id'],
+            'godown_id_to'     => ['required', 'exists:godowns,id'],
+            'ref_no'           => ['nullable', 'string', 'max:255'],
+            'remarks'          => ['nullable', 'string'],
+            'deposits'         => ['required', 'array', 'min:1'],
+            'deposits.*.item_name'   => ['required', 'string', 'max:255'],
+            'deposits.*.qty'         => ['required', 'numeric', 'min:0.01'],
+            'deposits.*.unit_name'   => ['nullable', 'string'],
+            'deposits.*.rate'        => ['required', 'numeric', 'min:0'],
+            'deposits.*.bosta_weight' => ['nullable', 'numeric', 'min:0'],
+            'deposits.*.weight'      => ['nullable', 'numeric', 'min:0'],
+        ]);
+
+        DB::transaction(function () use ($validated, $id) {
+            $anyRow = PartyStockMove::findOrFail($id);
+            $oldRef = $anyRow->ref_no;
+
+            // 1) Rollback OLD stock and delete old rows
+            $oldMoves = PartyStockMove::where('move_type', 'deposit')
+                ->where('ref_no', $oldRef)
+                ->get();
+
+            foreach ($oldMoves as $m) {
+                $stock = PartyJobStock::firstOrNew([
+                    'party_item_id' => $m->party_item_id,
+                    'godown_id'     => $m->godown_id_to,
+                ]);
+                $stock->party_ledger_id = $m->party_ledger_id;
+                $stock->qty  = max(0, (float)($stock->qty ?? 0) - (float)$m->qty);
+                $stock->save();
+            }
+
+            PartyStockMove::where('move_type', 'deposit')
+                ->where('ref_no', $oldRef)
+                ->delete();
+
+            // 2) Recreate NEW rows (like store)
+            $newRef = $validated['ref_no'] ?: $oldRef;
+
+            foreach ($validated['deposits'] as $deposit) {
+                $unitId = Unit::where('name', $deposit['unit_name'] ?? '')->value('id');
+
+                $partyItem = PartyItem::firstOrCreate(
+                    [
+                        'party_ledger_id' => $validated['party_ledger_id'],
+                        'item_name'       => trim($deposit['item_name']),
+                    ],
+                    [
+                        'unit_id'    => $unitId,
+                        'created_by' => auth()->id(),
+                    ]
+                );
+
+                $qty      = (float) $deposit['qty'];
+                $rate     = (float) $deposit['rate'];
+                $unitName = strtolower((string)($deposit['unit_name'] ?? ''));
+                $perBosta = isset($deposit['bosta_weight']) ? (float)$deposit['bosta_weight'] : 0.0;
+
+                $weight = isset($deposit['weight']) ? (float)$deposit['weight'] : 0.0;
+                if ($weight <= 0) {
+                    if ($unitName === 'kg') {
+                        $weight = $qty;
+                    } elseif ($unitName === 'bosta' && $perBosta > 0) {
+                        $weight = $qty * $perBosta;
+                    } else {
+                        $weight = null;
+                    }
+                }
+
+                PartyStockMove::create([
+                    'date'            => $validated['date'],
+                    'party_ledger_id' => $validated['party_ledger_id'],
+                    'party_item_id'   => $partyItem->id,
+                    'godown_id_from'  => null,
+                    'godown_id_to'    => $validated['godown_id_to'],
+                    'qty'             => $qty,
+                    'weight'          => $weight !== null ? round(abs($weight), 3) : null,
+                    'rate'            => $rate,
+                    'total'           => bcmul($qty, $rate, 2),
+                    'move_type'       => 'deposit',
+                    'ref_no'          => $newRef,
+                    'remarks'         => $validated['remarks'] ?? null,
+                    'unit_name'       => $deposit['unit_name'] ?? null,
+                    'meta'            => ['bosta_weight' => $perBosta ?: null],
+                    'created_by'      => auth()->id(),
+                ]);
+
+                $stock = PartyJobStock::firstOrNew([
+                    'party_item_id' => $partyItem->id,
+                    'godown_id'     => $validated['godown_id_to'],
+                ]);
+                $stock->party_ledger_id = $validated['party_ledger_id'];
+                $stock->qty        = ($stock->qty ?? 0) + $qty;
+                $stock->unit_name  = $deposit['unit_name'] ?? $stock->unit_name;
+                $stock->created_by = auth()->id();
+                $stock->save();
+            }
+        });
+
+        return redirect()->route('party-stock.deposit.index')->with('success', 'ডিপোজিট আপডেট হয়েছে।');
+    }
+
+    /**
+     * Destroy a whole deposit DOC by any row id (roll back stock, then delete)
+     */
+    public function destroy($id)
+    {
+        DB::transaction(function () use ($id) {
+            $row   = PartyStockMove::findOrFail($id);
+            $refNo = $row->ref_no;
+
+            $moves = PartyStockMove::where('move_type', 'deposit')
+                ->where('ref_no', $refNo)
+                ->get();
+
+            foreach ($moves as $m) {
+                $stock = PartyJobStock::firstOrNew([
+                    'party_item_id' => $m->party_item_id,
+                    'godown_id'     => $m->godown_id_to,
+                ]);
+                $stock->party_ledger_id = $m->party_ledger_id;
+                $stock->qty  = max(0, (float)($stock->qty ?? 0) - (float)$m->qty);
+                $stock->save();
+            }
+
+            PartyStockMove::where('move_type', 'deposit')
+                ->where('ref_no', $refNo)
+                ->delete();
+        });
+
+        return redirect()->route('party-stock.deposit.index')->with('success', 'ডিপোজিট মুছে ফেলা হয়েছে।');
     }
 
 

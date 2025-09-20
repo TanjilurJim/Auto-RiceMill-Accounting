@@ -27,6 +27,10 @@ interface Company {
     address?: string;
     logo_path?: string;
     website?: string;
+
+    logo_url?: string;
+    logo_thumb_url?: string;
+    financial_year?: string; // <-- string, not varChar
 }
 
 interface Props {

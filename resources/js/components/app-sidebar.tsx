@@ -224,11 +224,11 @@ const mainNavItems: NavItem[] = [
                 href: '/received-modes',
                 icon: Banknote,
             },
-            {
-                title: 'Received Add',
-                href: '/received-add',
-                icon: Folder,
-            },
+            // {
+            //     title: 'Received Add',
+            //     href: '/received-add',
+            //     icon: Folder,
+            // },
             {
                 title: 'Payment Add',
                 href: '/payment-add',
@@ -244,11 +244,11 @@ const mainNavItems: NavItem[] = [
                 href: '/journal-add',
                 icon: Notebook,
             },
-            {
-                title: 'Stock Transfer',
-                href: '/stock-transfers',
-                icon: Notebook,
-            },
+            // {
+            //     title: 'Stock Transfer',
+            //     href: '/stock-transfers',
+            //     icon: Notebook,
+            // },
 
             // Later you can add more inventory-related items here (e.g., Products, Stock Transfers, etc.)
         ],

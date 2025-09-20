@@ -3,7 +3,6 @@
 namespace App\Http\Controllers;
 
 use App\Models\JournalEntry;
-use App\Models\AccountLedger;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 use PDF;
@@ -12,31 +11,6 @@ use App\Exports\ProfitLossExport;
 
 class ProfitLossController extends Controller
 {
-    /* ------------------------------------------------------------------
-       Map each group_under “name” (or id) to Income / Expense buckets.
-       Add or remove labels as your chart of accounts evolves.
-    ------------------------------------------------------------------ */
-    private array $groupMap = [
-        // EXPENSE GROUPS
-        'Direct Expenses'            => 'expense',
-        'Indirect Expenses'          => 'expense',
-        'Vehicles & Transportation'  => 'expense',
-        'Transportation'             => 'expense',
-        'Financial Expenses'         => 'expense',
-        'Misc. Expenses (Asset)'     => 'expense',
-        'Selling & Distribution Exp' => 'expense', // ← exact table name
-        'Administrative Overhead'    => 'expense',
-
-        // INCOME GROUPS
-        'Direct Income'              => 'income',
-        'Indirect Income'            => 'income',
-        'Non Operating Income'       => 'income',
-        'Crushing Income'            => 'income', // ← exists in your table
-
-        // Optional / custom if you actually use:
-        // 'Rent Voucher Income'     => 'income',
-    ];
-
     /* ------------------------ filter view ------------------------ */
     public function filter()
     {
@@ -48,13 +22,18 @@ class ProfitLossController extends Controller
     {
         $data = $this->getProfitLossData($request);
 
-
         return Inertia::render('reports/ProfitLoss', [
             'from_date' => $data['from_date'],
             'to_date'   => $data['to_date'],
+
+            // top summary
             'figures'   => $data['figures'],
+
+            // breakdowns
             'byLedger'  => $data['byLedger'],
-            'grouped'   => $data['grouped'],        // <-- new array
+            'grouped'   => $data['grouped'],   // now grouped by ledger_type (compat name)
+
+            // org
             'company'   => $data['company'],
         ]);
     }
@@ -89,100 +68,153 @@ class ProfitLossController extends Controller
         $user = auth()->user();
         $ids  = user_scope_ids();
 
-        $entries = JournalEntry::with(['ledger', 'journal'])
-            ->whereHas('journal', fn($q) => $q->whereBetween('date', [$from, $to]));
+        // Canonical classification by ledger_type
+        $incomeTypes  = ['sales_income', 'other_income', 'income'];            // include legacy 'income'
+        $expenseTypes = ['cogs', 'operating_expense', 'expense'];              // include legacy 'expense'
+
+        // Base relation for sums (date + tenant scope)
+        $base = JournalEntry::query()
+            ->join('account_ledgers as al', 'journal_entries.account_ledger_id', '=', 'al.id')
+            ->join('journals as j',         'journal_entries.journal_id',       '=', 'j.id')
+            ->whereBetween('j.date', [$from, $to]);
 
         if (!$user->hasRole('admin')) {
-            $entries->whereHas('journal', fn($q) => $q->whereIn('created_by', $ids));
+            $base->whereIn('j.created_by', $ids);
         }
 
-        /** sum helper that supports multiple ledger types (for back-compat) */
-        $sum = function (array $ledgerTypes, string $drCr) use ($entries) {
-            return (clone $entries)
-                ->where('type', $drCr)
-                ->whereHas('ledger', fn($q) => $q->whereIn('ledger_type', $ledgerTypes))
-                ->sum('amount');
+        // Sum helper: netting by type set + DR/CR
+        $sumCredits = function (array $types) use ($base) {
+            return (clone $base)
+                ->whereIn('al.ledger_type', $types)
+                ->where('journal_entries.type', 'credit')
+                ->sum('journal_entries.amount');
+        };
+        $sumDebits = function (array $types) use ($base) {
+            return (clone $base)
+                ->whereIn('al.ledger_type', $types)
+                ->where('journal_entries.type', 'debit')
+                ->sum('journal_entries.amount');
         };
 
-        /* top-level figures (new types + legacy fallbacks) */
+        /* ---------- Top figures ---------- */
+        $salesCredits   = (float) $sumCredits(['sales_income', 'sales']); // include legacy 'sales'
+        $salesDebits    = (float) $sumDebits(['sales_income', 'sales']);
+        $sales          = $salesCredits - $salesDebits;
+
+        $cogsDebits     = (float) $sumDebits(['cogs']);
+        $cogsCredits    = (float) $sumCredits(['cogs']);
+        $cogs           = $cogsDebits - $cogsCredits;
+
+        $opexDebits     = (float) $sumDebits(['operating_expense', 'expense']);
+        $opexCredits    = (float) $sumCredits(['operating_expense', 'expense']);
+        $expenses       = $opexDebits - $opexCredits;
+
+        $oiCredits      = (float) $sumCredits(['other_income', 'income']);
+        $oiDebits       = (float) $sumDebits(['other_income', 'income']);
+        $otherIncome    = $oiCredits - $oiDebits;
+
+        $grossProfit    = $sales - $cogs;
+        $netProfit      = $grossProfit - $expenses + $otherIncome;
+
         $figures = [
-            'sales'        => (float) $sum(['sales_income', 'sales'], 'credit'),
-            'cogs'         => (float) $sum(['cogs'],                  'debit'),
-            'expenses'     => (float) $sum(['operating_expense', 'expense'], 'debit'),
-            'otherIncome'  => (float) $sum(['other_income', 'income'], 'credit'),
+            'sales'        => round($sales, 2),
+            'cogs'         => round($cogs, 2),
+            'expenses'     => round($expenses, 2),
+            'otherIncome'  => round($otherIncome, 2),
+            'grossProfit'  => round($grossProfit, 2),
+            'netProfit'    => round($netProfit, 2),
         ];
 
-        $figures['grossProfit'] = $figures['sales'] - $figures['cogs'];
-        $figures['netProfit']   = $figures['grossProfit'] - $figures['expenses'] + $figures['otherIncome'];
-
-        /* ---------- per‑ledger breakdown ---------- */
-        $byLedger = JournalEntry::join('account_ledgers as al', 'journal_entries.account_ledger_id', '=', 'al.id')
-            ->join('journals as j', 'journal_entries.journal_id', '=', 'j.id')
-            ->whereBetween('j.date', [$from, $to])
-            ->when(!$user->hasRole('admin'), fn($q) => $q->whereIn('j.created_by', $ids))
-            ->selectRaw('al.account_ledger_name as ledger, al.ledger_type as type,
-                 SUM(CASE WHEN journal_entries.type="debit"  THEN journal_entries.amount ELSE 0 END) as debits,
-                 SUM(CASE WHEN journal_entries.type="credit" THEN journal_entries.amount ELSE 0 END) as credits')
+        /* ---------- Per-ledger breakdown (with net) ---------- */
+        $byLedgerRaw = (clone $base)
+            ->selectRaw('
+                al.account_ledger_name as ledger,
+                al.ledger_type as ledger_type,
+                SUM(CASE WHEN journal_entries.type="debit"  THEN journal_entries.amount ELSE 0 END) as debits,
+                SUM(CASE WHEN journal_entries.type="credit" THEN journal_entries.amount ELSE 0 END) as credits
+            ')
             ->groupBy('al.account_ledger_name', 'al.ledger_type')
             ->orderBy('al.account_ledger_name')
             ->get();
 
+        $byLedger = $byLedgerRaw->map(function ($r) use ($incomeTypes, $expenseTypes) {
+            $debits  = (float) $r->debits;
+            $credits = (float) $r->credits;
 
-        /* ---------- group_under breakdown ---------- */
-        $groupSums = JournalEntry::join('account_ledgers', 'journal_entries.account_ledger_id', '=', 'account_ledgers.id')
-            ->join('group_unders',  'account_ledgers.group_under_id', '=', 'group_unders.id')
-            ->join('journals',      'journal_entries.journal_id',     '=', 'journals.id')
-            ->whereBetween('journals.date', [$from, $to])
-            // ->when(!auth()->user()->hasRole('admin'),
-            //     fn ($q) => $q->where('journals.created_by', auth()->id()))
-
-            ->when(
-                !$user->hasRole('admin'),
-                fn($q) => $q->whereIn('journals.created_by', $ids)
-            )
-
-            ->selectRaw('group_unders.name as group_name,
-                         journal_entries.type as dr_cr,
-                         SUM(journal_entries.amount) as total')
-            ->groupBy('group_unders.name', 'journal_entries.type')
-            ->get()
-            ->groupBy('group_name');
-
-        $grouped = collect($this->groupMap)->map(function ($side, $gName) use ($groupSums) {
-            $raw    = $groupSums->get($gName, collect());
-            $debit  = $raw->firstWhere('dr_cr', 'debit')?->total ?? 0;
-            $credit = $raw->firstWhere('dr_cr', 'credit')?->total ?? 0;
-            $value  = $side === 'expense' ? ($debit - $credit) : ($credit - $debit);
+            if (in_array($r->ledger_type, $incomeTypes, true)) {
+                $side = 'income';
+                $net  = $credits - $debits;     // income nets credit - debit
+            } elseif (in_array($r->ledger_type, $expenseTypes, true)) {
+                $side = 'expense';
+                $net  = $debits - $credits;     // expenses/COGS net debit - credit
+            } else {
+                // non-P&L types (assets/liabilities) → show but net = 0 for P&L
+                $side = 'neutral';
+                $net  = 0.0;
+            }
 
             return [
-                'group' => $gName,
-                'side'  => $side,   // 'expense' | 'income'
-                'value' => $value,
+                'ledger'      => $r->ledger,
+                'ledger_type' => $r->ledger_type,
+                'debits'      => round($debits, 2),
+                'credits'     => round($credits, 2),
+                'side'        => $side,
+                'net'         => round($net, 2),
             ];
-        })->filter(fn($row) => $row['value'] != 0)->values();
+        });
+
+        /* ---------- Grouped by ledger_type (compat “grouped”) ---------- */
+        $byTypeRaw = (clone $base)
+            ->selectRaw('
+                al.ledger_type as ledger_type,
+                SUM(CASE WHEN journal_entries.type="debit"  THEN journal_entries.amount ELSE 0 END) as debits,
+                SUM(CASE WHEN journal_entries.type="credit" THEN journal_entries.amount ELSE 0 END) as credits
+            ')
+            ->groupBy('al.ledger_type')
+            ->orderBy('al.ledger_type')
+            ->get();
+
+        $grouped = $byTypeRaw->map(function ($r) use ($incomeTypes, $expenseTypes) {
+            $debits  = (float) $r->debits;
+            $credits = (float) $r->credits;
+
+            if (in_array($r->ledger_type, $incomeTypes, true)) {
+                $side  = 'income';
+                $value = $credits - $debits;
+            } elseif (in_array($r->ledger_type, $expenseTypes, true)) {
+                $side  = 'expense';
+                $value = $debits - $credits;
+            } else {
+                $side  = 'neutral';
+                $value = 0.0;
+            }
+
+            return [
+                'group' => $r->ledger_type,     // name = ledger_type
+                'side'  => $side,               // 'income' | 'expense' | 'neutral'
+                'value' => round($value, 2),
+            ];
+        })->filter(fn ($row) => $row['value'] != 0.0)->values();
 
         /* ---------- company info ---------- */
-        $co = company_info();
-        // dd($groupSums->keys());
-
-        if (!$co) {
-            $co = (object)[
-                'company_name'   => '',
-                'phone'          => '',
-                'email'          => '',
-                'address'        => '',
-                'logo_url'       => '',
-                'logo_thumb_url' => '',
-            ];
-        }
+        $co = company_info() ?: (object)[
+            'company_name'   => '',
+            'phone'          => '',
+            'email'          => '',
+            'address'        => '',
+            'logo_url'       => '',
+            'logo_thumb_url' => '',
+        ];
 
         return [
             'from_date' => $from,
             'to_date'   => $to,
-            'figures'   => $figures,
-            'byLedger'  => $byLedger,
-            'grouped'   => $grouped,   // <-- new payload
-            'company'   => [
+
+            'figures'  => $figures,
+            'byLedger' => $byLedger,
+            'grouped'  => $grouped, // grouped by ledger_type
+
+            'company'  => [
                 'company_name'   => $co->company_name,
                 'phone'          => $co->phone,
                 'email'          => $co->email,

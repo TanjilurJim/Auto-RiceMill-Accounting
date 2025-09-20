@@ -10,8 +10,8 @@ use Illuminate\Console\Scheduling\Schedule;
 
 return Application::configure(basePath: dirname(__DIR__))
     ->withRouting(
-        web: __DIR__.'/../routes/web.php',
-        commands: __DIR__.'/../routes/console.php',
+        web: __DIR__ . '/../routes/web.php',
+        commands: __DIR__ . '/../routes/console.php',
         health: '/up',
     )
     ->withMiddleware(function (Middleware $middleware) {
@@ -29,14 +29,23 @@ return Application::configure(basePath: dirname(__DIR__))
         ]);
     })
     ->withProviders([
-        App\Providers\BroadcastServiceProvider::class,  
+        App\Providers\BroadcastServiceProvider::class,
     ])
     ->withSchedule(function (Schedule $schedule) {
         // runs hourly
         // $schedule->command('users:deactivate-expired-trials')->hourly();
+        $schedule->command('sales:accrue-interest')
+            ->dailyAt('23:55')
+            ->timezone('Asia/Dhaka')
+            ->withoutOverlapping()
+            ->onOneServer();
 
         // For testing, you can drop to every minute:
-        $schedule->command('users:deactivate-expired-trials')->everyMinute();
+        $schedule->command('users:deactivate-expired-trials')
+            ->dailyAt('00:10')
+            ->timezone('Asia/Dhaka')
+            ->withoutOverlapping()
+            ->onOneServer();
     })
     ->withExceptions(function (Exceptions $exceptions) {
         //

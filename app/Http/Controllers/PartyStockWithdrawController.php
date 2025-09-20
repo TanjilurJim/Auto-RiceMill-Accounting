@@ -81,7 +81,7 @@ class PartyStockWithdrawController extends Controller
             $units   = Unit::whereIn('created_by', user_scope_ids())
                 ->get(['id', 'name']);
 
-            $parties = AccountLedger::whereIn('ledger_type', ['sales', 'income'])
+            $parties = AccountLedger::whereIn('ledger_type', ['accounts_receivable', ])
                 ->whereIn('created_by', user_scope_ids())
                 ->get(['id', 'account_ledger_name']);
 

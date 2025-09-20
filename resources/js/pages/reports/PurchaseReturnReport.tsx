@@ -24,6 +24,10 @@ interface Company {
   mobile?: string;
   address?: string;
   logo_path?: string;
+  logo_url?: string;
+  logo_thumb_url?: string;
+  website?: string;
+  financial_year?: string; // <-- string, not varChar
 }
 
 export default function PurchaseReturnReport({
@@ -56,13 +60,9 @@ export default function PurchaseReturnReport({
           {/* ───────────── header ───────────── */}
           <CardHeader className="bg-background py-6 text-center">
             <div className="space-y-1">
-              {company?.logo_path && (
-                <img
-                  src={company?.logo_path}
-                  alt="Company Logo"
-                  className="mx-auto mb-2 h-16 w-16 object-cover"
-                />
-              )}
+              {company?.logo_url && (
+                                <img src={company.logo_url} alt="Company Logo" className="mx-auto mb-2 h-20 object-contain print:h-12" />
+                            )}
               <h1 className="text-3xl font-bold uppercase">
                 {company?.company_name ?? 'Company Name'}
               </h1>
