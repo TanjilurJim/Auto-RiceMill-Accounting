@@ -2,7 +2,7 @@ import DeleteBtn from '@/components/Btn&Link/DeleteBtn'; // Assuming the path fo
 import EditBtn from '@/components/Btn&Link/EditBtn'; // Assuming the path for EditBtn
 import Pagination from '@/components/Pagination'; // Assuming the path for Pagination
 import AppLayout from '@/layouts/app-layout';
-import { Head, Link } from '@inertiajs/react';
+import { Head, Link, router } from '@inertiajs/react';
 import React from 'react';
 
 interface Props {
@@ -29,12 +29,21 @@ interface Props {
     };
 }
 
+const onEdit = (id: number) => {
+    router.visit(route('party-stock.deposit.edit', { id }));
+};
+
+const onDelete = (id: number) => {
+    if (!confirm('এই ডিপোজিট ডকুমেন্টটি মুছে ফেলতে চান?')) return;
+    router.delete(route('party-stock.deposit.destroy', { id }), { preserveScroll: true });
+};
+
 export default function PartyStockDepositIndex({ deposits, pagination }: Props) {
     return (
         <AppLayout>
             <Head title="পার্টির পণ্য জমা তালিকা" />
-            <div className="h-full w-screen bg-background p-6 lg:w-full">
-                <div className="h-full space-y-6 rounded-sm bg-background p-6">
+            <div className="bg-background h-full w-screen p-6 lg:w-full">
+                <div className="bg-background h-full space-y-6 rounded-sm p-6">
                     <h1 className="text-xl font-bold">পার্টির পন্য জমা তালিকা</h1>
 
                     {deposits.length === 0 && (
@@ -74,16 +83,23 @@ export default function PartyStockDepositIndex({ deposits, pagination }: Props) 
                                                 {/* Date */}
                                                 <td className="border p-2 text-center">{deposit.date}</td>
                                                 {/* Action Buttons (Edit and Delete) */}
-                                                <td className="border p-2 text-center gap-2 flex justify-center">
+                                                <td className="flex justify-center gap-2 border p-2 text-center">
                                                     <Link
                                                         href={route('party-stock.deposit.show', deposit.id)}
-                                                        className="rounded bg-blue-600 px-3 py-1 text-foreground hover:bg-blue-700"
+                                                        className="text-foreground rounded bg-blue-600 px-3 py-1 hover:bg-blue-700"
                                                     >
                                                         View
                                                     </Link>
-                                                    <EditBtn editbtnclick={() => console.log('Edit clicked for', deposit.id)} className="px-3 py-1" />
-                                                    <DeleteBtn handleDelete={() => console.log('Delete clicked for', deposit.id)} delId={deposit} />
-                                                    
+                                                    <EditBtn className="px-3 py-1" editbtnclick={() => onEdit(deposit.id)}>
+                                                        Edit
+                                                    </EditBtn>
+
+                                                    {/* DeleteBtn expects handleDelete(id:number) and reads delId.id */}
+                                                    <DeleteBtn
+                                                        className="px-3 py-1"
+                                                        handleDelete={onDelete}
+                                                        delId={deposit} // deposit has an { id } field; this matches your component
+                                                    />
                                                 </td>
                                             </tr>
                                         ))}

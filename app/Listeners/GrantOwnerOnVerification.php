@@ -5,7 +5,7 @@ namespace App\Listeners;
 use Illuminate\Auth\Events\Verified;
 use Illuminate\Support\Carbon;
 use Spatie\Permission\Models\Role;
-
+use Illuminate\Console\Scheduling\Schedule;
 class GrantOwnerOnVerification
 {
     public function handle(Verified $event): void
