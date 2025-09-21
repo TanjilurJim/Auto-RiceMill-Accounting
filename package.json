@@ -58,6 +58,7 @@
         "date-fns": "^4.1.0",
         "datepicker": "^0.0.0",
         "dayjs": "^1.11.13",
+        "form-data": "^4.0.4",
         "framer-motion": "^12.5.0",
         "globals": "^15.14.0",
         "html2canvas": "^1.4.1",
