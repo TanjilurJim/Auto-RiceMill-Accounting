@@ -5,11 +5,12 @@ import { RevenueChart as RevenueChartBase } from '@/components/dashboard/Revenue
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
+import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { ArrowRight, CheckCircle2, CircleUser, Crown, UserPlus, Users } from 'lucide-react';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { ArrowRight, CheckCircle2, CircleUser, Crown, Shield, UserPlus, Users } from 'lucide-react';
 
+import TableComponent from '@/components/TableComponent';
 import AppLayout from '@/layouts/app-layout';
 import { Head, Link, usePage } from '@inertiajs/react';
 import { Search } from 'lucide-react';
@@ -195,80 +196,9 @@ const RecentRegistrationsCard = memo(function RecentRegistrationsCard({
                 </div>
             </CardHeader>
 
-            <CardContent className="pt-4">
-                <div className="rounded-md border">
-                    <Table>
-                        <TableHeader>
-                            <TableRow>
-                                <TableHead className="w-[100px]">User</TableHead>
-                                <TableHead className="w-[100px]">Roles</TableHead>
-                                <TableHead className="w-[100px]">Joined</TableHead>
-                                <TableHead className="w-[100px] text-right">Status</TableHead>
-                            </TableRow>
-                        </TableHeader>
-                        <TableBody>
-                            {filtered.length === 0 && (
-                                <TableRow>
-                                    <TableCell colSpan={4} className="text-muted-foreground py-10 text-center text-sm">
-                                        No users found.
-                                    </TableCell>
-                                </TableRow>
-                            )}
-
-                            {filtered.map((u) => (
-                                <TableRow key={u.id}>
-                                    <TableCell>
-                                        <div className="flex items-center gap-3">
-                                            <Avatar className="h-8 w-8">
-                                                <AvatarFallback>{(u.name ?? 'U').slice(0, 2).toUpperCase()}</AvatarFallback>
-                                            </Avatar>
-                                            <div className="min-w-0">
-                                                <div className="flex items-center gap-1 truncate font-medium">
-                                                    {u.name}
-                                                    {/** owner badge + link to lineage */}
-                                                    {(u.roleNames ?? []).some((r) => r.toLowerCase() === 'owner') && (
-                                                        <Link
-                                                            href={route('users.lineage', u.id)}
-                                                            title="View lineage (users created by this owner)"
-                                                            className="text-amber-500 hover:text-amber-600"
-                                                        >
-                                                            <Crown className="h-4 w-4" />
-                                                        </Link>
-                                                    )}
-                                                </div>
-                                                <div className="text-muted-foreground truncate text-xs">{u.email}</div>
-                                            </div>
-                                        </div>
-                                    </TableCell>
-
-                                    <TableCell>
-                                        <div className="flex flex-wrap gap-1">
-                                            {(u.roleNames ?? []).length === 0 && <Badge variant="outline">—</Badge>}
-                                            {(u.roleNames ?? []).map((r: string) => (
-                                                <Badge key={r} variant="secondary" className="capitalize">
-                                                    {r}
-                                                </Badge>
-                                            ))}
-                                        </div>
-                                    </TableCell>
-
-                                    <TableCell>
-                                        <span className="text-sm">{shortDate(u.joinedAt)}</span>
-                                    </TableCell>
-
-                                    <TableCell className="text-right">
-                                        {u.isActive ? (
-                                            <Badge className="bg-emerald-600 hover:bg-emerald-600">Active</Badge>
-                                        ) : (
-                                            <Badge variant="outline">Inactive</Badge>
-                                        )}
-                                    </TableCell>
-                                </TableRow>
-                            ))}
-                        </TableBody>
-                    </Table>
-                </div>
-            </CardContent>
+            <div className='px-2'>
+                <TableComponent columns={tableColumns} data={filtered} noDataMessage="No users found." />
+            </div>
 
             <CardFooter className="flex items-center justify-between">
                 <span className="text-muted-foreground text-xs">Showing {filtered.length} users</span>
@@ -321,88 +251,155 @@ export default function AdminDashboard() {
         <AppLayout breadcrumbs={[{ title: 'Super Admin Dashboard', href: '/admin/dashboard' }]}>
             <Head title="Super Admin Dashboard" />
 
-            {/* Top header & quick actions: No responsive issues */}
-            <div className="mt-2 mb-4 grid grid-cols-1 justify-center gap-3 px-2 md:grid-cols-2 md:justify-between">
-                <div>
-                    <h1 className="text-center text-2xl font-semibold tracking-tight md:text-left">Super Admin Dashboard</h1>
-                    <p className="text-muted-foreground mt-1 text-center text-sm md:text-left">
-                        Organization-wide user overview, activity, and onboarding.
-                    </p>
+            <div className='h-full w-screen lg:w-full'>
+                {/* Top header & quick actions: No responsive issues */}
+                <div className="mt-2 mb-4 grid grid-cols-1 justify-center gap-3 px-2 md:grid-cols-2 md:justify-between">
+                    <div>
+                        <h1 className="text-center text-2xl font-semibold tracking-tight md:text-left">Super Admin Dashboard</h1>
+                        <p className="text-muted-foreground mt-1 text-center text-sm md:text-left">
+                            Organization-wide user overview, activity, and onboarding.
+                        </p>
+                    </div>
+
+                    {/* Manage Users and New User buttons */}
+                    <div className="flex items-center justify-center gap-2 md:justify-end">
+                        <Link href={route('users.index')} className="inline-flex items-center">
+                            <Button variant="default" className="gap-2">
+                                <Users className="h-4 w-4" />
+                                Manage Users
+                            </Button>
+                        </Link>
+                        <Link href={route('users.create')} className="inline-flex items-center">
+                            <Button variant="secondary" className="gap-2 hover:bg-amber-300">
+                                <UserPlus className="h-4 w-4" />
+                                New User
+                            </Button>
+                        </Link>
+                    </div>
                 </div>
 
-                {/* Manage Users and New User buttons */}
-                <div className="flex items-center justify-center gap-2 md:justify-end">
-                    <Link href={route('users.index')} className="inline-flex items-center">
-                        <Button variant="default" className="gap-2">
-                            <Users className="h-4 w-4" />
-                            Manage Users
-                        </Button>
-                    </Link>
-                    <Link href={route('users.create')} className="inline-flex items-center">
-                        <Button variant="secondary" className="gap-2 hover:bg-amber-300">
-                            <UserPlus className="h-4 w-4" />
-                            New User
-                        </Button>
-                    </Link>
+                {/* User Stats Cards: No responsive issues */}
+                <div className="mt-6 grid grid-cols-2 gap-4 p-2 lg:grid-cols-4">
+                    <Card className="hover:text-primary shadow-sm transition duration-300 ease-in-out">
+                        <CardHeader className="flex flex-row items-center justify-between pb-2">
+                            <CardTitle className="text-sm font-medium">
+                                <Link href="/users">Total Users</Link>
+                            </CardTitle>
+                            <Users className="text-muted-foreground h-5 w-5" />
+                        </CardHeader>
+                        <CardContent>
+                            <div className="text-3xl font-bold">{fmt(safeStats.totalUsers)}</div>
+                            <p className="text-muted-foreground mt-1 text-xs">All registered accounts</p>
+                        </CardContent>
+                    </Card>
+
+                    <Card className="hover:text-primary shadow-sm transition duration-300 ease-in-out">
+                        <CardHeader className="flex flex-row items-center justify-between pb-2">
+                            <CardTitle className="text-sm font-medium">
+                                <Link href="/users?filter=active"> Active Users</Link>
+                            </CardTitle>
+                            <CheckCircle2 className="h-5 w-5 text-green-600" />
+                        </CardHeader>
+                        <CardContent>
+                            <div className="text-3xl font-bold">{fmt(safeStats.activeUsers)}</div>
+                            <p className="text-muted-foreground mt-1 text-xs"></p>
+                        </CardContent>
+                    </Card>
+
+                    <Card className="shadow-sm">
+                        <CardHeader className="flex flex-row items-center justify-between pb-2">
+                            <CardTitle className="text-sm font-medium">
+                                {' '}
+                                <Link href="/users?filter=inactive"> Inactive</Link>
+                            </CardTitle>
+                            <CircleUser className="text-muted-foreground h-5 w-5" />
+                        </CardHeader>
+                        <CardContent>
+                            <div className={cn('text-3xl font-bold', inactiveCount > 0 ? 'text-amber-600' : '')}>{fmt(inactiveCount)}</div>
+                            <p className="text-muted-foreground mt-1 text-xs">Haven't been active recently</p>
+                        </CardContent>
+                    </Card>
+
+                    <Card className="shadow-sm">
+                        <CardHeader className="flex flex-row items-center justify-between pb-2">
+                            <CardTitle className="text-sm font-medium">New This Week</CardTitle>
+                            <UserPlus className="h-5 w-5 text-blue-600" />
+                        </CardHeader>
+                        <CardContent>
+                            <div className="text-3xl font-bold">{fmt(safeStats.newThisWeek)}</div>
+                            <p className="text-muted-foreground mt-1 text-xs">Accounts created in the last 7 days</p>
+                        </CardContent>
+                    </Card>
                 </div>
-            </div>
 
-            {/* User Stats Cards: No responsive issues */}
-            <div className="mt-6 grid grid-cols-2 gap-4 p-2 lg:grid-cols-4">
-                <Card className="hover:text-primary shadow-sm transition duration-300 ease-in-out">
-                    <CardHeader className="flex flex-row items-center justify-between pb-2">
-                        <CardTitle className="text-sm font-medium">
-                            <Link href="/users">Total Users</Link>
-                        </CardTitle>
-                        <Users className="text-muted-foreground h-5 w-5" />
-                    </CardHeader>
-                    <CardContent>
-                        <div className="text-3xl font-bold">{fmt(safeStats.totalUsers)}</div>
-                        <p className="text-muted-foreground mt-1 text-xs">All registered accounts</p>
-                    </CardContent>
-                </Card>
+                <div className="mt-6 px-2">
+                    <RecentRegistrationsCard recentUsers={Array.isArray(recentUsers) ? recentUsers : []} rolesSummary={safeStats.rolesSummary} />
+                </div>
 
-                <Card className="hover:text-primary shadow-sm transition duration-300 ease-in-out">
-                    <CardHeader className="flex flex-row items-center justify-between pb-2">
-                        <CardTitle className="text-sm font-medium">
-                            <Link href="/users?filter=active"> Active Users</Link>
-                        </CardTitle>
-                        <CheckCircle2 className="h-5 w-5 text-green-600" />
-                    </CardHeader>
-                    <CardContent>
-                        <div className="text-3xl font-bold">{fmt(safeStats.activeUsers)}</div>
-                        <p className="text-muted-foreground mt-1 text-xs"></p>
-                    </CardContent>
-                </Card>
+                {/* Revenue Chart & Stats */}
+                <div className="mt-6 grid gap-4 px-2 lg:grid-cols-3">
+                    {/* <RevenueChart /> */}
+                    <div className="lg:col-span-2">
+                        <NotificationsPanel expiring={Array.isArray(expiringSoon) ? expiringSoon : []} />
+                    </div>
+                    <Card className="shadow-sm lg:col-span-1">
+                        <CardHeader>
+                            <CardTitle className="text-base">Roles Summary</CardTitle>
+                        </CardHeader>
+                        <CardContent>
+                            <div className="space-y-2">
+                                {safeStats.rolesSummary.length === 0 && <p className="text-muted-foreground text-sm">No roles to show yet.</p>}
+                                {safeStats.rolesSummary.map(({ role, count }) => (
+                                    <div key={role} className="flex items-center justify-between rounded-md border p-2">
+                                        <div className="flex items-center gap-2">
+                                            <Shield className="text-muted-foreground h-4 w-4" />
+                                            <span className="font-medium">{role}</span>
+                                        </div>
+                                        <Badge variant="secondary">{fmt(count)}</Badge>
+                                    </div>
+                                ))}
+                            </div>
+                        </CardContent>
+                        <CardFooter>
+                            <Link href={route('permissions.index')} className="text-primary inline-flex items-center gap-1 text-sm font-medium">
+                                Manage roles & permissions <ArrowRight className="h-4 w-4" />
+                            </Link>
+                        </CardFooter>
+                    </Card>
+                </div>
 
-                <Card className="shadow-sm">
-                    <CardHeader className="flex flex-row items-center justify-between pb-2">
-                        <CardTitle className="text-sm font-medium">
-                            {' '}
-                            <Link href="/users?filter=inactive"> Inactive</Link>
-                        </CardTitle>
-                        <CircleUser className="text-muted-foreground h-5 w-5" />
-                    </CardHeader>
-                    <CardContent>
-                        <div className={cn('text-3xl font-bold', inactiveCount > 0 ? 'text-amber-600' : '')}>{fmt(inactiveCount)}</div>
-                        <p className="text-muted-foreground mt-1 text-xs">Haven't been active recently</p>
-                    </CardContent>
-                </Card>
+                {/* Roles distribution & filters */}
+                <div className="mt-6 grid gap-4 lg:grid-cols-3">{/* Recent registrations panel */}</div>
 
-                <Card className="shadow-sm">
-                    <CardHeader className="flex flex-row items-center justify-between pb-2">
-                        <CardTitle className="text-sm font-medium">New This Week</CardTitle>
-                        <UserPlus className="h-5 w-5 text-blue-600" />
-                    </CardHeader>
-                    <CardContent>
-                        <div className="text-3xl font-bold">{fmt(safeStats.newThisWeek)}</div>
-                        <p className="text-muted-foreground mt-1 text-xs">Accounts created in the last 7 days</p>
-                    </CardContent>
-                </Card>
-            </div>
-
-            <div className="mt-6 overflow-hidden px-2">
-                <RecentRegistrationsCard recentUsers={Array.isArray(recentUsers) ? recentUsers : []} rolesSummary={safeStats.rolesSummary} />
+                {/* Onboarding & activity tab */}
+                <div className="mx-2 mt-6 mb-2">
+                    <Tabs defaultValue="onboarding" className="w-full">
+                        <TabsList>
+                            <TabsTrigger value="onboarding">Onboarding</TabsTrigger>
+                            <TabsTrigger value="activity">Activity</TabsTrigger>
+                        </TabsList>
+                        <TabsContent value="onboarding" className="mt-3">
+                            <Card className="shadow-sm">
+                                <CardHeader>
+                                    <CardTitle className="text-base">Quick Onboarding Health</CardTitle>
+                                </CardHeader>
+                                <CardContent className="text-muted-foreground text-sm">
+                                    Hook up your real metrics later (invites sent, pending verifications, first-login completion, etc.).
+                                </CardContent>
+                            </Card>
+                        </TabsContent>
+                        <TabsContent value="activity" className="mt-3">
+                            <Card className="shadow-sm">
+                                <CardHeader>
+                                    <CardTitle className="text-base">Recent Admin Activity</CardTitle>
+                                </CardHeader>
+                                <CardContent className="text-muted-foreground text-sm">
+                                    Add audit trail widgets here (role changes, new users created, disabled accounts, etc.).
+                                </CardContent>
+                            </Card>
+                        </TabsContent>
+                    </Tabs>
+                </div>
             </div>
         </AppLayout>
     );

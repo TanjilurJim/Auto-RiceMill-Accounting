@@ -263,152 +263,154 @@ export default function AdminDashboard() {
             <Head title="Super Admin Dashboard" />
 
             {/* Top header & quick actions: No responsive issues */}
-            <div className="mt-2 mb-4 grid grid-cols-1 justify-center gap-3 px-2 md:grid-cols-2 md:justify-between">
-                <div>
-                    <h1 className="text-center text-2xl font-semibold tracking-tight md:text-left">Super Admin Dashboard</h1>
-                    <p className="text-muted-foreground mt-1 text-center text-sm md:text-left">
-                        Organization-wide user overview, activity, and onboarding.
-                    </p>
-                </div>
+            <div>
+                <div className="mt-2 mb-4 grid h-full w-screen grid-cols-1 justify-center gap-3 px-2 md:grid-cols-2 md:justify-between lg:w-full">
+                    <div>
+                        <h1 className="text-center text-2xl font-semibold tracking-tight md:text-left">Super Admin Dashboard</h1>
+                        <p className="text-muted-foreground mt-1 text-center text-sm md:text-left">
+                            Organization-wide user overview, activity, and onboarding.
+                        </p>
+                    </div>
 
-                {/* Manage Users and New User buttons */}
-                <div className="flex items-center justify-center gap-2 md:justify-end">
-                    <Link href={route('users.index')} className="inline-flex items-center">
-                        <Button variant="default" className="gap-2">
-                            <Users className="h-4 w-4" />
-                            Manage Users
-                        </Button>
-                    </Link>
-                    <Link href={route('users.create')} className="inline-flex items-center">
-                        <Button variant="secondary" className="gap-2 hover:bg-amber-300">
-                            <UserPlus className="h-4 w-4" />
-                            New User
-                        </Button>
-                    </Link>
-                </div>
-            </div>
-
-            {/* User Stats Cards: No responsive issues */}
-            <div className="mt-6 grid grid-cols-2 gap-4 p-2 lg:grid-cols-4">
-                <Card className="hover:text-primary shadow-sm transition duration-300 ease-in-out">
-                    <CardHeader className="flex flex-row items-center justify-between pb-2">
-                        <CardTitle className="text-sm font-medium">
-                            <Link href="/users">Total Users</Link>
-                        </CardTitle>
-                        <Users className="text-muted-foreground h-5 w-5" />
-                    </CardHeader>
-                    <CardContent>
-                        <div className="text-3xl font-bold">{fmt(safeStats.totalUsers)}</div>
-                        <p className="text-muted-foreground mt-1 text-xs">All registered accounts</p>
-                    </CardContent>
-                </Card>
-
-                <Card className="hover:text-primary shadow-sm transition duration-300 ease-in-out">
-                    <CardHeader className="flex flex-row items-center justify-between pb-2">
-                        <CardTitle className="text-sm font-medium">
-                            <Link href="/users?filter=active"> Active Users</Link>
-                        </CardTitle>
-                        <CheckCircle2 className="h-5 w-5 text-green-600" />
-                    </CardHeader>
-                    <CardContent>
-                        <div className="text-3xl font-bold">{fmt(safeStats.activeUsers)}</div>
-                        <p className="text-muted-foreground mt-1 text-xs"></p>
-                    </CardContent>
-                </Card>
-
-                <Card className="shadow-sm">
-                    <CardHeader className="flex flex-row items-center justify-between pb-2">
-                        <CardTitle className="text-sm font-medium">
-                            {' '}
-                            <Link href="/users?filter=inactive"> Inactive</Link>
-                        </CardTitle>
-                        <CircleUser className="text-muted-foreground h-5 w-5" />
-                    </CardHeader>
-                    <CardContent>
-                        <div className={cn('text-3xl font-bold', inactiveCount > 0 ? 'text-amber-600' : '')}>{fmt(inactiveCount)}</div>
-                        <p className="text-muted-foreground mt-1 text-xs">Haven't been active recently</p>
-                    </CardContent>
-                </Card>
-
-                <Card className="shadow-sm">
-                    <CardHeader className="flex flex-row items-center justify-between pb-2">
-                        <CardTitle className="text-sm font-medium">New This Week</CardTitle>
-                        <UserPlus className="h-5 w-5 text-blue-600" />
-                    </CardHeader>
-                    <CardContent>
-                        <div className="text-3xl font-bold">{fmt(safeStats.newThisWeek)}</div>
-                        <p className="text-muted-foreground mt-1 text-xs">Accounts created in the last 7 days</p>
-                    </CardContent>
-                </Card>
-            </div>
-
-            <div className="px-2">
-                <RecentRegistrationsCard recentUsers={Array.isArray(recentUsers) ? recentUsers : []} rolesSummary={safeStats.rolesSummary} />
-            </div>
-
-            {/* Revenue Chart & Stats */}
-            <div className="mt-6 grid gap-4 px-2 lg:grid-cols-3">
-                {/* <RevenueChart /> */}
-                <div className="lg:col-span-2">
-                    <NotificationsPanel expiring={Array.isArray(expiringSoon) ? expiringSoon : []} />
-                </div>
-                <Card className="shadow-sm lg:col-span-1">
-                    <CardHeader>
-                        <CardTitle className="text-base">Roles Summary</CardTitle>
-                    </CardHeader>
-                    <CardContent>
-                        <div className="space-y-2">
-                            {safeStats.rolesSummary.length === 0 && <p className="text-muted-foreground text-sm">No roles to show yet.</p>}
-                            {safeStats.rolesSummary.map(({ role, count }) => (
-                                <div key={role} className="flex items-center justify-between rounded-md border p-2">
-                                    <div className="flex items-center gap-2">
-                                        <Shield className="text-muted-foreground h-4 w-4" />
-                                        <span className="font-medium">{role}</span>
-                                    </div>
-                                    <Badge variant="secondary">{fmt(count)}</Badge>
-                                </div>
-                            ))}
-                        </div>
-                    </CardContent>
-                    <CardFooter>
-                        <Link href={route('permissions.index')} className="text-primary inline-flex items-center gap-1 text-sm font-medium">
-                            Manage roles & permissions <ArrowRight className="h-4 w-4" />
+                    {/* Manage Users and New User buttons */}
+                    <div className="flex items-center justify-center gap-2 md:justify-end">
+                        <Link href={route('users.index')} className="inline-flex items-center">
+                            <Button variant="default" className="gap-2">
+                                <Users className="h-4 w-4" />
+                                Manage Users
+                            </Button>
                         </Link>
-                    </CardFooter>
-                </Card>
-            </div>
+                        <Link href={route('users.create')} className="inline-flex items-center">
+                            <Button variant="secondary" className="gap-2 hover:bg-amber-300">
+                                <UserPlus className="h-4 w-4" />
+                                New User
+                            </Button>
+                        </Link>
+                    </div>
+                </div>
 
-            {/* Roles distribution & filters */}
-            <div className="mt-6 grid gap-4 lg:grid-cols-3">{/* Recent registrations panel */}</div>
+                {/* User Stats Cards: No responsive issues */}
+                <div className="mt-6 grid grid-cols-2 gap-4 p-2 lg:grid-cols-4">
+                    <Card className="hover:text-primary shadow-sm transition duration-300 ease-in-out">
+                        <CardHeader className="flex flex-row items-center justify-between pb-2">
+                            <CardTitle className="text-sm font-medium">
+                                <Link href="/users">Total Users</Link>
+                            </CardTitle>
+                            <Users className="text-muted-foreground h-5 w-5" />
+                        </CardHeader>
+                        <CardContent>
+                            <div className="text-3xl font-bold">{fmt(safeStats.totalUsers)}</div>
+                            <p className="text-muted-foreground mt-1 text-xs">All registered accounts</p>
+                        </CardContent>
+                    </Card>
 
-            {/* Onboarding & activity tab */}
-            <div className="mx-2 mt-6 mb-2">
-                <Tabs defaultValue="onboarding" className="w-full">
-                    <TabsList>
-                        <TabsTrigger value="onboarding">Onboarding</TabsTrigger>
-                        <TabsTrigger value="activity">Activity</TabsTrigger>
-                    </TabsList>
-                    <TabsContent value="onboarding" className="mt-3">
-                        <Card className="shadow-sm">
-                            <CardHeader>
-                                <CardTitle className="text-base">Quick Onboarding Health</CardTitle>
-                            </CardHeader>
-                            <CardContent className="text-muted-foreground text-sm">
-                                Hook up your real metrics later (invites sent, pending verifications, first-login completion, etc.).
-                            </CardContent>
-                        </Card>
-                    </TabsContent>
-                    <TabsContent value="activity" className="mt-3">
-                        <Card className="shadow-sm">
-                            <CardHeader>
-                                <CardTitle className="text-base">Recent Admin Activity</CardTitle>
-                            </CardHeader>
-                            <CardContent className="text-muted-foreground text-sm">
-                                Add audit trail widgets here (role changes, new users created, disabled accounts, etc.).
-                            </CardContent>
-                        </Card>
-                    </TabsContent>
-                </Tabs>
+                    <Card className="hover:text-primary shadow-sm transition duration-300 ease-in-out">
+                        <CardHeader className="flex flex-row items-center justify-between pb-2">
+                            <CardTitle className="text-sm font-medium">
+                                <Link href="/users?filter=active"> Active Users</Link>
+                            </CardTitle>
+                            <CheckCircle2 className="h-5 w-5 text-green-600" />
+                        </CardHeader>
+                        <CardContent>
+                            <div className="text-3xl font-bold">{fmt(safeStats.activeUsers)}</div>
+                            <p className="text-muted-foreground mt-1 text-xs"></p>
+                        </CardContent>
+                    </Card>
+
+                    <Card className="shadow-sm">
+                        <CardHeader className="flex flex-row items-center justify-between pb-2">
+                            <CardTitle className="text-sm font-medium">
+                                {' '}
+                                <Link href="/users?filter=inactive"> Inactive</Link>
+                            </CardTitle>
+                            <CircleUser className="text-muted-foreground h-5 w-5" />
+                        </CardHeader>
+                        <CardContent>
+                            <div className={cn('text-3xl font-bold', inactiveCount > 0 ? 'text-amber-600' : '')}>{fmt(inactiveCount)}</div>
+                            <p className="text-muted-foreground mt-1 text-xs">Haven't been active recently</p>
+                        </CardContent>
+                    </Card>
+
+                    <Card className="shadow-sm">
+                        <CardHeader className="flex flex-row items-center justify-between pb-2">
+                            <CardTitle className="text-sm font-medium">New This Week</CardTitle>
+                            <UserPlus className="h-5 w-5 text-blue-600" />
+                        </CardHeader>
+                        <CardContent>
+                            <div className="text-3xl font-bold">{fmt(safeStats.newThisWeek)}</div>
+                            <p className="text-muted-foreground mt-1 text-xs">Accounts created in the last 7 days</p>
+                        </CardContent>
+                    </Card>
+                </div>
+
+                <div className="px-2">
+                    <RecentRegistrationsCard recentUsers={Array.isArray(recentUsers) ? recentUsers : []} rolesSummary={safeStats.rolesSummary} />
+                </div>
+
+                {/* Revenue Chart & Stats */}
+                <div className="mt-6 grid gap-4 px-2 lg:grid-cols-3">
+                    {/* <RevenueChart /> */}
+                    <div className="lg:col-span-2">
+                        <NotificationsPanel expiring={Array.isArray(expiringSoon) ? expiringSoon : []} />
+                    </div>
+                    <Card className="shadow-sm lg:col-span-1">
+                        <CardHeader>
+                            <CardTitle className="text-base">Roles Summary</CardTitle>
+                        </CardHeader>
+                        <CardContent>
+                            <div className="space-y-2">
+                                {safeStats.rolesSummary.length === 0 && <p className="text-muted-foreground text-sm">No roles to show yet.</p>}
+                                {safeStats.rolesSummary.map(({ role, count }) => (
+                                    <div key={role} className="flex items-center justify-between rounded-md border p-2">
+                                        <div className="flex items-center gap-2">
+                                            <Shield className="text-muted-foreground h-4 w-4" />
+                                            <span className="font-medium">{role}</span>
+                                        </div>
+                                        <Badge variant="secondary">{fmt(count)}</Badge>
+                                    </div>
+                                ))}
+                            </div>
+                        </CardContent>
+                        <CardFooter>
+                            <Link href={route('permissions.index')} className="text-primary inline-flex items-center gap-1 text-sm font-medium">
+                                Manage roles & permissions <ArrowRight className="h-4 w-4" />
+                            </Link>
+                        </CardFooter>
+                    </Card>
+                </div>
+
+                {/* Roles distribution & filters */}
+                <div className="mt-6 grid gap-4 lg:grid-cols-3">{/* Recent registrations panel */}</div>
+
+                {/* Onboarding & activity tab */}
+                <div className="mx-2 mt-6 mb-2">
+                    <Tabs defaultValue="onboarding" className="w-full">
+                        <TabsList>
+                            <TabsTrigger value="onboarding">Onboarding</TabsTrigger>
+                            <TabsTrigger value="activity">Activity</TabsTrigger>
+                        </TabsList>
+                        <TabsContent value="onboarding" className="mt-3">
+                            <Card className="shadow-sm">
+                                <CardHeader>
+                                    <CardTitle className="text-base">Quick Onboarding Health</CardTitle>
+                                </CardHeader>
+                                <CardContent className="text-muted-foreground text-sm">
+                                    Hook up your real metrics later (invites sent, pending verifications, first-login completion, etc.).
+                                </CardContent>
+                            </Card>
+                        </TabsContent>
+                        <TabsContent value="activity" className="mt-3">
+                            <Card className="shadow-sm">
+                                <CardHeader>
+                                    <CardTitle className="text-base">Recent Admin Activity</CardTitle>
+                                </CardHeader>
+                                <CardContent className="text-muted-foreground text-sm">
+                                    Add audit trail widgets here (role changes, new users created, disabled accounts, etc.).
+                                </CardContent>
+                            </Card>
+                        </TabsContent>
+                    </Tabs>
+                </div>
             </div>
         </AppLayout>
     );
