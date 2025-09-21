@@ -1,14 +1,13 @@
 import '../css/app.css';
 import './echo'; // Import Echo for real-time events
-import axios from 'axios';
 
 import '@/lib/http';
+import { NotificationProvider } from '@/providers/NotificationProvider';
 import { createInertiaApp } from '@inertiajs/react';
 import { resolvePageComponent } from 'laravel-vite-plugin/inertia-helpers';
 import { createRoot } from 'react-dom/client';
+import { LanguageProvider } from './components/LanguageContext';
 import { initializeTheme } from './hooks/use-appearance';
-import { NotificationProvider } from '@/providers/NotificationProvider';
-
 
 const appName = 'Rice MIll ERP - Auto Rice Mill Software';
 
@@ -25,18 +24,16 @@ createInertiaApp({
         const pageProps = props.initialPage.props as any;
         const initial = pageProps.counters ?? {};
         const currentUser = pageProps.auth?.user?.id ?? null;
-             root.render(
+        root.render(
+            <LanguageProvider>
+                <NotificationProvider userId={currentUser} initialCounters={initial}>
+                    <App {...props} />
+                </NotificationProvider>
+            </LanguageProvider>,
+        );
+    },
 
-      <NotificationProvider
-        userId={currentUser}
-        initialCounters={initial}
-      >
-        <App {...props} />
-      </NotificationProvider>
-     );
-   },
+    progress: { color: '#4B5563' },
+});
 
-   progress: { color: '#4B5563' },
- });
-
- initializeTheme();
+initializeTheme();

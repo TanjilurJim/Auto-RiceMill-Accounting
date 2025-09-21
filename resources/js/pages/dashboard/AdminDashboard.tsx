@@ -11,6 +11,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { ArrowRight, CheckCircle2, CircleUser, Crown, Shield, UserPlus, Users } from 'lucide-react';
 
 import TableComponent from '@/components/TableComponent';
+import { useTranslation } from '@/components/useTranslation';
 import AppLayout from '@/layouts/app-layout';
 import { Head, Link, usePage } from '@inertiajs/react';
 import { Search } from 'lucide-react';
@@ -91,10 +92,12 @@ const RecentRegistrationsCard = memo(function RecentRegistrationsCard({
         return rows.slice(0, 12);
     }, [prepared, deferredQuery, roleFilter, statusFilter]);
 
+    const t = useTranslation();
+
     // Define table columns for TableComponent
     const tableColumns = [
         {
-            header: 'User',
+            header: t('user'),
             accessor: (u: RecentUser) => (
                 <div className="flex items-center gap-3">
                     <Avatar className="h-8 w-8">
@@ -119,7 +122,7 @@ const RecentRegistrationsCard = memo(function RecentRegistrationsCard({
             ),
         },
         {
-            header: 'Roles',
+            header: t('roles'),
             accessor: (u: RecentUser) => (
                 <div className="flex flex-wrap gap-1">
                     {(u.roleNames ?? []).length === 0 && <Badge variant="outline">—</Badge>}
@@ -132,13 +135,17 @@ const RecentRegistrationsCard = memo(function RecentRegistrationsCard({
             ),
         },
         {
-            header: 'Joined',
+            header: t('joined'),
             accessor: (u: RecentUser) => <span className="text-sm">{shortDate(u.joinedAt)}</span>,
         },
         {
-            header: 'Status',
+            header: t('status'),
             accessor: (u: RecentUser) =>
-                u.isActive ? <Badge className="bg-emerald-600 hover:bg-emerald-600">Active</Badge> : <Badge variant="outline">Inactive</Badge>,
+                u.isActive ? (
+                    <Badge className="bg-emerald-600 hover:bg-emerald-600">{t('active')}</Badge>
+                ) : (
+                    <Badge variant="outline">{t('inactive')}</Badge>
+                ),
             className: 'text-right',
         },
     ];
@@ -148,14 +155,14 @@ const RecentRegistrationsCard = memo(function RecentRegistrationsCard({
             <CardHeader className="pb-0">
                 <div className="grid grid-cols-1 items-center justify-center gap-4 lg:grid-cols-2 lg:justify-between">
                     <div>
-                        <CardTitle className="text-center text-base md:text-left">Recent Registrations</CardTitle>
-                        <p className="text-muted-foreground mt-1 text-xs">Newest user accounts and their status</p>
+                        <CardTitle className="text-center text-base md:text-left">{t('recentRegistrations')}</CardTitle>
+                        <p className="text-muted-foreground mt-1 text-xs">{t('newestAccounts')}</p>
                     </div>
 
                     <div className="flex flex-col gap-2 sm:grid sm:grid-cols-3 sm:items-center sm:justify-center">
                         {/* Search name or email */}
                         <div className="relative">
-                            <Input value={query} onChange={(e) => setQuery(e.target.value)} placeholder="Search name or email..." className="pl-9" />
+                            <Input value={query} onChange={(e) => setQuery(e.target.value)} placeholder={t('searchPlaceholder')} className="pl-9" />
                             <Search className="text-muted-foreground absolute top-1/2 left-2.5 h-4 w-4 -translate-y-1/2" />
                         </div>
 
@@ -163,13 +170,13 @@ const RecentRegistrationsCard = memo(function RecentRegistrationsCard({
                         <div className="relative">
                             <Select value={roleFilter} onValueChange={setRoleFilter}>
                                 <SelectTrigger className="border-input bg-background focus:ring-ring h-9 w-full cursor-pointer rounded-md border px-3 text-sm leading-none outline-none focus:ring-2">
-                                    <SelectValue placeholder="All roles" />
+                                    <SelectValue placeholder={t('allRoles')} />
                                 </SelectTrigger>
                                 <SelectContent>
                                     <SelectGroup>
                                         {allRoles.map((r) => (
                                             <SelectItem className="cursor-pointer" key={r} value={r}>
-                                                {r === 'all' ? 'All roles' : r}
+                                                {r === 'all' ? t('allRoles') : r}
                                             </SelectItem>
                                         ))}
                                     </SelectGroup>
@@ -185,9 +192,9 @@ const RecentRegistrationsCard = memo(function RecentRegistrationsCard({
                                 </SelectTrigger>
                                 <SelectContent>
                                     <SelectGroup>
-                                        <SelectItem value="all">All status</SelectItem>
-                                        <SelectItem value="active">Active</SelectItem>
-                                        <SelectItem value="inactive">Inactive</SelectItem>
+                                        <SelectItem value="all">{t('allStatus')}</SelectItem>
+                                        <SelectItem value="active">{t('active')}</SelectItem>
+                                        <SelectItem value="inactive">{t('inactive')}</SelectItem>
                                     </SelectGroup>
                                 </SelectContent>
                             </Select>
@@ -196,14 +203,14 @@ const RecentRegistrationsCard = memo(function RecentRegistrationsCard({
                 </div>
             </CardHeader>
 
-            <div className='px-2'>
-                <TableComponent columns={tableColumns} data={filtered} noDataMessage="No users found." />
+            <div className="px-2">
+                <TableComponent columns={tableColumns} data={filtered} noDataMessage={t('noUsersFound')} />
             </div>
 
             <CardFooter className="flex items-center justify-between">
-                <span className="text-muted-foreground text-xs">Showing {filtered.length} users</span>
+                <span className="text-muted-foreground text-xs">{t('showingUsers', { count: filtered.length })}</span>
                 <Link href={route('users.index')} className="text-primary inline-flex items-center gap-1 text-sm font-medium">
-                    View all users <ArrowRight className="h-4 w-4" />
+                    {t('viewAllUsers')} <ArrowRight className="h-4 w-4" />
                 </Link>
             </CardFooter>
         </Card>
@@ -247,18 +254,18 @@ export default function AdminDashboard() {
     function cn(...classes: (string | false | null | undefined)[]): string {
         return classes.filter(Boolean).join(' ');
     }
+
+    const t = useTranslation();
     return (
         <AppLayout breadcrumbs={[{ title: 'Super Admin Dashboard', href: '/admin/dashboard' }]}>
             <Head title="Super Admin Dashboard" />
 
-            <div className='h-full w-screen lg:w-full'>
+            <div className="h-full w-screen lg:w-full">
                 {/* Top header & quick actions: No responsive issues */}
                 <div className="mt-2 mb-4 grid grid-cols-1 justify-center gap-3 px-2 md:grid-cols-2 md:justify-between">
                     <div>
-                        <h1 className="text-center text-2xl font-semibold tracking-tight md:text-left">Super Admin Dashboard</h1>
-                        <p className="text-muted-foreground mt-1 text-center text-sm md:text-left">
-                            Organization-wide user overview, activity, and onboarding.
-                        </p>
+                        <h1 className="text-center text-2xl font-semibold tracking-tight md:text-left">{t('superAdminDashboard')}</h1>
+                        <p className="text-muted-foreground mt-1 text-center text-sm md:text-left">{t('organizationOverview')}</p>
                     </div>
 
                     {/* Manage Users and New User buttons */}
@@ -266,13 +273,13 @@ export default function AdminDashboard() {
                         <Link href={route('users.index')} className="inline-flex items-center">
                             <Button variant="default" className="gap-2">
                                 <Users className="h-4 w-4" />
-                                Manage Users
+                                {t('manageUsers')}
                             </Button>
                         </Link>
                         <Link href={route('users.create')} className="inline-flex items-center">
                             <Button variant="secondary" className="gap-2 hover:bg-amber-300">
                                 <UserPlus className="h-4 w-4" />
-                                New User
+                                {t('newUser')}
                             </Button>
                         </Link>
                     </div>
@@ -283,20 +290,20 @@ export default function AdminDashboard() {
                     <Card className="hover:text-primary shadow-sm transition duration-300 ease-in-out">
                         <CardHeader className="flex flex-row items-center justify-between pb-2">
                             <CardTitle className="text-sm font-medium">
-                                <Link href="/users">Total Users</Link>
+                                <Link href="/users">{t('totalUsers')}</Link>
                             </CardTitle>
                             <Users className="text-muted-foreground h-5 w-5" />
                         </CardHeader>
                         <CardContent>
                             <div className="text-3xl font-bold">{fmt(safeStats.totalUsers)}</div>
-                            <p className="text-muted-foreground mt-1 text-xs">All registered accounts</p>
+                            <p className="text-muted-foreground mt-1 text-xs">{t('allRegisteredAccounts')}</p>
                         </CardContent>
                     </Card>
 
                     <Card className="hover:text-primary shadow-sm transition duration-300 ease-in-out">
                         <CardHeader className="flex flex-row items-center justify-between pb-2">
                             <CardTitle className="text-sm font-medium">
-                                <Link href="/users?filter=active"> Active Users</Link>
+                                <Link href="/users?filter=active">{t('activeUsers')}</Link>
                             </CardTitle>
                             <CheckCircle2 className="h-5 w-5 text-green-600" />
                         </CardHeader>
@@ -310,24 +317,24 @@ export default function AdminDashboard() {
                         <CardHeader className="flex flex-row items-center justify-between pb-2">
                             <CardTitle className="text-sm font-medium">
                                 {' '}
-                                <Link href="/users?filter=inactive"> Inactive</Link>
+                                <Link href="/users?filter=inactive">{t('inactive')}</Link>
                             </CardTitle>
                             <CircleUser className="text-muted-foreground h-5 w-5" />
                         </CardHeader>
                         <CardContent>
                             <div className={cn('text-3xl font-bold', inactiveCount > 0 ? 'text-amber-600' : '')}>{fmt(inactiveCount)}</div>
-                            <p className="text-muted-foreground mt-1 text-xs">Haven't been active recently</p>
+                            <p className="text-muted-foreground mt-1 text-xs">{t('notActiveRecently')}</p>
                         </CardContent>
                     </Card>
 
                     <Card className="shadow-sm">
                         <CardHeader className="flex flex-row items-center justify-between pb-2">
-                            <CardTitle className="text-sm font-medium">New This Week</CardTitle>
+                            <CardTitle className="text-sm font-medium">{t('newThisWeek')}</CardTitle>
                             <UserPlus className="h-5 w-5 text-blue-600" />
                         </CardHeader>
                         <CardContent>
                             <div className="text-3xl font-bold">{fmt(safeStats.newThisWeek)}</div>
-                            <p className="text-muted-foreground mt-1 text-xs">Accounts created in the last 7 days</p>
+                            <p className="text-muted-foreground mt-1 text-xs">{t('accountsCreated')}</p>
                         </CardContent>
                     </Card>
                 </div>
@@ -338,17 +345,17 @@ export default function AdminDashboard() {
 
                 {/* Revenue Chart & Stats */}
                 <div className="mt-6 grid gap-4 px-2 lg:grid-cols-3">
-                    {/* <RevenueChart /> */}
+                    <RevenueChart />
                     <div className="lg:col-span-2">
                         <NotificationsPanel expiring={Array.isArray(expiringSoon) ? expiringSoon : []} />
                     </div>
                     <Card className="shadow-sm lg:col-span-1">
                         <CardHeader>
-                            <CardTitle className="text-base">Roles Summary</CardTitle>
+                            <CardTitle className="text-base">{t('rolesSummary')}</CardTitle>
                         </CardHeader>
                         <CardContent>
                             <div className="space-y-2">
-                                {safeStats.rolesSummary.length === 0 && <p className="text-muted-foreground text-sm">No roles to show yet.</p>}
+                                {safeStats.rolesSummary.length === 0 && <p className="text-muted-foreground text-sm">{t('noRolesToShow')}</p>}
                                 {safeStats.rolesSummary.map(({ role, count }) => (
                                     <div key={role} className="flex items-center justify-between rounded-md border p-2">
                                         <div className="flex items-center gap-2">
@@ -362,7 +369,7 @@ export default function AdminDashboard() {
                         </CardContent>
                         <CardFooter>
                             <Link href={route('permissions.index')} className="text-primary inline-flex items-center gap-1 text-sm font-medium">
-                                Manage roles & permissions <ArrowRight className="h-4 w-4" />
+                                {t('manageRoles')} <ArrowRight className="h-4 w-4" />
                             </Link>
                         </CardFooter>
                     </Card>
@@ -375,27 +382,23 @@ export default function AdminDashboard() {
                 <div className="mx-2 mt-6 mb-2">
                     <Tabs defaultValue="onboarding" className="w-full">
                         <TabsList>
-                            <TabsTrigger value="onboarding">Onboarding</TabsTrigger>
-                            <TabsTrigger value="activity">Activity</TabsTrigger>
+                            <TabsTrigger value="onboarding">{t('onboarding')}</TabsTrigger>
+                            <TabsTrigger value="activity">{t('activity')}</TabsTrigger>
                         </TabsList>
                         <TabsContent value="onboarding" className="mt-3">
                             <Card className="shadow-sm">
                                 <CardHeader>
-                                    <CardTitle className="text-base">Quick Onboarding Health</CardTitle>
+                                    <CardTitle className="text-base">{t('quickOnboardingHealth')}</CardTitle>
                                 </CardHeader>
-                                <CardContent className="text-muted-foreground text-sm">
-                                    Hook up your real metrics later (invites sent, pending verifications, first-login completion, etc.).
-                                </CardContent>
+                                <CardContent className="text-muted-foreground text-sm">{t('onboardingMetrics')}</CardContent>
                             </Card>
                         </TabsContent>
                         <TabsContent value="activity" className="mt-3">
                             <Card className="shadow-sm">
                                 <CardHeader>
-                                    <CardTitle className="text-base">Recent Admin Activity</CardTitle>
+                                    <CardTitle className="text-base">{t('recentAdminActivity')}</CardTitle>
                                 </CardHeader>
-                                <CardContent className="text-muted-foreground text-sm">
-                                    Add audit trail widgets here (role changes, new users created, disabled accounts, etc.).
-                                </CardContent>
+                                <CardContent className="text-muted-foreground text-sm">{t('auditTrail')}</CardContent>
                             </Card>
                         </TabsContent>
                     </Tabs>

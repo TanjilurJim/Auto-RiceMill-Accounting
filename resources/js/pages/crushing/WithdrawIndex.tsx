@@ -1,6 +1,6 @@
+import TableComponent from '@/components/TableComponent';
 import AppLayout from '@/layouts/app-layout';
 import { Head } from '@inertiajs/react';
-import React from 'react';
 
 interface Props {
     withdrawals: {
@@ -20,35 +20,22 @@ interface Props {
 }
 
 export default function PartyStockWithdrawIndex({ withdrawals }: Props) {
+    // Define table columns for TableComponent
+    const tableColumns = [
+        { header: 'তারিখ', accessor: 'date' },
+        { header: 'রেফারেন্স নম্বর', accessor: 'ref_no' },
+        { header: 'পার্টি', accessor: 'party_ledger_name' },
+        { header: 'গুদাম', accessor: 'godown_name' },
+        { header: 'মোট', accessor: (row: Props['withdrawals'][number]) => Number(row.total || 0).toFixed(2), className: 'text-right' },
+    ];
+
     return (
         <AppLayout>
             <Head title="মাল উত্তোলন তালিকা" />
-            <div className="h-full w-screen bg-background p-6 lg:w-full">
-                <div className="h-full rounded-lg bg-background p-6">
+            <div className="bg-background h-full w-screen p-4 md:p-12 lg:w-full">
+                <div className="bg-background h-full rounded-lg">
                     <h1 className="mb-4 text-xl font-bold">মাল উত্তোলন তালিকা</h1>
-
-                    <table className="w-full table-auto border text-sm">
-                        <thead className="bg-background">
-                            <tr>
-                                <th className="border p-2">তারিখ</th>
-                                <th className="border p-2">রেফারেন্স নম্বর</th>
-                                <th className="border p-2">পার্টি</th>
-                                <th className="border p-2">গুদাম</th>
-                                <th className="border p-2">মোট</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {withdrawals.map((withdrawal) => (
-                                <tr key={withdrawal.id}>
-                                    <td className="border p-2">{withdrawal.date}</td>
-                                    <td className="border p-2">{withdrawal.ref_no}</td>
-                                    <td className="border p-2">{withdrawal.party_ledger_name}</td>
-                                    <td className="border p-2">{withdrawal.godown_name}</td>
-                                    <td className="border p-2">{Number(withdrawal.total || 0).toFixed(2)}</td>
-                                </tr>
-                            ))}
-                        </tbody>
-                    </table>
+                    <TableComponent columns={tableColumns} data={withdrawals} noDataMessage="কোনো তথ্য নেই" />
                 </div>
             </div>
         </AppLayout>

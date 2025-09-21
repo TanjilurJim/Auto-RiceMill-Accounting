@@ -41,9 +41,9 @@ const FilterBar: React.FC<{
     );
 
     return (
-        <div className="flex flex-wrap items-end gap-4 print:hidden">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 items-center gap-4 print:hidden">
             {/* dates */}
-            <div className="flex-grow">
+            <div className="">
                 <InputCalendar
                     label="From"
                     required
@@ -53,7 +53,7 @@ const FilterBar: React.FC<{
                 />
             </div>
 
-            <div className="flex-grow">
+            <div className="">
                 <InputCalendar
                     label="To"
                     required
@@ -64,25 +64,27 @@ const FilterBar: React.FC<{
                 />
             </div>
 
-            {/* type chips */}
-            <div className="flex flex-wrap gap-2">
-                {chip('Deposit', 'bg-green-600')}
-                {chip('Withdraw', 'bg-red-600')}
-                {chip('Convert', 'bg-yellow-500')}
-                {chip('Rent', 'bg-blue-600')}
+            <div className='mt-6'>
+                {/* type chips */}
+                <div className="flex flex-wrap gap-2">
+                    {chip('Deposit', 'bg-green-600')}
+                    {chip('Withdraw', 'bg-red-600')}
+                    {chip('Convert', 'bg-yellow-500')}
+                    {chip('Rent', 'bg-blue-600')}
+                </div>
             </div>
 
             {/* buttons */}
-            <div className="flex gap-2">
+            <div className="mt-6 flex flex-col md:flex-row gap-2">
                 <button
                     onClick={apply}
-                    className="inline-flex items-center rounded-md bg-purple-600 px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-purple-700"
+                    className=" items-center rounded-md bg-purple-600 px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-purple-700"
                 >
                     Apply
                 </button>
                 <button
                     onClick={reset}
-                    className="inline-flex items-center rounded-md border bg-white px-4 py-2 text-sm text-gray-700 shadow-sm hover:bg-gray-50"
+                    className="items-center rounded-md border bg-white px-4 py-2 text-sm text-gray-700 shadow-sm hover:bg-gray-50"
                 >
                     Reset
                 </button>
@@ -176,14 +178,14 @@ export default function DayBookIndex({ rows, totals, byType, filters }) {
     return (
         <AppLayout>
             <Head title="Day-Book" />
-            <div className="space-y-6 p-4 md:p-12">
+            <div className="h-full w-screen space-y-6 p-4 md:p-12 lg:w-full">
                 <PageHeader title="Day-Book">
                     <button onClick={() => window.print()} className="rounded-md bg-green-600 px-4 py-2 text-sm text-white print:hidden">
                         Print
                     </button>
                 </PageHeader>
 
-                <div className="rounded-lg bg-background p-4 shadow-sm sm:p-6">
+                <div className="bg-background rounded-lg p-4 shadow-sm sm:p-6">
                     <FilterBar
                         from={from}
                         setFrom={setFrom}

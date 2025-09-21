@@ -87,7 +87,7 @@ export default function PermissionIndex({ permissions }: { permissions: Permissi
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
             <Head title="Permissions" />
-            <div className="h-full w-screen lg:w-full p-6">
+            <div className="h-full w-screen lg:w-full p-4 md:p-12">
                 <PageHeader title="Permissions" addLinkHref="/permissions/create" addLinkText="+ Create Permission" />
 
                 <div className="rounded bg-white p-4 shadow dark:bg-neutral-900">

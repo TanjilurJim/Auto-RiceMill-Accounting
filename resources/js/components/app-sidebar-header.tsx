@@ -8,6 +8,7 @@ import {
     BookText,
     Calculator as CalculatorIcon,
     CreditCard,
+    Languages,
     Layers3,
     Maximize,
     Minimize,
@@ -16,6 +17,8 @@ import {
 } from 'lucide-react';
 import * as React from 'react';
 import Calculator from './calculator';
+import { useState, useEffect } from 'react';
+import { useLanguage } from './LanguageContext';
 const quickLinks = [
     { label: 'Calculator', href: '#', icon: CalculatorIcon, color: 'bg-slate-700', isCalculator: true },
     { label: 'Received', href: '/received-add', icon: Banknote, color: 'bg-green-600' },
@@ -31,10 +34,13 @@ const quickLinks = [
 export function AppSidebarHeader({ breadcrumbs = [] }: { breadcrumbs?: BreadcrumbItemType[] }) {
     const { company } = usePage().props as { company?: { name?: string; logo_url?: string } };
 
+    /* ───────── Language toggle state ───────── */
+    const {language, toggleLanguage} = useLanguage();
+
     /* ───────── Full-screen helper ───────── */
     const [isFullscreen, setIsFullscreen] = React.useState<boolean>(!!document.fullscreenElement);
 
-    React.useEffect(() => {
+    useEffect(() => {
         const h = () => setIsFullscreen(Boolean(document.fullscreenElement));
         document.addEventListener('fullscreenchange', h);
         return () => document.removeEventListener('fullscreenchange', h);
@@ -53,7 +59,7 @@ export function AppSidebarHeader({ breadcrumbs = [] }: { breadcrumbs?: Breadcrum
     }
     return (
         <div>
-            <header className="border-sidebar-border/50 flex h-16 shrink-0 items-center justify-between gap-2 border-b px-1 transition-[width,height] ease-linear group-has-data-[collapsible=icon]/sidebar-wrapper:h-12">
+            <header className="border-sidebar-border/50 flex h-16 shrink-0 items-center justify-between gap-2 border-b px-2 transition-[width,height] ease-linear group-has-data-[collapsible=icon]/sidebar-wrapper:h-12">
                 {/* Ghost button + Dashboard title  */}
                 <div className="flex items-center gap-2">
                     <SidebarTrigger className="cursor-pointer print:hidden" />
@@ -73,10 +79,26 @@ export function AppSidebarHeader({ breadcrumbs = [] }: { breadcrumbs?: Breadcrum
                         'Dashboard'
                     )}
                 </div>
+
+                {/* Language Toggle Button */}
+                <button
+                    onClick={toggleLanguage}
+                    type="button"
+                    className={cn(
+                        'flex items-center gap-1 rounded-md px-3 py-2 text-sm font-medium transition cursor-pointer',
+                        'border border-gray-300 bg-white text-gray-700 hover:bg-gray-50',
+                        'shadow-sm hover:shadow focus-visible:ring focus-visible:outline-none',
+                        'print:hidden',
+                    )}
+                    title={`Switch to ${language === 'en' ? 'বাংলা' : 'English'}`}
+                >
+                    <Languages className="h-4 w-4" />
+                    <span className="">{language === 'en' ? 'বাং' : 'En'}</span>
+                </button>
             </header>
 
             {/* Quick buttons */}
-            <div className="my-4 grid w-full grid-cols-3 items-center justify-between gap-3 px-2 sm:grid-cols-3 lg:grid-cols-9">
+            <div className="my-4 grid w-full grid-cols-3 items-center justify-between gap-3 px-2 sm:grid-cols-3 lg:grid-cols-9 print:hidden">
                 <button
                     onClick={toggleFullscreen}
                     type="button"

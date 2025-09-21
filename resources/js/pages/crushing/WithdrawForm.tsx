@@ -1,4 +1,6 @@
 import InputCalendar from '@/components/Btn&Link/InputCalendar';
+import TableComponent from '@/components/TableComponent';
+import { Textarea } from '@/components/ui/textarea';
 import AppLayout from '@/layouts/app-layout';
 import { Head, useForm } from '@inertiajs/react';
 import React, { useMemo } from 'react';
@@ -177,11 +179,96 @@ export default function WithdrawForm({ parties, godowns, units, today, generated
         });
     };
 
+    // Define table columns for TableComponent
+    const tableColumns = [
+        {
+            header: 'পণ্য',
+            accessor: (row: WithdrawRow, idx: number) => {
+                const itemDisabled = !data.party_ledger_id || !data.godown_id_from || itemOptions.length === 0;
+                return (
+                    <Select
+                        classNamePrefix="rs"
+                        placeholder="পণ্য"
+                        options={itemOptions}
+                        value={itemOptions.find((o: any) => o.value === row.party_item_id) || null}
+                        onChange={(o: any) => updateLine(idx, 'party_item_id', o?.value || '')}
+                        isDisabled={itemDisabled}
+                        isClearable
+                        menuPortalTarget={typeof window !== 'undefined' ? document.body : undefined}
+                        menuPosition="fixed"
+                        styles={{ menuPortal: (base) => ({ ...base, zIndex: 9999 }) }}
+                    />
+                );
+            },
+        },
+        {
+            header: 'একক',
+            accessor: (row: WithdrawRow, idx: number) => (
+                <>
+                    <select className="w-full rounded border p-1" value={row.unit_name} onChange={(e) => onUnitChange(idx, e.target.value)}>
+                        <option value="">-- একক নির্বাচন করুন --</option>
+                        {units.map((u) => (
+                            <option key={u.id} value={u.name}>
+                                {u.name}
+                            </option>
+                        ))}
+                    </select>
+                    {isBosta(row.unit_name) && (
+                        <div className="mt-1">
+                            <Select
+                                classNamePrefix="rs"
+                                placeholder="বস্তা প্রতি (কেজি)"
+                                options={bostaKgOptions}
+                                value={bostaKgOptions.find((o) => o.value === (row.bosta_weight || '')) || null}
+                                onChange={(o) => updateLine(idx, 'bosta_weight', o?.value || '')}
+                                menuPortalTarget={typeof window !== 'undefined' ? document.body : undefined}
+                                menuPosition="fixed"
+                                styles={{ menuPortal: (base) => ({ ...base, zIndex: 9999 }) }}
+                            />
+                        </div>
+                    )}
+                </>
+            ),
+        },
+        {
+            header: 'পরিমাণ',
+            accessor: (row: WithdrawRow, idx: number) => (
+                <input
+                    type="number"
+                    className="w-full rounded border p-1 text-right"
+                    value={row.qty}
+                    onChange={(e) => updateLine(idx, 'qty', e.target.value)}
+                />
+            ),
+        },
+        {
+            header: 'রেট',
+            accessor: (row: WithdrawRow, idx: number) => (
+                <input
+                    type="number"
+                    className="w-full rounded border p-1 text-right"
+                    value={row.rate}
+                    onChange={(e) => updateLine(idx, 'rate', e.target.value)}
+                />
+            ),
+        },
+        {
+            header: 'ওজন (কেজি)',
+            accessor: (row: WithdrawRow) => (row.weight != null ? Number(row.weight).toFixed(3) : '—'),
+            className: 'text-right tabular-nums',
+        },
+        {
+            header: 'মোট',
+            accessor: (row: WithdrawRow) => Number(row.total || 0).toFixed(2),
+            className: 'text-right tabular-nums',
+        },
+    ];
+
     return (
         <AppLayout>
             <Head title="মাল উত্তোলন ফর্ম" />
-            <div className="bg-background h-full w-screen p-6 lg:w-full">
-                <div className="bg-background h-full rounded-lg p-6">
+            <div className="bg-background h-full w-screen p-4 md:p-12 lg:w-full">
+                <div className="bg-background h-full rounded-lg">
                     <h1 className="mb-4 text-xl font-bold">পণ্য উত্তোলন ফর্ম</h1>
 
                     {/* Available stock panel */}
@@ -211,7 +298,7 @@ export default function WithdrawForm({ parties, godowns, units, today, generated
 
                     <form onSubmit={submit} className="space-y-6">
                         {/* Header */}
-                        <div className="grid grid-cols-2 gap-4">
+                        <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-4">
                             <div>
                                 <InputCalendar value={data.date} label="তারিখ" onChange={(val) => setData('date', val)} />
                                 {errors.date && <p className="text-sm text-red-500">{errors.date}</p>}
@@ -275,115 +362,16 @@ export default function WithdrawForm({ parties, godowns, units, today, generated
                         {/* Lines */}
                         <div>
                             <h2 className="mb-2 text-lg font-semibold">উত্তোলন তালিকা</h2>
-                            <table className="w-full table-auto border text-sm">
-                                <thead className="bg-gray-100">
-                                    <tr>
-                                        <th className="border p-2">পণ্য</th>
-                                        <th className="border p-2">একক</th>
-                                        <th className="border p-2">পরিমাণ</th>
-                                        <th className="border p-2">রেট</th>
-                                        <th className="border p-2">ওজন (কেজি)</th>
-                                        <th className="border p-2">মোট</th>
-                                        <th className="border p-2">✕</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    {data.withdraws.map((r, idx) => {
-                                        // Disable item select until party+godown chosen
-                                        const itemDisabled = !data.party_ledger_id || !data.godown_id_from || itemOptions.length === 0;
-
-                                        return (
-                                            <tr key={idx}>
-                                                {/* Item */}
-                                                <td className="border p-2">
-                                                    <Select
-                                                        classNamePrefix="rs"
-                                                        placeholder="পণ্য"
-                                                        options={itemOptions}
-                                                        value={itemOptions.find((o: any) => o.value === r.party_item_id) || null}
-                                                        onChange={(o: any) => updateLine(idx, 'party_item_id', o?.value || '')}
-                                                        isDisabled={itemDisabled}
-                                                        isClearable
-                                                        menuPortalTarget={typeof window !== 'undefined' ? document.body : undefined}
-                                                        menuPosition="fixed"
-                                                        styles={{ menuPortal: (base) => ({ ...base, zIndex: 9999 }) }}
-                                                    />
-                                                    {errors[`withdraws.${idx}.party_item_id`] && (
-                                                        <small className="text-red-500">{errors[`withdraws.${idx}.party_item_id`]}</small>
-                                                    )}
-                                                </td>
-
-                                                {/* Unit + per-bosta */}
-                                                <td className="border p-2">
-                                                    <select
-                                                        className="w-full rounded border p-1"
-                                                        value={r.unit_name}
-                                                        onChange={(e) => onUnitChange(idx, e.target.value)}
-                                                    >
-                                                        <option value="">-- একক নির্বাচন করুন --</option>
-                                                        {units.map((u) => (
-                                                            <option key={u.id} value={u.name}>
-                                                                {u.name}
-                                                            </option>
-                                                        ))}
-                                                    </select>
-
-                                                    {isBosta(r.unit_name) && (
-                                                        <div className="mt-1">
-                                                            <Select
-                                                                classNamePrefix="rs"
-                                                                placeholder="বস্তা প্রতি (কেজি)"
-                                                                options={bostaKgOptions}
-                                                                value={bostaKgOptions.find((o) => o.value === (r.bosta_weight || '')) || null}
-                                                                onChange={(o) => updateLine(idx, 'bosta_weight', o?.value || '')}
-                                                                menuPortalTarget={typeof window !== 'undefined' ? document.body : undefined}
-                                                                menuPosition="fixed"
-                                                                styles={{ menuPortal: (base) => ({ ...base, zIndex: 9999 }) }}
-                                                            />
-                                                        </div>
-                                                    )}
-                                                </td>
-
-                                                {/* Qty */}
-                                                <td className="border p-2">
-                                                    <input
-                                                        type="number"
-                                                        className="w-full rounded border p-1 text-right"
-                                                        value={r.qty}
-                                                        onChange={(e) => updateLine(idx, 'qty', e.target.value)}
-                                                    />
-                                                </td>
-
-                                                {/* Rate */}
-                                                <td className="border p-2">
-                                                    <input
-                                                        type="number"
-                                                        className="w-full rounded border p-1 text-right"
-                                                        value={r.rate}
-                                                        onChange={(e) => updateLine(idx, 'rate', e.target.value)}
-                                                    />
-                                                </td>
-
-                                                {/* Weight (computed) */}
-                                                <td className="border p-2 text-right tabular-nums">
-                                                    {r.weight != null ? Number(r.weight).toFixed(3) : '—'}
-                                                </td>
-
-                                                {/* Amount */}
-                                                <td className="border p-2 text-right tabular-nums">{r.total.toFixed(2)}</td>
-
-                                                {/* Remove */}
-                                                <td className="border p-2 text-center">
-                                                    <button type="button" className="font-bold text-red-600" onClick={() => removeRow(idx)}>
-                                                        ✕
-                                                    </button>
-                                                </td>
-                                            </tr>
-                                        );
-                                    })}
-                                </tbody>
-                            </table>
-
+                            <TableComponent
+                                columns={tableColumns}
+                                data={data.withdraws}
+                                actions={(row, idx) => (
+                                    <button type="button" className="font-bold text-red-600" onClick={() => removeRow(idx)}>
+                                        ✕
+                                    </button>
+                                )}
+                                noDataMessage="কোনো পণ্য নেই"
+                            />
                             <div className="mt-2 text-right">
                                 <button type="button" onClick={addRow} className="font-semibold text-blue-600">
                                     + নতুন পণ্য
@@ -396,7 +384,7 @@ export default function WithdrawForm({ parties, godowns, units, today, generated
 
                         <div>
                             <label className="mb-1 block font-medium">মন্তব্য</label>
-                            <textarea
+                            <Textarea
                                 value={data.remarks}
                                 onChange={(e) => setData('remarks', e.target.value)}
                                 className="w-full rounded border p-2"

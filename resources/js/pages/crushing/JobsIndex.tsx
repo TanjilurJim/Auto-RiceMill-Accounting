@@ -1,5 +1,6 @@
 import PageHeader from '@/components/PageHeader';
 import Pagination from '@/components/Pagination';
+import TableComponent from '@/components/TableComponent';
 import AppLayout from '@/layouts/app-layout';
 import { Head, Link, router } from '@inertiajs/react';
 import React from 'react';
@@ -68,12 +69,56 @@ export default function JobsIndex(props: JobsPageProps) {
         </span>
     );
 
+    // Table columns for TableComponent
+    const tableColumns = [
+        { header: '#', accessor: (_: Job, i: number) => i + 1, className: 'text-center w-12' },
+        { header: 'স্ট্যাটাস', accessor: (j: Job) => <StatusBadge s={j.status} />, className: 'w-24' },
+        { header: 'তারিখ', accessor: 'date', className: 'w-24' },
+        { header: 'রেফারেন্স নং', accessor: 'ref_no', className: 'w-28' },
+        { header: 'ড্রায়ার', accessor: 'dryer', className: 'w-32' },
+        { header: 'গুদাম', accessor: 'godown', className: 'w-32' },
+        { header: 'পার্টি', accessor: (j: Job) => j.party || 'self', className: 'w-32' },
+        { header: 'শুরু', accessor: 'started_at', className: 'w-36' },
+        { header: 'বন্ধ', accessor: 'stopped_at', className: 'w-36' },
+        { header: 'সময়', accessor: (j: Job) => formatDuration(j.started_at, j.stopped_at), className: 'w-32 text-right' },
+        {
+            header: 'লোড (kg / t)',
+            accessor: (j: Job) => {
+                const kg = Math.abs(Number(j.loaded ?? 0));
+                const ton = kg / 1000;
+                return kg ? (
+                    <>
+                        {kg.toFixed(3)} kg <span className="ml-1 text-xs text-slate-500">({ton.toFixed(3)} t)</span>
+                    </>
+                ) : (
+                    '—'
+                );
+            },
+            className: 'w-40 text-right font-mono whitespace-nowrap',
+        },
+        {
+            header: 'ক্যাপাসিটি (Ton)',
+            accessor: (j: Job) => {
+                const cap = j.capacity != null ? Number(j.capacity) : null;
+                return cap != null && isFinite(cap) ? cap.toFixed(3) : '—';
+            },
+            className: 'w-28 text-right font-mono',
+        },
+        {
+            header: 'ইউটিলাইজেশন',
+            accessor: (j: Job) => {
+                const util = j.utilization != null ? j.utilization * 100 : null;
+                return util != null && isFinite(util) ? `${util.toFixed(0)}%` : '—';
+            },
+            className: 'w-28 text-right font-mono',
+        },
+    ];
+
     return (
         <AppLayout>
             <Head title="Crushing Jobs" />
-
-            <div className="h-full w-screen bg-background p-6 lg:w-full">
-                <div className="h-full rounded-lg bg-background p-6">
+            <div className="bg-background h-full w-screen p-6 lg:w-full">
+                <div className="bg-background h-full rounded-lg p-6">
                     {/* Header: title left, action right */}
                     <div className="mb-4 flex items-center justify-between">
                         <PageHeader title="Crushing Jobs" />
@@ -84,112 +129,36 @@ export default function JobsIndex(props: JobsPageProps) {
                             New Crushing Job
                         </Link>
                     </div>
-
                     {/* Table */}
                     <div className="overflow-x-auto">
-                        <table className="w-full border text-sm">
-                            <thead className="bg-gray-100">
-                                <tr>
-                                    <th className="w-12 border p-2">#</th>
-                                    <th className="w-24 border p-2">স্ট্যাটাস</th>
-                                    <th className="w-24 border p-2">তারিখ</th>
-                                    <th className="w-28 border p-2">রেফারেন্স নং</th>
-                                    <th className="w-32 border p-2">ড্রায়ার</th>
-                                    <th className="w-32 border p-2">গুদাম</th>
-                                    <th className="w-32 border p-2">পার্টি</th>
-                                    <th className="w-36 border p-2">শুরু</th>
-                                    <th className="w-36 border p-2">বন্ধ</th>
-                                    <th className="w-32 border p-2 text-right">সময় </th>
-                                    <th className="w-40 border p-2 text-right">লোড (kg / t)</th>
-                                    <th className="w-28 border p-2 text-right">ক্যাপাসিটি (Ton)</th>
-                                    <th className="w-28 border p-2 text-right">ইউটিলাইজেশন</th>
-                                    <th className="w-32 border p-2">এ্যাকশন</th>
-                                </tr>
-                            </thead>
-
-                            <tbody>
-                                {jobs.map((j, i) => {
-                                    const kg = Math.abs(Number(j.loaded ?? 0));
-                                    const ton = kg / 1000;
-                                    const cap = j.capacity != null ? Number(j.capacity) : null;
-                                    const util = j.utilization != null ? j.utilization * 100 : null;
-
-                                    return (
-                                        <tr key={j.id}>
-                                            <td className="border p-2 text-center">{i + 1}</td>
-                                            <td className="border p-2">
-                                                <StatusBadge s={j.status} />
-                                            </td>
-                                            <td className="border p-2">{j.date ?? '—'}</td>
-                                            <td className="border p-2">{j.ref_no}</td>
-                                            <td className="border p-2">{j.dryer || '—'}</td>
-                                            <td className="border p-2">{j.godown || '—'}</td>
-                                            <td className="border p-2">{j.party || 'self'}</td>
-                                            <td className="border p-2">{j.started_at || '—'}</td>
-                                            <td className="border p-2">{j.stopped_at || '—'}</td>
-                                            <td className="border p-2 text-right">{formatDuration(j.started_at, j.stopped_at)}</td>
-
-                                            {/* Loaded */}
-                                            <td className="border p-2 text-right font-mono whitespace-nowrap" title={`${kg.toFixed(3)} kg`}>
-                                                {kg ? (
-                                                    <>
-                                                        {kg.toFixed(3)} kg
-                                                        <span className="ml-1 text-xs text-slate-500">({ton.toFixed(3)} t)</span>
-                                                    </>
-                                                ) : (
-                                                    '—'
-                                                )}
-                                            </td>
-
-                                            {/* Capacity */}
-                                            <td className="border p-2 text-right font-mono">{cap != null && isFinite(cap) ? cap.toFixed(3) : '—'}</td>
-
-                                            {/* Utilization */}
-                                            <td className="border p-2 text-right font-mono">
-                                                {util != null && isFinite(util) ? `${util.toFixed(0)}%` : '—'}
-                                            </td>
-
-                                            {/* Actions */}
-                                            <td className="border p-2">
-                                                <div className="flex items-center justify-center gap-2">
-                                                    <Link
-                                                        href={route('crushing.jobs.show', j.id)}
-                                                        className="inline-flex items-center rounded bg-blue-600 px-3 py-1 text-white hover:bg-blue-700"
-                                                    >
-                                                        View
-                                                    </Link>
-
-                                                    {j.status === 'running' && (
-                                                        <button
-                                                            onClick={() => stopJob(j.id)}
-                                                            disabled={stoppingJobId === j.id}
-                                                            className={
-                                                                'inline-flex items-center rounded px-3 py-1 text-white ' +
-                                                                (stoppingJobId === j.id
-                                                                    ? 'cursor-not-allowed bg-orange-400'
-                                                                    : 'bg-orange-600 hover:bg-orange-700')
-                                                            }
-                                                        >
-                                                            {stoppingJobId === j.id ? 'Stopping...' : 'Stop'}
-                                                        </button>
-                                                    )}
-                                                </div>
-                                            </td>
-                                        </tr>
-                                    );
-                                })}
-
-                                {jobs.length === 0 && (
-                                    <tr>
-                                        <td colSpan={14} className="p-4 text-center text-slate-500">
-                                            No jobs found.
-                                        </td>
-                                    </tr>
-                                )}
-                            </tbody>
-                        </table>
+                        <TableComponent
+                            columns={tableColumns}
+                            data={jobs}
+                            actions={(j: Job) => (
+                                <div className="flex items-center justify-center gap-2">
+                                    <Link
+                                        href={route('crushing.jobs.show', j.id)}
+                                        className="inline-flex items-center rounded bg-blue-600 px-3 py-1 text-white hover:bg-blue-700"
+                                    >
+                                        View
+                                    </Link>
+                                    {j.status === 'running' && (
+                                        <button
+                                            onClick={() => stopJob(j.id)}
+                                            disabled={stoppingJobId === j.id}
+                                            className={
+                                                'inline-flex items-center rounded px-3 py-1 text-white ' +
+                                                (stoppingJobId === j.id ? 'cursor-not-allowed bg-orange-400' : 'bg-orange-600 hover:bg-orange-700')
+                                            }
+                                        >
+                                            {stoppingJobId === j.id ? 'Stopping...' : 'Stop'}
+                                        </button>
+                                    )}
+                                </div>
+                            )}
+                            noDataMessage="No jobs found."
+                        />
                     </div>
-
                     {/* Pagination */}
                     <Pagination
                         links={pagination.links}

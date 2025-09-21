@@ -216,6 +216,7 @@ const CostingSection: React.FC<Props> = React.memo(({ value, presets, dhaanBosta
 
     return (
         <div className="mt-8 rounded border bg-background p-4">
+            {/* Header + Add button */}
             <div className="mb-3 flex items-center justify-between">
                 <h3 className="text-lg font-semibold">প্রোডাকশন খরচ</h3>
                 <button
@@ -233,9 +234,9 @@ const CostingSection: React.FC<Props> = React.memo(({ value, presets, dhaanBosta
                     const selectedPreset = row.preset_id ? presetOptions.find((o) => o.value === row.preset_id) : null;
 
                     return (
-                        <div key={row.id} className="grid grid-cols-12 gap-3">
+                        <div key={row.id} className="grid grid-cols-1 md:grid-cols-5 gap-3">
                             {/* Preset picker */}
-                            <div className="col-span-4 flex flex-col">
+                            <div className="">
                                 <span className="mb-1 text-sm">Preset</span>
                                 <Select
                                     className="flex-1"
@@ -244,7 +245,7 @@ const CostingSection: React.FC<Props> = React.memo(({ value, presets, dhaanBosta
                                     options={presetOptions}
                                     value={selectedPreset || null}
                                     onChange={(opt) => applyPresetToRow(row.id, (opt as any)?.meta ?? null)}
-                                    placeholder="Choose preset…"
+                                    placeholder="Preset…"
                                     isClearable
                                     menuPortalTarget={menuPortalTarget}
                                     menuPosition="fixed"
@@ -252,7 +253,7 @@ const CostingSection: React.FC<Props> = React.memo(({ value, presets, dhaanBosta
                             </div>
 
                             {/* Label (editable; prefilled by preset) */}
-                            <div className="col-span-4 flex flex-col">
+                            <div className="">
                                 <span className="mb-1 text-sm">Header</span>
                                 <div className="flex-1">
                                     <input
@@ -270,7 +271,8 @@ const CostingSection: React.FC<Props> = React.memo(({ value, presets, dhaanBosta
                                     )}
                                 </div>
                             </div>
-                            <div className="col-span-2 flex flex-col">
+
+                            <div className="">
                                 <span className="mb-1 text-sm">Qty</span>
                                 <input
                                     type="number"
@@ -298,7 +300,7 @@ const CostingSection: React.FC<Props> = React.memo(({ value, presets, dhaanBosta
                             </div>
 
                             {/* Amount (auto if preset, editable otherwise) */}
-                            <div className="col-span-3 flex flex-col">
+                            <div className="">
                                 <span className="mb-1 text-sm">Costing (৳)</span>
                                 <input
                                     type="number"
@@ -311,17 +313,17 @@ const CostingSection: React.FC<Props> = React.memo(({ value, presets, dhaanBosta
                                         })
                                     }
                                     readOnly={!!row.preset_id}
-                                    
+
                                 />
                             </div>
 
                             {/* Remove button */}
-                            <div className="col-span-1 flex flex-col">
+                            <div className="">
                                 <span className="invisible mb-1 text-sm">Action</span>
                                 <button
                                     type="button"
                                     onClick={() => removeRow(row.id)}
-                                    className="h-10 w-full rounded-md border border-red-300 text-sm text-red-600 hover:bg-red-100"
+                                    className="h-10 w-full rounded-md border border-red-300 text-sm text-red-600 hover:bg-red-100 mb-6"
                                     title="Remove"
                                 >
                                     Remove
@@ -349,4 +351,4 @@ const CostingSection: React.FC<Props> = React.memo(({ value, presets, dhaanBosta
     );
 });
 
-export default CostingSection; 
+export default CostingSection;
