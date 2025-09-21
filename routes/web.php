@@ -185,7 +185,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
 
 
     // account-groups  (make sure you seeded 'account-groups' module)
-    Route::resource('account-groups', AccountGroupController::class)->only(['index', 'show'])
+    Route::resource('account-groups', AccountGroupController::class)->only(['index', ])
         ->middleware(perm('account-groups', 'view'));
     Route::resource('account-groups', AccountGroupController::class)->only(['create', 'store'])
         ->middleware(perm('account-groups', 'create'));
@@ -193,6 +193,8 @@ Route::middleware(['auth', 'verified'])->group(function () {
         ->middleware(perm('account-groups', 'edit'));
     Route::resource('account-groups', AccountGroupController::class)->only(['destroy'])
         ->middleware(perm('account-groups', 'delete'));
+        Route::resource('account-groups', AccountGroupController::class)->only(['show', ])
+        ->middleware(perm('account-groups', 'view'));
 
     //api
     Route::get('/account-ledgers/{ledger}/balance', function (AccountLedger $ledger) {
@@ -877,7 +879,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
             Route::post('{voucher}/settle', [RentVoucherController::class, 'settle'])
         ->middleware(perm('crushing-voucher', 'create')) // or 'edit' if you don't have a 'receive' ability
         ->name('settle');
-            
+
 
         });
     });
