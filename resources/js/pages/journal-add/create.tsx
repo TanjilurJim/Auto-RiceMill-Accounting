@@ -63,7 +63,7 @@ export default function Create({ accountLedgers = [] }: any) {
         <AppLayout>
             <Head title="Add Journal Entry" />
             <div className="h-full w-screen lg:w-full">
-                <div className="bg-white h-full rounded-lg p-4 md:p-12">
+                <div className="bg-background h-full rounded-lg p-4 md:p-12">
                     <PageHeader title="Add Journal Entries" addLinkHref="/journal-add" addLinkText='Back' />
 
                     <form onSubmit={handleSubmit} className="space-y-6">
@@ -84,14 +84,14 @@ export default function Create({ accountLedgers = [] }: any) {
                                     type="text"
                                     value={voucherNo}
                                     readOnly
-                                    className="w-full rounded border-gray-300 bg-gray-100 px-3 py-2 shadow-sm"
+                                    className="w-full rounded border-gray-300 bg-background px-3 py-2 shadow-sm"
                                 />
                             </div>
                         </div>
 
                         <div className="overflow-x-auto rounded-md border">
                             <table className="min-w-full table-fixed border-collapse text-left text-sm">
-                                <thead className="bg-gray-100">
+                                <thead className="bg-background">
                                     <tr>
                                         <th className="w-1/4 border p-2">Ledger</th>
                                         <th className="w-1/6 border p-2">Type</th>
@@ -102,7 +102,7 @@ export default function Create({ accountLedgers = [] }: any) {
                                 </thead>
                                 <tbody>
                                     {rows.map((row, index) => (
-                                        <tr key={index} className="hover:bg-gray-50">
+                                        <tr key={index} className="hover:bg-background">
                                             <td className="border p-2">
                                                 <select
                                                     value={row.ledger_id}
@@ -124,7 +124,7 @@ export default function Create({ accountLedgers = [] }: any) {
                                                 <select
                                                     value={row.type}
                                                     onChange={(e) => handleChangeRow(index, 'type', e.target.value)}
-                                                    className={`w-full rounded border px-2 py-1 ${row.type === 'debit' ? 'bg-green-50' : 'bg-red-50'} `}
+                                                    className={`w-full rounded border px-2 py-1 ${row.type === 'debit' ? 'bg-background' : 'bg-background'} `}
                                                 >
                                                     <option value="debit">Debit</option>
                                                     <option value="credit">Credit</option>

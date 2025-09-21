@@ -18,8 +18,8 @@ export default function CreateDepartment() {
         <AppLayout>
             <Head title="Create Department" />
 
-            <div className="bg-gray-100 p-6 h-full w-screen lg:w-full">
-                <div className="bg-white h-full rounded-lg p-6">
+            <div className="bg-background p-6 h-full w-screen lg:w-full">
+                <div className="bg-background h-full rounded-lg p-6">
 
                     <PageHeader title="Create Department" addLinkHref='/departments' addLinkText="Back" />
 

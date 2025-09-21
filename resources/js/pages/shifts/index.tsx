@@ -39,7 +39,7 @@ export default function ShiftIndex({ shifts }: { shifts: Shift[] }) {
         <AppLayout>
             <Head title="Shifts" />
             <div className="p-4 md:p-12 h-full w-screen lg:w-full">
-                <div className="bg-white h-full rounded-lg p-6">
+                <div className="bg-background h-full rounded-lg p-6">
 
                     <PageHeader title="Shifts" addLinkHref='/shifts/create' addLinkText="+ Add New" />
 

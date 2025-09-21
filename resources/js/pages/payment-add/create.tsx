@@ -128,8 +128,8 @@ export default function Create({ paymentModes, accountLedgers }: { paymentModes:
         <AppLayout>
             <Head title="Add Payment" />
 
-            <div className="h-full w-screen bg-gray-100 p-6 lg:w-full">
-                <div className="h-full rounded-lg bg-white p-6">
+            <div className="h-full w-screen bg-background p-6 lg:w-full">
+                <div className="h-full rounded-lg bg-background p-6">
                     <PageHeader title="Add Payment" addLinkHref="/payment-add" addLinkText="Back" />
 
                     <form onSubmit={handleSubmit} className="space-y-6">
@@ -152,15 +152,15 @@ export default function Create({ paymentModes, accountLedgers }: { paymentModes:
                                     type="text"
                                     value={voucherNo}
                                     readOnly
-                                    className="w-full rounded border border-gray-300 bg-gray-100 px-3 py-2 text-gray-500"
+                                    className="w-full rounded border border-gray-300 bg-background px-3 py-2 text-foreground"
                                 />
                             </div>
                         </div>
 
                         <div>
-                            <label className="mb-1 block font-medium text-gray-700">Payments</label>
+                            <label className="mb-1 block font-medium text-foreground">Payments</label>
 
-                            <div className="mb-4 rounded border border-gray-300 bg-white p-4">
+                            <div className="mb-4 rounded border border-gray-300 bg-background p-4">
                                 <div className="mb-2 hidden grid-cols-5 gap-4 text-center text-xs font-semibold text-gray-600 md:grid">
                                     <div>Payment Mode</div>
                                     <div>Account Ledger</div>
@@ -220,12 +220,12 @@ export default function Create({ paymentModes, accountLedgers }: { paymentModes:
 
                                             {/* New Ledger Balance */}
                                             <div>
-                                                <label className="block text-xs font-semibold text-gray-600 md:hidden">New Ledger Balance</label>
+                                                <label className="block text-xs font-semibold text-foreground md:hidden">New Ledger Balance</label>
                                                 <input
                                                     type="text"
                                                     readOnly
                                                     value={Number(row.ledger_balance).toFixed(2)}
-                                                    className="w-full rounded border border-gray-300 bg-gray-100 px-2 py-1 text-right text-sm text-gray-500"
+                                                    className="w-full rounded border border-gray-300 bg-background px-2 py-1 text-right text-sm text-foreground"
                                                 />
                                             </div>
 
@@ -257,7 +257,7 @@ export default function Create({ paymentModes, accountLedgers }: { paymentModes:
                                                         <div className="overflow-x-auto">
                                                             <table className="min-w-full text-left text-[11px]">
                                                                 <thead>
-                                                                    <tr className="text-gray-500">
+                                                                    <tr className="text-foreground">
                                                                         <th className="py-1 pr-2">Purchase</th>
                                                                         <th className="py-1 pr-2">Date</th>
                                                                         <th className="py-1 pr-2 text-right">Remaining</th>
@@ -283,7 +283,7 @@ export default function Create({ paymentModes, accountLedgers }: { paymentModes:
                                                                 </tbody>
                                                             </table>
                                                         </div>
-                                                        <div className="mt-1 text-[11px] text-gray-500">
+                                                        <div className="mt-1 text-[11px] text-foreground">
                                                             Tip: to settle a specific purchase’s due, open that Purchase and click <b>Settle Due</b>.
                                                         </div>
                                                     </div>

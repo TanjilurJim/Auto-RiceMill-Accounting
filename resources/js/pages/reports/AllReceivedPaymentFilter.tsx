@@ -13,6 +13,7 @@ export default function AllReceivedPaymentFilter() {
   const { data, setData, processing } = useForm({
     from_date: today,
     to_date: today,
+    type: '',
   })
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -51,7 +52,21 @@ export default function AllReceivedPaymentFilter() {
                     />
                   </div>
                 </div>
-
+                {/* NEW: Type */}
+                  <div className="space-y-2 md:col-span-1">
+                    <Label htmlFor="type">Type</Label>
+                    <select
+                      id="type"
+                      className="w-full rounded-md border px-3 py-2 text-sm"
+                      value={data.type}
+                      onChange={(e) => setData('type', e.target.value)}
+                    >
+                      <option value="">All</option>
+                      <option value="Received">Received</option>
+                      <option value="Payment">Payment</option>
+                    </select>
+                  </div>
+                
                 {/* Submit Button */}
                 <div className="flex justify-end pt-4">
                   <Button

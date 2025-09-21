@@ -103,8 +103,8 @@ const WorkingOrderCreate: React.FC<Props> = ({ autoVoucherNo, products, godowns 
             <Head title="Create Working Order" />
 
             <div className="mx-auto w-full h-full ">
-                <div className="h-full border border-gray-200 bg-gray-100 p-6">
-                    <div className="w-full h-full bg-white rounded-lg p-6 ">
+                <div className="h-full border border-gray-200 bg-background p-6">
+                    <div className="w-full h-full bg-background rounded-lg p-6 ">
                         {/* Header bar */}
 
                         <PageHeader
@@ -174,7 +174,7 @@ const WorkingOrderCreate: React.FC<Props> = ({ autoVoucherNo, products, godowns 
                             {/* ───── Materials grid ───── */}
                             <div className="space-y-1">
                                 <div className="flex items-center justify-between">
-                                    <h3 className="text-sm font-medium text-gray-900">Materials / Stock</h3>
+                                    <h3 className="text-sm font-medium text-foreground">Materials / Stock</h3>
                                     <button
                                         type="button"
                                         onClick={addRow}
@@ -188,11 +188,11 @@ const WorkingOrderCreate: React.FC<Props> = ({ autoVoucherNo, products, godowns 
                                 {rows.map((row, idx) => (
                                     <div
                                         key={idx}
-                                        className="grid grid-cols-1 md:grid-cols-4 lg:grid-cols-6 xl:grid-cols-12  gap-4 rounded border border-gray-100 bg-gray-50 p-4 shadow-md"
+                                        className="grid grid-cols-1 md:grid-cols-4 lg:grid-cols-6 xl:grid-cols-12  gap-4 rounded border border-background bg-background p-4 shadow-md"
                                     >
                                         {/* Product */}
                                         <div className="col-span-1 md:col-span-2">
-                                            <label className="mb-2 block text-sm font-medium text-gray-700">Product</label>
+                                            <label className="mb-2 block text-sm font-medium text-foreground">Product</label>
                                             <select
                                                 name="product_id"
                                                 value={row.product_id}
@@ -211,7 +211,7 @@ const WorkingOrderCreate: React.FC<Props> = ({ autoVoucherNo, products, godowns 
 
                                         {/* Godown */}
                                         <div className="col-span-1 md:col-span-2">
-                                            <label className="mb-2 block text-sm font-medium text-gray-700">Godown</label>
+                                            <label className="mb-2 block text-sm font-medium text-foreground">Godown</label>
                                             <select
                                                 name="godown_id"
                                                 value={row.godown_id}
@@ -230,7 +230,7 @@ const WorkingOrderCreate: React.FC<Props> = ({ autoVoucherNo, products, godowns 
 
                                         {/* Quantity */}
                                         <div className="col-span-1 md:col-span-2">
-                                            <label className="mb-2 block text-sm font-medium text-gray-700">Qty</label>
+                                            <label className="mb-2 block text-sm font-medium text-foreground">Qty</label>
                                             <input
                                                 type="number"
                                                 name="quantity"
@@ -244,7 +244,7 @@ const WorkingOrderCreate: React.FC<Props> = ({ autoVoucherNo, products, godowns 
 
                                         {/* Unit Price */}
                                         <div className="col-span-1 md:col-span-2">
-                                            <label className="mb-2 block text-sm font-medium text-gray-700">Unit Price</label>
+                                            <label className="mb-2 block text-sm font-medium text-foreground">Unit Price</label>
                                             <input
                                                 type="number"
                                                 name="purchase_price"
@@ -258,13 +258,13 @@ const WorkingOrderCreate: React.FC<Props> = ({ autoVoucherNo, products, godowns 
 
                                         {/* Subtotal */}
                                         <div className="col-span-1 md:col-span-2">
-                                            <label className="mb-2 block text-sm font-medium text-gray-700">Subtotal</label>
+                                            <label className="mb-2 block text-sm font-medium text-foreground">Subtotal</label>
                                             <span className="text-sm font-medium text-indigo-600">{row.subtotal.toFixed(2)}</span>
                                         </div>
 
                                         {/* Remove Button */}
                                         <div className="col-span-1 md:col-span-2">
-                                            <label className="mb-2 block text-sm font-medium text-gray-700">Action</label>
+                                            <label className="mb-2 block text-sm font-medium text-foreground">Action</label>
                                             <button
                                                 type="button"
                                                 onClick={() => removeRow(idx)}
@@ -299,7 +299,7 @@ const WorkingOrderCreate: React.FC<Props> = ({ autoVoucherNo, products, godowns 
                                     >
                                         
                                         <div className="col-span-1 lg:col-span-5">
-                                            <label className="mb-2 block text-sm font-medium text-gray-700">Title</label>
+                                            <label className="mb-2 block text-sm font-medium text-foreground">Title</label>
                                             <input
                                                 type="text"
                                                 name="title"
@@ -312,7 +312,7 @@ const WorkingOrderCreate: React.FC<Props> = ({ autoVoucherNo, products, godowns 
                                         </div>
                                         
                                         <div className="col-span-1 lg:col-span-2">
-                                            <label className="mb-2 block text-sm font-medium text-gray-700">Qty</label>
+                                            <label className="mb-2 block text-sm font-medium text-foreground">Qty</label>
                                             <input
                                                 type="number"
                                                 name="quantity"
@@ -324,7 +324,7 @@ const WorkingOrderCreate: React.FC<Props> = ({ autoVoucherNo, products, godowns 
                                         </div>
                                         
                                         <div className="col-span-1 lg:col-span-2">
-                                            <label className="mb-2 block text-sm font-medium text-gray-700">Price</label>
+                                            <label className="mb-2 block text-sm font-medium text-foreground">Price</label>
                                             <input
                                                 type="number"
                                                 name="price"
@@ -354,9 +354,9 @@ const WorkingOrderCreate: React.FC<Props> = ({ autoVoucherNo, products, godowns 
                             </div> */}
 
                             {/* ───── Grand total card ───── */}
-                            <div className="mt-4 rounded border border-indigo-100 bg-indigo-50 px-4 py-3 shadow">
+                            <div className="mt-4 rounded border border-indigo-100 bg-background px-4 py-3 shadow">
                                 <div className="flex items-center justify-between">
-                                    <span className="text-sm font-semibold text-gray-800">Total Amount</span>
+                                    <span className="text-sm font-semibold text-foreground">Total Amount</span>
                                     <span className="text-lg font-bold text-indigo-700">{grandTotal.toFixed(2)}</span>
                                 </div>
                             </div>

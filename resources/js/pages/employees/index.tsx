@@ -49,7 +49,7 @@ export default function EmployeeIndex({ employees }: { employees: Paginated<Empl
             <Head title="Employees" />
 
             <div className="h-full w-screen p-4 md:p-12 lg:w-full">
-                <div className="h-full rounded-lg bg-white p-6">
+                <div className="h-full rounded-lg bg-background p-6">
                     <PageHeader title="Employees" addLinkHref="/employees/create" addLinkText="+ Add Employee" />
 
                     {/* Data table */}

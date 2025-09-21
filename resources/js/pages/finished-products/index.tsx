@@ -100,7 +100,7 @@ export default function Index({ finishedProducts }: Props) {
 
             <div className="mx-auto h-full w-screen lg:w-full p-4 md:p-12 bg-gray-space-y">
 
-                <div className='h-full bg-white rounded-lg'>
+                <div className='h-full bg-background rounded-lg'>
                     <PageHeader title='Finished Products' addLinkHref='/finished-products/create' addLinkText='+ Add Finished Product' />
 
                     {/* Table */}

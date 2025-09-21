@@ -35,7 +35,7 @@ export default function Index({ journals }: any) {
         <AppLayout>
             <Head title="Journal Entries" />
             <div className="h-full w-screen lg:w-full">
-                <div className="bg-white h-full rounded-lg p-4 md:p-12">
+                <div className="bg-background h-full rounded-lg p-4 md:p-12">
 
                     <PageHeader title='Journal Entries' addLinkHref='/journal-add/create' addLinkText="+ Add New" />
 

@@ -22,14 +22,14 @@ export default function ContraPrint(props: any) {
   const logo = company?.logo_url ?? company?.logo_thumb_url;
 
   return (
-    <div className="max-w-full bg-white p-6 print:p-0">
+    <div className="max-w-full bg-background p-6 print:p-0">
       <Head title={`Contra Voucher ${voucher_no}`} />
 
       {/* Back button (screen-only) */}
       <div className="mb-4 print:hidden">
         <button
           onClick={() => history.back()}
-          className="rounded bg-gray-300 px-4 py-2 text-sm hover:bg-gray-400"
+          className="rounded bg-background px-4 py-2 text-sm hover:bg-gray-400"
         >
           ← Back
         </button>

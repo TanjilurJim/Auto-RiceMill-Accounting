@@ -158,8 +158,8 @@ export default function SalesReturnCreate({
     return (
         <AppLayout>
             <Head title="Create Sales Return" />
-            <div className="h-full w-screen bg-gray-100 p-6 lg:w-full">
-                <div className="h-full rounded-lg bg-white p-6">
+            <div className="h-full w-screen bg-background-100 p-6 lg:w-full">
+                <div className="h-full rounded-lg bg-background p-6">
                     {/* <div className="mb-6 flex items-center justify-between">
                     <h1 className="text-2xl font-semibold text-gray-800">Create Sales Return</h1>
                     <Link href="/sales-returns" className="rounded bg-gray-300 px-5 py-2 text-sm font-medium text-gray-700 hover:bg-gray-400">
@@ -169,12 +169,12 @@ export default function SalesReturnCreate({
 
                     <PageHeader title="Create Sales Return" addLinkHref="/sales-returns" addLinkText="Back" />
 
-                    <form onSubmit={handleSubmit} className="space-y-6 rounded bg-white p-6 shadow-md">
+                    <form onSubmit={handleSubmit} className="space-y-6 rounded bg-background p-6 shadow-md">
                         {/* Top Info */}
                         <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
                             <div>
                                 <label className="mb-1 block text-sm font-medium">Voucher No</label>
-                                <input type="text" className="w-full rounded border bg-gray-100 p-2" value={data.voucher_no} readOnly />
+                                <input type="text" className="w-full rounded border bg-background p-2" value={data.voucher_no} readOnly />
                             </div>
 
                             <div>
@@ -420,7 +420,7 @@ export default function SalesReturnCreate({
                                         <input
                                             type="number"
                                             placeholder="Subtotal"
-                                            className="w-full rounded border bg-gray-100 p-2"
+                                            className="w-full rounded border bg-background p-2"
                                             value={item.return_amount}
                                             readOnly
                                         />
@@ -504,7 +504,7 @@ export default function SalesReturnCreate({
             </div>
             {showInventoryLedgerModal && (
                 <div className="bg-opacity-50 fixed inset-0 z-50 flex items-center justify-center bg-black">
-                    <div className="w-full max-w-md rounded bg-white p-6 shadow-lg">
+                    <div className="w-full max-w-md rounded bg-background p-6 shadow-lg">
                         <h2 className="mb-4 text-lg font-semibold text-gray-700">Create New Ledger</h2>
 
                         <input

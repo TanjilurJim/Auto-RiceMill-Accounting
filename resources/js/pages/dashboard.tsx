@@ -5,7 +5,7 @@ import { Card, CardContent, CardFooter, CardHeader } from '@/components/ui/card'
 import AppLayout from '@/layouts/app-layout';
 import { cn } from '@/lib/utils';
 import { Head, Link, router, usePage } from '@inertiajs/react';
-import { ArrowRight, Building, CheckCircle2, CircleDollarSign, ReceiptText, RotateCcw, ShoppingCart, Wallet } from 'lucide-react';
+import { ArrowRight, Building, CheckCircle2, CircleDollarSign, RotateCcw, ShoppingCart, Wallet } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { Bar, BarChart, Cell, Legend, Line, LineChart, Pie, PieChart, ResponsiveContainer, Sector, Tooltip, XAxis, YAxis } from 'recharts';
 import '../echo';
@@ -92,13 +92,23 @@ export default function Dashboard({ runningDryers }: DashboardProps) {
 
     const fmtMoney = (n: number) => new Intl.NumberFormat('en-BD', { minimumFractionDigits: 2 }).format(n || 0);
 
+    type KPI = {
+        title: string;
+        value: React.ReactNode;
+        icon: React.ComponentType<{ className?: string }>;
+        color: string;
+        bg: string;
+        href?: string; // ← make it clickable when present
+        onClick?: () => void; // ← or handle clicks imperatively
+    };
+
     const kpis = [
-        { title: 'Total Sales', value: totalSales, icon: CircleDollarSign, color: 'text-green-600', bg: 'bg-green-50' },
-        { title: 'Total Purchases', value: totalPurchases, icon: ShoppingCart, color: 'text-orange-600', bg: 'bg-orange-50' },
-        { title: 'Cash Received', value: totalReceived, icon: Wallet, color: 'text-blue-600', bg: 'bg-blue-50' },
+        { title: 'Total Sales', value: totalSales, icon: CircleDollarSign, color: 'text-green-600', bg: 'bg-green-50', href: '/reports/sale/filter' },
+        { title: 'Total Purchases', value: totalPurchases, icon: ShoppingCart, color: 'text-orange-600', bg: 'bg-orange-50', href: '/reports/purchase/filter/all' },
+        { title: 'Cash Received', value: totalReceived, icon: Wallet, color: 'text-blue-600', bg: 'bg-blue-50', href: '/reports/all-received-payment/filter' },
         { title: 'Cash Paid', value: totalPayment, icon: Wallet, color: 'text-red-600', bg: 'bg-red-50' },
-        { title: 'Net Income', value: 275000, icon: CircleDollarSign, color: 'text-emerald-600', bg: 'bg-emerald-50' },
-        { title: 'Total Expenses', value: 210000, icon: ReceiptText, color: 'text-gray-700', bg: 'bg-gray-50' },
+        // { title: 'Net Income', value: 275000, icon: CircleDollarSign, color: 'text-emerald-600', bg: 'bg-emerald-50' },
+        // { title: 'Total Expenses', value: 210000, icon: ReceiptText, color: 'text-gray-700', bg: 'bg-gray-50' },
         { title: 'Sales Returns', value: totalSalesReturns, icon: RotateCcw, color: 'text-fuchsia-600', bg: 'bg-fuchsia-50' },
         { title: 'Purchase Returns', value: totalPurchaseReturns, icon: RotateCcw, color: 'text-cyan-600', bg: 'bg-cyan-50' },
         { title: 'Open Sales Orders', value: totalSalesOrders, icon: ShoppingCart, color: 'text-orange-600', bg: 'bg-orange-50' },
@@ -121,27 +131,52 @@ export default function Dashboard({ runningDryers }: DashboardProps) {
 
             {/* KPIs */}
             <div className="m-2 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-                {kpis.map(({ title, value, icon: Icon, color, bg }) => (
-                    <Card
-                        key={title}
-                        className={cn(
-                            'dark:border-muted/30 flex items-center gap-4 rounded-lg border border-gray-100 p-4',
-                            'dark:bg-muted/40 bg-white shadow-sm transition-transform duration-200',
-                            'hover:border-primary/40 hover:-translate-y-1 hover:shadow-lg',
-                            bg,
-                        )}
-                    >
-                        <div className={cn('flex h-12 w-12 items-center justify-center rounded-full shadow-sm', color, 'bg-opacity-10')}>
-                            <Icon className={cn('h-7 w-7', color)} />
-                        </div>
-                        <div className="min-w-0 flex-1 text-center">
-                            <p className="truncate text-xs text-gray-500 dark:text-gray-400">{title}</p>
-                            <p className="mt-1 text-2xl font-bold text-gray-800 dark:text-gray-100">
-                                {typeof value === 'number' ? value.toLocaleString() : value}
-                            </p>
-                        </div>
-                    </Card>
-                ))}
+                {kpis.map(({ title, value, icon: Icon, color, bg, href, onClick }) => {
+                    const CardBody = (
+                        <Card
+                            key={title}
+                            className={cn(
+                                'dark:border-muted/30 flex items-center gap-4 rounded-lg border border-gray-100 p-4',
+                                'dark:bg-muted/40 bg-white shadow-sm transition-transform duration-200',
+                                'hover:border-primary/40 focus-visible:ring-primary/40 hover:-translate-y-1 hover:shadow-lg focus-visible:ring-2',
+                                bg,
+                                (href || onClick) && 'cursor-pointer',
+                            )}
+                            aria-label={href ? `Open ${title}` : undefined}
+                        >
+                            <div className={cn('flex h-12 w-12 items-center justify-center rounded-full shadow-sm', color, 'bg-opacity-10')}>
+                                <Icon className={cn('h-7 w-7', color)} />
+                            </div>
+                            <div className="min-w-0 flex-1 text-center">
+                                <p className="truncate text-xs text-gray-500 dark:text-gray-400">{title}</p>
+                                <p className="mt-1 text-2xl font-bold text-gray-800 dark:text-gray-100">
+                                    {typeof value === 'number' ? value.toLocaleString() : value}
+                                </p>
+                            </div>
+                        </Card>
+                    );
+
+                    // Prefer Link when there is an href
+                    if (href) {
+                        return (
+                            <Link key={title} href={href} className="block focus:outline-none">
+                                {CardBody}
+                            </Link>
+                        );
+                    }
+
+                    // Optional: handle imperative navigation or filtered visits
+                    if (onClick) {
+                        return (
+                            <button key={title} type="button" onClick={onClick} className="block text-left focus:outline-none">
+                                {CardBody}
+                            </button>
+                        );
+                    }
+
+                    // Non-clickable fallback
+                    return <div key={title}>{CardBody}</div>;
+                })}
             </div>
 
             {/* Running dryers + Payables */}

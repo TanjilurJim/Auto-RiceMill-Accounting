@@ -67,7 +67,7 @@ export default function Index({ paymentAdds, filters, paymentModes }: Props) {
             <Head title="Payment List" />
 
             <div className="h-full w-screen lg:w-full">
-                <div className="bg-white h-full rounded-lg p-4 md:p-12">
+                <div className="bg-background h-full rounded-lg p-4 md:p-12">
 
                     <PageHeader title='All List of Payments' addLinkHref='/payment-add/create' addLinkText="+ Add New" />
 

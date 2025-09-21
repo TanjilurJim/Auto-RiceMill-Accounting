@@ -36,13 +36,13 @@ export default function Create() {
                     <PageHeader title='Create Received Mode' addLinkHref='/received-modes' addLinkText='Back' />
 
                     <form onSubmit={handleSubmit} className="space-y-6">
-                        <div className="rounded-lg border bg-white p-6 shadow">
-                            <h2 className="mb-4 border-b pb-2 text-lg font-semibold text-gray-700">Mode Information</h2>
+                        <div className="rounded-lg border bg-background p-6 shadow">
+                            <h2 className="mb-4 border-b pb-2 text-lg font-semibold text-foreground">Mode Information</h2>
 
                             <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
                                 {/* Mode Name */}
                                 <div>
-                                    <label className="mb-2 block text-sm font-medium text-gray-700">
+                                    <label className="mb-2 block text-sm font-medium text-foreground">
                                         Mode Name <span className="text-red-500">*</span>
                                     </label>
                                     <input
@@ -57,7 +57,7 @@ export default function Create() {
 
                                 {/* Phone Number */}
                                 <div>
-                                    <label className="mb-2 block text-sm font-medium text-gray-700">Phone Number</label>
+                                    <label className="mb-2 block text-sm font-medium text-foreground">Phone Number</label>
                                     <input
                                         type="text"
                                         value={data.phone_number}
@@ -70,7 +70,7 @@ export default function Create() {
 
                                 {/* Ledger Selection */}
                                 <div>
-                                    <label className="mb-2 block text-sm font-medium text-gray-700">Ledger</label>
+                                    <label className="mb-2 block text-sm font-medium text-foreground">Ledger</label>
                                     <select
                                         value={data.ledger_id}
                                         onChange={(e) => setData('ledger_id', e.target.value)}

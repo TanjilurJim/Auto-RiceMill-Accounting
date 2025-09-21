@@ -42,8 +42,8 @@ export default function Create({ paymentModes }: any) {
     return (
         <AppLayout>
             <Head title="Add Contra Entry" />
-            <div className="bg-gray-100 p-6 h-full w-screen lg:w-full">
-                <div className="bg-white h-full rounded-lg p-6">
+            <div className="bg-gray-background p-6 h-full w-screen lg:w-full">
+                <div className="bg-background h-full rounded-lg p-6">
 
                     <PageHeader title='Add Contra Entry' addLinkHref='/contra-add' addLinkText='Back' />
 
@@ -63,7 +63,7 @@ export default function Create({ paymentModes }: any) {
                                     </div>
                                     <div>
                                         <label className="mb-1 block text-sm font-medium">Voucher No</label>
-                                        <input type="text" value={voucherNo} readOnly className="w-full rounded border bg-gray-100 px-3 py-2" />
+                                        <input type="text" value={voucherNo} readOnly className="w-full rounded border bg-background px-3 py-2" />
                                     </div>
                                 </div>
                             </CardContent>

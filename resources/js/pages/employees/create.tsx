@@ -31,15 +31,15 @@ export default function CreateEmployee({ departments, designations, shifts, refe
         <AppLayout>
             <Head title="Create Employee" />
 
-            <div className="bg-gray-100 p-6 h-full w-screen lg:w-full">
-                <div className="bg-white h-full rounded-lg p-6">
+            <div className="bg-background p-6 h-full w-screen lg:w-full">
+                <div className="bg-background h-full rounded-lg p-6">
 
                     <PageHeader title="Create Employee" addLinkHref='/employees' addLinkText="Back" />
 
-                    <form onSubmit={handleSubmit} className="space-y-8 rounded-lg bg-white p-6 border">
+                    <form onSubmit={handleSubmit} className="space-y-8 rounded-lg bg-background p-6 border">
                         {/* 👤 Personal Info */}
                         <div>
-                            <h2 className="mb-4 text-lg font-semibold text-gray-800">Personal Info</h2>
+                            <h2 className="mb-4 text-lg font-semibold text-foreground">Personal Info</h2>
                             <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
                                 <div>
                                     <label className="mb-1 block text-sm font-medium">Full Name</label>
@@ -69,7 +69,7 @@ export default function CreateEmployee({ departments, designations, shifts, refe
 
                         {/* 📞 Contact Info */}
                         <div>
-                            <h2 className="mb-4 text-lg font-semibold text-gray-800">Contact Info</h2>
+                            <h2 className="mb-4 text-lg font-semibold text-foreground">Contact Info</h2>
                             <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
                                 <div>
                                     <label className="mb-1 block text-sm font-medium">Mobile</label>
@@ -123,7 +123,7 @@ export default function CreateEmployee({ departments, designations, shifts, refe
 
                         {/* 🧾 Job Info */}
                         <div>
-                            <h2 className="mb-4 text-lg font-semibold text-gray-800">Job Info</h2>
+                            <h2 className="mb-4 text-lg font-semibold text-foreground">Job Info</h2>
                             <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
                                 <div>
                                     <label className="mb-1 block text-sm font-medium">Department</label>
@@ -180,7 +180,7 @@ export default function CreateEmployee({ departments, designations, shifts, refe
 
                         {/* 💰 Payroll Info */}
                         <div>
-                            <h2 className="mb-4 text-lg font-semibold text-gray-800">Payroll</h2>
+                            <h2 className="mb-4 text-lg font-semibold text-foreground">Payroll</h2>
                             <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
                                 <div>
                                     <label className="mb-1 block text-sm font-medium">Salary</label>

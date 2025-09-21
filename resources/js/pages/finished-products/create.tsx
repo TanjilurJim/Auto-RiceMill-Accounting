@@ -113,12 +113,12 @@ export default function Create({ workingOrders, products, godowns, autoVoucherNo
         <AppLayout>
             <Head title="Add Finished Product" />
 
-            <div className="mx-auto  bg-gray-100 p-6 border">
-                <div className='h-full bg-white rounded-lg p-6'>
+            <div className="mx-auto  bg-background p-6 border">
+                <div className='h-full bg-background rounded-lg p-6'>
                     <PageHeader title="Add Finished Product" addLinkHref="/finished-products" addLinkText="Back" />
 
                     {/* Working Order Selection */}
-                    <div className="rounded border bg-white p-6 shadow-md">
+                    <div className="rounded border bg-background p-6 shadow-md">
                         <h2 className="mb-4 text-lg font-bold">Select Working Order</h2>
                         <Select
                             options={workingOrderOptions}
@@ -130,7 +130,7 @@ export default function Create({ workingOrders, products, godowns, autoVoucherNo
                         {selectedWO && (
                             <div className="mt-6 border-t pt-4">
                                 <h3 className="text-md mb-2 font-semibold">Materials Used:</h3>
-                                <ul className="space-y-1 text-sm text-gray-700">
+                                <ul className="space-y-1 text-sm text-foreground">
                                     {selectedWO?.items?.length ? (
                                         selectedWO.items.map((i, idx) => (
                                             <li key={idx}>
@@ -146,13 +146,13 @@ export default function Create({ workingOrders, products, godowns, autoVoucherNo
                     </div>
 
                     {/* Production Entry Form */}
-                    <form onSubmit={handleSubmit} className="space-y-6 rounded border bg-white p-6 shadow-md">
+                    <form onSubmit={handleSubmit} className="space-y-6 rounded border bg-background p-6 shadow-md">
                         <h2 className="mb-2 text-lg font-bold">Add Production</h2>
 
                         {/* Header Fields */}
                         <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
                             <div>
-                                <label className="text-sm font-medium text-gray-700">Date</label>
+                                <label className="text-sm font-medium text-foreground">Date</label>
                                 <input
                                     type="date"
                                     value={productionDate}
@@ -162,16 +162,16 @@ export default function Create({ workingOrders, products, godowns, autoVoucherNo
                                 />
                             </div>
                             <div>
-                                <label className="text-sm font-medium text-gray-700">Voucher No</label>
+                                <label className="text-sm font-medium text-foreground">Voucher No</label>
                                 <input
                                     type="text"
                                     value={autoVoucherNo}
                                     readOnly
-                                    className="w-full cursor-not-allowed rounded border bg-gray-100 px-3 py-2 text-sm"
+                                    className="w-full cursor-not-allowed rounded border bg-background px-3 py-2 text-sm"
                                 />
                             </div>
                             <div>
-                                <label className="text-sm font-medium text-gray-700">Reference No</label>
+                                <label className="text-sm font-medium text-foreground">Reference No</label>
                                 <input
                                     type="text"
                                     value={referenceNo}
@@ -184,7 +184,7 @@ export default function Create({ workingOrders, products, godowns, autoVoucherNo
                         {/* Dynamic Product Rows */}
                         <div className="space-y-4">
                             <div className="flex items-center justify-between">
-                                <h3 className="font-semibold text-gray-800">Production Output</h3>
+                                <h3 className="font-semibold text-foreground">Production Output</h3>
                                 <button
                                     type="button"
                                     onClick={addRow}
@@ -198,11 +198,11 @@ export default function Create({ workingOrders, products, godowns, autoVoucherNo
                             {rows.map((row, idx) => (
                                 <div
                                     key={idx}
-                                    className="grid grid-cols-1 gap-4 rounded bg-gray-50 p-4 sm:grid-cols-2 md:grid-cols-4 lg:grid-cols-6 xl:grid-cols-12 items-center"
+                                    className="grid grid-cols-1 gap-4 rounded bg-background p-4 sm:grid-cols-2 md:grid-cols-4 lg:grid-cols-6 xl:grid-cols-12 items-center"
                                 >
                                     {/* Item */}
                                     <div className="col-span-1 lg:col-span-2">
-                                        <label className="text-sm font-medium text-gray-700">Item</label>
+                                        <label className="text-sm font-medium text-foreground">Item</label>
                                         <select
                                             name="product_id"
                                             value={row.product_id}
@@ -221,7 +221,7 @@ export default function Create({ workingOrders, products, godowns, autoVoucherNo
 
                                     {/* Godown */}
                                     <div className="col-span-1 lg:col-span-2">
-                                        <label className="text-sm font-medium text-gray-700">Godown</label>
+                                        <label className="text-sm font-medium text-foreground">Godown</label>
                                         <select
                                             name="godown_id"
                                             value={row.godown_id}
@@ -240,7 +240,7 @@ export default function Create({ workingOrders, products, godowns, autoVoucherNo
 
                                     {/* Quantity */}
                                     <div className="col-span-1 lg:col-span-2">
-                                        <label className="text-sm font-medium text-gray-700">Quantity</label>
+                                        <label className="text-sm font-medium text-foreground">Quantity</label>
                                         <input
                                             type="number"
                                             name="quantity"
@@ -253,7 +253,7 @@ export default function Create({ workingOrders, products, godowns, autoVoucherNo
 
                                     {/* Price */}
                                     <div className="col-span-1 lg:col-span-2">
-                                        <label className="text-sm font-medium text-gray-700">Price</label>
+                                        <label className="text-sm font-medium text-foreground">Price</label>
                                         <input
                                             type="number"
                                             name="unit_price"
@@ -265,14 +265,14 @@ export default function Create({ workingOrders, products, godowns, autoVoucherNo
 
                                     {/* Total */}
                                     <div className="col-span-1 md:col-span-2">
-                                        <label className="mb-2 block text-sm font-medium text-gray-700">Subtotal</label>
+                                        <label className="mb-2 block text-sm font-medium text-foreground">Subtotal</label>
                                         <span className="text-sm font-medium text-indigo-600">
                                             {Number(row.total || 0).toFixed(2)}</span>
                                     </div>
 
                                     {/* Remove Button */}
                                     <div className="col-span-1 md:col-span-2">
-                                        <label className="mb-2 block text-sm font-medium text-gray-700">Action</label>
+                                        <label className="mb-2 block text-sm font-medium text-foreground">Action</label>
                                             <button
                                                 type="button"
                                                 onClick={() => removeRow(idx)}
@@ -287,14 +287,14 @@ export default function Create({ workingOrders, products, godowns, autoVoucherNo
                         </div>
 
                         {/* Totals */}
-                        <div className="flex items-center justify-between border-t pt-2 text-sm font-medium text-gray-800">
+                        <div className="flex items-center justify-between border-t pt-2 text-sm font-medium text-foreground">
                             <span>Total Items: {rows.length}</span>
                             <span>Total Amount: {isNaN(itemTotal) ? '0.00' : itemTotal.toFixed(2)}</span>
                         </div>
 
                         {/* Note */}
                         <div>
-                            <label className="block text-sm font-medium text-gray-700">Note</label>
+                            <label className="block text-sm font-medium text-foreground">Note</label>
                             <textarea
                                 value={note}
                                 onChange={(e) => setNote(e.target.value)}

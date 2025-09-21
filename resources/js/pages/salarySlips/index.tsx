@@ -125,11 +125,11 @@ export default function SalarySlipIndex({ salarySlips, employees }: Props) {
         <AppLayout>
             <Head title="Salary Slips" />
             <div className="p-4 md:p-12 h-full w-screen lg:w-full">
-                <div className="bg-white h-full rounded-lg p-6">
+                <div className="bg-background h-full rounded-lg p-6">
                     <PageHeader title="Salary Slips" addLinkHref="/salary-slips/create" addLinkText="+ Add New" />
 
                     {/* Summary */}
-                    <div className="mb-4 flex flex-wrap gap-4 rounded-lg bg-white p-4 border">
+                    <div className="mb-4 flex flex-wrap gap-4 rounded-lg bg-background p-4 border">
                         <div className="text-sm">
                             💰 <strong>Total Slips:</strong> {totalSlips}
                         </div>
@@ -139,7 +139,7 @@ export default function SalarySlipIndex({ salarySlips, employees }: Props) {
                     </div>
 
                     {/* Filters */}
-                    <div className="mb-4 flex flex-wrap items-center gap-3 rounded-lg bg-white p-4 border">
+                    <div className="mb-4 flex flex-wrap items-center gap-3 rounded-lg bg-background p-4 border">
                     <div className="min-w-[150px] w-full sm:w-auto">
                         {/* <select
                             className="rounded border p-2 text-sm w-full sm:w-auto"
@@ -189,9 +189,9 @@ export default function SalarySlipIndex({ salarySlips, employees }: Props) {
                     </div>
 
                     {/* Table */}
-                    <div className="overflow-x-auto rounded-lg border border-gray-300 bg-white">
+                    <div className="overflow-x-auto rounded-lg border border-gray-300 bg-background">
                         <table className="min-w-full border-collapse text-xs sm:text-sm md:text-base lg:text-lg">
-                            <thead className="bg-gray-100 text-xs sm:text-sm text-gray-600 uppercase">
+                            <thead className="bg-background text-xs sm:text-sm text-gray-600 uppercase">
                                 <tr>
                                     <th className="border px-2 sm:px-3 py-2">SL</th>
                                     <th className="border px-2 sm:px-3 py-2">Voucher</th>
@@ -225,7 +225,7 @@ export default function SalarySlipIndex({ salarySlips, employees }: Props) {
                                             <>
                                                 <tr
                                                     key={salarySlip.id}
-                                                    className="cursor-pointer hover:bg-gray-50 border"
+                                                    className="cursor-pointer hover:bg-background border"
                                                     onClick={() => setExpandedRowId(expandedRowId === salarySlip.id ? null : salarySlip.id)}
                                                 >
                                                     <td className="border px-2 sm:px-3 py-2 text-center">{index + 1}</td>
@@ -252,7 +252,7 @@ export default function SalarySlipIndex({ salarySlips, employees }: Props) {
                                                 </tr>
                                                 {expandedRowId === salarySlip.id && (
                                                     <tr>
-                                                        <td colSpan={7} className="bg-gray-50 px-4 py-3">
+                                                        <td colSpan={7} className="bg-background px-4 py-3">
                                                             <div className="mb-2 text-sm font-semibold">Employee Breakdown</div>
                                                             <table className="w-full border text-xs sm:text-sm">
                                                                 <thead>
