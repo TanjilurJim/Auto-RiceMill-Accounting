@@ -82,7 +82,7 @@ export default function PartyStockDepositShow({ header, items, balances = [] }: 
                             </thead>
                             <tbody>
                                 {items.map((l, i) => (
-                                    <tr key={i} className="hover:bg-slate-50">
+                                    <tr key={i} className="hover:bg-background">
                                         <td className="border p-2">{l.item_name}</td>
                                         <td className="border p-2">{l.unit_name ?? '—'}</td>
                                         <td className="border p-2 text-right tabular-nums">{fmtNum(l.qty, 3)}</td>
@@ -100,7 +100,7 @@ export default function PartyStockDepositShow({ header, items, balances = [] }: 
                                     </tr>
                                 )}
                             </tbody>
-                            <tfoot className="bg-slate-100">
+                            <tfoot className="bg-background">
                                 <tr>
                                     <td className="border p-2 text-right font-semibold" colSpan={2}>
                                         Total
@@ -129,7 +129,7 @@ export default function PartyStockDepositShow({ header, items, balances = [] }: 
                                 </thead>
                                 <tbody>
                                     {balances.map((b, i) => (
-                                        <tr key={i} className="hover:bg-slate-50">
+                                        <tr key={i} className="hover:bg-bacground">
                                             <td className="border p-2">{b.item_name}</td>
                                             <td className="border p-2 text-right tabular-nums">{fmtNum(b.qty, 3)}</td>
                                             <td className="border p-2">{b.unit_name ?? '—'}</td>

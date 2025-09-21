@@ -53,7 +53,7 @@ const AccountLedgerForm: React.FC<AccountLedgerFormProps> = ({
   return (
     <form
       onSubmit={handleSubmit}
-      className="grid grid-cols-1 gap-4 rounded border bg-white p-4 shadow md:grid-cols-2 lg:grid-cols-2 dark:bg-neutral-900"
+      className="grid grid-cols-1 gap-4 rounded border bg-background p-4 shadow md:grid-cols-2 lg:grid-cols-2 dark:bg-neutral-900"
       noValidate
     >
       {/* Friendly banner */}

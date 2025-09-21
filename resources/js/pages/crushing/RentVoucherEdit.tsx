@@ -33,6 +33,7 @@ interface LineSrv {
     rate: number;
 }
 interface LineUI {
+    [key: string]: string | number;
     party_item_id: string;
     qty: string;
     unit_name: string;
@@ -61,12 +62,19 @@ interface Props {
 }
 
 /* ---------- helper for summary rows ---------- */
-const SummaryRow = ({ label, value, bold = false }: { label: string; value: number; bold?: boolean }) => (
+const SummaryRow = ({
+  label,
+  value,
+  bold = false,
+}: { label: string; value: number | string; bold?: boolean }) => {
+  const n = Number(value ?? 0);
+  return (
     <div className="flex justify-between">
-        <span className={bold ? 'font-semibold' : ''}>{label}</span>
-        <span className={bold ? 'font-semibold' : ''}>{value.toFixed(2)}</span>
+      <span className={bold ? 'font-semibold' : ''}>{label}</span>
+      <span className={bold ? 'font-semibold' : ''}>{n.toFixed(2)}</span>
     </div>
-);
+  );
+};
 
 export default function RentVoucherEdit({ voucher, lines, parties, items, modes, units }: Props) {
     /* ---------- form ---------- */
@@ -143,15 +151,17 @@ export default function RentVoucherEdit({ voucher, lines, parties, items, modes,
             <Head title="Rent Voucher Edit" />
 
             {/* back */}
+            <div className="text-end">
             <Link
                 href={route('party-stock.rent-voucher.index')}
-                className="inline-flex items-center rounded-lg border border-gray-300 bg-white px-6 py-3 text-base font-medium text-gray-700 transition-colors hover:bg-gray-50 focus:ring-2 focus:ring-gray-500 focus:ring-offset-2 focus:outline-none"
+                className="inline-flex items-center  rounded-lg border border-gray-300 bg-background px-3 py-3 text-base font-medium text-foreground transition-colors hover:bg-background focus:ring-2 focus:ring-gray-500 focus:ring-offset-2 focus:outline-none mx-auto"
             >
                 <svg className="mr-2 h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" />
                 </svg>
                 Back to List
             </Link>
+            </div>
 
             {/* form */}
             <form onSubmit={submit} className="mx-auto max-w-6xl space-y-6 p-6">
@@ -211,8 +221,8 @@ export default function RentVoucherEdit({ voucher, lines, parties, items, modes,
                                         value={itemOpts.find((o) => o.value === l.party_item_id) || null}
                                         onChange={(o) => update(idx, 'party_item_id', o?.value || '')}
                                     />
-                                    {errors[`lines.${idx}.party_item_id`] && (
-                                        <small className="text-red-500">{errors[`lines.${idx}.party_item_id`]}</small>
+                                    {(errors as any)[`lines.${idx}.party_item_id`] && (
+                                        <small className="text-red-500">{(errors as any)[`lines.${idx}.party_item_id`]}</small>
                                     )}
                                 </td>
                                 <td>
@@ -260,7 +270,7 @@ export default function RentVoucherEdit({ voucher, lines, parties, items, modes,
                 </div>
 
                 {/* summary */}
-                <div className="rounded border bg-gray-50 p-4">
+                <div className="rounded border bg-background p-4">
                     <div className="grid gap-6 sm:grid-cols-2">
                         {/* left */}
                         <div className="space-y-2">

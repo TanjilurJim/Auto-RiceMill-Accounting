@@ -129,7 +129,7 @@ export default function Create({ employees, receivedModes, salarySlipEmployees }
                 <div className="h-full rounded-lg ">
                     <PageHeader title="Create Salary Receive" addLinkHref="/salary-receives" addLinkText="Back" />
 
-                    <form onSubmit={handleSubmit} className="space-y-6 rounded-lg border bg-white p-6">
+                    <form onSubmit={handleSubmit} className="space-y-6 rounded-lg border bg-background p-6">
                         <div className="grid gap-4 md:grid-cols-2">
                             {/* Voucher No */}
                             <div>

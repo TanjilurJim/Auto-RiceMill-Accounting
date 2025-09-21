@@ -43,7 +43,7 @@ const EmployeeLedgerFilter: React.FC<Props> = ({ employees }) => {
     <AppLayout>
       <Head title="Employee Ledger Filter" />
       <div className="p-4 md:p-12 h-full w-screen lg:w-full">
-        <div className="bg-white h-full rounded-lg p-6">
+        <div className="bg-background h-full rounded-lg p-6">
           <PageHeader title="Employee Ledger Report" />
 
           <form onSubmit={handleSubmit} className="space-y-4">

@@ -1,8 +1,8 @@
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import AppLayout from '@/layouts/app-layout';
-import { useEffect,  } from 'react';
 import { Link } from '@inertiajs/react';
-import { FileSpreadsheet, FileText, Printer } from 'lucide-react';
+import { FileSpreadsheet } from 'lucide-react';
+import { useEffect } from 'react';
 
 interface CategorySummary {
     category_name: string;
@@ -22,8 +22,12 @@ interface Company {
     email?: string;
     mobile?: string;
     address?: string;
-    logo_path?: string;
+
     website?: string;
+    logo_path?: string;
+
+    logo_url?: string;
+    logo_thumb_url?: string;
 }
 
 interface Props {
@@ -53,13 +57,13 @@ export default function CategoryWiseStockSummary({ categories, filters, company 
             <div className="max-w-full space-y-6 p-4">
                 <Card className="shadow">
                     <CardHeader className="space-y-1 border-b bg-gray-50 py-6 text-center">
-                        {company?.logo_path && (
-                            <img
-                                src={company?.logo_path}
-                                alt="Company Logo"
-                                className="mx-auto mb-4 h-16 w-16 object-cover"
-                            />
-                        )}
+                        {company?.logo_url && (
+                <img
+                  src={company.logo_url}
+                  alt="Company Logo"
+                  className="mx-auto mb-2 h-16 w-auto object-contain sm:h-20 print:h-12"
+                />
+              )}
                         <h1 className="text-3xl font-bold uppercase">{company?.company_name ?? 'Company Name'}</h1>
                         {company?.address && <p className="text-sm text-gray-700">{company?.address}</p>}
                         {company?.mobile && <p className="text-sm text-gray-700">Phone: {company?.mobile}</p>}

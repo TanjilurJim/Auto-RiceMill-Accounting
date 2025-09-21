@@ -20,7 +20,7 @@ export default function CreateGodown() {
         <AppLayout>
             <Head title="Add Godown" />
             <div className="h-full">
-                <div className="h-full bg-white rounded-lg p-4 md:p-12">
+                <div className="h-full bg-background rounded-lg p-4 md:p-12">
                     <PageHeader title="Add Godown" addLinkHref="/godowns" addLinkText="Back" />
                     <GodownForm
                         data={data}

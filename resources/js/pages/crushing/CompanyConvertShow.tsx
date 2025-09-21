@@ -55,39 +55,39 @@ export default function CompanyConvertShow({ header, consumed, generated }: Prop
             <Head title={`Conversion ${header.ref_no}`} />
             <div className="p-4 sm:p-6 lg:p-8">
                 <div className="mb-5 flex items-center justify-between">
-                    <h1 className="text-2xl font-bold text-slate-800">Company Conversion</h1>
-                    <Link href={route('company-conversions.index')} className="print:hidden rounded-md border px-3 py-2 text-sm hover:bg-slate-50">
+                    <h1 className="text-2xl font-bold text-foreground">Company Conversion</h1>
+                    <Link href={route('company-conversions.index')} className="print:hidden rounded-md border px-3 py-2 text-sm hover:bg-foreground">
                         ← Back to list
                     </Link>
                 </div>
 
                 {/* Header card */}
-                <div className="mb-6 rounded-lg border bg-white p-4">
+                <div className="mb-6 rounded-lg border bg-background p-4">
                     <div className="grid grid-cols-1 gap-2 sm:grid-cols-4">
                         <div>
-                            <div className="text-xs text-slate-500">Date</div>
+                            <div className="text-xs text-foreground">Date</div>
                             <div className="font-medium">{fmtDate(header.date)}</div>
                         </div>
                         <div>
-                            <div className="text-xs text-slate-500">Ref No</div>
+                            <div className="text-xs text-foreground">Ref No</div>
                             <div className="font-medium">{header.ref_no}</div>
                         </div>
                         <div>
-                            <div className="text-xs text-slate-500">Godown</div>
+                            <div className="text-xs text-foreground">Godown</div>
                             <div className="font-medium">{header.godown || '—'}</div>
                         </div>
                         <div>
-                            <div className="text-xs text-slate-500">Remarks</div>
+                            <div className="text-xs text-foreground">Remarks</div>
                             <div className="font-medium">{header.remarks || '—'}</div>
                         </div>
                     </div>
                 </div>
 
                 {/* Consumed */}
-                <div className="mb-6 overflow-x-auto rounded-lg border bg-white">
-                    <div className="border-b bg-slate-50 p-3 font-semibold">Consumed (Convert-out)</div>
+                <div className="mb-6 overflow-x-auto rounded-lg border bg-background">
+                    <div className="border-b bg-background p-3 font-semibold">Consumed (Convert-out)</div>
                     <table className="w-full text-sm">
-                        <thead className="bg-slate-50 text-slate-600">
+                        <thead className="bg-foreground text-foreground">
                             <tr>
                                 <th className="p-2 text-left">Item</th>
                                 <th className="p-2 text-left">Lot</th>
@@ -98,7 +98,7 @@ export default function CompanyConvertShow({ header, consumed, generated }: Prop
                                 <th className="p-2 text-right">Amount (৳)</th>
                             </tr>
                         </thead>
-                        <tbody className="divide-y divide-slate-200">
+                        <tbody className="divide-y divide-bg-background">
                             {consumed.map((r, i) => {
                                 const rateLabel =
                                     r.unit_rate == null
@@ -120,7 +120,7 @@ export default function CompanyConvertShow({ header, consumed, generated }: Prop
                             })}
                             {consumed.length === 0 && (
                                 <tr>
-                                    <td colSpan={7} className="p-4 text-center text-slate-500">
+                                    <td colSpan={7} className="p-4 text-center text-foreground">
                                         No rows.
                                     </td>
                                 </tr>
@@ -130,11 +130,11 @@ export default function CompanyConvertShow({ header, consumed, generated }: Prop
                         {/* subtotal */}
                         {consumed.length > 0 && (
                             <tfoot>
-                                <tr className="bg-slate-50">
-                                    <td colSpan={6} className="p-2 text-right font-medium">
+                                <tr className="bg-foreground">
+                                    <td colSpan={6} className="p-2 text-right font-medium bg-background">
                                         Subtotal
                                     </td>
-                                    <td className="p-2 text-right font-semibold">{fmt(consumedTotal)}</td>
+                                    <td className="p-2 text-right font-semibold bg-background">{fmt(consumedTotal)}</td>
                                 </tr>
                             </tfoot>
                         )}
@@ -142,10 +142,10 @@ export default function CompanyConvertShow({ header, consumed, generated }: Prop
                 </div>
 
                 {/* Generated */}
-                <div className="overflow-x-auto rounded-lg border bg-white">
-                    <div className="border-b bg-slate-50 p-3 font-semibold">Generated (Convert-in)</div>
+                <div className="overflow-x-auto rounded-lg border bg-background">
+                    <div className="border-b bg-background p-3 font-semibold ">Generated (Convert-in)</div>
                     <table className="w-full text-sm">
-                        <thead className="bg-slate-50 text-slate-600">
+                        <thead className="bg-foreground text-foreground">
                             <tr>
                                 <th className="p-2 text-left">Item</th>
                                 <th className="p-2 text-left">Lot</th>
@@ -197,7 +197,7 @@ export default function CompanyConvertShow({ header, consumed, generated }: Prop
                             })}
                             {generated.length === 0 && (
                                 <tr>
-                                    <td colSpan={7} className="p-4 text-center text-slate-500">
+                                    <td colSpan={7} className="p-4 text-center text-foreground">
                                         No rows.
                                     </td>
                                 </tr>
@@ -207,11 +207,11 @@ export default function CompanyConvertShow({ header, consumed, generated }: Prop
                         {/* subtotal */}
                         {generated.length > 0 && (
                             <tfoot>
-                                <tr className="bg-slate-50">
-                                    <td colSpan={6} className="p-2 text-right font-medium">
+                                <tr className="bg-foreground">
+                                    <td colSpan={6} className="p-2 text-right font-medium bg-background">
                                         Subtotal
                                     </td>
-                                    <td className="p-2 text-right font-semibold">{fmt(generatedTotal)}</td>
+                                    <td className="p-2 text-right font-semibold bg-background">{fmt(generatedTotal)}</td>
                                 </tr>
                             </tfoot>
                         )}

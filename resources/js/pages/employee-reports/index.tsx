@@ -49,7 +49,7 @@ export default function EmployeeReport() {
             <Head title="Employee Salary Report" />
 
             <div className="h-full w-screen p-4 md:p-12 lg:w-full">
-                <div className="rounded-lg bg-white p-6">
+                <div className="rounded-lg bg-background-100 p-6">
                     <PageHeader title="Employee Salary Report" />
 
                     {/* Filters */}

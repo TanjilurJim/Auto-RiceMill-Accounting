@@ -32,8 +32,8 @@ export default function GodownEdit({
     return (
         <AppLayout>
             <Head title="Edit Godown" />
-            <div className="h-full bg-gray-100 p-6">
-                <div className="h-full rounded-lg bg-white p-6">
+            <div className="h-full bg-background p-6">
+                <div className="h-full rounded-lg bg-background p-6">
                     <PageHeader title="Edit Godown" addLinkHref="/godowns" addLinkText="Back" />
 
                     <GodownForm

@@ -21,15 +21,15 @@ export default function Show({ salaryReceive }) {
     <AppLayout>
       <Head title={`Salary Receive - ${salaryReceive?.vch_no || 'N/A'}`} />
 
-      <div className="bg-gray-100 p-6 h-full w-screen lg:w-full">
-        <div className="bg-white h-full rounded-lg p-6">
+      <div className="bg-background p-6 h-full w-screen lg:w-full">
+        <div className="bg-background h-full rounded-lg p-6">
           {/* <h1 className="text-2xl font-bold text-gray-800 mb-6">Salary Receive Details</h1> */}
           <PageHeader title="Salary Receive" addLinkHref='/salary-receives' addLinkText="Back" />
 
           {/* Summary */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
             <div className="space-y-2">
-              <h2 className="text-sm font-semibold text-gray-600">Voucher Info</h2>
+              <h2 className="text-sm font-semibold text-foreground">Voucher Info</h2>
               <p><strong>Voucher No:</strong> {salaryReceive?.vch_no || '—'}</p>
               <p><strong>Date:</strong> {salaryReceive?.date || '—'}</p>
               <p><strong>Amount:</strong> ৳{salaryReceive?.amount || '—'}</p>
@@ -37,7 +37,7 @@ export default function Show({ salaryReceive }) {
             </div>
 
             <div className="space-y-2">
-              <h2 className="text-sm font-semibold text-gray-600">Received Mode</h2>
+              <h2 className="text-sm font-semibold text-foreground">Received Mode</h2>
               <p><strong>Mode:</strong> {receivedMode?.mode_name || '—'}</p>
               <p><strong>Ledger:</strong> {receivedMode?.ledger?.account_ledger_name || '—'}</p>
               <p><strong>Created By:</strong> {creator?.name || '—'} on {salaryReceive?.created_at ? new Date(salaryReceive.created_at).toLocaleString() : '—'}</p>
@@ -48,7 +48,7 @@ export default function Show({ salaryReceive }) {
           {employee?.name && (
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
               <div className="space-y-2">
-                <h2 className="text-sm font-semibold text-gray-600">Employee Info</h2>
+                <h2 className="text-sm font-semibold text-foreground">Employee Info</h2>
                 <p><strong>Name:</strong> {employee?.name || '—'}</p>
                 <p><strong>Designation:</strong> {employee?.designation?.name || '—'}</p>
                 <p><strong>Department:</strong> {employee?.department?.name || '—'}</p>
@@ -56,7 +56,7 @@ export default function Show({ salaryReceive }) {
 
               {slip?.id && (
                 <div className="space-y-2">
-                  <h2 className="text-sm font-semibold text-gray-600">Salary Slip</h2>
+                  <h2 className="text-sm font-semibold text-foreground">Salary Slip</h2>
                   <p><strong>Voucher:</strong> {slip?.salary_slip?.voucher_number || '—'}</p>
                   <p><strong>Month:</strong> {slip?.salary_slip?.month || '—'}</p>
                   <p><strong>Total:</strong> ৳{slip?.total_amount || '—'}</p>
@@ -75,7 +75,7 @@ export default function Show({ salaryReceive }) {
           {/* Journal Entries */}
           {journal?.entries?.length > 0 && (
             <div>
-              <h2 className="text-lg font-semibold text-gray-800 mb-2">Journal Entries</h2>
+              <h2 className="text-lg font-semibold text-foreground mb-2">Journal Entries</h2>
               <TableComponent
                 columns={columns}
                 data={journal.entries}

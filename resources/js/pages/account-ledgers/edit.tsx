@@ -43,8 +43,8 @@ export default function EditAccountLedger({
     return (
         <AppLayout>
             <Head title="Edit Account Ledger" />
-            <div className="h-full p-6 bg-gray-100">
-                <div className="h-full p-6 rounded-lg bg-white">
+            <div className="h-full p-6 bg-background">
+                <div className="h-full p-6 rounded-lg bg-background">
                     <PageHeader title="Edit Account Ledger" addLinkHref="/account-ledgers" addLinkText="Back" />
 
                     <AccountLedgerForm

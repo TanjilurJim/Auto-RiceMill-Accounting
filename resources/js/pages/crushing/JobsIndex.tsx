@@ -72,7 +72,7 @@ export default function JobsIndex(props: JobsPageProps) {
         <AppLayout>
             <Head title="Crushing Jobs" />
 
-            <div className="h-full w-screen bg-background p-6 lg:w-full">
+            <div className="h-full w-screen bg-background p-6  lg:w-full">
                 <div className="h-full rounded-lg bg-background p-6">
                     {/* Header: title left, action right */}
                     <div className="mb-4 flex items-center justify-between">

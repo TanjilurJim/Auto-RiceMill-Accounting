@@ -24,7 +24,7 @@ class PartyStockReportController extends Controller
         ];
 
         /* ---------- look-up dropdowns ---------- */
-        $parties = AccountLedger::whereIn('ledger_type', ['sales', 'income'])
+        $parties = AccountLedger::whereIn('ledger_type', ['sales', 'income','accounts_receivable'])
             ->orderBy('account_ledger_name')->get(['id', 'account_ledger_name']);
         $items   = PartyItem::orderBy('item_name')->get(['id', 'item_name']);
 
