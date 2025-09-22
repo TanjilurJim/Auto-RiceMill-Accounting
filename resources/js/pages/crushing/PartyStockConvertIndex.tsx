@@ -54,7 +54,7 @@ export default function PartyStockConvertIndex({ conversions, pagination }: Prop
             <Head title="Conversions" />
             <div className="p-4 md:p-12">
                 <div className="mb-5 flex items-center justify-between">
-                    <h1 className="text-2xl font-bold text-foreground">Stock Conversions</h1>
+                    <h1 className="text-xl md:text-2xl font-bold text-foreground">Stock Conversions</h1>
                     <Link
                         href={route('party-stock.transfer.create')}
                         className="rounded-sm bg-indigo-600 px-4 py-2 text-sm font-semibold text-white shadow hover:bg-indigo-500"
@@ -191,7 +191,7 @@ export default function PartyStockConvertIndex({ conversions, pagination }: Prop
                         <Link
                             key={i}
                             href={l.url || '#'}
-                            className={`rounded border px-3 py-1 text-sm ${l.active ? 'bg-background text-white' : 'bg-background hover:bg-foreground/10'}`}
+                            className={`rounded border px-3 py-1 text-sm ${l.active ? 'bg-background' : 'bg-background hover:bg-foreground/10'}`}
                             dangerouslySetInnerHTML={{ __html: l.label }}
                         />
                     ))}

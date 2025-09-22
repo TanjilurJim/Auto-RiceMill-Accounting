@@ -48,7 +48,6 @@ export default function PermissionIndex({ permissions }: { permissions: Permissi
         {
             header: '#',
             accessor: (_: Permission, index?: number) => <span className="text-center">{(index ?? 0) + 1}</span>,
-            className: 'text-center',
         },
         {
             header: 'Name',
@@ -66,7 +65,7 @@ export default function PermissionIndex({ permissions }: { permissions: Permissi
 
     // Define actions for each row
     const renderActions = (permission: Permission) => (
-        <div className="flex justify-end gap-2">
+        <div className="flex gap-2">
             <Link
                 href={`/permissions/${permission.id}/edit`}
                 className="inline-flex items-center gap-1 rounded-md bg-yellow-500 px-3 py-1.5 text-sm font-medium text-white shadow-sm transition hover:bg-yellow-600 focus:ring-2 focus:ring-blue-400 focus:outline-none"

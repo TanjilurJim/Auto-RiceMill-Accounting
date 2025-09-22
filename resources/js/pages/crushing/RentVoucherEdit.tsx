@@ -33,6 +33,7 @@ interface LineSrv {
     rate: number;
 }
 interface LineUI {
+    [key: string]: string | number;
     party_item_id: string;
     qty: string;
     unit_name: string;
@@ -211,8 +212,8 @@ export default function RentVoucherEdit({ voucher, lines, parties, items, modes,
                                         value={itemOpts.find((o) => o.value === l.party_item_id) || null}
                                         onChange={(o) => update(idx, 'party_item_id', o?.value || '')}
                                     />
-                                    {errors[`lines.${idx}.party_item_id`] && (
-                                        <small className="text-red-500">{errors[`lines.${idx}.party_item_id`]}</small>
+                                    {(errors as any)[`lines.${idx}.party_item_id`] && (
+                                        <small className="text-red-500">{(errors as any)[`lines.${idx}.party_item_id`]}</small>
                                     )}
                                 </td>
                                 <td>

@@ -102,17 +102,32 @@ export default function Index({ dryers, filters }: PageProps) {
           </div> */}
 
           {/* Table container */}
-          <div className=" rounded-sm border">
+          {dryers.data.length > 0 ? (<div className="rounded-sm border">
             <TableComponent<Row>
               columns={columns}
               data={dryers.data}
               actions={actions}
               noDataMessage="No dryers found."
             />
-          </div>
+          </div>) : (
+            <div className="my-16 flex flex-col items-center justify-center space-y-2 text-center">
+              <h3 className="text-lg font-medium">No dryers found</h3>
+              <p className="max-w-sm text-sm text-muted-foreground">
+                Get started by adding a new dryer. Click the button below to add your first dryer.
+              </p>
+            </div>)}
 
           {/* Pagination */}
-          <Pagination links={dryers.links} className="mt-4" />
+            {dryers.data.length > 0 && (
+                <div className="mt-4">
+                <Pagination
+                  links={dryers.links}
+                  currentPage={dryers.current_page}
+                  lastPage={dryers.last_page}
+                  total={dryers.total}
+                />
+                </div>
+            )}
         </div>
       </div>
     </AppLayout>

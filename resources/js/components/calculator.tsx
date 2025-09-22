@@ -324,11 +324,25 @@ export default function Calculator() {
 
         window.addEventListener('keydown', handler);
         return () => window.removeEventListener('keydown', handler);
-    }, [display, firstValue, operator, waitingForSecondValue, expression, error]);
+    }, [
+        display,
+        firstValue,
+        operator,
+        waitingForSecondValue,
+        expression,
+        error,
+        backspace,
+        copyValue,
+        inputDecimal,
+        inputDigit,
+        operate,
+        percentage,
+        toggleSign,
+    ]);
 
     /* ───────── UI ───────── */
     return (
-        <div className="mx-auto max-h-screen w-full max-w-sm space-y-4 rounded-3xl bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 p-6 shadow-2xl">
+        <div className="mx-auto w-screen lg:w-full max-w-sm space-y-4 rounded-3xl bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 p-6 shadow-2xl">
             {/* expression history */}
             {/* <div className="min-h-[24px] text-right font-mono text-sm text-slate-400" aria-live="polite">
                 {expression || ' '}

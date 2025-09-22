@@ -24,12 +24,12 @@ const Pagination: React.FC<PaginationProps> = ({ links = [], currentPage, lastPa
             </div>
 
             {/* Pagination Navigation */}
-            <nav aria-label="Pagination Navigation" className="flex justify-center lg:justify-end">
+            <nav aria-label="Pagination Navigation" className="flex  lg:justify-end">
                 <ul className="pagination flex flex-wrap justify-center gap-2">
                     {links.map((link, index) => (
                         <li
                             key={`${index}-${link.url ?? 'x'}`}
-                            className={`page-item ${link.active ? 'rounded bg-blue-500 text-white' : 'text-gray-500'} ${!link.url ? 'disabled' : ''}`}
+                            className={`m-1 md:m-0 page-item ${link.active ? 'rounded bg-blue-500 text-white' : 'text-gray-500'} ${!link.url ? 'disabled' : ''}`}
                         >
                             <a
                                 className={`page-link rounded border px-3 py-1 transition-all duration-200 ${

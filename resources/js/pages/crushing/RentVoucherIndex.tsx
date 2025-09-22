@@ -2,7 +2,7 @@ import ActionButtons from '@/components/ActionButtons';
 import Pagination from '@/components/Pagination';
 import TableComponent from '@/components/TableComponent';
 import AppLayout from '@/layouts/app-layout';
-import { Head } from '@inertiajs/react';
+import { Head, Link } from '@inertiajs/react';
 
 interface Voucher {
     id: number;
@@ -37,16 +37,16 @@ export default function RentVoucherIndex({ vouchers, pagination }: Props) {
     return (
         <AppLayout>
             <Head title="Rent Vouchers" />
-            <div className="bg-background h-full w-screen p-6 lg:w-full">
-                <div className="bg-background h-full rounded-lg p-6">
+            <div className="bg-background h-full w-screen p-4 md:p-12 lg:w-full">
+                <div className="bg-background h-full rounded-lg">
                     <div className="mb-4 flex items-center justify-between">
-                        <h1 className="text-2xl font-bold">Rent Vouchers</h1>
-                        <a
+                        <h1 className="text-xl md:text-2xl font-bold">Rent Vouchers</h1>
+                        <Link
                             href={route('party-stock.rent-voucher.create')}
                             className="inline-flex items-center rounded-sm bg-indigo-600 px-4 py-2 text-white hover:bg-indigo-700"
                         >
-                            + New Voucher
-                        </a>
+                            + New
+                        </Link>
                     </div>
                     <TableComponent
                         columns={tableColumns}

@@ -117,8 +117,8 @@ export default function JobsIndex(props: JobsPageProps) {
     return (
         <AppLayout>
             <Head title="Crushing Jobs" />
-            <div className="bg-background h-full w-screen p-6 lg:w-full">
-                <div className="bg-background h-full rounded-lg p-6">
+            <div className="bg-background h-full w-screen lg:w-full p-4 md:p-12 ">
+                <div className="bg-background h-full rounded-lg">
                     {/* Header: title left, action right */}
                     <div className="mb-4 flex items-center justify-between">
                         <PageHeader title="Crushing Jobs" />
@@ -126,7 +126,7 @@ export default function JobsIndex(props: JobsPageProps) {
                             href={route('party-stock.transfer.create')}
                             className="rounded-sm bg-indigo-600 px-4 py-2 text-sm font-semibold text-white shadow hover:bg-indigo-500"
                         >
-                            New Crushing Job
+                            New
                         </Link>
                     </div>
                     {/* Table */}

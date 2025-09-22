@@ -1,5 +1,5 @@
 import { Link } from "@inertiajs/react";
-import { ReactNode } from "react";
+import React, { ReactNode } from "react";
 
 interface PageHeaderProps {
   title?: ReactNode;
@@ -18,14 +18,16 @@ const PageHeader: React.FC<PageHeaderProps> = ({
   printLinkText = "Print",
   headingLevel = 2,
 }) => {
-  const HeadingTag = `h${headingLevel}` as keyof JSX.IntrinsicElements;
+  const HeadingTag = headingLevel === 1 ? "h1" : "h2";
 
   return (
-    <div className="mb-4 flex flex-col md:flex-row md:gap-2 md:items-center justify-between">
+    <div className="mb-4 flex md:flex-row md:gap-2 items-center justify-between">
       {/* Use token so it adapts to light/dark */}
-      <HeadingTag className="text-lg md:text-2xl font-semibold tracking-tight text-foreground">
-        {title}
-      </HeadingTag>
+      {React.createElement(
+        HeadingTag,
+        { className: "text-lg md:text-2xl font-semibold tracking-tight text-foreground" },
+        title
+      )}
 
       <div className="flex items-center gap-2">
         {printLinkHref && (

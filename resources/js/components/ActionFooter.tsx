@@ -1,5 +1,5 @@
-import { Link } from "@inertiajs/react";
-import { ReactNode } from "react";
+import { Link } from '@inertiajs/react';
+import { ReactNode } from 'react';
 
 interface ActionFooterProps {
     onSubmit?: (e?: any) => void;
@@ -23,20 +23,20 @@ const ActionFooter: React.FC<ActionFooterProps> = ({
     processing = false,
     submitText,
     saveAndPrintText,
-    cancelText = "Cancel",
-    printHref = "#",
+    cancelText = 'Cancel',
+    printHref = '#',
     printText,
-    className = "",
+    className = '',
 }) => {
     return (
-        <div className={`col-span-2 mt-4 flex justify-end gap-3 || ${className}`}>
+        <div className={`mt-4 grid grid-cols-1 gap-3 md:grid-cols-2 xl:grid-cols-5 ${className}`}>
             {/* Submit Button */}
             {submitText && (
                 <button
                     type="button"
                     onClick={onSubmit}
                     disabled={processing}
-                    className="rounded bg-primary px-1.5 py-1 md:px-4 md:py-2 text-white hover:cursor-pointer hover:bg-primary-hover disabled:opacity-50"
+                    className="bg-primary hover:bg-primary-hover w-full rounded px-1.5 py-1 text-white hover:cursor-pointer disabled:opacity-50 md:w-auto md:px-4 md:py-2"
                 >
                     {submitText}
                 </button>
@@ -48,7 +48,7 @@ const ActionFooter: React.FC<ActionFooterProps> = ({
                     type="button"
                     disabled={processing}
                     onClick={onSaveAndPrint}
-                    className="rounded bg-info px-2 md:px-5 py-2 font-semibold text-white shadow hover:bg-info-hover"
+                    className="bg-info hover:bg-info-hover rounded px-2 py-2 font-semibold text-white shadow md:px-5"
                 >
                     {saveAndPrintText}
                 </button>
@@ -56,10 +56,7 @@ const ActionFooter: React.FC<ActionFooterProps> = ({
 
             {/* Print Link */}
             {printText && (
-                <Link
-                    href={printHref}
-                    className="rounded bg-info px-4 py-2 text-white hover:bg-info-hover"
-                >
+                <Link href={printHref} className="bg-info hover:bg-info-hover rounded px-4 py-2 text-white">
                     {printText}
                 </Link>
             )}
@@ -68,7 +65,7 @@ const ActionFooter: React.FC<ActionFooterProps> = ({
             {cancelHref && (
                 <Link
                     href={cancelHref}
-                    className="rounded border px-3 md:px-4 py-2 hover:bg-neutral-200 dark:hover:bg-neutral-800 flex items-center"
+                    className="w-full flex justify-center rounded border px-1.5 py-1 hover:bg-neutral-200 md:w-auto md:px-4 md:py-2 dark:hover:bg-neutral-800"
                 >
                     {cancelText}
                 </Link>
@@ -79,7 +76,7 @@ const ActionFooter: React.FC<ActionFooterProps> = ({
                 <button
                     type="button"
                     onClick={onCancel}
-                    className="rounded border px-4 py-2 bg-background hover:bg-neutral-200 dark:hover:bg-neutral-800"
+                    className="bg-background rounded border px-4 py-2 hover:bg-neutral-200 dark:hover:bg-neutral-800"
                 >
                     {cancelText}
                 </button>

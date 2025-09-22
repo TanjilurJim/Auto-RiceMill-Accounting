@@ -151,7 +151,7 @@ const RecentRegistrationsCard = memo(function RecentRegistrationsCard({
     ];
 
     return (
-        <Card className="overflow-hidden shadow-sm lg:col-span-2">
+        <Card className="overflow-hidden shadow-sm">
             <CardHeader className="pb-0">
                 <div className="grid grid-cols-1 items-center justify-center gap-4 lg:grid-cols-2 lg:justify-between">
                     <div>
@@ -343,40 +343,45 @@ export default function AdminDashboard() {
                     <RecentRegistrationsCard recentUsers={Array.isArray(recentUsers) ? recentUsers : []} rolesSummary={safeStats.rolesSummary} />
                 </div>
 
-                {/* Revenue Chart & Stats */}
-                <div className="mt-6 grid gap-4 px-2 lg:grid-cols-3">
+                {/* Revenue Revenue Overview + Expiring soon + Roles summary */}
+                <div className="mt-6 gap-4 px-2">
+                    {/* Revenue Overview */}
                     <RevenueChart />
-                    <div className="lg:col-span-2">
-                        <NotificationsPanel expiring={Array.isArray(expiringSoon) ? expiringSoon : []} />
-                    </div>
-                    <Card className="shadow-sm lg:col-span-1">
-                        <CardHeader>
-                            <CardTitle className="text-base">{t('rolesSummary')}</CardTitle>
-                        </CardHeader>
-                        <CardContent>
-                            <div className="space-y-2">
-                                {safeStats.rolesSummary.length === 0 && <p className="text-muted-foreground text-sm">{t('noRolesToShow')}</p>}
-                                {safeStats.rolesSummary.map(({ role, count }) => (
-                                    <div key={role} className="flex items-center justify-between rounded-md border p-2">
-                                        <div className="flex items-center gap-2">
-                                            <Shield className="text-muted-foreground h-4 w-4" />
-                                            <span className="font-medium">{role}</span>
+                    <div className='mt-6 grid grid-cols-1 lg:grid-cols-2 gap-4'>
+                        {/* Expiring Soon */}
+                        <div className="">
+                            <NotificationsPanel expiring={Array.isArray(expiringSoon) ? expiringSoon : []} />
+                        </div>
+                        {/* Roles summary */}
+                        <Card className="shadow-sm">
+                            <CardHeader>
+                                <CardTitle className="text-base">{t('rolesSummary')}</CardTitle>
+                            </CardHeader>
+                            <CardContent>
+                                <div className="space-y-2">
+                                    {safeStats.rolesSummary.length === 0 && <p className="text-muted-foreground text-sm">{t('noRolesToShow')}</p>}
+                                    {safeStats.rolesSummary.map(({ role, count }) => (
+                                        <div key={role} className="flex items-center justify-between rounded-md border p-2">
+                                            <div className="flex items-center gap-2">
+                                                <Shield className="text-muted-foreground h-4 w-4" />
+                                                <span className="font-medium">{role}</span>
+                                            </div>
+                                            <Badge variant="secondary">{fmt(count)}</Badge>
                                         </div>
-                                        <Badge variant="secondary">{fmt(count)}</Badge>
-                                    </div>
-                                ))}
-                            </div>
-                        </CardContent>
-                        <CardFooter>
-                            <Link href={route('permissions.index')} className="text-primary inline-flex items-center gap-1 text-sm font-medium">
-                                {t('manageRoles')} <ArrowRight className="h-4 w-4" />
-                            </Link>
-                        </CardFooter>
-                    </Card>
+                                    ))}
+                                </div>
+                            </CardContent>
+                            <CardFooter>
+                                <Link href={route('permissions.index')} className="text-primary inline-flex items-center gap-1 text-sm font-medium">
+                                    {t('manageRoles')} <ArrowRight className="h-4 w-4" />
+                                </Link>
+                            </CardFooter>
+                        </Card>
+                    </div>
                 </div>
 
                 {/* Roles distribution & filters */}
-                <div className="mt-6 grid gap-4 lg:grid-cols-3">{/* Recent registrations panel */}</div>
+                {/* <div className="mt-6 grid gap-4 lg:grid-cols-3"></div> */}
 
                 {/* Onboarding & activity tab */}
                 <div className="mx-2 mt-6 mb-2">
