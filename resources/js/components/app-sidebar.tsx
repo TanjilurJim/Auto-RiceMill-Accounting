@@ -6,7 +6,6 @@ import type { NavItem } from '@/types';
 import { Link, usePage } from '@inertiajs/react';
 import {
     Banknote,
-    Phone,
     BanknoteIcon,
     BarChart2,
     BarChartBig,
@@ -30,6 +29,7 @@ import {
     MailCheck,
     Notebook,
     Package,
+    Phone,
     ReceiptText,
     Repeat,
     RotateCcw,
@@ -48,6 +48,7 @@ import {
 import { useEffect, useState } from 'react';
 import { FiAward, FiClock, FiHome, FiSettings, FiUsers } from 'react-icons/fi';
 import AppLogo from './app-logo';
+import { useTranslation } from './useTranslation';
 
 interface Role {
     name: string;
@@ -72,464 +73,6 @@ export function sectionColor(title: string): string {
     }
 }
 
-const mainNavItems: NavItem[] = [
-    {
-        title: 'Super Admin Dashboard',
-        href: '/admin/dashboard',
-        icon: LayoutGrid,
-        roles: ['admin'],
-    },
-    {
-        title: 'Dashboard',
-        href: '/dashboard',
-        icon: LayoutGrid,
-    },
-    {
-        title: 'Account Info',
-        icon: InfoIcon,
-        children: [
-            {
-                title: 'Account Groups',
-                href: '/account-groups',
-                icon: FileText,
-                roles: ['admin'], // Only admin will see this
-            },
-            {
-                title: 'Account Ledgers',
-                href: '/account-ledgers',
-                icon: Landmark,
-            },
-            {
-                title: 'Salesmen',
-                href: '/salesmen',
-                icon: Users,
-            },
-        ],
-    },
-    {
-        title: 'Inventory Info',
-        icon: Boxes,
-        children: [
-            {
-                title: 'Godowns',
-                href: '/godowns',
-                icon: Boxes,
-            },
-            {
-                title: 'Dryers',
-                href: '/dryers',
-                icon: Boxes,
-            },
-
-            {
-                title: 'Units',
-                href: '/units',
-                icon: Package,
-            },
-            {
-                title: 'Category',
-                href: '/categories',
-                icon: FolderKanban,
-            },
-            {
-                title: 'Items',
-                href: '/items',
-                icon: ClipboardList,
-            },
-            {
-                title: 'Stock Add',
-                href: '/stock-moves',
-                icon: ClipboardList,
-            },
-            // Later you can add more inventory-related items here (e.g., Products, Stock Transfers, etc.)
-        ],
-    },
-    {
-        title: 'Inbox',
-        icon: ReceiptText,
-        group: true, // Add group marker
-        children: [
-            {
-                title: 'Purchases-notification',
-                icon: ShoppingCart,
-                group: true, // Add group marker
-                children: [
-                    { title: 'Sub', href: '/purchases/inbox/sub', icon: ReceiptText },
-                    { title: 'Responsible', href: '/purchases/inbox/resp', icon: ReceiptText },
-                    { title: 'Purcchase Approve-Reject Log', href: '/approvals', icon: History },
-                ],
-            },
-            {
-                title: 'Sales',
-                icon: ReceiptText,
-                group: true, // Add group marker
-                children: [
-                    { title: 'Sub', href: '/sales/inbox/sub', icon: ReceiptText },
-                    { title: 'Responsible', href: '/sales/inbox/resp', icon: ReceiptText },
-                    { title: 'Sale Approve-Reject Log', href: '/sales/approvals', icon: History },
-                ],
-            },
-        ],
-    },
-
-    {
-        title: 'Transaction',
-        icon: BanknoteIcon,
-        children: [
-            {
-                title: 'Purchases',
-                href: '/purchases',
-                icon: ShoppingCart,
-            },
-
-            // {
-            //     title: 'Purchase Approve-Reject Log',
-            //     href: '/purchases/approvals',
-            //     icon: History, // pick any Lucide icon
-            // },
-
-            {
-                title: 'Purchases Return',
-                href: '/purchase-returns',
-                icon: RotateCcw,
-            },
-            {
-                title: 'Sales',
-                href: '/sales',
-                icon: ReceiptText,
-            },
-
-            {
-                title: 'Dues',
-                href: '/dues',
-                icon: ReceiptText,
-            },
-            {
-                title: 'Dues Settled',
-                href: '/dues/settled',
-                icon: ReceiptText,
-            },
-            {
-                title: 'Sales Order & List',
-                href: '/sales-orders',
-                icon: Folder,
-            },
-            {
-                title: 'Sales Return',
-                href: '/sales-returns',
-                icon: RotateCcw,
-            },
-            {
-                title: 'Received Modes',
-                href: '/received-modes',
-                icon: Banknote,
-            },
-            // {
-            //     title: 'Received Add',
-            //     href: '/received-add',
-            //     icon: Folder,
-            // },
-            {
-                title: 'Payment Add',
-                href: '/payment-add',
-                icon: Wallet,
-            },
-            {
-                title: 'Contra Add',
-                href: '/contra-add',
-                icon: Shuffle,
-            },
-            {
-                title: 'Journal Add',
-                href: '/journal-add',
-                icon: Notebook,
-            },
-            // {
-            //     title: 'Stock Transfer',
-            //     href: '/stock-transfers',
-            //     icon: Notebook,
-            // },
-
-            // Later you can add more inventory-related items here (e.g., Products, Stock Transfers, etc.)
-        ],
-    },
-    {
-        title: 'Production',
-        icon: Factory,
-        children: [
-            {
-                title: 'Working Order',
-                href: '/working-orders',
-                icon: Workflow,
-            },
-            {
-                title: 'Finished Products',
-                href: '/finished-products',
-                icon: Workflow,
-            },
-        ],
-    },
-
-    {
-        title: 'Payroll',
-        icon: FiSettings,
-
-        children: [
-            {
-                title: 'Departament',
-                href: '/departments',
-                icon: FiHome,
-            },
-            {
-                title: 'Designation',
-                href: '/designations',
-                icon: FiAward,
-            },
-            {
-                title: 'Shift',
-                href: '/shifts',
-                icon: FiClock,
-            },
-            {
-                title: 'Employees',
-                href: '/employees',
-                icon: FiUsers,
-            },
-            {
-                title: 'Salary Slips',
-                href: '/salary-slips',
-                icon: FiUsers,
-            },
-            {
-                title: 'Salary Owed',
-                href: '/salary-owed',
-                icon: FiUsers,
-            },
-            {
-                title: 'Salary Payments',
-                href: '/salary-receives',
-                icon: FiUsers,
-            },
-
-            {
-                title: 'Employee Ledger Report',
-                href: '/employee-ledger',
-                icon: FiUsers,
-            },
-            {
-                title: 'Employee  Report',
-                href: '/employee-reports',
-                icon: FiUsers,
-            },
-
-            // Later you can add more inventory-related items here (e.g., Products, Stock Transfers, etc.)
-        ],
-    },
-
-    {
-        title: 'Reports',
-        icon: BarChartBig,
-
-        children: [
-            {
-                title: 'Stock Report',
-                href: '/reports/stock-summary',
-                icon: Warehouse,
-            },
-            {
-                title: 'Day Book',
-                href: '/reports/day-book',
-                icon: ScrollText, // 👈 This icon works well for users
-            },
-            {
-                title: 'Account Book',
-                href: '/reports/account-book',
-                icon: ScrollText, // 👈 This icon works well for users
-            },
-            {
-                title: 'Ledger Group Summary',
-                href: '/reports/ledger-group-summary/filter',
-                icon: FolderKanban, // 🗂 or use Icon that represents grouping/categories
-            },
-            {
-                title: 'Purchase Report',
-                href: '/reports/purchase/filter',
-                icon: FolderKanban, // 🗂 or use Icon that represents grouping/categories
-            },
-
-            {
-                title: 'Sale Report',
-                href: '/reports/sale/filter',
-                icon: BarChart2, // 🗂 same or pick a new icon like BarChart2 📊 if you want
-            },
-
-            {
-                title: 'Receivable & Payable',
-                href: '/reports/receivable-payable/filter',
-                icon: Scale, // ⚖️ Choose icon like Scale or DollarSign
-            },
-
-            {
-                title: 'Received & Payment',
-                href: '/reports/all-received-payment/filter',
-                icon: Scale, // ⚖️ Choose icon like Scale or DollarSign
-            },
-            {
-                title: 'Profit & Loss',
-                href: '/reports/profit-loss/filter',
-
-                icon: Scale, // ⚖️ Choose icon like Scale or DollarSign
-            },
-            {
-                title: 'Balance Sheet',
-                href: '/reports/balance-sheet/filter',
-
-                icon: Scale, // ⚖️ Choose icon like Scale or DollarSign
-            },
-
-            // Later you can add more inventory-related items here (e.g., Products, Stock Transfers, etc.)
-        ],
-    },
-
-    {
-        title: 'Crushing / Rent',
-        icon: Warehouse,
-        children: [
-            {
-                title: 'পার্টির পণ্য জমা',
-                href: '/party-stock/deposit',
-                icon: UploadCloud,
-            },
-            {
-                title: 'পার্টির পণ্য জমা তালিকা',
-                href: '/party-stock/deposit-list',
-                icon: FileText,
-            },
-            {
-                title: 'পণ্য উত্তোলন',
-                href: '/party-stock/withdraw',
-                icon: DownloadCloud,
-            },
-            {
-                title: 'পণ্য উত্তোলন তালিকা',
-                href: '/party-stock/withdraw-list',
-                icon: FileText,
-            },
-            {
-                title: 'পণ্য ট্রান্সফার/রুপান্তর',
-                href: '/party-stock/convert',
-                icon: Repeat,
-            },
-            {
-                title: 'পার্টি পণ্য ট্রান্সফার তালিকা',
-                href: '/party-stock/convert-list',
-                icon: FileText,
-            },
-            {
-                title: 'কম্পানি পণ্য ট্রান্সফার তালিকা',
-                href: '/party-stock/company/convert-list',
-                icon: FileText,
-            },
-
-            {
-                title: 'ক্রাশিং জবসমূহ তালিকা',
-                href: '/party-stock/crushing/jobs',
-                icon: FileText,
-            },
-
-            {
-                title: 'ক্রাশিং ভাউচারসমূহ',
-                href: '/party-stock/rent-voucher/',
-                icon: FileText,
-            },
-            {
-                title: 'ক্রাশিং রিপোর্টসমূহ',
-                icon: BarChart2,
-                href: '/crushing',
-                children: [
-                    {
-                        title: 'পার্টি স্টক রিপোর্ট',
-                        href: '/crushing/party-stock-report',
-                        icon: Layers,
-                    },
-                    {
-                        title: 'Rent Day Book',
-                        href: '/crushing/rent-day-book',
-                        icon: CalendarDays,
-                    },
-                ],
-            },
-        ],
-    },
-
-    {
-        title: 'Settings',
-        icon: Settings2,
-
-        children: [
-            {
-                title: 'Financial Year',
-                href: '/financial-years',
-                icon: CalendarClock,
-            },
-            {
-                title: 'Company Settings',
-                href: '/company-settings',
-                icon: Building2, // 👈 This icon works well for users
-            },
-            {
-                title: 'Production Cost Setting',
-                href: '/company-settings/costings',
-                icon: Building, // 👈 This icon works well for users
-            },
-
-            // Later you can add more inventory-related items here (e.g., Products, Stock Transfers, etc.)
-        ],
-    },
-    {
-        title: 'Permissions',
-        href: '/permissions',
-        icon: Lock,
-        roles: ['admin'], // you can change this icon to something like a shield or lock if you prefer
-    },
-    {
-        title: 'Roles',
-        href: '/roles',
-        icon: Shield, // You could use Shield or User
-        //icon if preferred
-    },
-    {
-        title: 'Users',
-        href: '/users',
-        icon: Users, // 👈 This icon works well for users
-    },
-    {
-        title: 'SMTP Settings',
-        href: '/smtp',
-        icon: MailCheck,
-        roles: ['admin'],
-    },
-];
-
-const footerNavItems: NavItem[] = [
-    // {
-    //     title: 'Repository',
-    //     href: 'https://github.com/laravel/react-starter-kit',
-    //     icon: Folder,
-    // },
-    // {
-    //     title: 'Documentation',
-    //     href: 'https://laravel.com/docs/starter-kits',
-    //     icon: BookOpen,
-    // },
-    {
-
-        title: 'Support: 01744333888',
-        href: 'https://wa.me/8801744333888',
-        icon: Phone,
-    },
-];
-
 // Recursively filter nav items based on roles
 function filterNavItems(items: NavItem[], userRoles: string[]): NavItem[] {
     return items
@@ -542,6 +85,458 @@ function filterNavItems(items: NavItem[], userRoles: string[]): NavItem[] {
 }
 
 export function AppSidebar() {
+    const t = useTranslation();
+    const mainNavItems: NavItem[] = [
+        {
+            title: t('superAdminDashboard'),
+            href: '/admin/dashboard',
+            icon: LayoutGrid,
+            roles: ['admin'],
+        },
+        {
+            title: t('dashboard'),
+            href: '/dashboard',
+            icon: LayoutGrid,
+        },
+        {
+            title: t('accountInfo'),
+            icon: InfoIcon,
+            children: [
+                {
+                    title: t('accountGroups'),
+                    href: '/account-groups',
+                    icon: FileText,
+                    roles: ['admin'], // Only admin will see this
+                },
+                {
+                    title: t('accountLedgers'),
+                    href: '/account-ledgers',
+                    icon: Landmark,
+                },
+                {
+                    title: t('salesmen'),
+                    href: '/salesmen',
+                    icon: Users,
+                },
+            ],
+        },
+        {
+            title: t('inventoryInfo'),
+            icon: Boxes,
+            children: [
+                {
+                    title: t('godowns'),
+                    href: '/godowns',
+                    icon: Boxes,
+                },
+                {
+                    title: t('dryers'),
+                    href: '/dryers',
+                    icon: Boxes,
+                },
+
+                {
+                    title: t('units'),
+                    href: '/units',
+                    icon: Package,
+                },
+                {
+                    title: t('category'),
+                    href: '/categories',
+                    icon: FolderKanban,
+                },
+                {
+                    title: t('items'),
+                    href: '/items',
+                    icon: ClipboardList,
+                },
+                {
+                    title: t('stockAdd'),
+                    href: '/stock-moves',
+                    icon: ClipboardList,
+                },
+                // Later you can add more inventory-related items here (e.g., Products, Stock Transfers, etc.)
+            ],
+        },
+        {
+            title: t('inbox'),
+            icon: ReceiptText,
+            group: true, // Add group marker
+            children: [
+                {
+                    title: t('purchasesNotification'),
+                    icon: ShoppingCart,
+                    group: true, // Add group marker
+                    children: [
+                        { title: t('sub'), href: '/purchases/inbox/sub', icon: ReceiptText },
+                        { title: t('responsible'), href: '/purchases/inbox/resp', icon: ReceiptText },
+                        { title: t('purchaseApproveRejectLog'), href: '/approvals', icon: History },
+                    ],
+                },
+                {
+                    title: t('sales'),
+                    icon: ReceiptText,
+                    group: true, // Add group marker
+                    children: [
+                        { title: t('sub'), href: '/sales/inbox/sub', icon: ReceiptText },
+                        { title: t('responsible'), href: '/sales/inbox/resp', icon: ReceiptText },
+                        { title: t('saleApproveRejectLog'), href: '/sales/approvals', icon: History },
+                    ],
+                },
+            ],
+        },
+
+        {
+            title: t('transaction'),
+            icon: BanknoteIcon,
+            children: [
+                {
+                    title: t('purchases'),
+                    href: '/purchases',
+                    icon: ShoppingCart,
+                },
+
+                // {
+                //     title: 'Purchase Approve-Reject Log',
+                //     href: '/purchases/approvals',
+                //     icon: History, // pick any Lucide icon
+                // },
+
+                {
+                    title: t('purchasesReturn'),
+                    href: '/purchase-returns',
+                    icon: RotateCcw,
+                },
+                {
+                    title: t('sales'),
+                    href: '/sales',
+                    icon: ReceiptText,
+                },
+
+                {
+                    title: t('dues'),
+                    href: '/dues',
+                    icon: ReceiptText,
+                },
+                {
+                    title: t('duesSettled'),
+                    href: '/dues/settled',
+                    icon: ReceiptText,
+                },
+                {
+                    title: t('salesOrderList'),
+                    href: '/sales-orders',
+                    icon: Folder,
+                },
+                {
+                    title: t('salesReturn'),
+                    href: '/sales-returns',
+                    icon: RotateCcw,
+                },
+                {
+                    title: t('receivedModes'),
+                    href: '/received-modes',
+                    icon: Banknote,
+                },
+                // {
+                //     title: 'Received Add',
+                //     href: '/received-add',
+                //     icon: Folder,
+                // },
+                {
+                    title: t('paymentAdd'),
+                    href: '/payment-add',
+                    icon: Wallet,
+                },
+                {
+                    title: t('contraAdd'),
+                    href: '/contra-add',
+                    icon: Shuffle,
+                },
+                {
+                    title: t('journalAdd'),
+                    href: '/journal-add',
+                    icon: Notebook,
+                },
+                // {
+                //     title: 'Stock Transfer',
+                //     href: '/stock-transfers',
+                //     icon: Notebook,
+                // },
+
+                // Later you can add more inventory-related items here (e.g., Products, Stock Transfers, etc.)
+            ],
+        },
+        {
+            title: t('production'),
+            icon: Factory,
+            children: [
+                {
+                    title: t('workingOrder'),
+                    href: '/working-orders',
+                    icon: Workflow,
+                },
+                {
+                    title: t('finishedProducts'),
+                    href: '/finished-products',
+                    icon: Workflow,
+                },
+            ],
+        },
+
+        {
+            title: t('payroll'),
+            icon: FiSettings,
+
+            children: [
+                {
+                    title: t('department'),
+                    href: '/departments',
+                    icon: FiHome,
+                },
+                {
+                    title: t('designation'),
+                    href: '/designations',
+                    icon: FiAward,
+                },
+                {
+                    title: t('shift'),
+                    href: '/shifts',
+                    icon: FiClock,
+                },
+                {
+                    title: t('employees'),
+                    href: '/employees',
+                    icon: FiUsers,
+                },
+                {
+                    title: t('salarySlips'),
+                    href: '/salary-slips',
+                    icon: FiUsers,
+                },
+                {
+                    title: t('salaryOwed'),
+                    href: '/salary-owed',
+                    icon: FiUsers,
+                },
+                {
+                    title: t('salaryPayments'),
+                    href: '/salary-receives',
+                    icon: FiUsers,
+                },
+
+                {
+                    title: t('employeeLedgerReport'),
+                    href: '/employee-ledger',
+                    icon: FiUsers,
+                },
+                {
+                    title: t('employeeReport'),
+                    href: '/employee-reports',
+                    icon: FiUsers,
+                },
+            ],
+        },
+
+        {
+            title: t('reports'),
+            icon: BarChartBig,
+
+            children: [
+                {
+                    title: t('stockReport'),
+                    href: '/reports/stock-summary',
+                    icon: Warehouse,
+                },
+                {
+                    title: t('dayBook'),
+                    href: '/reports/day-book',
+                    icon: ScrollText,
+                },
+                {
+                    title: t('accountBook'),
+                    href: '/reports/account-book',
+                    icon: ScrollText,
+                },
+                {
+                    title: t('ledgerGroupSummary'),
+                    href: '/reports/ledger-group-summary/filter',
+                    icon: FolderKanban,
+                },
+                {
+                    title: t('purchaseReport'),
+                    href: '/reports/purchase/filter',
+                    icon: FolderKanban,
+                },
+
+                {
+                    title: t('saleReport'),
+                    href: '/reports/sale/filter',
+                    icon: BarChart2,
+                },
+
+                {
+                    title: t('receivablePayable'),
+                    href: '/reports/receivable-payable/filter',
+                    icon: Scale,
+                },
+
+                {
+                    title: t('receivedPayment'),
+                    href: '/reports/all-received-payment/filter',
+                    icon: Scale,
+                },
+                {
+                    title: t('profitLoss'),
+                    href: '/reports/profit-loss/filter',
+                    icon: Scale,
+                },
+                {
+                    title: t('balanceSheet'),
+                    href: '/reports/balance-sheet/filter',
+                    icon: Scale,
+                },
+            ],
+        },
+
+        {
+            title: t('crushingRent'),
+            icon: Warehouse,
+            children: [
+                {
+                    title: 'পার্টির পণ্য জমা',
+                    href: '/party-stock/deposit',
+                    icon: UploadCloud,
+                },
+                {
+                    title: 'পার্টির পণ্য জমা তালিকা',
+                    href: '/party-stock/deposit-list',
+                    icon: FileText,
+                },
+                {
+                    title: 'পণ্য উত্তোলন',
+                    href: '/party-stock/withdraw',
+                    icon: DownloadCloud,
+                },
+                {
+                    title: 'পণ্য উত্তোলন তালিকা',
+                    href: '/party-stock/withdraw-list',
+                    icon: FileText,
+                },
+                {
+                    title: 'পণ্য ট্রান্সফার/রুপান্তর',
+                    href: '/party-stock/convert',
+                    icon: Repeat,
+                },
+                {
+                    title: 'পার্টি পণ্য ট্রান্সফার তালিকা',
+                    href: '/party-stock/convert-list',
+                    icon: FileText,
+                },
+                {
+                    title: 'কম্পানি পণ্য ট্রান্সফার তালিকা',
+                    href: '/party-stock/company/convert-list',
+                    icon: FileText,
+                },
+
+                {
+                    title: 'ক্রাশিং জবসমূহ তালিকা',
+                    href: '/party-stock/crushing/jobs',
+                    icon: FileText,
+                },
+
+                {
+                    title: 'ক্রাশিং ভাউচারসমূহ',
+                    href: '/party-stock/rent-voucher/',
+                    icon: FileText,
+                },
+                {
+                    title: 'ক্রাশিং রিপোর্টসমূহ',
+                    icon: BarChart2,
+                    href: '/crushing',
+                    children: [
+                        {
+                            title: 'পার্টি স্টক রিপোর্ট',
+                            href: '/crushing/party-stock-report',
+                            icon: Layers,
+                        },
+                        {
+                            title: 'Rent Day Book',
+                            href: '/crushing/rent-day-book',
+                            icon: CalendarDays,
+                        },
+                    ],
+                },
+            ],
+        },
+
+        {
+            title: t('settings'),
+            icon: Settings2,
+
+            children: [
+                {
+                    title: t('financialYear'),
+                    href: '/financial-years',
+                    icon: CalendarClock,
+                },
+                {
+                    title: t('companySettings'),
+                    href: '/company-settings',
+                    icon: Building2, // 👈 This icon works well for users
+                },
+                {
+                    title: t('productionCostSetting'),
+                    href: '/company-settings/costings',
+                    icon: Building, // 👈 This icon works well for users
+                },
+
+                // Later you can add more inventory-related items here (e.g., Products, Stock Transfers, etc.)
+            ],
+        },
+        {
+            title: t('permissions'),
+            href: '/permissions',
+            icon: Lock,
+            roles: ['admin'], // you can change this icon to something like a shield or lock if you prefer
+        },
+        {
+            title: t('roles'),
+            href: '/roles',
+            icon: Shield, // You could use Shield or User
+            //icon if preferred
+        },
+        {
+            title: t('users'),
+            href: '/users',
+            icon: Users, // 👈 This icon works well for users
+        },
+        {
+            title: t('smtpSettings'),
+            href: '/smtp',
+            icon: MailCheck,
+            roles: ['admin'],
+        },
+    ];
+
+    const footerNavItems: NavItem[] = [
+        // {
+        //     title: 'Repository',
+        //     href: 'https://github.com/laravel/react-starter-kit',
+        //     icon: Folder,
+        // },
+        // {
+        //     title: 'Documentation',
+        //     href: 'https://laravel.com/docs/starter-kits',
+        //     icon: BookOpen,
+        // },
+        {
+            title: t('support'),
+            href: 'https://wa.me/8801744333888',
+            icon: Phone,
+        },
+    ];
+
     const { props, url } = usePage<any>();
     const initialCounters = props.counters || {};
     const roles = props.auth?.user?.roles?.map((r: any) => r.name) || [];

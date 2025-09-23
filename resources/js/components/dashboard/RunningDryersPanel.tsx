@@ -5,6 +5,7 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import { Link } from '@inertiajs/react';
 import { AlertTriangle, Timer } from 'lucide-react';
 import { useEffect, useMemo, useState } from 'react';
+import { useTranslation } from '../useTranslation';
 
 type RunningDryer = {
     id: number | string;
@@ -19,6 +20,7 @@ type RunningDryer = {
 
 export default function RunningDryersPanel({ items = [] as RunningDryer[] }) {
     const now = useNow(1000);
+    const t = useTranslation();
 
     const rows = useMemo(() => {
         return (items || [])
@@ -68,22 +70,24 @@ export default function RunningDryersPanel({ items = [] as RunningDryer[] }) {
 
     return (
         <Card className="shadow-sm">
-            <CardHeader className="flex items-center justify-between pb-2">
-                <div className="flex items-center gap-2">
-                    <Timer className="h-5 w-5" />
-                    <CardTitle className="text-base">Running Dryers</CardTitle>
+            <CardHeader className="">
+                <div className='flex items-center justify-between'>
+                    <div className="flex items-center gap-2">
+                        <Timer className="h-5 w-5" />
+                        <CardTitle className="text-base">{t('runningDryers')}</CardTitle>
+                    </div>
+                    <Link href={route('crushing.jobs.index')}>
+                        <Button size="sm" variant="ghost">
+                            {t('viewAll')}
+                        </Button>
+                    </Link>
                 </div>
-                <Link href={route('crushing.jobs.index')}>
-                    <Button size="sm" variant="ghost">
-                        View all
-                    </Button>
-                </Link>
             </CardHeader>
 
             <CardContent>
                 <ScrollArea className="h-[400px] pr-4">
                     {rows.length === 0 ? (
-                        <p className="text-muted-foreground text-sm">No dryers are running right now.</p>
+                        <p className="text-muted-foreground text-sm">{t('noDryersRunning')}</p>
                     ) : (
                         <div className="space-y-4">
                             {rows.map((d) => (
@@ -108,18 +112,11 @@ export default function RunningDryersPanel({ items = [] as RunningDryer[] }) {
                                             <p className="text-muted-foreground text-xs">
                                                 Batch: {d.batchMinutes || 0} min • Ends {formatLeft(d._leftMs, d._overdue)} • {d._endsAtReadable}
                                             </p>
-                                            {/* {d._utilPct !== null && (
-                                                <p className="text-muted-foreground text-xs">
-                                                    Utilization: <span className="font-medium">{d._utilPct}%</span> (
-                                                    {Math.round(d.loadedKg || 0).toLocaleString()} / {Math.round(d.capacityKg || 0).toLocaleString()}{' '}
-                                                    kg)
-                                                </p>
-                                            )} */}
                                         </div>
 
                                         <Link href={route('crushing.jobs.show', d.id)}>
                                             <Button size="sm" variant="outline">
-                                                Details
+                                                {t('details')}
                                             </Button>
                                         </Link>
                                     </div>

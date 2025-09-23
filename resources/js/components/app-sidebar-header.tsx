@@ -16,26 +16,29 @@ import {
     ShoppingCart,
 } from 'lucide-react';
 import * as React from 'react';
+import { useEffect } from 'react';
 import Calculator from './calculator';
-import { useState, useEffect } from 'react';
 import { useLanguage } from './LanguageContext';
-const quickLinks = [
-    { label: 'Calculator', href: '#', icon: CalculatorIcon, color: 'bg-slate-700', isCalculator: true },
-    { label: 'Received', href: '/received-add', icon: Banknote, color: 'bg-green-600' },
-    { label: 'Payment', href: '/payment-add?from_date=&to_date=', icon: CreditCard, color: 'bg-red-500' },
-    { label: 'Purchases', href: '/purchases', icon: ShoppingCart, color: 'bg-amber-500' },
-    { label: 'Sales', href: '/sales', icon: Package, color: 'bg-blue-600' },
-    { label: 'Day Book', href: '/reports/day-book', icon: BookText, color: 'bg-indigo-500' },
-    // { label: 'Account Ledger', href: '/reports/account-ledger', icon: BookOpenCheck, color: 'bg-purple-500' },
-    { label: 'Ledgers', href: '/account-ledgers', icon: BookOpenCheck, color: 'bg-purple-500' },
-    { label: 'Stock', href: '/reports/stock-summary', icon: Layers3, color: 'bg-cyan-600' },
-];
+import { useTranslation } from './useTranslation';
 
 export function AppSidebarHeader({ breadcrumbs = [] }: { breadcrumbs?: BreadcrumbItemType[] }) {
+    const t = useTranslation();
+    const quickLinks = [
+        { label: t('calculator'), href: '#', icon: CalculatorIcon, color: 'bg-slate-700', isCalculator: true },
+        { label: t('received'), href: '/received-add', icon: Banknote, color: 'bg-green-600' },
+        { label: t('payment'), href: '/payment-add?from_date=&to_date=', icon: CreditCard, color: 'bg-red-500' },
+        { label: t('purchases'), href: '/purchases', icon: ShoppingCart, color: 'bg-amber-500' },
+        { label: t('sales'), href: '/sales', icon: Package, color: 'bg-blue-600' },
+        { label: t('dayBook'), href: '/reports/day-book', icon: BookText, color: 'bg-indigo-500' },
+        // { label: 'Account Ledger', href: '/reports/account-ledger', icon: BookOpenCheck, color: 'bg-purple-500' },
+        { label: t('ledgers'), href: '/account-ledgers', icon: BookOpenCheck, color: 'bg-purple-500' },
+        { label: t('stock'), href: '/reports/stock-summary', icon: Layers3, color: 'bg-cyan-600' },
+    ];
+
     const { company } = usePage().props as { company?: { name?: string; logo_url?: string } };
 
     /* ───────── Language toggle state ───────── */
-    const {language, toggleLanguage} = useLanguage();
+    const { language, toggleLanguage } = useLanguage();
 
     /* ───────── Full-screen helper ───────── */
     const [isFullscreen, setIsFullscreen] = React.useState<boolean>(!!document.fullscreenElement);
@@ -76,7 +79,7 @@ export function AppSidebarHeader({ breadcrumbs = [] }: { breadcrumbs?: Breadcrum
                             </span>
                         </Link>
                     ) : (
-                        'Dashboard'
+                        t('dashboardTitle')
                     )}
                 </div>
 
@@ -85,7 +88,7 @@ export function AppSidebarHeader({ breadcrumbs = [] }: { breadcrumbs?: Breadcrum
                     onClick={toggleLanguage}
                     type="button"
                     className={cn(
-                        'flex items-center gap-1 rounded-md px-3 py-2 text-sm font-medium transition cursor-pointer',
+                        'flex cursor-pointer items-center gap-1 rounded-md px-3 py-2 text-sm font-medium transition',
                         'border border-gray-300 bg-white text-gray-700 hover:bg-gray-50',
                         'shadow-sm hover:shadow focus-visible:ring focus-visible:outline-none',
                         'print:hidden',

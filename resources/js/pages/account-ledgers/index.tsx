@@ -2,6 +2,7 @@ import ActionButtons from '@/components/ActionButtons';
 import { confirmDialog } from '@/components/confirmDialog';
 import PageHeader from '@/components/PageHeader';
 import TableComponent from '@/components/TableComponent';
+import { useTranslation } from '@/components/useTranslation';
 import AppLayout from '@/layouts/app-layout';
 import { PaginatedData } from '@/types/pagination';
 import { Head, router } from '@inertiajs/react';
@@ -20,6 +21,7 @@ interface AccountLedger {
 }
 
 export default function AccountLedgerIndex({ accountLedgers }: { accountLedgers: PaginatedData<AccountLedger> }) {
+    const t = useTranslation();
     const handleDelete = (id: number) => {
         confirmDialog({}, () => {
             router.delete(`/account-ledgers/${id}`);
@@ -30,43 +32,41 @@ export default function AccountLedgerIndex({ accountLedgers }: { accountLedgers:
         {
             header: '#',
             accessor: (_: AccountLedger, index?: number) => (index !== undefined ? index + 1 : '-'),
-            className: 'text-center w-1/12',
         },
-        { header: 'Reference Number', accessor: 'reference_number', className: 'w-2/12' },
-        { header: 'Account Name', accessor: 'account_ledger_name', className: 'w-2/12' },
-        { header: 'Mobile No', accessor: 'phone_number', className: 'w-2/12' },
+        { header: t('referenceNumber'), accessor: 'reference_number', className: 'w-2/12' },
+        { header: t('accountName'), accessor: 'account_ledger_name', className: 'w-2/12' },
+        { header: t('mobileNo'), accessor: 'phone_number', className: 'w-2/12' },
         {
-            header: 'Group Under',
+            header: t('groupUnderLedger'),
             accessor: (row: AccountLedger) => row.group_under?.name || row.account_group?.name || 'N/A',
             className: 'w-2/12',
         },
         {
-            header: 'Opening Balance',
+            header: t('openingBalance'),
             accessor: (row: AccountLedger) => parseFloat(row.opening_balance).toLocaleString(),
             className: 'w-2/12',
         },
         {
-            header: 'Closing Balance',
+            header: t('closingBalance'),
             accessor: (row: AccountLedger) => parseFloat(row.closing_balance ?? row.opening_balance ?? '0').toLocaleString(),
             className: 'w-2/12 text-right',
         },
-        { header: 'Debit/Credit', accessor: 'debit_credit', className: 'capitalize w-2/12' },
+        { header: t('debitCredit'), accessor: 'debit_credit', className: 'capitalize w-2/12' },
         {
-            header: 'Created By',
+            header: t('createdBy'),
             accessor: (row: AccountLedger) => row.created_by?.name || 'N/A',
-            className: 'w-2/12',
         },
     ];
 
     return (
         <AppLayout>
-            <Head title="Account Ledgers" />
+            <Head title={t('accountLedgers')} />
 
             {/* Page background picks up tokens */}
             <div className="bg-background h-full w-screen md:p-6 lg:w-full">
                 {/* Card container uses card tokens + border */}
                 <div className="bg-background h-full rounded-lg p-4 md:p-12">
-                    <PageHeader title="List of Account Ledgers" addLinkHref="/account-ledgers/create" addLinkText="+ Add New" />
+                    <PageHeader title={t('accountLedgersHeader')} addLinkHref="/account-ledgers/create" addLinkText={t('addNewLedger')} />
 
                     <TableComponent
                         columns={columns}
