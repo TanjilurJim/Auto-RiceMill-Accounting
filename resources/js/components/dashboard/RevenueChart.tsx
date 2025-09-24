@@ -1,9 +1,11 @@
 import React, { useEffect, useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { useTranslation } from '../useTranslation';
 
 export function RevenueChart() {
   const [Chart, setChart] = useState<any>(null);
+  const t = useTranslation();
 
   useEffect(() => {
     // Import ApexCharts dynamically on client-side only
@@ -31,7 +33,7 @@ export function RevenueChart() {
       }
     },
     xaxis: {
-      categories: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'],
+      categories: [t('chartMon'), t('chartTue'), t('chartWed'), t('chartThu'), t('chartFri'), t('chartSat'), t('chartSun')],
       axisBorder: { show: false },
       axisTicks: { show: false },
       labels: { style: { colors: '#64748b' } }
@@ -48,18 +50,20 @@ export function RevenueChart() {
     }
   ];
 
+
+
   return (
     <Card className="col-span-full shadow-sm xl:col-span-8 ">
       <CardHeader className="flex flex-row items-center justify-between pb-4">
-        <CardTitle className="text-base font-medium">Revenue Overview</CardTitle>
+        <CardTitle className="text-base font-medium">{t('revenueOverview')}</CardTitle>
         <Select value={period} onValueChange={setPeriod}>
           <SelectTrigger className="w-[140px]">
-            <SelectValue placeholder="Select period" />
+            <SelectValue placeholder={t('selectPeriod')} />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="7d">Last 7 days</SelectItem>
-            <SelectItem value="30d">Last 30 days</SelectItem>
-            <SelectItem value="90d">Last 90 days</SelectItem>
+            <SelectItem value="7d">{t('last7Days')}</SelectItem>
+            <SelectItem value="30d">{t('last30Days')}</SelectItem>
+            <SelectItem value="90d">{t('last90Days')}</SelectItem>
           </SelectContent>
         </Select>
       </CardHeader>
@@ -71,7 +75,7 @@ export function RevenueChart() {
             </div>
           )}
           {Chart && (
-            <Chart 
+            <Chart
               options={options as any}
               series={series}
               type="area"

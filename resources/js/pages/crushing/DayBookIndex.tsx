@@ -44,91 +44,57 @@ const FilterBar: React.FC<{
     </button>
   );
 
-  return (
-    <div className="sticky top-0 z-10 space-y-3 bg-background/80 backdrop-blur print:static md:space-y-0">
-      <div className="grid grid-cols-1 gap-3 md:grid-cols-2 lg:grid-cols-4">
-        <div>
-          <InputCalendar label="From" required value={from} onChange={setFrom} max={to || undefined} />
-        </div>
-        <div>
-          <InputCalendar
-            label="To"
-            required
-            value={to}
-            onChange={setTo}
-            min={from || undefined}
-            max={dayjs().format('YYYY-MM-DD')}
-          />
-        </div>
+    return (
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 items-center gap-4 print:hidden">
+            {/* dates */}
+            <div className="">
+                <InputCalendar
+                    label="From"
+                    required
+                    value={from}
+                    onChange={setFrom}
+                    max={to || undefined} // prevent selecting after "to"
+                />
+            </div>
 
-        {/* type chips: horizontal scroll on mobile */}
-        <div className="col-span-1 md:col-span-2">
-          <div className="-mx-1 flex gap-2 overflow-x-auto pb-1 md:flex-wrap md:overflow-visible">
-            <Chip label="Deposit" activeColor="bg-green-600" />
-            <Chip label="Withdraw" activeColor="bg-red-600" />
-            <Chip label="Convert" activeColor="bg-yellow-500" />
-            <Chip label="Rent" activeColor="bg-blue-600" />
-          </div>
+            <div className="">
+                <InputCalendar
+                    label="To"
+                    required
+                    value={to}
+                    onChange={setTo}
+                    min={from || undefined} // prevent selecting before "from"
+                    max={dayjs().format('YYYY-MM-DD')} // don't allow future dates
+                />
+            </div>
+
+            <div className='mt-6'>
+                {/* type chips */}
+                <div className="flex flex-wrap gap-2">
+                    {chip('Deposit', 'bg-green-600')}
+                    {chip('Withdraw', 'bg-red-600')}
+                    {chip('Convert', 'bg-yellow-500')}
+                    {chip('Rent', 'bg-blue-600')}
+                </div>
+            </div>
+
+            {/* buttons */}
+            <div className="mt-6 flex flex-col md:flex-row gap-2">
+                <button
+                    onClick={apply}
+                    className=" items-center rounded-md bg-purple-600 px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-purple-700"
+                >
+                    Apply
+                </button>
+                <button
+                    onClick={reset}
+                    className="items-center rounded-md border bg-white px-4 py-2 text-sm text-gray-700 shadow-sm hover:bg-gray-50"
+                >
+                    Reset
+                </button>
+            </div>
         </div>
-      </div>
-
-      <div className="flex flex-col gap-2 pt-1 sm:flex-row">
-        <button
-          onClick={apply}
-          className="inline-flex items-center justify-center rounded-md bg-purple-600 px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-purple-700 sm:w-auto"
-        >
-          Apply
-        </button>
-        <button
-          onClick={reset}
-          className="inline-flex items-center justify-center rounded-md border bg-white px-4 py-2 text-sm text-gray-700 shadow-sm hover:bg-gray-50 sm:w-auto"
-        >
-          Reset
-        </button>
-      </div>
-    </div>
-  );
-};
-
-/* ------------------------------------------------------------------ */
-/* MOBILE CARD ROW                                                    */
-/* ------------------------------------------------------------------ */
-const MobileRowCard: React.FC<{ r: any }> = ({ r }) => {
-  const isRent = r.vch_type === 'Rent';
-  return (
-    <div className="rounded-lg border bg-white p-3 shadow-sm">
-      <div className="flex items-center justify-between text-[11px] text-muted-foreground">
-        <span>{dayjs(r.date).format('DD-MMM-YY')}</span>
-        <span className="font-medium">{r.vch}</span>
-      </div>
-
-      <div className="mt-1 text-sm font-semibold">{r.party || '-'}</div>
-      <div className="text-xs text-muted-foreground">গুদাম: {r.godown || '-'}</div>
-
-      <div className="mt-2 grid grid-cols-2 gap-2 text-sm">
-        <div>
-          <div className="text-[11px] text-green-700">জমা Qty</div>
-          <div className="font-mono font-semibold text-green-700">{formatQty(r.in_qty)}</div>
-        </div>
-        <div className="text-right">
-          <div className="text-[11px] text-red-700">উত্তোলন Qty</div>
-          <div className="font-mono font-semibold text-red-700">{formatQty(r.out_qty)}</div>
-        </div>
-      </div>
-
-      <div className="mt-2 grid grid-cols-2 gap-2 text-sm">
-        <div>
-          <div className="text-[11px] text-muted-foreground">{isRent ? 'Rent Bill' : 'Stock Value'}</div>
-          <div className="font-mono font-semibold">৳ {formatCurrency(isRent ? r.rent_bill : r.stock_value)}</div>
-        </div>
-        {r.remarks ? (
-          <div className="text-right text-[11px] text-muted-foreground truncate" title={r.remarks}>
-            {r.remarks}
-          </div>
-        ) : null}
-      </div>
-    </div>
-  );
+    );
 };
 
 /* ------------------------------------------------------------------ */
@@ -224,30 +190,27 @@ export default function DayBookIndex({ rows, totals, byType, filters }) {
     []
   );
 
-  return (
-    <AppLayout>
-      <Head title="Day-Book" />
-      <div className="mx-auto w-full max-w-screen-xl space-y-6 p-4 md:p-8 lg:p-12">
-        <PageHeader title="Day-Book">
-          <button
-            onClick={() => window.print()}
-            className="rounded-md bg-green-600 px-4 py-2 text-sm text-white print:hidden"
-          >
-            Print
-          </button>
-        </PageHeader>
+    return (
+        <AppLayout>
+            <Head title="Day-Book" />
+            <div className="h-full w-screen space-y-6 p-4 md:p-12 lg:w-full">
+                <PageHeader title="Day-Book">
+                    <button onClick={() => window.print()} className="rounded-md bg-green-600 px-4 py-2 text-sm text-white print:hidden">
+                        Print
+                    </button>
+                </PageHeader>
 
-        <div className="rounded-lg bg-background p-4 shadow-sm sm:p-6">
-          <FilterBar
-            from={from}
-            setFrom={setFrom}
-            to={to}
-            setTo={setTo}
-            types={types}
-            setTypes={setTypes}
-            apply={sendRequest}
-            reset={reset}
-          />
+                <div className="bg-background rounded-lg p-4 shadow-sm sm:p-6">
+                    <FilterBar
+                        from={from}
+                        setFrom={setFrom}
+                        to={to}
+                        setTo={setTo}
+                        types={types}
+                        setTypes={setTypes}
+                        apply={sendRequest}
+                        reset={reset}
+                    />
 
           {/* Mobile list (<md) */}
           <div className="mt-6 space-y-3 md:hidden">

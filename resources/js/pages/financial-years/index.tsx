@@ -60,7 +60,7 @@ export default function Index({ financialYears }: { financialYears: FinancialYea
     <AppLayout>
       <Head title="Financial Years" />
 
-      <div className="bg-background p-6 h-full w-screen lg:w-full">
+      <div className="bg-background p-4 md:p-12 h-full w-screen lg:w-full">
         <div className="bg-background h-full rounded-lg p-6">
 
           <PageHeader title="Financial Years" addLinkHref='/financial-years/create' addLinkText='+ Add Year' />

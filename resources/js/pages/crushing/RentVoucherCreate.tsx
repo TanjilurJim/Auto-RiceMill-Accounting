@@ -160,7 +160,7 @@ export default function RentVoucherCreate({ today, generated_vch_no, parties, it
     return (
         <AppLayout>
             <Head title="Rent Voucher" />
-            <div className="bg-background h-full w-screen p-6 lg:w-full">
+            <div className="bg-background h-full w-screen p-4 md:p-12 lg:w-full">
                 <div className="mb-4">
                     <Link href={route('party-stock.rent-voucher.index')} className="text-blue-600 hover:underline">
                         ← Back to list
@@ -197,8 +197,7 @@ export default function RentVoucherCreate({ today, generated_vch_no, parties, it
                                     value={partyOpts.find((o) => o.value === data.party_ledger_id) || null}
                                     onChange={(o) => setData('party_ledger_id', o?.value || '')}
                                     placeholder="Select Account Ledger"
-                                                                         styles={selectStyles}
-
+                                    styles={selectStyles}
                                 />
                                 {errors.party_ledger_id && <p className="text-xs text-red-500">{errors.party_ledger_id}</p>}
                             </div>
@@ -311,7 +310,7 @@ export default function RentVoucherCreate({ today, generated_vch_no, parties, it
 
                         {/* voucher summary */}
                         <div className="bg-background mt-4 rounded-xl border p-4 shadow-sm">
-                            <div className="grid gap-6 sm:grid-cols-2">
+                            <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
                                 {/* left */}
                                 <div className="space-y-2">
                                     <SummaryRow label="Previous Balance" value={prevBal} />
@@ -322,24 +321,25 @@ export default function RentVoucherCreate({ today, generated_vch_no, parties, it
 
                                 {/* right */}
                                 <div className="space-y-3">
-                                    <div className="flex items-center gap-2">
-                                        <div className="flex-1">
+                                    <div className="grid grid-cols-12 gap-2">
+                                        <div className="col-span-12 md:col-span-8">
                                             <Select
                                                 classNamePrefix="rs"
                                                 options={modeOpts}
                                                 placeholder="Received Mode*"
                                                 value={modeOpts.find((o) => o.value === data.received_mode_id) || null}
                                                 onChange={(o) => setData('received_mode_id', o?.value || '')}
-                                                                                     styles={selectStyles}
-
+                                                styles={selectStyles}
                                             />
                                         </div>
-                                        <input
-                                            type="number"
-                                            className="w-40 rounded border p-2 text-right tabular-nums"
-                                            value={data.received_amount}
-                                            onChange={(e) => setData('received_amount', e.target.value)}
-                                        />
+                                        <div className='col-span-12 md:col-span-4'>
+                                            <input
+                                                type="number"
+                                                className="w-full rounded border p-2 text-right tabular-nums"
+                                                value={data.received_amount}
+                                                onChange={(e) => setData('received_amount', e.target.value)}
+                                            />
+                                        </div>
                                     </div>
                                     {errors.received_mode_id && <p className="text-xs text-red-500">{errors.received_mode_id}</p>}
                                     <SummaryRow label="New Balance" value={newBalance} bold />

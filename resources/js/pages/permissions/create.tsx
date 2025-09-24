@@ -1,3 +1,6 @@
+import PageHeader from '@/components/PageHeader';
+import { Input } from '@/components/ui/input';
+import { Textarea } from '@/components/ui/textarea';
 import AppLayout from '@/layouts/app-layout';
 import { type BreadcrumbItem } from '@/types';
 import { Head, Link, useForm } from '@inertiajs/react';
@@ -20,6 +23,7 @@ const breadcrumbs: BreadcrumbItem[] = [
 export default function CreatePermission() {
     const { data, setData, post, processing, errors } = useForm({
         name: '',
+        description: '',
     });
 
     const submit = (e: React.FormEvent) => {
@@ -30,16 +34,17 @@ export default function CreatePermission() {
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
             <Head title="Create Permission" />
-            <div className="flex min-h-screen justify-center bg-gray-100 dark:bg-neutral-950">
-                <div className="w-full max-w-xl p-6">
-                    <h1 className="mb-6 text-2xl font-bold">Create Permission</h1>
+            <div className="dark:bg-neutral-950">
+                <div className="w-full max-w-xl p-4 md:p-12">
+                    <PageHeader title="Create Permission" />
 
                     <form onSubmit={submit} className="space-y-4 rounded bg-white p-4 shadow dark:bg-neutral-900">
+                        {/* Name */}
                         <div>
                             <label htmlFor="name" className="mb-1 block font-medium">
                                 Permission Name
                             </label>
-                            <input
+                            <Input
                                 type="text"
                                 id="name"
                                 value={data.name}
@@ -49,11 +54,12 @@ export default function CreatePermission() {
                             />
                             {errors.name && <p className="mt-1 text-sm text-red-500">{errors.name}</p>}
                         </div>
+                        {/* Description */}
                         <div>
                             <label htmlFor="description" className="mb-1 block font-medium">
                                 Description
                             </label>
-                            <textarea
+                            <Textarea
                                 id="description"
                                 value={data.description}
                                 onChange={(e) => setData('description', e.target.value)}

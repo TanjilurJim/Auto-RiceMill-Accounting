@@ -633,7 +633,7 @@ export default function ConvertForm({
             <Head title="Conversion / Transfer" />
             <div className="bg-background h-full w-screen p-4 md:p-12 lg:w-full">
                 <div className="bg-background rounded-lg">
-                    <div className='flex items-center justify-between'>
+                    <div className="flex items-center justify-between">
                         <h1 className="mb-4 text-xl font-bold">পণ্য রূপান্তর (Crushing → Output)</h1>
                         <Link href={route('party-stock.transfer.index')} className="text-blue-600 hover:underline">
                             ← Back to list
@@ -642,8 +642,7 @@ export default function ConvertForm({
 
                     <form onSubmit={submit} className="space-y-6">
                         {/* Header grid */}
-                        <div className="grid grid-cols-2 gap-4">
-                            {/* date */}
+                        <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
                             {/* date */}
                             <div>
                                 <InputCalendar label="তারিখ" value={data.date} onChange={(val) => setData('date', val)} required />
@@ -651,7 +650,7 @@ export default function ConvertForm({
                             </div>
 
                             {/* owner */}
-                            <div className="col-span-2 flex gap-6">
+                            <div className="flex gap-6 rounded-md border-b border-gray-300 p-1.5">
                                 <label className="flex items-center gap-2">
                                     <input
                                         type="radio"
@@ -669,7 +668,8 @@ export default function ConvertForm({
                                     পার্টি স্টক
                                 </label>
                             </div>
-
+                        </div>
+                        <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-4">
                             {/* party (conditional) */}
                             {data.owner === 'party' && (
                                 <div>
@@ -739,7 +739,7 @@ export default function ConvertForm({
                             </div>
 
                             {/* Compact stats row */}
-                            <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
+                            <div className="grid grid-cols-1 gap-3 md:grid-cols-2 lg:grid-cols-4">
                                 {/* Paddy total */}
                                 <div className="bg-background rounded-lg border p-3">
                                     <div className="text-background text-[11px]">ধানের মোট দাম (৳)</div>
@@ -793,7 +793,7 @@ export default function ConvertForm({
                             </div>
 
                             {/* Main kg & final preview */}
-                            <div className="mt-3 grid grid-cols-1 gap-3 lg:grid-cols-3">
+                            <div className="mt-3 grid grid-cols-1 gap-3 md:grid-cols-2 lg:grid-cols-4">
                                 <div className="bg-background rounded-lg border p-3">
                                     <div className="text-[11px] text-gray-500">উৎপাদিত চাল (মেইন) – মোট ওজন</div>
                                     <div className="mt-1 text-lg font-semibold tabular-nums">
@@ -841,26 +841,30 @@ export default function ConvertForm({
                             </div>
 
                             {/* Actions */}
-                            <div className="mt-3 flex flex-wrap gap-2">
-                                <button
-                                    type="button"
-                                    onClick={computePaddyTotal}
-                                    className="rounded-sm bg-slate-800 px-3 py-2 text-sm text-white hover:bg-slate-700 disabled:opacity-50"
-                                    disabled={paddyBusy || !data.consumed.length || !data.godown_id}
-                                    title="Consumed লাইন থেকে ধানের মোট দাম বের করবে"
-                                >
-                                    {paddyBusy ? 'হিসাব হচ্ছে…' : 'ধানের মোট দাম বের করুন'}
-                                </button>
+                            <div className="mt-3 flex flex-col gap-2 md:flex-row md:justify-between lg:justify-start">
+                                <div>
+                                    <button
+                                        type="button"
+                                        onClick={computePaddyTotal}
+                                        className="w-full rounded-sm bg-slate-800 px-3 py-2 text-sm text-white hover:bg-slate-700 disabled:opacity-50"
+                                        disabled={paddyBusy || !data.consumed.length || !data.godown_id}
+                                        title="Consumed লাইন থেকে ধানের মোট দাম বের করবে"
+                                    >
+                                        {paddyBusy ? 'হিসাব হচ্ছে…' : 'ধানের মোট দাম বের করুন'}
+                                    </button>
+                                </div>
 
-                                <button
-                                    type="button"
-                                    onClick={computeMainPerKg}
-                                    className="rounded-sm bg-indigo-600 px-3 py-2 text-sm text-white hover:bg-indigo-500 disabled:opacity-50"
-                                    disabled={mainIdx < 0}
-                                    title="মেইন রো-তে প্রতি কেজির দর বসাবে"
-                                >
-                                    মেইন আইটেমে প্রতি কেজি সেট করুন
-                                </button>
+                                <div>
+                                    <button
+                                        type="button"
+                                        onClick={computeMainPerKg}
+                                        className="w-full rounded-sm bg-indigo-600 px-3 py-2 text-sm text-white hover:bg-indigo-500 disabled:opacity-50"
+                                        disabled={mainIdx < 0}
+                                        title="মেইন রো-তে প্রতি কেজির দর বসাবে"
+                                    >
+                                        মেইন আইটেমে প্রতি কেজি সেট করুন
+                                    </button>
+                                </div>
                             </div>
                         </div>
                         <CostingSection

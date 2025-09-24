@@ -6,6 +6,7 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import { Link } from '@inertiajs/react';
+import { useTranslation } from '../useTranslation';
 
 /** Shape expected from the server */
 export type ExpiringUser = {
@@ -21,6 +22,7 @@ export type ExpiringUser = {
 export function NotificationsPanel({ expiring = [] as ExpiringUser[] }) {
   // tick every second for live countdown
   const now = useNow(1000);
+  const t = useTranslation();
 
   const rows = useMemo(() => {
     return (expiring || []).map((u) => {
@@ -51,17 +53,17 @@ export function NotificationsPanel({ expiring = [] as ExpiringUser[] }) {
       <CardHeader className="flex flex-row items-center justify-between pb-2">
         <div className="flex items-center gap-2">
           <Timer className="h-5 w-5" />
-          <CardTitle className="text-base font-medium">Expiring Soon</CardTitle>
+          <CardTitle className="text-base font-medium">{t('expiringSoon')}</CardTitle>
         </div>
         <Link href={route('users.index', { filter: 'expiring' })}>
-          <Button variant="ghost" size="sm">View all</Button>
+          <Button variant="ghost" size="sm">{t('viewAll')}</Button>
         </Link>
       </CardHeader>
 
       <CardContent>
         <ScrollArea className="h-[400px] pr-4">
           {rows.length === 0 ? (
-            <p className="text-muted-foreground text-sm">No accounts nearing inactivity. 🎉</p>
+            <p className="text-muted-foreground text-sm">{t('noAccountsExpiring')}</p>
           ) : (
             <div className="space-y-4">
               {rows.map((u) => (
@@ -90,7 +92,7 @@ export function NotificationsPanel({ expiring = [] as ExpiringUser[] }) {
                             }
                           >
                             <AlertTriangle className="mr-1 h-3.5 w-3.5" />
-                            {u._severity === 'critical' ? 'Less than 24h' : 'Less than 72h'}
+                            {u._severity === 'critical' ? t('lessThan24h') : t('lessThan72h')}
                           </span>
                         )}
                       </div>
@@ -111,9 +113,9 @@ export function NotificationsPanel({ expiring = [] as ExpiringUser[] }) {
                           />
                         </div>
                         <div className="mt-1 flex items-center justify-between text-xs text-muted-foreground">
-                          <span>Ends {formatLeft(u._leftMs)} • {u._endsOnReadable}</span>
+                          <span>{t('ends')} {formatLeft(u._leftMs)} • {u._endsOnReadable}</span>
                           <Link href={route('users.edit', u.id)}>
-                            <Button size="sm" variant="outline">Manage</Button>
+                            <Button size="sm" variant="outline">{t('manage')}</Button>
                           </Link>
                         </div>
                       </div>

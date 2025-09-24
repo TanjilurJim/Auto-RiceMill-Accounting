@@ -5,90 +5,92 @@ import { confirmDialog } from '@/components/confirmDialog';
 import PageHeader from '@/components/PageHeader';
 import Pagination from '@/components/Pagination';
 import TableComponent from '@/components/TableComponent';
+import { useTranslation } from '@/components/useTranslation';
 import AppLayout from '@/layouts/app-layout';
 
 import { Head, router } from '@inertiajs/react';
-import { Edit, Eye, Trash2, Search } from 'lucide-react';
+import { Edit, Eye, Trash2 } from 'lucide-react';
 import { useEffect, useState } from 'react';
 
 /* -------------------------------------------------------------------------- */
 /*  Types                                                                     */
 interface Row {
-  id: number;
-  dryer_name: string;
-  dryer_type: string | null;
-  capacity: string | number;
-  manufacturer: string | null;
+    id: number;
+    dryer_name: string;
+    dryer_type: string | null;
+    capacity: string | number;
+    manufacturer: string | null;
 }
 
 interface Paginator {
-  data: Row[];
-  links: { url: string | null; label: string; active: boolean }[];
-  current_page: number;
-  last_page: number;
-  total: number;
+    data: Row[];
+    links: { url: string | null; label: string; active: boolean }[];
+    current_page: number;
+    last_page: number;
+    total: number;
 }
 
 interface PageProps {
-  dryers: Paginator;
-  filters: { q: string | null };
+    dryers: Paginator;
+    filters: { q: string | null };
 }
 
 /* -------------------------------------------------------------------------- */
 export default function Index({ dryers, filters }: PageProps) {
-  /* ───────── state & debounce search ───────── */
-  const [q, setQ] = useState(filters.q ?? '');
+    /* ───────── state & debounce search ───────── */
+    const [q, setQ] = useState(filters.q ?? '');
 
-  useEffect(() => {
-    const t = setTimeout(() => {
-      router.get(route('dryers.index'), { q }, { preserveState: true, replace: true });
-    }, 400);
-    return () => clearTimeout(t);
-  }, [q]);
+    useEffect(() => {
+        const t = setTimeout(() => {
+            router.get(route('dryers.index'), { q }, { preserveState: true, replace: true });
+        }, 400);
+        return () => clearTimeout(t);
+    }, [q]);
 
-  /* ───────── helpers ───────── */
-  const fmt = (n: number | string) =>
-    new Intl.NumberFormat('en-US', { minimumFractionDigits: 2 }).format(Number(n));
+    /* ───────── helpers ───────── */
+    const fmt = (n: number | string) => new Intl.NumberFormat('en-US', { minimumFractionDigits: 2 }).format(Number(n));
 
-  const del = (id: number) => {
-    confirmDialog({}, () => {
-      router.delete(route('dryers.destroy', id));
-    });
-  };
+    const del = (id: number) => {
+        confirmDialog({}, () => {
+            router.delete(route('dryers.destroy', id));
+        });
+    };
 
-  /* ───────── table definition ───────── */
-  const columns = [
-    { header: 'Name', accessor: 'dryer_name' },
-    { header: 'Type', accessor: (r: Row) => r.dryer_type ?? '—' },
-    { header: 'Capacity (t)', accessor: (r: Row) => fmt(r.capacity), className: 'text-right' },
-    { header: 'Manufacturer', accessor: (r: Row) => r.manufacturer ?? '—' },
-  ];
+    const t = useTranslation();
 
-  const actions = (row: Row) => (
-    <ActionButtons
-      size="md"
-      viewHref={route('dryers.show', row.id)}
-      viewText={<Eye size={16} />}
-      editHref={route('dryers.edit', row.id)}
-      editText={<Edit size={16} />}
-      onDelete={() => del(row.id)}
-      deleteText={<Trash2 size={16} />}
-      className="justify-center"
-    />
-  );
+    /* ───────── table definition ───────── */
+    const columns = [
+        { header: 'Name', accessor: 'dryer_name' },
+        { header: 'Type', accessor: (r: Row) => r.dryer_type ?? '—' },
+        { header: 'Capacity (t)', accessor: (r: Row) => fmt(r.capacity), className: 'text-right' },
+        { header: 'Manufacturer', accessor: (r: Row) => r.manufacturer ?? '—' },
+    ];
 
-  /* ───────── render ───────── */
-  return (
-    <AppLayout title="Dryers">
-      <Head title="Dryers" />
+    const actions = (row: Row) => (
+        <ActionButtons
+            size="md"
+            viewHref={route('dryers.show', row.id)}
+            viewText={<Eye size={16} />}
+            editHref={route('dryers.edit', row.id)}
+            editText={<Edit size={16} />}
+            onDelete={() => del(row.id)}
+            deleteText={<Trash2 size={16} />}
+            className="justify-center"
+        />
+    );
 
-      <div className="w-full p-4 md:p-12">
-        <div className=" text-foreground">
-          <PageHeader title="Dryers" addLinkHref="/dryers/create" addLinkText="+ Add New" />
+    /* ───────── render ───────── */
+    return (
+        <AppLayout>
+            <Head title={t('dryersTitle')} />
 
-          {/* Search box (optional) */}
-          {/* Uncomment to show search */}
-          {/* <div className="mb-3">
+            <div className="w-full p-4 md:p-12">
+                <div className="text-foreground">
+                    <PageHeader title={t('dryersTitle')} addLinkHref="/dryers/create" addLinkText={t('addNew')} />
+
+                    {/* Search box (optional) */}
+                    {/* Uncomment to show search */}
+                    {/* <div className="mb-3">
             <div className="relative max-w-xs">
               <input
                 type="text"
@@ -101,20 +103,28 @@ export default function Index({ dryers, filters }: PageProps) {
             </div>
           </div> */}
 
-          {/* Table container */}
-          <div className=" rounded-sm border">
-            <TableComponent<Row>
-              columns={columns}
-              data={dryers.data}
-              actions={actions}
-              noDataMessage="No dryers found."
-            />
-          </div>
+                    {/* Table container */}
+                    {dryers.data.length > 0 ? (
+                        <div className="rounded-sm border">
+                            <TableComponent<Row> columns={columns} data={dryers.data} actions={actions} noDataMessage={t('noDryersFound')} />
+                        </div>
+                    ) : (
+                        <div className="my-16 flex flex-col items-center justify-center space-y-2 text-center">
+                            <h3 className="text-lg font-medium">{t('noDryersFound')}</h3>
+                            <p className="text-muted-foreground max-w-sm text-sm">
+                               {t('noDryersFoundDesc')}
+                            </p>
+                        </div>
+                    )}
 
-          {/* Pagination */}
-          <Pagination links={dryers.links} className="mt-4" />
-        </div>
-      </div>
-    </AppLayout>
-  );
+                    {/* Pagination */}
+                    {dryers.data.length > 0 && (
+                        <div className="mt-4">
+                            <Pagination links={dryers.links} currentPage={dryers.current_page} lastPage={dryers.last_page} total={dryers.total} />
+                        </div>
+                    )}
+                </div>
+            </div>
+        </AppLayout>
+    );
 }

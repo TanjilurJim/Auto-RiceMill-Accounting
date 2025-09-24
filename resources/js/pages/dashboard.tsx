@@ -2,6 +2,7 @@
 import RunningDryersPanel from '@/components/dashboard/RunningDryersPanel';
 import TrialBanner from '@/components/TrialBanner';
 import { Card, CardContent, CardFooter, CardHeader } from '@/components/ui/card';
+import { useTranslation } from '@/components/useTranslation';
 import AppLayout from '@/layouts/app-layout';
 import { cn } from '@/lib/utils';
 import { Head, Link, router, usePage } from '@inertiajs/react';
@@ -11,14 +12,6 @@ import { Bar, BarChart, Cell, Legend, Line, LineChart, Pie, PieChart, Responsive
 import '../echo';
 
 /* ─────────────────────────────── Charts data (demo) ────────────────────────── */
-const monthly = [
-    { month: 'Jan', sales: 120, purchases: 95 },
-    { month: 'Feb', sales: 105, purchases: 88 },
-    { month: 'Mar', sales: 140, purchases: 100 },
-    { month: 'Apr', sales: 130, purchases: 97 },
-    { month: 'May', sales: 150, purchases: 110 },
-    { month: 'Jun', sales: 170, purchases: 123 },
-];
 
 const cashSeries = [
     { day: 1, cash: 30 },
@@ -27,14 +20,6 @@ const cashSeries = [
     { day: 15, cash: 61 },
     { day: 20, cash: 70 },
     { day: 25, cash: 66 },
-];
-
-const expBreakdown = [
-    { name: 'Raw paddy', value: 45 },
-    { name: 'Husk / Bran', value: 12 },
-    { name: 'Labour', value: 18 },
-    { name: 'Utility', value: 10 },
-    { name: 'Other', value: 15 },
 ];
 
 const COLORS = ['#22c55e', '#3b82f6', '#f97316', '#8b5cf6', '#ef4444', '#14b8a6'];
@@ -92,40 +77,46 @@ export default function Dashboard({ runningDryers }: DashboardProps) {
 
     const fmtMoney = (n: number) => new Intl.NumberFormat('en-BD', { minimumFractionDigits: 2 }).format(n || 0);
 
-    type KPI = {
-        title: string;
-        value: React.ReactNode;
-        icon: React.ComponentType<{ className?: string }>;
-        color: string;
-        bg: string;
-        href?: string; // ← make it clickable when present
-        onClick?: () => void; // ← or handle clicks imperatively
-    };
-
+    const t = useTranslation();
+    const expBreakdown = [
+        { name: t('rawPaddy'), value: 45 },
+        { name: t('huskBran'), value: 12 },
+        { name: t('labour'), value: 18 },
+        { name: t('utility'), value: 10 },
+        { name: t('other'), value: 15 },
+    ];
+    const monthly = [
+        { month: t('monthJan'), sales: 120, purchases: 95 },
+        { month: t('monthFeb'), sales: 105, purchases: 88 },
+        { month: t('monthMar'), sales: 140, purchases: 100 },
+        { month: t('monthApr'), sales: 130, purchases: 97 },
+        { month: t('monthMay'), sales: 150, purchases: 110 },
+        { month: t('monthJun'), sales: 170, purchases: 123 },
+    ];
     const kpis = [
-        { title: 'Total Sales', value: totalSales, icon: CircleDollarSign, color: 'text-green-600', bg: 'bg-green-50', href: '/reports/sale/filter' },
-        { title: 'Total Purchases', value: totalPurchases, icon: ShoppingCart, color: 'text-orange-600', bg: 'bg-orange-50', href: '/reports/purchase/filter/all' },
-        { title: 'Cash Received', value: totalReceived, icon: Wallet, color: 'text-blue-600', bg: 'bg-blue-50', href: '/reports/all-received-payment/filter' },
-        { title: 'Cash Paid', value: totalPayment, icon: Wallet, color: 'text-red-600', bg: 'bg-red-50' },
-        // { title: 'Net Income', value: 275000, icon: CircleDollarSign, color: 'text-emerald-600', bg: 'bg-emerald-50' },
-        // { title: 'Total Expenses', value: 210000, icon: ReceiptText, color: 'text-gray-700', bg: 'bg-gray-50' },
-        { title: 'Sales Returns', value: totalSalesReturns, icon: RotateCcw, color: 'text-fuchsia-600', bg: 'bg-fuchsia-50' },
-        { title: 'Purchase Returns', value: totalPurchaseReturns, icon: RotateCcw, color: 'text-cyan-600', bg: 'bg-cyan-50' },
-        { title: 'Open Sales Orders', value: totalSalesOrders, icon: ShoppingCart, color: 'text-orange-600', bg: 'bg-orange-50' },
+        { title: t('totalSales'), value: totalSales, icon: CircleDollarSign, color: 'text-green-600', bg: 'bg-green-50' },
+        { title: t('totalPurchases'), value: totalPurchases, icon: ShoppingCart, color: 'text-orange-600', bg: 'bg-orange-50' },
+        { title: t('cashReceived'), value: totalReceived, icon: Wallet, color: 'text-blue-600', bg: 'bg-blue-50' },
+        { title: t('cashPaid'), value: totalPayment, icon: Wallet, color: 'text-red-600', bg: 'bg-red-50' },
+        { title: t('netIncome'), value: 275000, icon: CircleDollarSign, color: 'text-emerald-600', bg: 'bg-emerald-50' },
+        { title: t('totalExpenses'), value: 210000, icon: CircleDollarSign, color: 'text-gray-700', bg: 'bg-gray-50' },
+        { title: t('salesReturns'), value: totalSalesReturns, icon: RotateCcw, color: 'text-fuchsia-600', bg: 'bg-fuchsia-50' },
+        { title: t('purchaseReturns'), value: totalPurchaseReturns, icon: RotateCcw, color: 'text-cyan-600', bg: 'bg-cyan-50' },
+        { title: t('openSalesOrders'), value: totalSalesOrders, icon: ShoppingCart, color: 'text-orange-600', bg: 'bg-orange-50' },
         {
-            title: 'Work Orders Done',
+            title: t('workOrdersDone'),
             value: `${completedWorkOrders} / ${totalWorkOrders}`,
             icon: CheckCircle2,
             color: 'text-indigo-600',
             bg: 'bg-indigo-50',
         },
-        { title: 'Outstanding Dues', value: totalDues, icon: Wallet, color: 'text-amber-600', bg: 'bg-amber-50' },
-        { title: 'Dues Cleared', value: clearedDuesCount, icon: CheckCircle2, color: 'text-emerald-600', bg: 'bg-emerald-50' },
+        { title: t('outstandingDues'), value: totalDues, icon: Wallet, color: 'text-amber-600', bg: 'bg-amber-50' },
+        { title: t('duesCleared'), value: clearedDuesCount, icon: CheckCircle2, color: 'text-emerald-600', bg: 'bg-emerald-50' },
     ];
 
     return (
-        <AppLayout breadcrumbs={[{ title: 'Dashboard', href: '/dashboard' }]}>
-            <Head title="Dashboard" />
+        <AppLayout breadcrumbs={[{ title: t('dashboard'), href: '/dashboard' }]}>
+            <Head title={t('dashboard')} />
 
             {!isAdmin && <TrialBanner />}
 
@@ -185,9 +176,9 @@ export default function Dashboard({ runningDryers }: DashboardProps) {
                     <CardHeader>
                         <div className="flex items-center justify-between">
                             <div>
-                                <h2 className="text-lg font-semibold tracking-tight">Top Supplier Payables</h2>
+                                <h2 className="text-lg font-semibold tracking-tight">{t('topSupplierPayables')}</h2>
                                 <p className="text-muted-foreground text-sm">
-                                    Total Outstanding: <span className="font-bold text-red-500">{fmtMoney(purchasePayableTotal)} BDT</span>
+                                    {t('totalOutstanding')}: <span className="font-bold text-red-500">{fmtMoney(purchasePayableTotal)} BDT</span>
                                 </p>
                             </div>
                             <Building className="text-muted-foreground h-6 w-6" />
@@ -198,7 +189,7 @@ export default function Dashboard({ runningDryers }: DashboardProps) {
                         {topPurchaseSuppliers.length === 0 ? (
                             <div className="flex h-24 flex-col items-center justify-center p-6 text-center">
                                 <CheckCircle2 className="h-8 w-8 text-green-500" />
-                                <p className="text-muted-foreground mt-2 text-sm">No outstanding payables!</p>
+                                <p className="text-muted-foreground mt-2 text-sm">{t('noOutstandingPayables')}</p>
                             </div>
                         ) : (
                             <div className="divide-y dark:divide-white/10">
@@ -241,21 +232,22 @@ export default function Dashboard({ runningDryers }: DashboardProps) {
                                 href={route('purchases.index')}
                                 className="text-primary hover:bg-muted flex w-full items-center justify-center gap-2 rounded-md p-2 text-sm font-semibold transition-colors"
                             >
-                                See All {topPurchaseSuppliers.length} Suppliers
+                                {t('seeAll')} {topPurchaseSuppliers.length} {t('suppliers')}
                                 <ArrowRight className="h-4 w-4" />
                             </Link>
                         </CardFooter>
                     )}
                 </Card>
 
-                {/* 👉 Live panel */}
+                {/* Running Dryers */}
                 <RunningDryersPanel items={Array.isArray(runningDryers) ? runningDryers : []} />
             </div>
 
             {/* Charts */}
             <div className="m-2 mt-6 grid gap-6 lg:grid-cols-2">
+                {/* Monthly Sales vs Purchases (lakh BDT) */}
                 <Card className="p-4">
-                    <CardHeader className="text-lg font-medium">Monthly Sales vs Purchases&nbsp;(lakh&nbsp;BDT)</CardHeader>
+                    <CardHeader className="text-lg font-medium">{t('monthlySalesPurchases')}</CardHeader>
                     <CardContent className="h-64">
                         <ResponsiveContainer width="100%" height="100%">
                             <BarChart data={monthly}>
@@ -263,15 +255,15 @@ export default function Dashboard({ runningDryers }: DashboardProps) {
                                 <YAxis />
                                 <Tooltip />
                                 <Legend verticalAlign="bottom" height={36} />
-                                <Bar dataKey="sales" name="Sales" barSize={16} fill="#22c55e" />
-                                <Bar dataKey="purchases" name="Purchases" barSize={16} fill="#f97316" />
+                                <Bar dataKey="sales" name={t('sales')} barSize={16} fill="#22c55e" />
+                                <Bar dataKey="purchases" name={t('purchases')} barSize={16} fill="#f97316" />
                             </BarChart>
                         </ResponsiveContainer>
                     </CardContent>
                 </Card>
 
                 <Card className="p-4">
-                    <CardHeader className="text-lg font-medium">Cash Position&nbsp;(current month)</CardHeader>
+                    <CardHeader className="text-lg font-medium">{t('cashPosition')}</CardHeader>
                     <CardContent className="h-64">
                         <ResponsiveContainer width="100%" height="100%">
                             <LineChart data={cashSeries}>
@@ -285,7 +277,7 @@ export default function Dashboard({ runningDryers }: DashboardProps) {
                 </Card>
 
                 <Card className="p-4 lg:col-span-2">
-                    <CardHeader className="text-lg font-medium">Expense Breakdown</CardHeader>
+                    <CardHeader className="text-lg font-medium">{t('expenseBreakdown')}</CardHeader>
                     <CardContent className="flex h-72 items-center justify-center">
                         <ResponsiveContainer width="60%" height="100%">
                             <PieChart>

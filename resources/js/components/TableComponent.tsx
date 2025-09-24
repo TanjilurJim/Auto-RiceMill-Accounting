@@ -1,4 +1,5 @@
 import React from 'react';
+import { useTranslation } from './useTranslation';
 
 interface TableColumn<T> {
     header: string;
@@ -14,6 +15,7 @@ interface TableProps<T> {
 }
 
 const TableComponent = <T,>({ columns, data, actions, noDataMessage = 'No data found.' }: TableProps<T>) => {
+    const t = useTranslation();
     return (
         <div className="bg-card text-card-foreground w-full overflow-x-auto rounded-xl border shadow-sm">
             <table className="w-full min-w-[600px] border-collapse">
@@ -24,7 +26,7 @@ const TableComponent = <T,>({ columns, data, actions, noDataMessage = 'No data f
                                 {column.header}
                             </th>
                         ))}
-                        {actions && <th className="border-border border-b px-3 py-2 text-left text-sm font-medium">Actions</th>}
+                        {actions && <th className="border-border border-b px-3 py-2 text-left text-sm font-medium">{t('tableActions')}</th>}
                     </tr>
                 </thead>
 

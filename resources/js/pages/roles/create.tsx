@@ -95,14 +95,9 @@ export default function CreateRole({ modules }: Props) {
 
     return (
         <AppLayout>
-            <div className='p-4 md:p-12'>
+            <div className="p-4 md:p-12">
                 <Head title="Create Role" />
-                <PageHeader
-                    title="Create New Role"
-                    description="Define permissions and access levels"
-                    addLinkHref="/roles"
-                    addLinkText="Back to Roles"
-                />
+                <PageHeader title="Create New Role" addLinkHref="/roles" addLinkText="Back to Roles" />
 
                 {/* Success Message */}
                 {flash.success && (
@@ -120,7 +115,7 @@ export default function CreateRole({ modules }: Props) {
                 >
                     {/* Role Name */}
                     <div className="mb-8">
-                        <label className="mb-1 block text-sm font-medium text-gray-700">Role Name</label>
+                        <label className="mb-1 block text-lg font-semibold text-gray-700 md:text-xl">Role Name</label>
                         <div className="relative">
                             <input
                                 value={data.name}
@@ -148,9 +143,10 @@ export default function CreateRole({ modules }: Props) {
 
                     {/* Permission Section */}
                     <div className="mb-8">
-                        <div className="mb-4 flex items-center justify-between">
-                            <h2 className="text-lg font-semibold text-gray-800">Permissions</h2>
-                            <div className="w-64">
+                        {/* Header and Search */}
+                        <div className="mb-4 grid grid-cols-1 items-center gap-4 md:grid-cols-2 md:justify-between">
+                            <h2 className="text-lg font-semibold text-gray-800 md:text-xl">Permissions</h2>
+                            <div className="">
                                 <input
                                     type="text"
                                     placeholder="Search permissions..."
@@ -168,7 +164,7 @@ export default function CreateRole({ modules }: Props) {
                                     <div key={module.name} className="overflow-hidden rounded-lg border">
                                         <button
                                             type="button"
-                                            className="flex w-full items-center justify-between bg-gray-50 p-4 hover:bg-gray-100 dark:bg-neutral-800 dark:hover:bg-neutral-700 cursor-pointer"
+                                            className="flex w-full cursor-pointer items-center justify-between bg-gray-50 p-4 hover:bg-gray-100 dark:bg-neutral-800 dark:hover:bg-neutral-700"
                                             onClick={() => toggleExpand(module.name)}
                                         >
                                             <div className="flex items-center">
@@ -182,6 +178,7 @@ export default function CreateRole({ modules }: Props) {
 
                                         {expandedModules[module.name] && (
                                             <div className="bg-white p-4 dark:bg-neutral-900">
+                                                {/* Permissions + Select All */}
                                                 <div className="mb-3 flex items-center justify-between">
                                                     <h3 className="font-medium text-gray-700 dark:text-gray-300">Permissions</h3>
                                                     <button
@@ -296,7 +293,6 @@ export default function CreateRole({ modules }: Props) {
                             )
                         }
                         cancelHref="/roles"
-                        className="mt-6 justify-end"
                     />
                 </form>
             </div>

@@ -41,11 +41,11 @@ const fmtTk = (n: string | number) => `${new Intl.NumberFormat('en-BD', { minimu
 /* ---------- component ----------------------------------------------------- */
 export default function History({ approvals }: { approvals: Paginator }) {
     return (
-        <AppLayout title="My Purchase-Approval History">
+        <AppLayout>
             <Head title="Approval Log" />
 
-            <div className="bg-background h-full w-screen p-6 lg:w-full">
-                <div className="bg-background h-full rounded-lg p-6">
+            <div className="bg-background h-full w-screen p-4 md:p-12 lg:w-full">
+                <div className="bg-background h-full rounded-lg ">
                     <PageHeader title="Approval Log"></PageHeader>
                     <div className="overflow-x-auto rounded-lg border border-gray-200 bg-white shadow-sm dark:border-neutral-700 dark:bg-neutral-900">
                         <table className="w-full text-sm">

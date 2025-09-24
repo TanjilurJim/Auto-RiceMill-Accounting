@@ -5,7 +5,9 @@ import axios from 'axios';
 import React from 'react';
 import Select from 'react-select';
 
+import TableComponent from '@/components/TableComponent';
 import CreatableSelect from 'react-select/creatable';
+
 interface Props {
     parties: { id: number; account_ledger_name: string }[];
     items: { id: number; item_name: string }[];
@@ -112,53 +114,130 @@ export default function PartyStockDepositForm({ parties, godowns, units, today, 
         handleFieldChange(index, 'unit_name', newUnit);
     };
 
-const selectStyles = {
-  control: (base: any, state: any) => ({
-    ...base,
-    backgroundColor: 'var(--input)',
-    borderColor: state.isFocused ? 'var(--ring)' : 'var(--input)',
-    boxShadow: state.isFocused ? '0 0 0 2px var(--ring)' : 'none',
-    color: 'var(--foreground)',
-    minHeight: '2.5rem',
-    borderRadius: 'var(--radius-md)',
-  }),
-  singleValue: (base: any) => ({ ...base, color: 'var(--foreground)' }),
-  input:       (base: any) => ({ ...base, color: 'var(--foreground)' }),
-  placeholder: (base: any) => ({ ...base, color: 'var(--muted-foreground)' }),
+    const selectStyles = {
+        control: (base: any, state: any) => ({
+            ...base,
+            backgroundColor: 'var(--input)',
+            borderColor: state.isFocused ? 'var(--ring)' : 'var(--input)',
+            boxShadow: state.isFocused ? '0 0 0 2px var(--ring)' : 'none',
+            color: 'var(--foreground)',
+            minHeight: '2.5rem',
+            borderRadius: 'var(--radius-md)',
+        }),
+        singleValue: (base: any) => ({ ...base, color: 'var(--foreground)' }),
+        input: (base: any) => ({ ...base, color: 'var(--foreground)' }),
+        placeholder: (base: any) => ({ ...base, color: 'var(--muted-foreground)' }),
 
-  menu: (base: any) => ({
-    ...base,
-    backgroundColor: 'var(--popover)',
-    color: 'var(--popover-foreground)',
-    border: '1px solid var(--border)',
-  }),
-  option: (base: any, state: any) => ({
-    ...base,
-    backgroundColor: state.isSelected
-      ? 'var(--primary)'
-      : state.isFocused
-      ? 'var(--accent)'
-      : 'transparent',
-    color: state.isSelected ? 'var(--primary-foreground)' : 'var(--popover-foreground)',
-  }),
+        menu: (base: any) => ({
+            ...base,
+            backgroundColor: 'var(--popover)',
+            color: 'var(--popover-foreground)',
+            border: '1px solid var(--border)',
+        }),
+        option: (base: any, state: any) => ({
+            ...base,
+            backgroundColor: state.isSelected ? 'var(--primary)' : state.isFocused ? 'var(--accent)' : 'transparent',
+            color: state.isSelected ? 'var(--primary-foreground)' : 'var(--popover-foreground)',
+        }),
 
-  indicatorSeparator: (b: any) => ({ ...b, backgroundColor: 'var(--border)' }),
-  dropdownIndicator:  (b: any) => ({ ...b, color: 'var(--muted-foreground)' }),
-  clearIndicator:     (b: any) => ({ ...b, color: 'var(--muted-foreground)' }),
+        indicatorSeparator: (b: any) => ({ ...b, backgroundColor: 'var(--border)' }),
+        dropdownIndicator: (b: any) => ({ ...b, color: 'var(--muted-foreground)' }),
+        clearIndicator: (b: any) => ({ ...b, color: 'var(--muted-foreground)' }),
 
-  // if you render into a portal (recommended to avoid overflow issues)
-  menuPortal: (base: any) => ({ ...base, zIndex: 60 }), // adjust to your stack
-};
+        // if you render into a portal (recommended to avoid overflow issues)
+        menuPortal: (base: any) => ({ ...base, zIndex: 60 }), // adjust to your stack
+    };
+
+    // Define table columns for TableComponent
+    const tableColumns = [
+        {
+            header: 'পণ্য',
+            accessor: (row: DepositRow, index: number) => (
+                <CreatableSelect
+                    isDisabled={!data.party_ledger_id}
+                    options={itemOptions}
+                    value={row.item_name ? { value: row.item_name, label: row.item_name } : null}
+                    onChange={(sel) => handleFieldChange(index, 'item_name', sel?.value ?? '')}
+                    placeholder="পণ্য"
+                    isClearable
+                    menuPortalTarget={typeof window !== 'undefined' ? document.body : undefined}
+                    menuPosition="fixed"
+                    styles={selectStyles}
+                />
+            ),
+        },
+        {
+            header: 'একক',
+            accessor: (row: DepositRow, index: number) => (
+                <>
+                    <select className="w-full rounded border p-1" value={row.unit_name} onChange={(e) => onUnitChange(index, e.target.value)}>
+                        <option value="">-- একক নির্বাচন করুন --</option>
+                        {units.map((u) => (
+                            <option key={u.id} value={u.name}>
+                                {u.name}
+                            </option>
+                        ))}
+                    </select>
+                    {isBosta(row.unit_name) && (
+                        <div className="mt-1">
+                            <Select
+                                classNamePrefix="rs"
+                                placeholder="বস্তা প্রতি (কেজি)"
+                                options={bostaKgOptions}
+                                value={bostaKgOptions.find((o) => o.value === (row.bosta_weight || '')) || null}
+                                onChange={(o) => handleFieldChange(index, 'bosta_weight', o?.value || '')}
+                                menuPortalTarget={typeof window !== 'undefined' ? document.body : undefined}
+                                menuPosition="fixed"
+                                styles={{ menuPortal: (base) => ({ ...base, zIndex: 9999 }) }}
+                            />
+                        </div>
+                    )}
+                </>
+            ),
+        },
+        {
+            header: 'পরিমাণ',
+            accessor: (row: DepositRow, index: number) => (
+                <input
+                    type="number"
+                    value={row.qty}
+                    onChange={(e) => handleFieldChange(index, 'qty', e.target.value)}
+                    className="w-full rounded border p-1 text-right"
+                />
+            ),
+        },
+        {
+            header: 'রেট',
+            accessor: (row: DepositRow, index: number) => (
+                <input
+                    type="number"
+                    value={row.rate}
+                    onChange={(e) => handleFieldChange(index, 'rate', e.target.value)}
+                    className="w-full rounded border p-1 text-right"
+                />
+            ),
+        },
+        {
+            header: 'মোট',
+            accessor: (row: DepositRow) => Number(row.total || 0).toFixed(2),
+            className: 'text-right',
+        },
+        {
+            header: 'ওজন (কেজি)',
+            accessor: (row: DepositRow) => (row.weight != null ? Number(row.weight).toFixed(3) : '—'),
+            className: 'text-right',
+        },
+    ];
 
     return (
         <AppLayout>
             <Head title="পার্টি মাল জমা ফর্ম" />
-            <div className="h-full w-screen bg-background p-6 lg:w-full">
-                <div className="h-full rounded-lg bg-background p-6">
+            <div className="bg-background h-full w-screen lg:w-full">
+                <div className="bg-background h-full rounded-lg p-4 md:p-12">
                     <h1 className="mb-4 text-xl font-bold">পার্টির পণ্য জমা ফর্ম</h1>
 
                     <form onSubmit={handleSubmit} className="space-y-6">
-                        <div className="grid grid-cols-2 items-end gap-4">
+                        <div className="grid grid-cols-1 md:grid-cols-2 items-end gap-4">
                             <div>
                                 <InputCalendar
                                     label="তারিখ"
@@ -180,7 +259,7 @@ const selectStyles = {
                                     classNamePrefix="react-select"
                                     placeholder="পার্টি খুঁজুন..."
                                     isClearable
-                                     styles={selectStyles}
+                                    styles={selectStyles}
                                 />
                                 {errors.party_ledger_id && <p className="text-sm text-red-500">{errors.party_ledger_id}</p>}
                             </div>
@@ -196,7 +275,7 @@ const selectStyles = {
                                     classNamePrefix="react-select"
                                     placeholder="গুদাম খুঁজুন..."
                                     isClearable
-                                     styles={selectStyles}
+                                    styles={selectStyles}
                                 />
                                 {errors.godown_id_to && <p className="text-sm text-red-500">{errors.godown_id_to}</p>}
                             </div>
@@ -215,104 +294,16 @@ const selectStyles = {
 
                         <div>
                             <h2 className="mb-2 text-lg font-semibold">পণ্যের জমা তালিকা</h2>
-                            <table className="w-full table-auto border text-sm">
-                                <thead className="bg-background">
-                                    <tr>
-                                        <th className="border p-2">পণ্য</th>
-                                        <th className="border p-2">একক</th>
-                                        <th className="border p-2">পরিমাণ</th>
-                                        <th className="border p-2">রেট</th>
-                                        <th className="border p-2">মোট</th>
-                                        <th className="border p-2">ওজন (কেজি)</th>
-                                        <th className="border p-2">✕</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    {data.deposits.map((row, index) => (
-                                        <tr key={index}>
-                                            {/* Product */}
-                                            <td className="border p-2">
-                                                <CreatableSelect
-                                                    isDisabled={!data.party_ledger_id}
-                                                    options={itemOptions}
-                                                    value={row.item_name ? { value: row.item_name, label: row.item_name } : null}
-                                                    onChange={(sel) => handleFieldChange(index, 'item_name', sel?.value ?? '')}
-                                                    placeholder="পণ্য"
-                                                    isClearable
-                                                    menuPortalTarget={typeof window !== 'undefined' ? document.body : undefined}
-                                                    menuPosition="fixed"
-                                                     styles={selectStyles}
-                                                />
-                                            </td>
-
-                                            {/* Unit */}
-                                            <td className="border p-2">
-                                                <select
-                                                    className="w-full rounded border p-1"
-                                                    value={row.unit_name}
-                                                    onChange={(e) => onUnitChange(index, e.target.value)}
-                                                >
-                                                    <option value="">-- একক নির্বাচন করুন --</option>
-                                                    {units.map((u) => (
-                                                        <option key={u.id} value={u.name}>
-                                                            {u.name}
-                                                        </option>
-                                                    ))}
-                                                </select>
-
-                                                {/* When unit = Bosta, show per-bosta kg picker */}
-                                                {isBosta(row.unit_name) && (
-                                                    <div className="mt-1">
-                                                        <Select
-                                                            classNamePrefix="rs"
-                                                            placeholder="বস্তা প্রতি (কেজি)"
-                                                            options={bostaKgOptions}
-                                                            value={bostaKgOptions.find((o) => o.value === (row.bosta_weight || '')) || null}
-                                                            onChange={(o) => handleFieldChange(index, 'bosta_weight', o?.value || '')}
-                                                            menuPortalTarget={typeof window !== 'undefined' ? document.body : undefined}
-                                                            menuPosition="fixed"
-                                                            styles={{ menuPortal: (base) => ({ ...base, zIndex: 9999 }) }}
-                                                        />
-                                                    </div>
-                                                )}
-                                            </td>
-
-                                            {/* Qty */}
-                                            <td className="border p-2">
-                                                <input
-                                                    type="number"
-                                                    value={row.qty}
-                                                    onChange={(e) => handleFieldChange(index, 'qty', e.target.value)}
-                                                    className="w-full rounded border p-1 text-right"
-                                                />
-                                            </td>
-
-                                            {/* Rate */}
-                                            <td className="border p-2">
-                                                <input
-                                                    type="number"
-                                                    value={row.rate}
-                                                    onChange={(e) => handleFieldChange(index, 'rate', e.target.value)}
-                                                    className="w-full rounded border p-1 text-right"
-                                                />
-                                            </td>
-
-                                            {/* Total */}
-                                            <td className="border p-2 text-right">{row.total.toFixed(2)}</td>
-
-                                            {/* NEW: Weight (kg) display */}
-                                            <td className="border p-2 text-right">{row.weight != null ? Number(row.weight).toFixed(3) : '—'}</td>
-
-                                            {/* Remove */}
-                                            <td className="border p-2 text-center">
-                                                <button type="button" onClick={() => removeRow(index)} className="font-bold text-red-600">
-                                                    ✕
-                                                </button>
-                                            </td>
-                                        </tr>
-                                    ))}
-                                </tbody>
-                            </table>
+                            <TableComponent
+                                columns={tableColumns}
+                                data={data.deposits}
+                                actions={(row, index) => (
+                                    <button type="button" onClick={() => removeRow(index)} className="font-bold text-red-600">
+                                        ✕
+                                    </button>
+                                )}
+                                noDataMessage="কোনো পণ্য নেই"
+                            />
                             <div className="mt-2 text-right">
                                 <button type="button" onClick={addRow} className="font-semibold text-blue-600">
                                     + নতুন পণ্য

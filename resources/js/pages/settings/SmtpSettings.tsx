@@ -191,7 +191,7 @@ export default function SmtpSettings() {
                         </div>
                     </CardContent>
                     <CardFooter className="flex gap-2">
-                        <Button disabled={processing} onClick={save}>
+                        <Button disabled={processing} onClick={save} className='w-full md:w-auto'>
                             {processing && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
                             Save
                         </Button>
@@ -208,7 +208,7 @@ export default function SmtpSettings() {
                                 <Label>To</Label>
                                 <Input type="email" value={testTo} onChange={(e) => setTestTo(e.target.value)} placeholder="you@example.com" />
                             </div>
-                            <Button type="submit" className="bg-amber-400 hover:bg-amber-300" disabled={isTesting || !testTo}>
+                            <Button type="submit" className="bg-amber-400 hover:bg-amber-300 w-full md:w-auto" disabled={isTesting || !testTo}>
                                 {isTesting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
                                 {isTesting ? 'Sending…' : 'Send Test'}
                             </Button>

@@ -53,23 +53,27 @@ export default function EmployeeReport() {
                     <PageHeader title="Employee Salary Report" />
 
                     {/* Filters */}
-                    <div className="mb-6 flex flex-wrap gap-3">
-                        <label className="text-sm font-medium">Employee:</label>
-                        <select value={selectedId ?? ''} onChange={onChangeEmp} className="rounded border px-3 py-2">
-                            <option value="">— All Employees —</option>
-                            {employees.map((e) => (
-                                <option key={e.id} value={e.id}>
-                                    {e.name}
-                                </option>
-                            ))}
-                        </select>
+                    <div className="mb-6 flex flex-col gap-3 md:flex-row md:items-center">
+                        <div>
+                            <label className="text-sm font-medium mr-1">Employee:</label>
+                            <select value={selectedId ?? ''} onChange={onChangeEmp} className="rounded border px-3 py-2">
+                                <option value="">— All Employees —</option>
+                                {employees.map((e) => (
+                                    <option key={e.id} value={e.id}>
+                                        {e.name}
+                                    </option>
+                                ))}
+                            </select>
+                        </div>
 
-                        <label className="ml-4 text-sm font-medium">Payment Type:</label>
-                        <select value={type} onChange={onChangeType} className="rounded border px-3 py-2">
-                            <option value="all">All</option>
-                            <option value="advance">Advance only</option>
-                            <option value="regular">Regular only</option>
-                        </select>
+                        <div>
+                            <label className="ml-4 text-sm font-medium mr-1">Payment Type:</label>
+                            <select value={type} onChange={onChangeType} className="rounded border px-3 py-2">
+                                <option value="all">All</option>
+                                <option value="advance">Advance only</option>
+                                <option value="regular">Regular only</option>
+                            </select>
+                        </div>
                     </div>
 
                     {/* Totals */}
