@@ -1,5 +1,6 @@
 import Pagination from '@/components/Pagination';
 import { StatusBadge } from '@/components/StatusBadge';
+import { useTranslation } from '@/components/useTranslation';
 import { CheckIcon, EyeIcon, XMarkIcon } from '@heroicons/react/24/outline';
 import { Link, router } from '@inertiajs/react';
 import { useState } from 'react';
@@ -46,6 +47,7 @@ interface ModalState {
 
 /* ───────── component ───────── */
 export default function PurchaseInboxTable({ purchases, approveRoute, rejectRoute }: Props) {
+    const t = useTranslation();
     const [selected, setSelected] = useState<number[]>([]);
     const [modal, setModal] = useState<ModalState>({
         isOpen: false,
@@ -74,10 +76,10 @@ export default function PurchaseInboxTable({ purchases, approveRoute, rejectRout
 
     return (
         <>
-            <div className="overflow-hidden rounded-lg border border-gray-200 bg-background shadow-sm dark:border-neutral-700 dark:bg-neutral-900">
+            <div className="bg-background overflow-hidden rounded-lg border border-gray-200 shadow-sm dark:border-neutral-700 dark:bg-neutral-900">
                 <div className="overflow-x-auto">
                     <table className="w-full text-sm">
-                        <thead className="border-b border-gray-200 bg-background text-left text-xs tracking-wider text-gray-600 uppercase dark:border-neutral-700 dark:bg-neutral-800 dark:text-gray-400">
+                        <thead className="bg-background border-b border-gray-200 text-left text-xs tracking-wider text-gray-600 uppercase dark:border-neutral-700 dark:bg-neutral-800 dark:text-gray-400">
                             <tr>
                                 <th className="w-10 p-3">
                                     <input
@@ -88,15 +90,15 @@ export default function PurchaseInboxTable({ purchases, approveRoute, rejectRout
                                         onChange={() => setSelected(allChecked ? [] : purchases.data.map((r) => r.id))}
                                     />
                                 </th>
-                                <th className="p-3">Date</th>
-                                <th className="p-3">Voucher</th>
-                                <th className="p-3">Supplier</th>
-                                <th className="p-3">Godown</th>
-                                <th className="p-3">Salesman</th>
-                                <th className="p-3">Sub-Approval</th>
-                                <th className="p-3">Resp-Approval</th>
-                                <th className="p-3 text-right">Total</th>
-                                <th className="p-3 text-center">Actions</th>
+                                <th className="p-3">{t('dateHeader')}</th>
+                                <th className="p-3">{t('voucherHeader')}</th>
+                                <th className="p-3">{t('supplierHeader')}</th>
+                                <th className="p-3">{t('godownHeader')}</th>
+                                <th className="p-3">{t('salesmanHeader')}</th>
+                                <th className="p-3">{t('subApprovalHeader')}</th>
+                                <th className="p-3">{t('respApprovalHeader')}</th>
+                                <th className="p-3 text-right">{t('totalHeader')}</th>
+                                <th className="p-3 text-center">{t('actionsHeader')}</th>
                             </tr>
                         </thead>
 
@@ -138,21 +140,26 @@ export default function PurchaseInboxTable({ purchases, approveRoute, rejectRout
                                         {/* action buttons */}
                                         <td className="p-3">
                                             <div className="flex items-center justify-center gap-2">
-                                                <ActionButton as={Link} href={`/purchases/${row.id}`} tooltip="View" className="hover:text-sky-600">
+                                                <ActionButton
+                                                    as={Link}
+                                                    href={`/purchases/${row.id}`}
+                                                    tooltip={t('viewTooltip')}
+                                                    className="hover:text-sky-600"
+                                                >
                                                     <EyeIcon className="h-5 w-5" />
                                                 </ActionButton>
 
                                                 <ActionButton
-                                                    onClick={() => confirmThen([row.id], approveRoute, 'Approve this purchase?')}
-                                                    tooltip="Approve"
+                                                    onClick={() => confirmThen([row.id], approveRoute, t('approvePurchaseMessage'))}
+                                                    tooltip={t('approveTooltip')}
                                                     className="hover:text-green-600"
                                                 >
                                                     <CheckIcon className="h-5 w-5" />
                                                 </ActionButton>
 
                                                 <ActionButton
-                                                    onClick={() => confirmThen([row.id], rejectRoute, 'Reject this purchase?')}
-                                                    tooltip="Reject"
+                                                    onClick={() => confirmThen([row.id], rejectRoute, t('rejectPurchaseMessage'))}
+                                                    tooltip={t('rejectTooltip')}
                                                     className="hover:text-red-600"
                                                 >
                                                     <XMarkIcon className="h-5 w-5" />
@@ -164,7 +171,7 @@ export default function PurchaseInboxTable({ purchases, approveRoute, rejectRout
                             ) : (
                                 <tr>
                                     <td colSpan={10} className="p-6 text-center text-gray-500 dark:text-gray-400">
-                                        No purchases awaiting approval 🎉
+                                        {t('noPurchasesMessage')}
                                     </td>
                                 </tr>
                             )}
@@ -178,20 +185,32 @@ export default function PurchaseInboxTable({ purchases, approveRoute, rejectRout
                 <div className="mt-4 rounded-lg border border-gray-200 bg-white px-4 py-3 shadow-sm dark:border-neutral-700 dark:bg-neutral-900">
                     <div className="flex flex-wrap items-center justify-between gap-3">
                         <p className="text-sm font-medium">
-                            <span className="font-bold">{selected.length}</span> item(s) selected
+                            <span className="font-bold">{selected.length}</span> {t('itemsSelected')}
                         </p>
                         <div className="flex items-center gap-2">
                             <button
                                 className="btn-green-sm"
-                                onClick={() => confirmThen(selected, approveRoute, `Approve all ${selected.length} selected purchases?`)}
+                                onClick={() =>
+                                    confirmThen(
+                                        selected,
+                                        approveRoute,
+                                        `${t('approveSelectedMessage')} ${selected.length} ${t('selectedPurchasesText')}`,
+                                    )
+                                }
                             >
-                                Approve Selected
+                                {t('approveSelected')}
                             </button>
                             <button
                                 className="btn-red-sm"
-                                onClick={() => confirmThen(selected, rejectRoute, `Reject all ${selected.length} selected purchases?`)}
+                                onClick={() =>
+                                    confirmThen(
+                                        selected,
+                                        rejectRoute,
+                                        `${t('rejectSelectedMessage')} ${selected.length} ${t('selectedPurchasesText')}`,
+                                    )
+                                }
                             >
-                                Reject Selected
+                                {t('rejectSelected')}
                             </button>
                         </div>
                     </div>
@@ -204,14 +223,14 @@ export default function PurchaseInboxTable({ purchases, approveRoute, rejectRout
             {modal.isOpen && (
                 <div className="bg-opacity-50 fixed inset-0 z-50 flex items-center justify-center bg-black">
                     <div className="w-full max-w-md transform rounded-lg bg-white p-6 shadow-xl transition-all dark:bg-neutral-800">
-                        <h3 className="text-lg leading-6 font-medium text-gray-900 dark:text-white">Confirm Action</h3>
+                        <h3 className="text-lg leading-6 font-medium text-gray-900 dark:text-white">{t('confirmActionTitle')}</h3>
                         <p className="mt-2 text-sm text-gray-500 dark:text-gray-400">{modal.message}</p>
                         <div className="mt-5 flex justify-end gap-3">
                             <button type="button" className="btn-gray" onClick={closeModal}>
-                                Cancel
+                                {t('cancelActionButton')}
                             </button>
                             <button type="button" className="btn-sky" onClick={modal.onConfirm}>
-                                Confirm
+                                {t('confirmButton')}
                             </button>
                         </div>
                     </div>

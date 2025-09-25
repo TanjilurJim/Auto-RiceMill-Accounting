@@ -3,6 +3,7 @@ import { confirmDialog } from '@/components/confirmDialog';
 import PageHeader from '@/components/PageHeader';
 import Pagination from '@/components/Pagination';
 import TableComponent from '@/components/TableComponent';
+import { useTranslation } from '@/components/useTranslation';
 import AppLayout from '@/layouts/app-layout';
 import { Head, router } from '@inertiajs/react';
 import { FiEdit, FiEye, FiTrash } from 'react-icons/fi';
@@ -52,37 +53,32 @@ interface Props {
     workingOrders: Paginated<WorkingOrder>;
 }
 
-
-
 /* ─────────── Component ─────────── */
 export default function Index({ workingOrders }: Props) {
     const orders = workingOrders.data ?? [];
+    const t = useTranslation();
 
     const handleDelete = (id: number) => {
-        confirmDialog(
-            {}, () => {
-                router.delete(`/working-orders/${id}`);
-            }
-        )
-
-
+        confirmDialog({}, () => {
+            router.delete(`/working-orders/${id}`);
+        });
     };
 
     /* ─────────── Constants ─────────── */
     const columns = [
-        { header: 'Voucher No', accessor: 'voucher_no', },
-        { header: 'Reference', accessor: (row: any) => row.reference_no || '—', },
+        { header: t('woVoucherNoHeader'), accessor: 'voucher_no' },
+        { header: t('woReferenceHeader'), accessor: (row: any) => row.reference_no || '—' },
         {
-            header: 'Production',
+            header: t('woProductionHeader'),
             accessor: (row: any) =>
                 row.production_status === 'completed' ? (
                     <span className="font-semibold text-green-600">{row.production_voucher_no}</span>
                 ) : (
-                    <span className="text-red-500 italic">Not at Production Yet</span>
+                    <span className="text-red-500 italic">{t('notAtProductionText')}</span>
                 ),
         },
         {
-            header: 'Items (Qty)',
+            header: t('woItemsQtyHeader'),
             accessor: (row: any) =>
                 row.items
                     .filter((i: any) => i.item)
@@ -90,29 +86,28 @@ export default function Index({ workingOrders }: Props) {
                     .join('\n') || '—',
         },
         {
-            header: 'Godowns',
-            accessor: (row: any) =>
-                Array.from(new Set(row.items.map((i: any) => i.godown?.name).filter(Boolean))).join(', ') || '—',
+            header: t('woGodownsHeader'),
+            accessor: (row: any) => Array.from(new Set(row.items.map((i: any) => i.godown?.name).filter(Boolean))).join(', ') || '—',
         },
-        { header: 'Quantity', accessor: 'total_quantity', },
-        { header: 'SubTotal', accessor: 'subtotal', },
+        { header: t('woQuantityHeader'), accessor: 'total_quantity' },
+        { header: t('woSubtotalHeader'), accessor: 'subtotal' },
         // {
         //     header: 'Extras',
         //     accessor: (row: any) =>
         //         (row.extras ?? []).map((e: any) => `${e.title} (${Number(e.total).toFixed(2)})`).join('\n') || '—',
         // },
-        { header: 'Total Amount', accessor: 'total_amount', },
-        { header: 'Date', accessor: 'date', },
+        { header: t('woTotalAmountHeader'), accessor: 'total_amount' },
+        { header: t('woDateHeader'), accessor: 'date' },
     ];
 
     return (
         <AppLayout>
-            <Head title="Working Orders" />
+            <Head title={t('workingOrdersTitle')} />
 
-            <div className="h-full w-screen lg:w-full border">
-                <div className="h-full  p-4 md:p-12">
+            <div className="h-full w-screen border lg:w-full">
+                <div className="h-full p-4 md:p-12">
                     {/* Header Bar */}
-                    <PageHeader title="Working Orders" addLinkHref="/working-orders/create" addLinkText="+ New Working Order" />
+                    <PageHeader title={t('workingOrdersTitle')} addLinkHref="/working-orders/create" addLinkText={t('newWorkingOrderText')} />
 
                     {/* Responsive Table */}
                     <TableComponent
@@ -128,7 +123,7 @@ export default function Index({ workingOrders }: Props) {
                                 printText={<FiEye />}
                             />
                         )}
-                        noDataMessage="No working orders found."
+                        noDataMessage={t('noWorkingOrdersMessage')}
                     />
 
                     {/* Pagination Links */}

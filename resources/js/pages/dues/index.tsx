@@ -1,6 +1,7 @@
 import PageHeader from '@/components/PageHeader';
 import Pagination from '@/components/Pagination';
 import TableComponent from '@/components/TableComponent';
+import { useTranslation } from '@/components/useTranslation';
 import AppLayout from '@/layouts/app-layout';
 import { Head, Link, router, usePage } from '@inertiajs/react';
 import { useEffect, useState } from 'react';
@@ -39,32 +40,35 @@ const formatDate = (iso: string) => {
 export default function DueIndex({ sales, filters }: Props) {
     const { flash } = usePage().props as any;
     const [search, setSearch] = useState(filters.q ?? '');
+    const t = useTranslation();
 
     // Define table columns for TableComponent
     const tableColumns = [
         {
-            header: 'Date',
+            header: t('dateHeader'),
             accessor: (row: Row) => formatDate(row.date),
         },
         {
-            header: 'Voucher',
+            header: t('voucherHeader'),
             accessor: (row: Row) => row.voucher_no,
         },
         {
-            header: 'Customer',
+            header: t('customerHeader'),
             accessor: (row: Row) => row.customer,
         },
         {
-            header: 'Items',
+            header: t('itemsHeader'),
             accessor: (row: Row) => (
                 <div className="text-foreground/80 text-xs">
                     {row.sale_items}
-                    {row.extra_count > 0 && <span className="text-gray-400"> +{row.extra_count} more</span>}
+                    {row.extra_count > 0 && (
+                        <span className="text-gray-400"> {t('moreItemsText').replace('{count}', row.extra_count.toString())}</span>
+                    )}
                 </div>
             ),
         },
         {
-            header: 'Outstanding (৳)',
+            header: t('outstandingAmountHeader'),
             accessor: (row: Row) => <span className="font-medium">{fmt(row.outstanding)}</span>,
             className: 'text-right',
         },
@@ -72,8 +76,8 @@ export default function DueIndex({ sales, filters }: Props) {
 
     // Define actions for each row
     const renderActions = (row: Row) => (
-        <Link href={route('dues.show', row.id)} className="text-xs rounded bg-blue-600 px-3 py-1 text-white hover:bg-blue-700">
-            Receive Payment
+        <Link href={route('dues.show', row.id)} className="rounded bg-blue-600 px-3 py-1 text-xs text-white hover:bg-blue-700">
+            {t('receivePaymentText')}
         </Link>
     );
 
@@ -110,11 +114,11 @@ export default function DueIndex({ sales, filters }: Props) {
 
     return (
         <AppLayout>
-            <Head title="Outstanding Dues" />
+            <Head title={t('outstandingDuesTitle')} />
 
             <div className="">
-                <div className="bg-background h-full w-screen lg:w-full p-4 md:p-12">
-                    <PageHeader title="Outstanding Dues" addLinkHref="/sales" addLinkText="Back to Sales" />
+                <div className="bg-background h-full w-screen p-4 md:p-12 lg:w-full">
+                    <PageHeader title={t('outstandingDuesTitle')} addLinkHref="/sales" addLinkText={t('backToSalesText')} />
 
                     {/* flash msg */}
                     {flash?.success && <div className="bg-background rounded p-3 text-green-800">{flash.success}</div>}
@@ -123,7 +127,7 @@ export default function DueIndex({ sales, filters }: Props) {
                     <div className="mb-3 flex items-center gap-2">
                         <input
                             type="text"
-                            placeholder="Search voucher, customer, item…"
+                            placeholder={t('duesSearchPlaceholder')}
                             className="w-full max-w-sm rounded border-b-2 border-gray-600 p-2 shadow-sm"
                             value={search}
                             onChange={(e) => setSearch(e.target.value)}
@@ -136,13 +140,13 @@ export default function DueIndex({ sales, filters }: Props) {
                                 onClick={handleReset}
                                 className="rounded bg-gray-200 px-3 py-2 text-sm font-medium text-gray-700 hover:bg-gray-300"
                             >
-                                Reset
+                                {t('resetButtonText')}
                             </button>
                         )}
                     </div>
 
                     {/* table */}
-                    <TableComponent columns={tableColumns} data={sales.data} actions={renderActions} noDataMessage="🎉 No dues — all caught up." />
+                    <TableComponent columns={tableColumns} data={sales.data} actions={renderActions} noDataMessage={t('noDuesMessage')} />
 
                     {/* paginator */}
                     {sales.data.length > 0 && (

@@ -3,10 +3,11 @@ import { confirmDialog } from '@/components/confirmDialog';
 import PageHeader from '@/components/PageHeader';
 import Pagination from '@/components/Pagination';
 import TableComponent from '@/components/TableComponent';
+import { useTranslation } from '@/components/useTranslation';
 import AppLayout from '@/layouts/app-layout';
+import { fmtDate } from '@/utils/format';
 import { Head, Link, router } from '@inertiajs/react';
 import React, { MouseEvent, useEffect, useState } from 'react';
-import { fmtDate } from '@/utils/format';
 
 const miniBtn = 'px-2 py-1 text-xs rounded font-medium text-white transition';
 
@@ -37,6 +38,7 @@ interface PaginatedSales {
 }
 
 export default function SaleIndex({ sales }: { sales: PaginatedSales }) {
+    const t = useTranslation();
     // Track which row index is open, or null if closed
     const [openDropdown, setOpenDropdown] = useState<number | null>(null);
 
@@ -97,43 +99,52 @@ export default function SaleIndex({ sales }: { sales: PaginatedSales }) {
     };
 
     const columns = [
-        { header: 'SL', accessor: (_: Sale, index?: number) => <span>{(index ?? 0) + 1}</span>, className: 'text-center' },
-        { header: 'Date',  accessor: (row: Sale) => fmtDate(row.date), },
-        { header: 'Vch. No', accessor: 'voucher_no' },
-        { header: 'Ledger', accessor: (row: Sale) => row.account_ledger.account_ledger_name },
+        { header: t('slHeader'), accessor: (_: Sale, index?: number) => <span>{(index ?? 0) + 1}</span>, className: 'text-center' },
+        { header: t('dateHeader'), accessor: (row: Sale) => fmtDate(row.date) },
+        { header: t('vchNoHeader'), accessor: 'voucher_no' },
+        { header: t('ledgerHeader'), accessor: (row: Sale) => row.account_ledger.account_ledger_name },
         {
-            header: 'Item + Qty',
+            header: t('itemQtyHeader'),
             accessor: (row: Sale) =>
                 row.sale_items.map((item, idx) => (
                     <div key={idx}>
-                        {item.item?.item_name || 'N/A'} - {item.qty}
+                        {item.item?.item_name || t('notAvailable')} - {item.qty}
                     </div>
                 )),
         },
         {
-            header: 'Status',
-            accessor: (row: Sale) => (
-                <span
-                    className={
-                        'rounded px-2 py-0.5 text-xs font-semibold ' +
-                        {
-                            draft: 'bg-gray-200 text-gray-700',
-                            pending_sub: 'bg-yellow-100 text-yellow-800',
-                            pending_resp: 'bg-orange-100 text-orange-800',
-                            approved: 'bg-green-100 text-green-800',
-                            rejected: 'bg-red-100 text-red-800',
-                        }[row.status as Sale['status']] // fallback is undefined ⇒ no extra class
-                    }
-                >
-                    {row.status.replace('_', ' ')} {/* make it look nicer */}
-                </span>
-            ),
-            className: 'text-center', // optional
+            header: t('statusHeader'),
+            accessor: (row: Sale) => {
+                const statusMap: Record<string, string> = {
+                    draft: t('draftBadge'),
+                    pending_sub: t('pendingSubBadge'),
+                    pending_resp: t('pendingRespBadge'),
+                    approved: t('approvedBadge'),
+                    rejected: t('rejectedBadge'),
+                };
+                return (
+                    <span
+                        className={
+                            'rounded px-2 py-0.5 text-xs font-semibold ' +
+                            {
+                                draft: 'bg-gray-200 text-gray-700',
+                                pending_sub: 'bg-yellow-100 text-yellow-800',
+                                pending_resp: 'bg-orange-100 text-orange-800',
+                                approved: 'bg-green-100 text-green-800',
+                                rejected: 'bg-red-100 text-red-800',
+                            }[row.status as Sale['status']]
+                        }
+                    >
+                        {statusMap[row.status] || row.status.replace('_', ' ')}
+                    </span>
+                );
+            },
+            className: 'text-center',
         },
-        { header: 'Total Qty', accessor: 'total_qty', className: 'text-center' },
+        { header: t('totalQtyHeader'), accessor: 'total_qty', className: 'text-center' },
         {
-            header: 'Total Amount',
-            accessor: (row: Sale) => `${(parseFloat(row.grand_total as any) || 0).toFixed(2)} Tk`,
+            header: t('totalAmountHeader'),
+            accessor: (row: Sale) => `${(parseFloat(row.grand_total as any) || 0).toFixed(2)} ${t('currencyTk')}`,
             className: 'text-right font-semibold',
         },
         // {
@@ -145,11 +156,11 @@ export default function SaleIndex({ sales }: { sales: PaginatedSales }) {
 
     return (
         <AppLayout>
-            <Head title="Sales List" />
-            <div className="h-full w-screen bg-background p-6 lg:w-full">
-                <div className="h-full rounded-lg bg-background p-6">
+            <Head title={t('salesListTitle')} />
+            <div className="bg-background h-full w-screen p-6 lg:w-full">
+                <div className="bg-background h-full rounded-lg p-6">
                     {/* Header */}
-                    <PageHeader title="Sales List" addLinkHref="/sales/create" addLinkText="+ Add Sale" />
+                    <PageHeader title={t('salesListTitle')} addLinkHref="/sales/create" addLinkText={t('addSaleButtonText')} />
 
                     {/* Table */}
                     <TableComponent
@@ -163,7 +174,7 @@ export default function SaleIndex({ sales }: { sales: PaginatedSales }) {
                                     editHref={`/sales/${row.id}/edit`}
                                     onDelete={() => handleDelete(row.id)}
                                     onPrint={(e) => toggleDropdown(rowIndex, e)}
-                                    printText="Print ▼"
+                                    printText={t('printDropdownText')}
                                     editClassName={`${miniBtn} bg-warning hover:bg-warning-hover`}
                                     deleteClassName={`${miniBtn} bg-danger  hover:bg-danger-hover`}
                                     printClassName={`${miniBtn} bg-info    hover:bg-info-hover`}
@@ -172,79 +183,45 @@ export default function SaleIndex({ sales }: { sales: PaginatedSales }) {
                                 {/* dropdown – only for the row that’s open */}
                                 {openDropdown === rowIndex && (
                                     <div
-                                        className="absolute right-0 z-50 mt-1 w-40 rounded border bg-background shadow"
+                                        className="bg-background absolute right-0 z-50 mt-1 w-40 rounded border shadow"
                                         onClick={(e) => e.stopPropagation()}
                                     >
-                                        <Link href={`/sales/${row.id}/invoice`} target="_blank" className="block px-4 py-2 text-sm hover:bg-gray-100 hover:text-black">
-                                            Sale Invoice
+                                        <Link
+                                            href={`/sales/${row.id}/invoice`}
+                                            target="_blank"
+                                            className="block px-4 py-2 text-sm hover:bg-gray-100 hover:text-black"
+                                        >
+                                            {t('saleInvoiceText')}
                                         </Link>
                                         <Link
                                             href={`/sales/${row.id}/truck-chalan`}
                                             target="_blank"
                                             className="block px-4 py-2 text-sm hover:bg-gray-100 hover:text-black"
                                         >
-                                            Truck Chalan
+                                            {t('truckChalanText')}
                                         </Link>
                                         <Link
                                             href={`/sales/${row.id}/load-slip`}
                                             target="_blank"
                                             className="block px-4 py-2 text-sm hover:bg-gray-100 hover:text-black"
                                         >
-                                            Load Slip
+                                            {t('loadSlipText')}
                                         </Link>
                                         <Link
                                             href={`/sales/${row.id}/gate-pass`}
                                             target="_blank"
                                             className="block px-4 py-2 text-sm hover:bg-gray-100 hover:text-black"
                                         >
-                                            Gate Pass
+                                            {t('gatePassText')}
                                         </Link>
                                     </div>
-                                )}  
+                                )}
                             </div>
                         )}
                     />
 
                     {/* Pagination */}
                     <Pagination links={sales.links} currentPage={sales.current_page} lastPage={sales.last_page} total={sales.total} />
-
-                    {/* 🔥 The "Print" Dropdown outside the table so it won't be clipped */}
-                    {/* {openDropdown === rowIndex && (
-                        <div
-                            className="fixed z-50 w-40 rounded border bg-white shadow"
-                            style={{ top: dropdownPos.y, left: dropdownPos.x }}
-                            onClick={(e) => e.stopPropagation()} // so clicking inside won't close it
-                        >
-                            <Link
-                                href={`/sales/${sales.data[openDropdown].id}/invoice`}
-                                target="_blank"
-                                className="block px-4 py-2 text-sm hover:bg-gray-100"
-                            >
-                                Sale Invoice
-                            </Link>
-                            <Link
-                                href={`/sales/${sales.data[openDropdown].id}/truck-chalan`}
-                                target="_blank"
-                                className="block px-4 py-2 text-sm hover:bg-gray-100"
-                            >
-                                Truck Chalan
-                            </Link>
-                            <Link
-                                href={`/sales/${sales.data[openDropdown].id}/load-slip`}
-                                target="_blank"
-                                className="block px-4 py-2 text-sm hover:bg-gray-100"
-                            >
-                                Load Slip
-                            </Link>
-                            <Link
-                                href={`/sales/${sales.data[openDropdown].id}/gate-pass`}
-                                target="_blank"
-                                className="block px-4 py-2 text-sm hover:bg-gray-100"
-                            >
-                                Gate Pass
-                            </Link>
-                        </div>
-                    )} */}
                 </div>
             </div>
         </AppLayout>

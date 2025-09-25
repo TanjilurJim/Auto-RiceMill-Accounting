@@ -2,6 +2,7 @@ import ActionFooter from '@/components/ActionFooter';
 import InputCalendar from '@/components/Btn&Link/InputCalendar';
 import { confirmDialog } from '@/components/confirmDialog';
 import PageHeader from '@/components/PageHeader';
+import { useTranslation } from '@/components/useTranslation';
 import AppLayout from '@/layouts/app-layout';
 import { Head, router, useForm } from '@inertiajs/react';
 import { useEffect } from 'react';
@@ -40,6 +41,7 @@ export default function PurchaseReturnCreate({
     items: Item[];
     receivedModes: ReceivedMode[];
 }) {
+    const t = useTranslation();
     const { data, setData, post, processing, errors } = useForm({
         date: '',
         return_voucher_no: '',
@@ -69,11 +71,11 @@ export default function PurchaseReturnCreate({
         const qty = parseFloat(updatedItems[index].qty) || 0;
         const price = parseFloat(updatedItems[index].price) || 0;
         const subtotal = qty * price;
-        updatedItems[index].subtotal = subtotal > 0 ? subtotal : 0;
+        updatedItems[index].subtotal = (subtotal > 0 ? subtotal : 0).toString();
         setData('return_items', updatedItems);
     };
 
-    const addProductRow = () => setData('return_items', [...data.return_items, { product_id: '', qty: '', price: '', subtotal: '' }]);
+    const addProductRow = () => setData('return_items', [...data.return_items, { product_id: '', qty: '', lot_no: '', price: '', subtotal: '' }]);
 
     const removeProductRow = (index: number) => {
         if (data.return_items.length === 1) return;
@@ -99,28 +101,28 @@ export default function PurchaseReturnCreate({
 
     return (
         <AppLayout>
-            <Head title="Add Purchase Return" />
+            <Head title={t('purchaseReturnCreateTitle')} />
             <div className="bg-background h-full w-screen p-6 lg:w-full">
                 <div className="bg-background h-full rounded-lg p-6">
-                    <PageHeader title="Create Purchase Return" addLinkText="Back" addLinkHref="/purchase-returns" />
+                    <PageHeader title={t('purchaseReturnCreateHeader')} addLinkText={t('backText')} addLinkHref="/purchase-returns" />
 
                     {/* Form Card */}
                     <form onSubmit={handleSubmit} className="bg-background space-y-6 rounded-lg border p-6">
                         {/* Return Info */}
                         <div className="space-y-4">
-                            <h2 className="border-b pb-1 text-lg font-semibold">Return Information</h2>
+                            <h2 className="border-b pb-1 text-lg font-semibold">{t('returnInfoHeader')}</h2>
                             <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-                                <InputCalendar value={data.date} onChange={(val) => setData('date', val)} label="Date" />
+                                <InputCalendar value={data.date} onChange={(val) => setData('date', val)} label={t('dateLabel')} />
                                 <input
                                     type="text"
                                     className="border p-1"
-                                    placeholder="Return Voucher No"
+                                    placeholder={t('returnVoucherNoPlaceholder')}
                                     value={data.return_voucher_no}
                                     onChange={(e) => setData('return_voucher_no', e.target.value)}
                                     readOnly
                                 />
                                 <select className="border p-2" value={data.godown_id} onChange={(e) => setData('godown_id', e.target.value)}>
-                                    <option value="">Select Godown</option>
+                                    <option value="">{t('selectGodownOption')}</option>
                                     {godowns.map((g) => (
                                         <option key={g.id} value={g.id}>
                                             {g.name}
@@ -132,7 +134,7 @@ export default function PurchaseReturnCreate({
                                     value={data.account_ledger_id}
                                     onChange={(e) => setData('account_ledger_id', e.target.value)}
                                 >
-                                    <option value="">Select Party Ledger</option>
+                                    <option value="">{t('selectPartyLedgerOption')}</option>
                                     {ledgers.map((l) => (
                                         <option key={l.id} value={l.id}>
                                             {l.account_ledger_name}
@@ -144,7 +146,7 @@ export default function PurchaseReturnCreate({
                                     value={data.inventory_ledger_id}
                                     onChange={(e) => setData('inventory_ledger_id', e.target.value)}
                                 >
-                                    <option value="">Select Inventory Ledger</option>
+                                    <option value="">{t('selectInventoryLedgerOption')}</option>
                                     {ledgers.map((l) => (
                                         <option key={l.id} value={l.id}>
                                             {l.account_ledger_name}
@@ -154,7 +156,7 @@ export default function PurchaseReturnCreate({
                             </div>
                             <textarea
                                 rows={3}
-                                placeholder="Reason for Return"
+                                placeholder={t('reasonForReturnPlaceholder')}
                                 className="w-full border p-2"
                                 value={data.reason}
                                 onChange={(e) => setData('reason', e.target.value)}
@@ -164,16 +166,17 @@ export default function PurchaseReturnCreate({
                         {/* Return Items Table */}
                         <div>
                             <h2 className="bg-background mb-3 border-b pb-1 text-lg font-semibold">Return Items</h2>
+                            <h2 className="bg-background mb-3 border-b pb-1 text-lg font-semibold">{t('returnItemsHeader')}</h2>
                             <div className="overflow-x-auto rounded border">
                                 <table className="min-w-full text-left">
                                     <thead className="bg-background text-sm">
                                         <tr>
-                                            <th className="border px-2 py-1">Product</th>
-                                            <th className="border px-2 py-1">Lot No</th>
-                                            <th className="border px-2 py-1">Qty</th>
-                                            <th className="border px-2 py-1">Unit Price</th>
-                                            <th className="border px-2 py-1">Subtotal</th>
-                                            <th className="border px-2 py-1 text-center">Action</th>
+                                            <th className="border px-2 py-1">{t('productHeader')}</th>
+                                            <th className="border px-2 py-1">{t('lotNoHeader')}</th>
+                                            <th className="border px-2 py-1">{t('qtyHeader')}</th>
+                                            <th className="border px-2 py-1">{t('unitPriceHeader')}</th>
+                                            <th className="border px-2 py-1">{t('subtotalHeader')}</th>
+                                            <th className="border px-2 py-1 text-center">{t('actionHeader')}</th>
                                         </tr>
                                     </thead>
                                     <tbody>
@@ -186,6 +189,7 @@ export default function PurchaseReturnCreate({
                                                         onChange={(e) => handleItemChange(index, 'product_id', e.target.value)}
                                                     >
                                                         <option value="">Select</option>
+                                                        <option value="">{t('selectProductOption')}</option>
                                                         {items.map((p) => (
                                                             <option key={p.id} value={p.id}>
                                                                 {p.item_name}
@@ -257,13 +261,13 @@ export default function PurchaseReturnCreate({
                         <div className="mt-6 flex justify-between gap-4">
                             <div className="flex w-full flex-col gap-2.5 md:flex-row">
                                 <div className="bg-background flex w-full justify-between rounded border p-3 shadow-sm">
-                                    <span className="text-foreground0 font-semibold">Total Qty:</span>
+                                    <span className="text-foreground0 font-semibold">{t('totalQtyLabel')}</span>
                                     <span className="font-semibold">
                                         {data.return_items.reduce((sum, item) => sum + (parseFloat(item.qty) || 0), 0)}
                                     </span>
                                 </div>
                                 <div className="bg-background flex w-full justify-between rounded border p-3 shadow-sm">
-                                    <span className="text-foreground0 font-semibold">Total Return Value:</span>
+                                    <span className="text-foreground0 font-semibold">{t('totalReturnValueLabel')}</span>
                                     <span className="font-semibold">
                                         {data.return_items.reduce((sum, item) => sum + (parseFloat(item.subtotal) || 0), 0)} Tk
                                     </span>
@@ -272,7 +276,7 @@ export default function PurchaseReturnCreate({
                         </div>
 
                         <div className="mt-6 space-y-4">
-                            <h2 className="border-b pb-1 text-lg font-semibold">Refund Mode</h2>
+                            <h2 className="border-b pb-1 text-lg font-semibold">{t('refundModeHeader')}</h2>
                             {data.refund_modes.map((mode, index) => (
                                 <div key={index} className="grid grid-cols-1 items-center gap-4 md:grid-cols-4">
                                     <select
@@ -287,6 +291,7 @@ export default function PurchaseReturnCreate({
                                         }}
                                     >
                                         <option value="">Select Refund Mode</option>
+                                        <option value="">{t('selectRefundModeOption')}</option>
                                         {receivedModes.map((rm) => (
                                             <option key={rm.ledger_id} value={rm.ledger_id}>
                                                 {rm.mode_name} — {rm.ledger?.account_ledger_name || 'Ledger'}
@@ -296,7 +301,7 @@ export default function PurchaseReturnCreate({
 
                                     <input
                                         type="text"
-                                        placeholder="Phone Number"
+                                        placeholder={t('phoneNumberPlaceholder')}
                                         className="border p-2"
                                         value={mode.phone_number}
                                         onChange={(e) => {
@@ -308,7 +313,7 @@ export default function PurchaseReturnCreate({
 
                                     <input
                                         type="number"
-                                        placeholder="Amount Paid"
+                                        placeholder={t('amountPaidPlaceholder')}
                                         className="border p-2"
                                         value={mode.amount_paid}
                                         onChange={(e) => {
@@ -351,7 +356,8 @@ export default function PurchaseReturnCreate({
                         </div>
 
                         <div className="text-foreground mt-2 text-right text-sm">
-                            Total Refunded: {data.refund_modes.reduce((sum, r) => sum + (parseFloat(r.amount_paid) || 0), 0)} Tk
+                            {t('totalRefundedLabel')}: {data.refund_modes.reduce((sum, r) => sum + (parseFloat(r.amount_paid) || 0), 0)}{' '}
+                            {t('currencyTk')}
                         </div>
 
                         {/* Submit */}
@@ -360,9 +366,9 @@ export default function PurchaseReturnCreate({
                             onSaveAndPrint={(e) => handleSubmit(e, true)}
                             cancelHref="/purchase-returns"
                             processing={processing}
-                            submitText={processing ? 'Saving...' : 'Save'}
-                            // saveAndPrintText='Save & Print'
-                            cancelText="Cancel"
+                            submitText={processing ? t('savingText') : t('saveText')}
+                            // saveAndPrintText={t('saveAndPrintText')}
+                            cancelText={t('cancelText')}
                         />
                     </form>
                 </div>

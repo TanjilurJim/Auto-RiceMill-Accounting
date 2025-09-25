@@ -1,5 +1,6 @@
 import PageHeader from '@/components/PageHeader';
 import Pagination from '@/components/Pagination';
+import { useTranslation } from '@/components/useTranslation';
 import AppLayout from '@/layouts/app-layout';
 import { Head, Link } from '@inertiajs/react';
 
@@ -27,36 +28,38 @@ interface Paginator {
     total: number;
 }
 
-/* ---------- helpers ------------------------------------------------------- */
-const badge = (a: 'approved' | 'rejected') => (
-    <span className={'rounded px-2 py-0.5 text-xs font-semibold ' + (a === 'approved' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800')}>
-        {a.charAt(0).toUpperCase() + a.slice(1)}
-    </span>
-);
-
-const fmtDate = (iso: string) => new Date(iso).toLocaleDateString('en-GB'); // dd/mm/yyyy
-
-const fmtTk = (n: string | number) => `${new Intl.NumberFormat('en-BD', { minimumFractionDigits: 2 }).format(Number(n))} Tk`;
-
 /* ---------- component ----------------------------------------------------- */
 export default function History({ approvals }: { approvals: Paginator }) {
+    const t = useTranslation();
+
+    const badge = (a: 'approved' | 'rejected') => (
+        <span
+            className={'rounded px-2 py-0.5 text-xs font-semibold ' + (a === 'approved' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800')}
+        >
+            {a === 'approved' ? t('approvedBadge') : t('rejectedBadge')}
+        </span>
+    );
+
+    const fmtDate = (iso: string) => new Date(iso).toLocaleDateString('en-GB'); // dd/mm/yyyy
+    const fmtTk = (n: string | number) => `${new Intl.NumberFormat('en-BD', { minimumFractionDigits: 2 }).format(Number(n))} Tk`;
+
     return (
         <AppLayout>
-            <Head title="Approval Log" />
+            <Head title={t('approvalLogTitle')} />
 
             <div className="bg-background h-full w-screen p-4 md:p-12 lg:w-full">
-                <div className="bg-background h-full rounded-lg ">
-                    <PageHeader title="Approval Log"></PageHeader>
+                <div className="bg-background h-full rounded-lg">
+                    <PageHeader title={t('approvalLogHeader')}></PageHeader>
                     <div className="overflow-x-auto rounded-lg border border-gray-200 bg-white shadow-sm dark:border-neutral-700 dark:bg-neutral-900">
                         <table className="w-full text-sm">
                             <thead className="border-b border-gray-200 bg-gray-50 text-left text-xs tracking-wider text-gray-600 uppercase dark:border-neutral-700 dark:bg-neutral-800 dark:text-gray-400">
                                 <tr>
-                                    <th className="p-3">Date</th>
-                                    <th className="p-3">Voucher</th>
-                                    <th className="p-3">Supplier</th>
-                                    <th className="p-3 text-right">Total</th>
-                                    <th className="p-3">Result</th>
-                                    <th className="p-3">Note</th>
+                                    <th className="p-3">{t('dateHeader')}</th>
+                                    <th className="p-3">{t('voucherHeader')}</th>
+                                    <th className="p-3">{t('supplierHeader')}</th>
+                                    <th className="p-3 text-right">{t('totalHeader')}</th>
+                                    <th className="p-3">{t('resultHeader')}</th>
+                                    <th className="p-3">{t('noteHeader')}</th>
                                 </tr>
                             </thead>
 
@@ -86,7 +89,7 @@ export default function History({ approvals }: { approvals: Paginator }) {
                                 ) : (
                                     <tr>
                                         <td colSpan={6} className="p-6 text-center text-gray-500 dark:text-gray-400">
-                                            No approvals yet.
+                                            {t('noApprovalsMessage')}
                                         </td>
                                     </tr>
                                 )}

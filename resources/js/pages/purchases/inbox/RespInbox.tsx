@@ -1,9 +1,11 @@
+import PageHeader from '@/components/PageHeader';
+import { useTranslation } from '@/components/useTranslation';
 import AppLayout from '@/layouts/app-layout';
 import { Head, usePage } from '@inertiajs/react';
 import PurchaseInboxTable from './PurchaseInboxTable';
-import PageHeader from '@/components/PageHeader';
 
 export default function RespInbox() {
+    const t = useTranslation();
     const { purchases, filters } = usePage().props as {
         purchases: any;
         filters: Record<string, string>;
@@ -11,10 +13,10 @@ export default function RespInbox() {
 
     return (
         <AppLayout>
-            <Head title="Purchases – Responsible Inbox" />
-            <div className="h-full w-screen bg-background-100 p-4 md:p-12 lg:w-full">
-                <div className="h-full rounded-lg bg-background ">
-                  <PageHeader title="Purchases – Responsible Inbox"/>
+            <Head title={t('purchaseRespInboxTitle')} />
+            <div className="bg-background-100 h-full w-screen p-4 md:p-12 lg:w-full">
+                <div className="bg-background h-full rounded-lg">
+                    <PageHeader title={t('purchaseRespInboxHeader')} />
 
                     <PurchaseInboxTable
                         purchases={purchases}

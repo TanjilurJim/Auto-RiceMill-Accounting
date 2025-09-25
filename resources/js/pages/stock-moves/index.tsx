@@ -1,6 +1,7 @@
 // resources/js/pages/stock-moves/index.tsx
 import PageHeader from '@/components/PageHeader';
 import TableComponent from '@/components/TableComponent';
+import { useTranslation } from '@/components/useTranslation';
 import AppLayout from '@/layouts/app-layout';
 import { fmtDate } from '@/utils/format';
 import { Head } from '@inertiajs/react';
@@ -18,65 +19,63 @@ interface Move {
     creator: { name: string };
 }
 
-const columns = [
-    {
-        header: 'Date',
-        accessor: (m: Move) => fmtDate(m.created_at.slice(0, 10)),
-        className: 'px-4 py-2',
-    },
-    {
-        header: 'Godown',
-        accessor: (m: Move) => m.godown?.name,
-        className: 'px-4 py-2',
-    },
-    {
-        header: 'Item',
-        accessor: (m: Move) => m.item?.item_name,
-        className: 'px-4 py-2',
-    },
-    {
-        header: 'Lot #',
-        accessor: (m: Move) => m.lot?.lot_no ?? '—',
-        className: 'px-4 py-2',
-    },
-    {
-        header: 'Type',
-        accessor: (m: Move) => <span className="capitalize">{m.type}</span>,
-        className: 'px-4 py-2',
-    },
-    {
-        header: 'Qty',
-        accessor: (m: Move) => m.qty,
-        className: 'px-4 py-2',
-    },
-    {
-        header: 'Cost',
-        accessor: (m: Move) => m.unit_cost ?? '—',
-        className: 'px-4 py-2',
-    },
-    {
-        header: 'Reason',
-        accessor: (m: Move) => m.reason ?? '—',
-        className: 'px-4 py-2',
-    },
-    {
-        header: 'By',
-        accessor: (m: Move) => m.creator?.name,
-        className: 'px-4 py-2',
-    },
-];
-
 export default function StockMoveIndex({ moves }: { moves: Paginated<Move[]> }) {
+    const t = useTranslation();
+    const columns = [
+        {
+            header: t('dateLabel'),
+            accessor: (m: Move) => fmtDate(m.created_at.slice(0, 10)),
+            className: 'px-4 py-2',
+        },
+        {
+            header: t('godownLabel'),
+            accessor: (m: Move) => m.godown?.name,
+            className: 'px-4 py-2',
+        },
+        {
+            header: t('itemLabel'),
+            accessor: (m: Move) => m.item?.item_name,
+            className: 'px-4 py-2',
+        },
+        {
+            header: t('lotLabel'),
+            accessor: (m: Move) => m.lot?.lot_no ?? '—',
+            className: 'px-4 py-2',
+        },
+        {
+            header: t('typeLabel'),
+            accessor: (m: Move) => <span className="capitalize">{m.type}</span>,
+            className: 'px-4 py-2',
+        },
+        {
+            header: t('qtyLabel'),
+            accessor: (m: Move) => m.qty,
+            className: 'px-4 py-2',
+        },
+        {
+            header: t('costLabel'),
+            accessor: (m: Move) => m.unit_cost ?? '—',
+            className: 'px-4 py-2',
+        },
+        {
+            header: t('reasonLabel'),
+            accessor: (m: Move) => m.reason ?? '—',
+            className: 'px-4 py-2',
+        },
+        {
+            header: t('byLabel'),
+            accessor: (m: Move) => m.creator?.name,
+            className: 'px-4 py-2',
+        },
+    ];
+
     return (
         <AppLayout>
-            <Head title="Stock Movements" />
-
+            <Head title={t('stockMovementsTitle')} />
             <div className="bg-background h-full w-screen md:p-6 lg:w-full">
-                {/* Card surface with border + correct text color */}
                 <div className="bg-background h-full rounded-lg p-3 md:p-6">
-                    <PageHeader title="Stock Movements" addLinkHref="/stock-moves/create" addLinkText="+ Add Stock" />
-
-                    <TableComponent columns={columns} data={moves.data} noDataMessage="No stock movements found." />
+                    <PageHeader title={t('stockMovementsTitle')} addLinkHref="/stock-moves/create" addLinkText={t('addStockButton')} />
+                    <TableComponent columns={columns} data={moves.data} noDataMessage={t('noStockMovementsFound')} />
                 </div>
             </div>
         </AppLayout>

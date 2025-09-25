@@ -6,6 +6,7 @@ import { confirmDialog } from '@/components/confirmDialog';
 import PageHeader from '@/components/PageHeader';
 import Pagination from '@/components/Pagination';
 import TableComponent from '@/components/TableComponent';
+import { useTranslation } from '@/components/useTranslation';
 import AppLayout from '@/layouts/app-layout';
 import { Head, useForm } from '@inertiajs/react';
 import { useState } from 'react';
@@ -25,6 +26,7 @@ interface Category {
 
 export default function CategoryIndex({ categories }: { categories: PaginatedCategories }) {
     const [editCategory, setEditCategory] = useState<Category | null>(null);
+    const t = useTranslation();
 
     const {
         data,
@@ -73,13 +75,12 @@ export default function CategoryIndex({ categories }: { categories: PaginatedCat
 
     const columns = [
         {
-            header: '#SL',
+            header: '#',
             accessor: (_: Category, index?: number) => (index !== undefined ? index + 1 : '-'),
-            className: 'text-center',
         },
-        { header: 'Category Name', accessor: 'name' },
+        { header: t('categoryNameLabel'), accessor: 'name' },
         {
-            header: 'Action',
+            header: t('action'),
             accessor: (category: Category) => <ActionButtons onEdit={() => handleEdit(category)} onDelete={() => handleDelete(category.id)} />,
             className: 'text-center',
         },
@@ -87,23 +88,23 @@ export default function CategoryIndex({ categories }: { categories: PaginatedCat
 
     return (
         <AppLayout>
-            <Head title="Category Manage" />
+            <Head title={t('categoryManageTitle')} />
             <div className="text-foreground w-full p-4 md:p-12">
                 <div className="grid grid-cols-12 gap-4">
                     {/* Left: List */}
                     <div className="col-span-12 lg:col-span-8">
-                        <PageHeader title="All Category Manage" />
+                        <PageHeader title={t('allCategoryManageTitle')} />
                         <TableComponent columns={columns} data={categories.data} noDataMessage="No categories found." />
                     </div>
 
                     {/* Right: Form */}
                     <div className="col-span-12 lg:col-span-4">
                         <div className="bg-background space-y-3 rounded-md border p-4">
-                            <PageHeader title={editCategory ? 'Edit Category' : 'Add Category'} />
+                            <PageHeader title={editCategory ? t('editCategoryTitle') : t('addCategoryTitle')} />
                             <form onSubmit={handleSubmit} className="space-y-3">
                                 <input
                                     type="text"
-                                    placeholder="Category Name"
+                                    placeholder={t('categoryNameLabel')}
                                     value={data.name}
                                     onChange={(e) => setData('name', e.target.value)}
                                     className="w-full rounded border p-2"
@@ -117,11 +118,11 @@ export default function CategoryIndex({ categories }: { categories: PaginatedCat
                                             onSubmit={handleSubmit}
                                             onCancel={handleCancel}
                                             processing={processing}
-                                            submitText="Update"
-                                            cancelText="Cancel"
+                                            submitText={t('updateCategoryButton')}
+                                            cancelText={t('cancelCategoryButton')}
                                         />
                                     ) : (
-                                        <AddBtn processing={processing}>Add Category</AddBtn>
+                                        <AddBtn processing={processing}>{t('addCategoryButton')}</AddBtn>
                                     )}
                                 </div>
                             </form>

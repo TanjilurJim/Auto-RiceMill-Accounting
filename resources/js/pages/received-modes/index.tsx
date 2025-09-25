@@ -3,6 +3,7 @@ import { confirmDialog } from '@/components/confirmDialog';
 import PageHeader from '@/components/PageHeader';
 import Pagination from '@/components/Pagination';
 import TableComponent from '@/components/TableComponent';
+import { useTranslation } from '@/components/useTranslation';
 import AppLayout from '@/layouts/app-layout';
 import { Head, router } from '@inertiajs/react';
 
@@ -31,45 +32,40 @@ export default function Index({
     currentPage: number;
     perPage: number;
 }) {
+    const t = useTranslation();
+
     // Ensure that receivedModes is always defined and fallback to empty data if undefined
     const safeReceivedModes = receivedModes || { data: [], links: [] };
 
     const handleDelete = (id: number) => {
-        confirmDialog(
-            {}, () => {
-                router.delete(`/received-modes/${id}`);
-            }
-        )
-
+        confirmDialog({}, () => {
+            router.delete(`/received-modes/${id}`);
+        });
     };
 
     // Safe access to the data array before trying to map over it
     const modes = safeReceivedModes.data || [];
 
     const columns = [
-        { header: 'SL', accessor: (_: ReceivedMode, index?: number) => <span>{(index ?? 0) + 1}</span>, className: '' },
-        { header: 'Mode Name', accessor: 'mode_name' },
+        { header: t('slNo'), accessor: (_: ReceivedMode, index?: number) => <span>{(index ?? 0) + 1}</span>, className: '' },
+        { header: t('modeNameHeader'), accessor: 'mode_name' },
         // { header: 'Opening Balance', accessor: 'opening_balance' },
         // { header: 'Closing Balance', accessor: 'closing_balance' },
-        { header: 'Phone Number', accessor: 'phone_number' },
+        { header: t('phoneNumberHeader'), accessor: 'phone_number' },
     ];
 
     return (
         <AppLayout>
-            <Head title="Received Modes" />
+            <Head title={t('receivedModesTitle')} />
             <div className="h-full w-screen lg:w-full">
-                <div className="bg-white h-full rounded-lg p-4 md:p-12">
-
-                    <PageHeader title="Received Modes" addLinkHref="/received-modes/create" addLinkText="+ Add New" />
+                <div className="h-full rounded-lg bg-white p-4 md:p-12">
+                    <PageHeader title={t('receivedModesTitle')} addLinkHref="/received-modes/create" addLinkText={t('addNewReceivedMode')} />
 
                     <TableComponent
                         columns={columns}
                         data={safeReceivedModes.data}
                         actions={(row: ReceivedMode) => (
-                            <ActionButtons
-                                editHref={`/received-modes/${row.id}/edit`}
-                                onDelete={() => handleDelete(row.id)}
-                            />
+                            <ActionButtons editHref={`/received-modes/${row.id}/edit`} onDelete={() => handleDelete(row.id)} />
                         )}
                     />
 

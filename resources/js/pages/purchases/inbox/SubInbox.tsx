@@ -1,5 +1,6 @@
 // resources/js/Pages/purchases/inbox/SubInbox.tsx
 import PageHeader from '@/components/PageHeader';
+import { useTranslation } from '@/components/useTranslation';
 import AppLayout from '@/layouts/app-layout';
 import PurchaseInboxTable from './PurchaseInboxTable';
 // Adjust path if needed
@@ -10,12 +11,14 @@ interface PageProps {
 }
 
 export default function SubInbox({ purchases }: PageProps) {
+    const t = useTranslation();
+
     return (
         <AppLayout>
-            <Head title="Purchase – Sub-Inbox" />
+            <Head title={t('purchaseSubInboxTitle')} />
             <div className="bg-background h-full w-screen p-4 md:p-12 lg:w-full">
                 <div className="bg-background h-full rounded-lg">
-                    <PageHeader title="Purchase – Sub-Inbox" />
+                    <PageHeader title={t('purchaseSubInboxHeader')} />
                     <PurchaseInboxTable
                         purchases={purchases}
                         approveRoute={(id) => route('purchases.approve-sub', id)}

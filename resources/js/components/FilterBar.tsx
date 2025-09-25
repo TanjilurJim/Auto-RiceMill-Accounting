@@ -1,6 +1,7 @@
 // resources/js/components/FilterBar.tsx
 
 import { Input } from '@/components/ui/input';
+import { useTranslation } from '@/components/useTranslation';
 import { router } from '@inertiajs/react';
 import { pickBy } from 'lodash';
 import { useEffect, useRef, useState } from 'react';
@@ -25,6 +26,7 @@ interface Props {
 }
 
 export default function FilterBar({ endpoint, filters }: Props) {
+    const t = useTranslation();
     const [values, setValues] = useState({
         q: filters.q ?? '',
         from: filters.from ?? '',
@@ -93,21 +95,21 @@ export default function FilterBar({ endpoint, filters }: Props) {
             <Input
                 className="input mb-5 w-full md:w-1/3"
                 name="q"
-                placeholder="Search customer / voucher..."
+                placeholder={t('filterSearchPlaceholder')}
                 value={values.q}
                 onChange={handleChange}
                 autoComplete="off"
             />
 
-            <div className='flex flex-col md:flex-row md:items-center gap-4'>
+            <div className="flex flex-col gap-4 md:flex-row md:items-center">
                 <div className="flex flex-col gap-1">
                     <Label htmlFor="date" className="px-1">
-                        Date of birth
+                        {t('dateOfBirthLabel')}
                     </Label>
                     <Popover open={open} onOpenChange={setOpen}>
                         <PopoverTrigger asChild>
-                            <Button variant="outline" id="date" className="w-full md:w-36 justify-between text-left font-normal">
-                                {date ? date.toLocaleDateString() : 'Select date'}
+                            <Button variant="outline" id="date" className="w-full justify-between text-left font-normal md:w-36">
+                                {date ? date.toLocaleDateString() : t('selectDateText')}
                                 <ChevronDownIcon className="h-4 w-4" />
                             </Button>
                         </PopoverTrigger>
@@ -127,12 +129,12 @@ export default function FilterBar({ endpoint, filters }: Props) {
 
                 <div className="flex flex-col gap-1">
                     <Label htmlFor="from" className="px-1">
-                        From
+                        {t('fromLabel')}
                     </Label>
                     <Popover>
                         <PopoverTrigger asChild>
-                            <Button variant="outline" id="from" className="w-full md:w-36 justify-between text-left font-normal">
-                                {values.from ? new Date(values.from).toLocaleDateString() : 'Select date'}
+                            <Button variant="outline" id="from" className="w-full justify-between text-left font-normal md:w-36">
+                                {values.from ? new Date(values.from).toLocaleDateString() : t('selectDateText')}
                                 <ChevronDownIcon className="h-4 w-4" />
                             </Button>
                         </PopoverTrigger>
@@ -154,12 +156,12 @@ export default function FilterBar({ endpoint, filters }: Props) {
 
                 <div className="flex flex-col gap-1">
                     <Label htmlFor="to" className="px-1">
-                        To
+                        {t('toLabel')}
                     </Label>
                     <Popover>
                         <PopoverTrigger asChild>
-                            <Button variant="outline" id="to" className="w-full md:w-36 justify-between text-left font-normal">
-                                {values.to ? new Date(values.to).toLocaleDateString() : 'Select date'}
+                            <Button variant="outline" id="to" className="w-full justify-between text-left font-normal md:w-36">
+                                {values.to ? new Date(values.to).toLocaleDateString() : t('selectDateText')}
                                 <ChevronDownIcon className="h-4 w-4" />
                             </Button>
                         </PopoverTrigger>
@@ -180,10 +182,10 @@ export default function FilterBar({ endpoint, filters }: Props) {
                 </div>
 
                 {/* Clear button */}
-                <div className='pt-4'>
+                <div className="pt-4">
                     {hasFilters && (
-                        <button type="button" onClick={reset} className="w-full md:w-30 btn-gray cursor-pointer">
-                            Clear
+                        <button type="button" onClick={reset} className="btn-gray w-full cursor-pointer md:w-30">
+                            {t('clearButton')}
                         </button>
                     )}
                 </div>

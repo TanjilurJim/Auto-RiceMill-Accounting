@@ -1,8 +1,15 @@
 import ActionFooter from '@/components/ActionFooter';
 import InputCalendar from '@/components/Btn&Link/InputCalendar';
 import PageHeader from '@/components/PageHeader';
+import { useTranslation } from '@/components/useTranslation';
 import AppLayout from '@/layouts/app-layout';
-import { Head, useForm } from '@inertiajs/react';
+i                                <label className="mb-1 block text-sm font-medium">{t('refundModeLabel')}</label>
+                                <select
+                                    className="w-full rounded border p-2"
+                                    value={data.received_mode_id}
+                                    onChange={(e) => setData('received_mode_id', e.target.value)}
+                                >
+                                    <option value="">{t('selectModeOption')}</option> Head, useForm } from '@inertiajs/react';
 import axios from 'axios';
 import { useEffect, useState } from 'react';
 
@@ -69,6 +76,8 @@ export default function SalesReturnCreate({
         delivered_to: '',
         sales_return_items: [{ product_id: '', qty: '', main_price: '', discount: '', return_amount: '' }],
     });
+
+    const t = useTranslation();
 
     useEffect(() => {
         if (data.sale_id) {
@@ -157,9 +166,9 @@ export default function SalesReturnCreate({
 
     return (
         <AppLayout>
-            <Head title="Create Sales Return" />
-            <div className="h-full w-screen bg-gray-100 p-6 lg:w-full">
-                <div className="h-full rounded-lg bg-white p-6">
+            <Head title={t('createSalesReturnTitle')} />
+            <div className="h-full w-screen p-4 md:p-12 lg:w-full">
+                <div className="h-full rounded-lg">
                     {/* <div className="mb-6 flex items-center justify-between">
                     <h1 className="text-2xl font-semibold text-gray-800">Create Sales Return</h1>
                     <Link href="/sales-returns" className="rounded bg-gray-300 px-5 py-2 text-sm font-medium text-gray-700 hover:bg-gray-400">
@@ -167,24 +176,24 @@ export default function SalesReturnCreate({
                     </Link>
                 </div> */}
 
-                    <PageHeader title="Create Sales Return" addLinkHref="/sales-returns" addLinkText="Back" />
+                    <PageHeader title={t('createSalesReturnTitle')} addLinkHref="/sales-returns" addLinkText={t('backText')} />
 
                     <form onSubmit={handleSubmit} className="space-y-6 rounded bg-white p-6 shadow-md">
                         {/* Top Info */}
                         <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
                             <div>
-                                <label className="mb-1 block text-sm font-medium">Voucher No</label>
+                                <label className="mb-1 block text-sm font-medium">{t('voucherNoLabel')}</label>
                                 <input type="text" className="w-full rounded border bg-gray-100 p-2" value={data.voucher_no} readOnly />
                             </div>
 
                             <div>
-                                <label className="mb-1 block text-sm font-medium">Related Sale</label>
+                                <label className="mb-1 block text-sm font-medium">{t('relatedSaleLabel')}</label>
                                 <select
                                     className="w-full rounded border p-2"
                                     value={data.sale_id}
                                     onChange={(e) => setData('sale_id', e.target.value)}
                                 >
-                                    <option value="">Select Sale (optional)</option>
+                                    <option value="">{t('selectSaleOption')}</option>
                                     {sales.map((sale) => (
                                         <option key={sale.id} value={sale.id}>
                                             {sale.voucher_no}
@@ -195,13 +204,13 @@ export default function SalesReturnCreate({
 
                             {/* Account Ledger  */}
                             <div>
-                                <label className="mb-1 block text-sm font-medium">Account Ledger</label>
+                                <label className="mb-1 block text-sm font-medium">{t('accountLedgerLabel')}</label>
                                 <select
                                     className="w-full rounded border p-2"
                                     value={data.account_ledger_id}
                                     onChange={(e) => setData('account_ledger_id', e.target.value)}
                                 >
-                                    <option value="">Select Ledger</option>
+                                    <option value="">{t('selectLedgerOption')}</option>
                                     {ledgers.map((l) => (
                                         <option key={l.id} value={l.id}>
                                             {l.account_ledger_name}
@@ -212,13 +221,13 @@ export default function SalesReturnCreate({
 
                             {/* Inventory Ledger */}
                             <div>
-                                <label className="mb-1 block text-sm font-medium">Inventory Ledger</label>
+                                <label className="mb-1 block text-sm font-medium">{t('inventoryLedgerLabel')}</label>
                                 <select
                                     className="w-full rounded border p-2"
                                     value={data.inventory_ledger_id}
                                     onChange={(e) => setData('inventory_ledger_id', e.target.value)}
                                 >
-                                    <option value="">Select Inventory Ledger</option>
+                                    <option value="">{t('selectInventoryLedgerOption')}</option>
                                     {ledgers.map((ledger) => (
                                         <option key={ledger.id} value={ledger.id}>
                                             {ledger.account_ledger_name}
@@ -243,13 +252,13 @@ export default function SalesReturnCreate({
                             {/* COGS Ledger */}
 
                             <div>
-                                <label className="mb-1 block text-sm font-medium">COGS Ledger</label>
+                                <label className="mb-1 block text-sm font-medium">{t('cogsLedgerLabel')}</label>
                                 <select
                                     className="w-full rounded border p-2"
                                     value={data.cogs_ledger_id || ''}
                                     onChange={(e) => setData('cogs_ledger_id', e.target.value)}
                                 >
-                                    <option value="">Select COGS Ledger</option>
+                                    <option value="">{t('selectCogsLedgerOption')}</option>
                                     {ledgers.map((ledger) => (
                                         <option key={ledger.id} value={ledger.id}>
                                             {ledger.account_ledger_name}
