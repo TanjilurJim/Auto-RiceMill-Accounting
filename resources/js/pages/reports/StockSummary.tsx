@@ -173,7 +173,7 @@ export default function StockSummary({ stocks, filters, company, grand, grandByG
                                             </tr>
 
                                             {/* Closing stock by item (this page) */}
-                                            <tr className="bg-gray-50 print:bg-white">
+                                            <tr className="bg-background print:bg-white">
                                                 <td className="border px-2 py-2 text-sm font-medium" colSpan={7}>
                                                     <strong>Closing Stock&nbsp;by&nbsp;Item (page):</strong>
                                                     <ul className="mt-1 list-disc space-y-0.5 pl-5 text-sm text-foreground">
@@ -191,7 +191,7 @@ export default function StockSummary({ stocks, filters, company, grand, grandByG
                                                     </ul>
                                                 </td>
                                             </tr>
-                                            <tr className="bg-gray-50 print:bg-white">
+                                            <tr className="bg-background print:bg-white">
                                                 <td className="border px-2 py-2 text-sm font-medium" colSpan={7}>
                                                     <strong>Closing Stock by Godown → Item (all pages):</strong>
 

@@ -72,7 +72,7 @@ export default function Index({ paymentAdds, filters, paymentModes }: Props) {
             <Head title={t('paymentListTitle')} />
 
             <div className="h-full w-screen lg:w-full">
-                <div className="h-full rounded-lg bg-white p-4 md:p-12">
+                <div className="h-full rounded-lg bg-background p-4 md:p-12">
                     <PageHeader title={t('allPaymentsTitle')} addLinkHref="/payment-add/create" addLinkText={t('addPaymentText')} />
 
                     {/* ✅ Filters */}

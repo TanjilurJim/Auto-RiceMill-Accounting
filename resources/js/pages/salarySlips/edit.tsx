@@ -92,7 +92,7 @@ export default function SalarySlipEdit({ salarySlip, employees }: { salarySlip: 
                     <PageHeader title="Edit Salary Slip" addLinkHref="/salary-slips" addLinkText="Back" />
 
                     {/* Form Card */}
-                    <form onSubmit={handleSubmit} className="space-y-6 rounded-lg border bg-white p-6">
+                    <form onSubmit={handleSubmit} className="space-y-6 rounded-lg border bg-background p-6">
                         {/* Section 1 - Salary Slip Info */}
                         <div className="space-y-4">
                             <h2 className="border-b pb-1 text-lg font-semibold">Salary Slip Information</h2>

@@ -33,7 +33,7 @@ export default function DesignationIndex({ designations }: { designations: Desig
         <AppLayout>
             <Head title={t('designationsTitle')} />
             <div className="h-full w-screen p-4 md:p-12 lg:w-full">
-                <div className="h-full rounded-lg bg-white">
+                <div className="h-full rounded-lg bg-background">
                     <PageHeader title={t('designationsTitle')} addLinkHref="/designations/create" addLinkText={t('hrAddNewText')} />
 
                     <TableComponent

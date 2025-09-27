@@ -22,10 +22,10 @@ export default function EditDesignation({
         <AppLayout>
             <Head title={`Edit Designation - ${designation.name}`} />
             <div className="bg-gray-100 p-6 h-full w-screen lg:w-full">
-                <div className="bg-white h-full rounded-lg p-6">
+                <div className="bg-background h-full rounded-lg p-6">
                     <PageHeader title="Edit Designation" addLinkHref='/designations' addLinkText="Back" />
 
-                    <form onSubmit={handleSubmit} className="space-y-4 rounded-lg bg-white p-4 border dark:bg-neutral-900">
+                    <form onSubmit={handleSubmit} className="space-y-4 rounded-lg bg-background p-4 border dark:bg-neutral-900">
 
                         {/* Name */}
                         <div>

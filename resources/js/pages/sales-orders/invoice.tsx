@@ -25,11 +25,11 @@ export default function SalesOrderInvoice(
     <AppLayout>
       <Head title={`Sales-Order #${order.voucher_no}`} />
 
-      <div className="container mx-auto bg-white shadow p-8 print:p-4">
+      <div className="container mx-auto bg-background shadow p-8 print:p-4">
 
         {/* Back link (ignored on print) */}
         <Link href="/sales-orders"
-              className="mb-4 inline-block rounded bg-gray-300 px-4 py-2 hover:bg-neutral-100 print:hidden">
+              className="mb-4 inline-block rounded bg-background px-4 py-2 hover:bg-neutral-100 print:hidden">
           Back
         </Link>
 

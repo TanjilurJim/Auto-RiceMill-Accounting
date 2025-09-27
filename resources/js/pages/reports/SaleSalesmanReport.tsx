@@ -134,7 +134,7 @@ export default function SaleSalesmanReport({
                                             ))}
 
                                             {/* Grand Total Row */}
-                                            <tr className="bg-gray-100 font-semibold print:bg-white">
+                                            <tr className="bg-background font-semibold print:bg-white">
                                                 <td colSpan={filters.year ? 1 : 6} className="border px-2 py-1 text-right">
                                                     Grand Total
                                                 </td>

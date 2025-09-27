@@ -7,35 +7,35 @@ export default function Show({ stockTransfer }: any) {
     <AppLayout>
       <Head title={`View Stock Transfer #${stockTransfer.voucher_no || stockTransfer.id}`} />
 
-      <div className="bg-gray-100 p-6 h-full w-screen lg:w-full">
-                <div className="bg-white h-full rounded-lg p-6">
+      <div className="bg-background p-6 h-full w-screen lg:w-full">
+                <div className="bg-background h-full rounded-lg p-6">
 
           <PageHeader title='Stock Transfer Details' addLinkHref='/stock-transfers' addLinkText='Back' />
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
             <div>
               <label className="text-sm text-gray-600">Date</label>
-              <div className="grid grid-cols-1 gap-4 space-y-4 rounded bg-gray-100 p-4   shadow md:grid-cols-2 dark:bg-neutral-900 border-b-2 border-black">{stockTransfer.date}</div>
+              <div className="grid grid-cols-1 gap-4 space-y-4 rounded bg-background p-4   shadow md:grid-cols-2 dark:bg-neutral-900 border-b-2 border-black">{stockTransfer.date}</div>
             </div>
 
             <div>
               <label className="text-sm text-gray-600">Voucher No</label>
-              <div className="grid grid-cols-1 gap-4 space-y-4 rounded bg-gray-100 p-4   shadow md:grid-cols-2 dark:bg-neutral-900 border-b-2 border-black">{stockTransfer.voucher_no || '-'}</div>
+              <div className="grid grid-cols-1 gap-4 space-y-4 rounded bg-background p-4   shadow md:grid-cols-2 dark:bg-neutral-900 border-b-2 border-black">{stockTransfer.voucher_no || '-'}</div>
             </div>
 
             <div>
               <label className="text-sm text-gray-600">From Godown</label>
-              <div className="grid grid-cols-1 gap-4 space-y-4 rounded bg-gray-100 p-4   shadow md:grid-cols-2 dark:bg-neutral-900 border-b-2 border-black">{stockTransfer.from_godown?.name}</div>
+              <div className="grid grid-cols-1 gap-4 space-y-4 rounded bg-background p-4   shadow md:grid-cols-2 dark:bg-neutral-900 border-b-2 border-black">{stockTransfer.from_godown?.name}</div>
             </div>
 
             <div>
               <label className="text-sm text-gray-600">To Godown</label>
-              <div className="grid grid-cols-1 gap-4 space-y-4 rounded bg-gray-100 p-4   shadow md:grid-cols-2 dark:bg-neutral-900 border-b-2 border-black">{stockTransfer.to_godown?.name}</div>
+              <div className="grid grid-cols-1 gap-4 space-y-4 rounded bg-background p-4   shadow md:grid-cols-2 dark:bg-neutral-900 border-b-2 border-black">{stockTransfer.to_godown?.name}</div>
             </div>
 
             <div className="md:col-span-2">
               <label className="text-sm text-gray-600">Note</label>
-              <div className="text-lg whitespace-pre-wrap grid grid-cols-1 gap-4 space-y-4 rounded bg-gray-100 p-4   shadow md:grid-cols-2 dark:bg-neutral-900 border-b-2 border-black">{stockTransfer.note || '-'}</div>
+              <div className="text-lg whitespace-pre-wrap grid grid-cols-1 gap-4 space-y-4 rounded bg-background p-4   shadow md:grid-cols-2 dark:bg-neutral-900 border-b-2 border-black">{stockTransfer.note || '-'}</div>
             </div>
           </div>
 

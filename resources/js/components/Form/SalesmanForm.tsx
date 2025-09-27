@@ -22,7 +22,7 @@ const SalesmanForm: React.FC<SalesmanFormProps> = ({ data, setData, handleSubmit
     const t = useTranslation();
 
     return (
-        <form onSubmit={handleSubmit} className="space-y-4 rounded-lg border bg-white p-4 dark:bg-neutral-900">
+        <form onSubmit={handleSubmit} className="space-y-4 rounded-lg border bg-background p-4 dark:bg-neutral-900">
             {/* Salesman Code (Readonly for Edit Form) */}
             {salesmanCode && (
                 <div>

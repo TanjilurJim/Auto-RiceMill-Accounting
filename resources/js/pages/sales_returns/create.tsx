@@ -3,15 +3,9 @@ import InputCalendar from '@/components/Btn&Link/InputCalendar';
 import PageHeader from '@/components/PageHeader';
 import { useTranslation } from '@/components/useTranslation';
 import AppLayout from '@/layouts/app-layout';
-i                                <label className="mb-1 block text-sm font-medium">{t('refundModeLabel')}</label>
-                                <select
-                                    className="w-full rounded border p-2"
-                                    value={data.received_mode_id}
-                                    onChange={(e) => setData('received_mode_id', e.target.value)}
-                                >
-                                    <option value="">{t('selectModeOption')}</option> Head, useForm } from '@inertiajs/react';
+import { Head, useForm } from '@inertiajs/react';
 import axios from 'axios';
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 
 interface Sale {
     id: number;
@@ -27,6 +21,7 @@ interface Product {
     id: number;
     item_name: string;
 }
+
 interface ReceivedMode {
     id: number;
     mode_name: string;
@@ -42,6 +37,28 @@ interface Salesman {
     name: string;
 }
 
+interface AccountGroup {
+    id: number;
+    name: string;
+}
+
+interface SalesReturnItem {
+    product_id: string;
+    qty: string;
+    main_price: string;
+    discount: string;
+    return_amount: string;
+    max_qty: number;
+}
+
+interface SaleItem {
+    product_id: string;
+    qty: string;
+    max_qty: number;
+    main_price: string;
+    discount?: string;
+}
+
 export default function SalesReturnCreate({
     sales,
     ledgers,
@@ -50,6 +67,7 @@ export default function SalesReturnCreate({
     salesmen,
     voucher,
     receivedModes,
+    accountGroups = [],
 }: {
     sales: Sale[];
     ledgers: AccountLedger[];
@@ -58,8 +76,9 @@ export default function SalesReturnCreate({
     salesmen: Salesman[];
     voucher: string;
     receivedModes: ReceivedMode[];
+    accountGroups?: AccountGroup[];
 }) {
-    const { data, setData, post, processing, errors } = useForm({
+    const { data, setData, post, processing } = useForm({
         sale_id: '',
         voucher_no: voucher,
         account_ledger_id: '',
@@ -71,10 +90,11 @@ export default function SalesReturnCreate({
         address: '',
         shipping_details: '',
         inventory_ledger_id: '',
+        cogs_ledger_id: '',
         received_mode_id: '',
         amount_received: '',
         delivered_to: '',
-        sales_return_items: [{ product_id: '', qty: '', main_price: '', discount: '', return_amount: '' }],
+        sales_return_items: [{ product_id: '', qty: '', main_price: '', discount: '', return_amount: '', max_qty: 0 }],
     });
 
     const t = useTranslation();
@@ -94,20 +114,20 @@ export default function SalesReturnCreate({
                     cogs_ledger_id: sale.cogs_ledger_id ?? '',
                     received_mode_id: sale.received_mode_id ?? '',
                     amount_received: sale.amount_received ?? '', // or 0
-                    sales_return_items: sale.sale_items.map((item: any) => ({
+                    sales_return_items: sale.sale_items.map((item: SaleItem) => ({
                         product_id: item.product_id,
                         qty: item.qty,
                         max_qty: item.max_qty, // 💡 include this
                         main_price: item.main_price,
                         discount: item.discount ?? '0',
-                        return_amount: (parseFloat(item.qty) * parseFloat(item.main_price) - parseFloat(item.discount ?? 0)).toFixed(2),
+                        return_amount: (parseFloat(item.qty) * parseFloat(item.main_price) - parseFloat(item.discount ?? '0')).toFixed(2),
                     })),
                 }));
             });
         }
-    }, [data.sale_id]);
+    }, [data.sale_id, setData]);
 
-    const calculateTotals = () => {
+    const calculateTotals = useCallback(() => {
         let totalQty = 0;
         let totalReturnAmount = 0;
 
@@ -122,16 +142,22 @@ export default function SalesReturnCreate({
         });
 
         return { totalQty, totalReturnAmount };
-    };
+    }, [data.sales_return_items]);
 
     useEffect(() => {
         const refundAmount = calculateTotals().totalReturnAmount;
         setData('amount_received', refundAmount.toFixed(2));
-    }, [data.sales_return_items]);
+    }, [data.sales_return_items, calculateTotals, setData]);
 
-    const handleItemChange = (index: number, field: string, value: any) => {
+    const handleItemChange = (index: number, field: keyof SalesReturnItem, value: string | number) => {
         const updatedItems = [...data.sales_return_items];
-        updatedItems[index][field] = value;
+
+        // Type-safe assignment
+        if (field === 'max_qty') {
+            updatedItems[index][field] = Number(value);
+        } else {
+            updatedItems[index][field] = String(value);
+        }
 
         const qty = parseFloat(updatedItems[index].qty) || 0;
         const price = parseFloat(updatedItems[index].main_price) || 0;
@@ -142,7 +168,10 @@ export default function SalesReturnCreate({
     };
 
     const addProductRow = () =>
-        setData('sales_return_items', [...data.sales_return_items, { product_id: '', qty: '', main_price: '', discount: '', return_amount: '' }]);
+        setData('sales_return_items', [
+            ...data.sales_return_items,
+            { product_id: '', qty: '', main_price: '', discount: '', return_amount: '', max_qty: 0 },
+        ]);
 
     const removeProductRow = (index: number) => {
         if (data.sales_return_items.length > 1) {
@@ -156,13 +185,10 @@ export default function SalesReturnCreate({
         e.preventDefault();
         post('/sales-returns');
     };
-    const [showCogsLedgerModal, setShowCogsLedgerModal] = useState(false);
     const [newLedgerName, setNewLedgerName] = useState('');
     const [newGroupId, setNewGroupId] = useState('');
     const [showInventoryLedgerModal, setShowInventoryLedgerModal] = useState(false);
     const [modalTargetField, setModalTargetField] = useState<'inventory' | 'cogs'>('inventory');
-
-    const { totalQty, totalReturnAmount } = calculateTotals();
 
     return (
         <AppLayout>
@@ -178,12 +204,12 @@ export default function SalesReturnCreate({
 
                     <PageHeader title={t('createSalesReturnTitle')} addLinkHref="/sales-returns" addLinkText={t('backText')} />
 
-                    <form onSubmit={handleSubmit} className="space-y-6 rounded bg-white p-6 shadow-md">
+                    <form onSubmit={handleSubmit} className="bg-background space-y-6 rounded p-6 shadow-md">
                         {/* Top Info */}
                         <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
                             <div>
                                 <label className="mb-1 block text-sm font-medium">{t('voucherNoLabel')}</label>
-                                <input type="text" className="w-full rounded border bg-gray-100 p-2" value={data.voucher_no} readOnly />
+                                <input type="text" className="bg-background w-full rounded border p-2" value={data.voucher_no} readOnly />
                             </div>
 
                             <div>
@@ -282,13 +308,13 @@ export default function SalesReturnCreate({
 
                             {/* Refund Mode  */}
                             <div>
-                                <label className="mb-1 block text-sm font-medium">Refund Mode</label>
+                                <label className="mb-1 block text-sm font-medium">{t('refundModeLabel')}</label>
                                 <select
                                     className="w-full border p-2"
                                     value={data.received_mode_id}
                                     onChange={(e) => setData('received_mode_id', e.target.value)}
                                 >
-                                    <option value="">Select Mode</option>
+                                    <option value="">{t('selectModeOption')}</option>
                                     {receivedModes.map((mode) => (
                                         <option key={mode.id} value={mode.id}>
                                             {mode.mode_name}
@@ -298,7 +324,7 @@ export default function SalesReturnCreate({
                             </div>
 
                             <div>
-                                <label className="mb-1 block text-sm font-medium">Refund Amount</label>
+                                <label className="mb-1 block text-sm font-medium">{t('refundAmountLabel')}</label>
                                 <input
                                     type="number"
                                     className="w-full border p-2"
@@ -308,13 +334,13 @@ export default function SalesReturnCreate({
                             </div>
 
                             <div>
-                                <label className="mb-1 block text-sm font-medium">Godown</label>
+                                <label className="mb-1 block text-sm font-medium">{t('godownLabel')}</label>
                                 <select
                                     className="w-full rounded border p-2"
                                     value={data.godown_id}
                                     onChange={(e) => setData('godown_id', e.target.value)}
                                 >
-                                    <option value="">Select Godown</option>
+                                    <option value="">{t('selectGodownOption')}</option>
                                     {godowns.map((g) => (
                                         <option key={g.id} value={g.id}>
                                             {g.name}
@@ -324,13 +350,13 @@ export default function SalesReturnCreate({
                             </div>
 
                             <div>
-                                <label className="mb-1 block text-sm font-medium">Salesman</label>
+                                <label className="mb-1 block text-sm font-medium">{t('salesmanLabel')}</label>
                                 <select
                                     className="w-full rounded border p-2"
                                     value={data.salesman_id}
                                     onChange={(e) => setData('salesman_id', e.target.value)}
                                 >
-                                    <option value="">Select Salesman</option>
+                                    <option value="">{t('selectSalesmanOption')}</option>
                                     {salesmen.map((sm) => (
                                         <option key={sm.id} value={sm.id}>
                                             {sm.name}
@@ -340,11 +366,15 @@ export default function SalesReturnCreate({
                             </div>
 
                             <div>
-                                <InputCalendar value={data.return_date} onChange={(val) => setData('return_date', val)} label="Return Date" />
+                                <InputCalendar
+                                    value={data.return_date}
+                                    onChange={(val) => setData('return_date', val)}
+                                    label={t('returnDateLabel')}
+                                />
                             </div>
 
                             <div>
-                                <label className="mb-1 block text-sm font-medium">Phone</label>
+                                <label className="mb-1 block text-sm font-medium">{t('phoneLabel')}</label>
                                 <input
                                     type="text"
                                     className="w-full rounded border p-2"
@@ -354,7 +384,7 @@ export default function SalesReturnCreate({
                             </div>
 
                             <div className="md:col-span-2">
-                                <label className="mb-1 block text-sm font-medium">Address</label>
+                                <label className="mb-1 block text-sm font-medium">{t('addressLabel')}</label>
                                 <input
                                     type="text"
                                     className="w-full rounded border p-2"
@@ -366,19 +396,19 @@ export default function SalesReturnCreate({
 
                         {/* Product Section */}
                         <div>
-                            <h2 className="mb-2 text-lg font-semibold">Returned Products</h2>
+                            <h2 className="mb-2 text-lg font-semibold">{t('returnedProductsLabel')}</h2>
 
                             {data.sales_return_items.map((item, index) => (
                                 <div key={index} className="mb-3 grid grid-cols-12 items-end gap-2">
                                     {/* Product Selector */}
                                     <div className="col-span-3">
-                                        <label className="mb-1 block text-sm font-medium">Product</label>
+                                        <label className="mb-1 block text-sm font-medium">{t('productLabel')}</label>
                                         <select
                                             className="w-full rounded border p-2"
                                             value={item.product_id}
                                             onChange={(e) => handleItemChange(index, 'product_id', e.target.value)}
                                         >
-                                            <option value="">Select Product</option>
+                                            <option value="">{t('selectProductOption')}</option>
                                             {products.map((p) => (
                                                 <option key={p.id} value={p.id}>
                                                     {p.item_name}
@@ -389,7 +419,7 @@ export default function SalesReturnCreate({
 
                                     {/* Quantity */}
                                     <div className="col-span-1">
-                                        <label className="mb-1 block text-sm font-medium">Qty</label>
+                                        <label className="mb-1 block text-sm font-medium">{t('qtyLabel')}</label>
                                         <input
                                             type="number"
                                             max={item.max_qty}
@@ -401,10 +431,10 @@ export default function SalesReturnCreate({
 
                                     {/* Price */}
                                     <div className="col-span-2">
-                                        <label className="mb-1 block text-sm font-medium">Price</label>
+                                        <label className="mb-1 block text-sm font-medium">{t('priceLabel')}</label>
                                         <input
                                             type="number"
-                                            placeholder="Price"
+                                            placeholder={t('pricePlaceholder')}
                                             className="w-full rounded border p-2"
                                             value={item.main_price}
                                             onChange={(e) => handleItemChange(index, 'main_price', e.target.value)}
@@ -413,10 +443,10 @@ export default function SalesReturnCreate({
 
                                     {/* Discount */}
                                     <div className="col-span-2">
-                                        <label className="mb-1 block text-sm font-medium">Discount</label>
+                                        <label className="mb-1 block text-sm font-medium">{t('discountLabel')}</label>
                                         <input
                                             type="number"
-                                            placeholder="Discount"
+                                            placeholder={t('discountPlaceholder')}
                                             className="w-full rounded border p-2"
                                             value={item.discount}
                                             onChange={(e) => handleItemChange(index, 'discount', e.target.value)}
@@ -425,11 +455,11 @@ export default function SalesReturnCreate({
 
                                     {/* Subtotal */}
                                     <div className="col-span-2">
-                                        <label className="mb-1 block text-sm font-medium">Subtotal</label>
+                                        <label className="mb-1 block text-sm font-medium">{t('subtotalLabel')}</label>
                                         <input
                                             type="number"
-                                            placeholder="Subtotal"
-                                            className="w-full rounded border bg-gray-100 p-2"
+                                            placeholder={t('subtotalPlaceholder')}
+                                            className="w-full rounded border bg-background p-2"
                                             value={item.return_amount}
                                             readOnly
                                         />
@@ -463,7 +493,7 @@ export default function SalesReturnCreate({
                         {/* Delivery Info */}
                         <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
                             <div>
-                                <label className="mb-1 block text-sm font-medium">Shipping Details</label>
+                                <label className="mb-1 block text-sm font-medium">{t('shippingDetailsLabel')}</label>
                                 <input
                                     type="text"
                                     className="w-full rounded border p-2"
@@ -473,7 +503,7 @@ export default function SalesReturnCreate({
                             </div>
 
                             <div>
-                                <label className="mb-1 block text-sm font-medium">Delivered To</label>
+                                <label className="mb-1 block text-sm font-medium">{t('deliveredToLabel')}</label>
                                 <input
                                     type="text"
                                     className="w-full rounded border p-2"
@@ -485,7 +515,7 @@ export default function SalesReturnCreate({
 
                         {/* Reason */}
                         <div>
-                            <label className="mb-1 block text-sm font-medium">Return Reason</label>
+                            <label className="mb-1 block text-sm font-medium">{t('returnReasonLabel')}</label>
                             <textarea className="w-full rounded border p-2" value={data.reason} onChange={(e) => setData('reason', e.target.value)} />
                         </div>
 
@@ -505,27 +535,27 @@ export default function SalesReturnCreate({
                             onSubmit={handleSubmit} // Function to handle form submission
                             cancelHref="/sales-returns" // URL for the cancel action
                             processing={processing} // Indicates whether the form is processing
-                            submitText={processing ? 'Saving...' : 'Save Sales Return'} // Text for the submit button
-                            cancelText="Cancel" // Text for the cancel button
+                            submitText={processing ? t('savingText') : t('saveSalesReturnButton')} // Text for the submit button
+                            cancelText={t('cancelText')} // Text for the cancel button
                         />
                     </form>
                 </div>
             </div>
             {showInventoryLedgerModal && (
                 <div className="bg-opacity-50 fixed inset-0 z-50 flex items-center justify-center bg-black">
-                    <div className="w-full max-w-md rounded bg-white p-6 shadow-lg">
-                        <h2 className="mb-4 text-lg font-semibold text-gray-700">Create New Ledger</h2>
+                    <div className="w-full max-w-md rounded bg-background p-6 shadow-lg">
+                        <h2 className="mb-4 text-lg font-semibold text-gray-700">{t('createNewLedgerHeader')}</h2>
 
                         <input
                             type="text"
-                            placeholder="Ledger Name"
+                            placeholder={t('ledgerNamePlaceholder')}
                             className="mb-3 w-full rounded border p-2"
                             value={newLedgerName}
                             onChange={(e) => setNewLedgerName(e.target.value)}
                         />
 
                         <select className="mb-4 w-full rounded border p-2" value={newGroupId} onChange={(e) => setNewGroupId(e.target.value)}>
-                            <option value="">Select Group</option>
+                            <option value="">{t('selectGroupOption')}</option>
                             {/* Assuming you pass `accountGroups` from backend */}
                             {accountGroups.map((g) => (
                                 <option key={g.id} value={g.id}>
@@ -536,7 +566,7 @@ export default function SalesReturnCreate({
 
                         <div className="flex justify-end gap-3">
                             <button className="rounded bg-gray-400 px-4 py-2 text-white" onClick={() => setShowInventoryLedgerModal(false)}>
-                                Cancel
+                                {t('cancelText')}
                             </button>
                             <button
                                 className="rounded bg-green-600 px-4 py-2 text-white"
@@ -564,12 +594,13 @@ export default function SalesReturnCreate({
                                         setNewLedgerName('');
                                         setNewGroupId('');
                                         setShowInventoryLedgerModal(false);
-                                    } catch (err) {
+                                    } catch (error) {
+                                        console.error('Failed to create ledger:', error);
                                         alert('Failed to create ledger');
                                     }
                                 }}
                             >
-                                Create Ledger
+                                {t('createLedgerButton')}
                             </button>
                         </div>
                     </div>

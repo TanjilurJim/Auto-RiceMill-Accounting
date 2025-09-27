@@ -22,10 +22,10 @@ export default function CreateDepartment() {
             <Head title={t('createDepartmentTitle')} />
 
             <div className="h-full w-screen p-4 md:p-12 lg:w-full">
-                <div className="h-full rounded-lg bg-white">
+                <div className="h-full rounded-lg bg-background">
                     <PageHeader title={t('createDepartmentTitle')} addLinkHref="/departments" addLinkText={t('hrBackText')} />
 
-                    <form onSubmit={handleSubmit} className="space-y-5 rounded-lg border bg-white p-6 dark:bg-neutral-900">
+                    <form onSubmit={handleSubmit} className="space-y-5 rounded-lg border bg-background p-6 dark:bg-neutral-900">
                         {/* Department Name */}
                         <div>
                             <label htmlFor="name" className="mb-1 block font-medium">

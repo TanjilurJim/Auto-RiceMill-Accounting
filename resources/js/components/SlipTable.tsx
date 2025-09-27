@@ -57,7 +57,7 @@ export default function SlipTable({ slip }: SlipTableProps) {
             </th>
           </tr>
         </thead>
-        <tbody className="divide-y divide-gray-200 bg-white">
+        <tbody className="divide-y divide-gray-200 bg-background">
           {slip.receives.map((payment) => (
             <tr key={payment.id}>
               <td className="whitespace-nowrap px-6 py-4 text-sm text-gray-900">{formatDate(payment.date)}</td>

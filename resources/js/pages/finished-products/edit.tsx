@@ -103,7 +103,7 @@ export default function Edit({ finishedProduct, workingOrders, products, godowns
                 <div className="h-full rounded-lg p-4 md:p-12">
                     <PageHeader title="Edit Finished Product" addLinkHref="/finished-products" addLinkText="Back" />
 
-                    <form onSubmit={handleSubmit} className="space-y-6 rounded border bg-white p-6 shadow-md">
+                    <form onSubmit={handleSubmit} className="space-y-6 rounded border bg-background p-6 shadow-md">
                         <div className="grid grid-cols-2 md:grid-cols-4  gap-4">
                             {/* Working Order */}
                             <div>

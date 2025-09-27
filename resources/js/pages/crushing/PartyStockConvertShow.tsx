@@ -19,7 +19,7 @@ const LineItemTable = ({ title, items }: { title: string; items: Line[] }) => {
     const totalQty = items.reduce((sum, line) => sum + (+line.qty || 0), 0);
 
     return (
-        <div className="rounded-lg border border-slate-200 bg-white">
+        <div className="rounded-lg border border-slate-200 bg-background">
             <h3 className="border-b border-slate-200 bg-slate-50 p-3 text-base font-semibold text-slate-700">{title}</h3>
             <div className="overflow-x-auto">
                 <table className="w-full text-sm">
@@ -85,7 +85,7 @@ export default function PartyStockConvertShow({ header, consumed, generated }: P
                     <div className="flex items-center gap-2">
                         <Link
                             href={route('party-stock.transfer.index')}
-                            className="inline-flex items-center gap-2 rounded-md bg-white px-4 py-2 text-sm font-medium text-slate-700 shadow-sm ring-1 ring-slate-300 ring-inset hover:bg-slate-50 print:hidden"
+                            className="inline-flex items-center gap-2 rounded-md bg-background px-4 py-2 text-sm font-medium text-slate-700 shadow-sm ring-1 ring-slate-300 ring-inset hover:bg-slate-50 print:hidden"
                         >
                             <ArrowLeft size={16} />
                             Back to List
@@ -102,7 +102,7 @@ export default function PartyStockConvertShow({ header, consumed, generated }: P
                 </div>
 
                 {/* ── Main Voucher Card ─────────────────── */}
-                <div className="rounded-xl border border-slate-200 bg-white p-6 shadow-sm">
+                <div className="rounded-xl border border-slate-200 bg-background p-6 shadow-sm">
                     {/* ── Meta Information ─────────────────── */}
                     <div className="grid grid-cols-1 gap-x-8 gap-y-4 border-b border-slate-200 pb-6 sm:grid-cols-2">
                         <InfoItem icon={<FileText size={20} />} label="Reference No" value={header.ref_no} />

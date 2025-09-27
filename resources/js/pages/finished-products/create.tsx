@@ -117,11 +117,11 @@ export default function Create({ workingOrders, products, godowns, autoVoucherNo
             <Head title={t('fp-add-finished-product')} />
 
             <div className="mx-auto border p-4 md:p-12">
-                <div className="h-full rounded-lg bg-white">
+                <div className="h-full rounded-lg bg-background">
                     <PageHeader title={t('fp-add-finished-product')} addLinkHref="/finished-products" addLinkText={t('fp-back')} />
 
                     {/* Working Order Selection */}
-                    <div className="rounded border bg-white p-6 shadow-md">
+                    <div className="rounded border bg-background p-6 shadow-md">
                         <h2 className="mb-4 text-lg font-bold">{t('fp-select-working-order')}</h2>
                         <Select
                             options={workingOrderOptions}
@@ -150,7 +150,7 @@ export default function Create({ workingOrders, products, godowns, autoVoucherNo
                     </div>
 
                     {/* Production Entry Form */}
-                    <form onSubmit={handleSubmit} className="space-y-6 rounded border bg-white p-6 shadow-md">
+                    <form onSubmit={handleSubmit} className="space-y-6 rounded border bg-background p-6 shadow-md">
                         <h2 className="mb-2 text-lg font-bold">{t('fp-add-production')}</h2>
 
                         {/* Header Fields */}

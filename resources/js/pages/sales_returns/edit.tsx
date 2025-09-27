@@ -103,7 +103,7 @@ export default function SalesReturnEdit({
             <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
               <div>
                 <label className="block text-sm font-medium mb-1">Voucher No</label>
-                <input type="text" className="w-full border rounded bg-gray-100 p-2" value={data.voucher_no} readOnly />
+                <input type="text" className="w-full border rounded bg-background p-2" value={data.voucher_no} readOnly />
               </div>
 
               <div>

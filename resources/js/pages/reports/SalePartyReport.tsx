@@ -76,7 +76,7 @@ export default function SalePartyReport({
                     <CardContent className="p-6">
                         <div className="overflow-x-auto">
                             <table className="min-w-full border border-gray-300 text-sm print:text-xs">
-                                <thead className="bg-gray-100 print:bg-white">
+                                <thead className="bg-background print:bg-white">
                                     <tr>
                                         <th className="border px-2 py-1">{t('repSerialNoHeader')}</th>
                                         <th className="border px-2 py-1">{t('repPartyHeader')}</th>
@@ -95,7 +95,7 @@ export default function SalePartyReport({
                                                     <td className="border px-2 py-1 text-right">{Number(r.total_amount ?? 0).toFixed(2)}</td>
                                                 </tr>
                                             ))}
-                                            <tr className="bg-gray-100 font-semibold print:bg-white">
+                                            <tr className="bg-background font-semibold print:bg-white">
                                                 <td colSpan={2} className="border px-2 py-1 text-right">
                                                     Grand Total
                                                 </td>

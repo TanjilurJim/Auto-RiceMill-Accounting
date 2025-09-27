@@ -35,7 +35,7 @@ export default function EditPermission({ permission }: { permission: Permission 
             <div className="p-4 md:p-12">
                 <h1 className="mb-6 text-2xl font-bold">{t('pmEditPermissionTitle')}</h1>
 
-                <form onSubmit={submit} className="space-y-4 rounded bg-white p-4 shadow dark:bg-neutral-900">
+                <form onSubmit={submit} className="space-y-4 rounded bg-background p-4 shadow dark:bg-neutral-900">
                     <div>
                         <label htmlFor="name" className="mb-1 block font-medium">
                             {t('pmPermissionNameLabel')}

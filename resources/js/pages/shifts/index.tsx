@@ -37,7 +37,7 @@ export default function ShiftIndex({ shifts }: { shifts: Shift[] }) {
         <AppLayout>
             <Head title={t('shiftsTitle')} />
             <div className="h-full w-screen p-4 md:p-12 lg:w-full">
-                <div className="h-full rounded-lg bg-white">
+                <div className="h-full rounded-lg bg-background">
                     <PageHeader title={t('shiftsTitle')} addLinkHref="/shifts/create" addLinkText={t('hrAddNewText')} />
 
                     <TableComponent

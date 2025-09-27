@@ -40,7 +40,7 @@ export default function CreatePermission() {
                 <div className="w-full max-w-xl p-4 md:p-12">
                     <PageHeader title={t('pmCreatePermissionTitle')} />
 
-                    <form onSubmit={submit} className="space-y-4 rounded bg-white p-4 shadow dark:bg-neutral-900">
+                    <form onSubmit={submit} className="space-y-4 rounded bg-background p-4 shadow dark:bg-neutral-900">
                         {/* Name */}
                         <div>
                             <label htmlFor="name" className="mb-1 block font-medium">

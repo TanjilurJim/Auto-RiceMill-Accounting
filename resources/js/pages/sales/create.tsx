@@ -499,7 +499,7 @@ export default function SaleCreate({
                         backgroundColor: 'rgba(0, 0, 0, 0.5)',
                     }}
                 >
-                    <div className="w-full max-w-md rounded bg-white p-6 shadow-lg">
+                    <div className="w-full max-w-md rounded bg-background p-6 shadow-lg">
                         <h2 className="text-foreground mb-4 text-lg font-semibold">{t('createLedgerHeader')}</h2>
 
                         <input
@@ -569,7 +569,7 @@ export default function SaleCreate({
                         backgroundColor: 'rgba(0, 0, 0, 0.5)',
                     }}
                 >
-                    <div className="w-full max-w-md rounded bg-white p-6 shadow-lg">
+                    <div className="w-full max-w-md rounded bg-background p-6 shadow-lg">
                         <h2 className="text-foreground mb-4 text-lg font-semibold">{t('createCogsLedgerHeader')}</h2>
 
                         <input

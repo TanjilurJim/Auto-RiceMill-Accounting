@@ -57,7 +57,7 @@ export default function CompanyConvertIndex({ conversions, pagination }: Props) 
                     </Link>
                 </div>
 
-                <div className="overflow-x-auto rounded-lg border border-slate-200 bg-white">
+                <div className="overflow-x-auto rounded-lg border border-slate-200 bg-background">
                     <table className="w-full text-sm">
                         <thead className="bg-slate-50 text-slate-600">
                             <tr>
@@ -123,7 +123,7 @@ export default function CompanyConvertIndex({ conversions, pagination }: Props) 
                                                 <td colSpan={7} className="bg-slate-50 p-0">
                                                     <div className="overflow-x-auto">
                                                         <table className="w-full text-xs">
-                                                            <thead className="bg-white text-slate-500">
+                                                            <thead className="bg-background text-slate-500">
                                                                 <tr>
                                                                     <th className="p-2 text-left">Type</th>
                                                                     <th className="p-2 text-left">Item</th>
@@ -133,7 +133,7 @@ export default function CompanyConvertIndex({ conversions, pagination }: Props) 
                                                             </thead>
                                                             <tbody className="divide-y divide-slate-200">
                                                                 {c.items.map((it, i) => (
-                                                                    <tr key={i} className="bg-white">
+                                                                    <tr key={i} className="bg-background">
                                                                         <td className="p-2">
                                                                             {it.move_type === 'convert-in' ? 'Generated (+)' : 'Consumed (−)'}
                                                                         </td>

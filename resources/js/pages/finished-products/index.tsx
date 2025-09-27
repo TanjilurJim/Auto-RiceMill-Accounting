@@ -93,7 +93,7 @@ export default function Index({ finishedProducts }: Props) {
             <Head title={t('fp-finished-products')} />
 
             <div className="bg-gray-space-y mx-auto h-full w-screen p-4 md:p-12 lg:w-full">
-                <div className="h-full rounded-lg bg-white">
+                <div className="h-full rounded-lg bg-background">
                     <PageHeader
                         title={t('fp-finished-products')}
                         addLinkHref="/finished-products/create"

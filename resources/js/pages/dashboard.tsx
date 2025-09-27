@@ -127,7 +127,7 @@ export default function Dashboard({ runningDryers }: DashboardProps) {
                         key={title}
                         className={cn(
                             'dark:border-muted/30 flex items-center gap-4 rounded-lg border border-gray-100 p-4',
-                            'dark:bg-muted/40 bg-white shadow-sm transition-transform duration-200',
+                            'dark:bg-muted/40 bg-background shadow-sm transition-transform duration-200',
                             'hover:border-primary/40 hover:-translate-y-1 hover:shadow-lg',
                             bg,
                         )}

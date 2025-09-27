@@ -107,7 +107,7 @@ const WorkingOrderCreate: React.FC<Props> = ({ autoVoucherNo, products, godowns 
 
             <div className="mx-auto h-full w-full">
                 <div className="h-full border p-4 md:p-12">
-                    <div className="h-full w-full rounded-lg bg-white">
+                    <div className="h-full w-full rounded-lg bg-background">
                         {/* Header bar */}
 
                         <PageHeader

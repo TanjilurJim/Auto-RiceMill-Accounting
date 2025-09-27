@@ -113,7 +113,7 @@ export default function CreateRole({ modules }: Props) {
 
                 <form
                     onSubmit={submit}
-                    className="rounded-xl border border-gray-100 bg-white p-6 shadow-sm dark:border-neutral-800 dark:bg-neutral-900"
+                    className="rounded-xl border border-gray-100 bg-background p-6 shadow-sm dark:border-neutral-800 dark:bg-neutral-900"
                 >
                     {/* Role Name */}
                     <div className="mb-8">
@@ -179,7 +179,7 @@ export default function CreateRole({ modules }: Props) {
                                         </button>
 
                                         {expandedModules[module.name] && (
-                                            <div className="bg-white p-4 dark:bg-neutral-900">
+                                            <div className="bg-background p-4 dark:bg-neutral-900">
                                                 {/* Permissions + Select All */}
                                                 <div className="mb-3 flex items-center justify-between">
                                                     <h3 className="font-medium text-gray-700 dark:text-gray-300">{t('ro-permissions')}</h3>

@@ -122,7 +122,7 @@ export default function ItemShow({ item, stocks, summary, godowns, filters }: It
                     {/* Totals + filters */}
                     <div className="mb-6 flex flex-col gap-4 lg:flex-row lg:justify-center">
                         {/* Snapshot card */}
-                        <div className="flex-grow rounded-2xl border bg-white p-4 shadow-sm">
+                        <div className="flex-grow rounded-2xl border bg-background p-4 shadow-sm">
                             <h2 className="text-lg font-semibold">
                                 {item.item_name} <span className="text-sm text-gray-500">({item.item_code})</span>
                             </h2>
@@ -143,7 +143,7 @@ export default function ItemShow({ item, stocks, summary, godowns, filters }: It
                         </div>
 
                         {/* Godown filter */}
-                        <div className="w-full rounded-2xl border bg-white p-4 shadow-sm lg:w-64">
+                        <div className="w-full rounded-2xl border bg-background p-4 shadow-sm lg:w-64">
                             <label className="mb-1 block text-sm font-medium text-gray-700">Filter by Godown</label>
                             <Select
                                 value={filters.godown_id ?? undefined} // ⬅️  undefined, not ''
@@ -166,7 +166,7 @@ export default function ItemShow({ item, stocks, summary, godowns, filters }: It
                     </div>
 
                     {/* Lot-wise breakdown table */}
-                    <div className="rounded-2xl border bg-white p-4 shadow-sm">
+                    <div className="rounded-2xl border bg-background p-4 shadow-sm">
                         <TableComponent columns={columns} data={stocks} noDataMessage="No active lots." />
                     </div>
                 </div>

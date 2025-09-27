@@ -51,7 +51,7 @@ export default function EmployeeReport() {
             <Head title={t('employeeSalaryReportTitle')} />
 
             <div className="h-full w-screen p-4 md:p-12 lg:w-full">
-                <div className="rounded-lg bg-white">
+                <div className="rounded-lg bg-background">
                     <PageHeader title={t('employeeSalaryReportTitle')} />
 
                     {/* Filters */}

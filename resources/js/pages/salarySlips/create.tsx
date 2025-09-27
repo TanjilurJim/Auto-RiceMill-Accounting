@@ -160,10 +160,10 @@ export default function SalarySlipCreate({ employees }: { employees: Employee[] 
         <AppLayout>
             <Head title="Create Salary Slip" />
             <div className="h-full w-screen p-4 md:p-12 lg:w-full">
-                <div className="h-full rounded-lg bg-white">
+                <div className="h-full rounded-lg bg-background">
                     <PageHeader title="Create New Salary Slip" addLinkHref="/salary-slips" addLinkText="Back" />
 
-                    <form onSubmit={handleSubmit} className="space-y-6 rounded-lg border bg-white p-6">
+                    <form onSubmit={handleSubmit} className="space-y-6 rounded-lg border bg-background p-6">
                         {/* Header */}
                         <div className="space-y-4">
                             <h2 className="pb-1 text-lg font-semibold">Salary Slip Information</h2>

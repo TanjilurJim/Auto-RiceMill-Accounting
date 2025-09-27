@@ -38,7 +38,7 @@ export default function EditEmployee({ employee, departments, designations, shif
                 <div className="h-full rounded-lg p-4 md:p-12">
                     <PageHeader title="Edit Employee" addLinkHref="/employees" addLinkText="Back" />
 
-                    <form onSubmit={handleSubmit} className="space-y-6 rounded-lg border bg-white p-6">
+                    <form onSubmit={handleSubmit} className="space-y-6 rounded-lg border bg-background p-6">
                         <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
                             {/* Employee Name */}
                             <div>

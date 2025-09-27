@@ -44,7 +44,7 @@ export default function EditRole({ role, permissions, rolePermissions }: { role:
                 {/* <h1 className="text-2xl font-bold mb-6">Edit Role</h1> */}
                 <PageHeader title={t('ro-edit-role')} addLinkHref="/roles" addLinkText={t('ro-back')} />
 
-                <form onSubmit={submit} className="space-y-4 rounded bg-white p-4 shadow dark:bg-neutral-900">
+                <form onSubmit={submit} className="space-y-4 rounded bg-background p-4 shadow dark:bg-neutral-900">
                     <div>
                         <label htmlFor="name" className="mb-1 block font-medium">
                             {t('ro-role-name')}

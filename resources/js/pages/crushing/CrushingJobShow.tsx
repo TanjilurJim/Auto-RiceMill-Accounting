@@ -48,7 +48,7 @@ export default function CrushingJobShow({ job, lines }: JobShowProps) {
                     <h1 className="text-2xl font-bold text-slate-800">Crushing Job Details</h1>
                     <Link
                         href={route('crushing.jobs.index')}
-                        className="inline-flex items-center gap-2 rounded-md bg-white px-4 py-2 text-sm font-medium text-slate-700 shadow-sm ring-1 ring-slate-300 ring-inset hover:bg-slate-50"
+                        className="inline-flex items-center gap-2 rounded-md bg-background px-4 py-2 text-sm font-medium text-slate-700 shadow-sm ring-1 ring-slate-300 ring-inset hover:bg-slate-50"
                     >
                         <ArrowLeft size={16} />
                         Back to Jobs
@@ -80,7 +80,7 @@ export default function CrushingJobShow({ job, lines }: JobShowProps) {
                     )}
                 </div>
 
-                <div className="rounded-xl border border-slate-200 bg-white p-6 shadow-sm">
+                <div className="rounded-xl border border-slate-200 bg-background p-6 shadow-sm">
                     {/* Meta */}
                     <div className="grid grid-cols-1 gap-x-8 gap-y-4 sm:grid-cols-2">
                         <Meta icon={<Calendar size={18} />} label="Date" value={job.date ?? '—'} />

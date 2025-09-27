@@ -182,7 +182,7 @@ export default function PurchaseInboxTable({ purchases, approveRoute, rejectRout
 
             {/* bulk bar */}
             {selected.length > 0 && (
-                <div className="mt-4 rounded-lg border border-gray-200 bg-white px-4 py-3 shadow-sm dark:border-neutral-700 dark:bg-neutral-900">
+                <div className="mt-4 rounded-lg border border-gray-200 bg-background px-4 py-3 shadow-sm dark:border-neutral-700 dark:bg-neutral-900">
                     <div className="flex flex-wrap items-center justify-between gap-3">
                         <p className="text-sm font-medium">
                             <span className="font-bold">{selected.length}</span> {t('itemsSelected')}
@@ -222,7 +222,7 @@ export default function PurchaseInboxTable({ purchases, approveRoute, rejectRout
             {/* modal */}
             {modal.isOpen && (
                 <div className="bg-opacity-50 fixed inset-0 z-50 flex items-center justify-center bg-black">
-                    <div className="w-full max-w-md transform rounded-lg bg-white p-6 shadow-xl transition-all dark:bg-neutral-800">
+                    <div className="w-full max-w-md transform rounded-lg bg-background p-6 shadow-xl transition-all dark:bg-neutral-800">
                         <h3 className="text-lg leading-6 font-medium text-gray-900 dark:text-white">{t('confirmActionTitle')}</h3>
                         <p className="mt-2 text-sm text-gray-500 dark:text-gray-400">{modal.message}</p>
                         <div className="mt-5 flex justify-end gap-3">

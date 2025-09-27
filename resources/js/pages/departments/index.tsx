@@ -33,7 +33,7 @@ export default function DepartmentIndex({ departments }: { departments: Departme
         <AppLayout>
             <Head title={t('departmentsTitle')} />
             <div className="h-full w-screen p-4 md:p-12 lg:w-full">
-                <div className="h-full rounded-lg bg-white">
+                <div className="h-full rounded-lg bg-background">
                     <PageHeader title={t('departmentsTitle')} addLinkHref="/departments/create" addLinkText={t('hrAddNewText')} />
 
                     {/* Responsive Table */}

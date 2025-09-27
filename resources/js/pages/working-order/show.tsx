@@ -45,8 +45,8 @@ export default function Show({ workingOrder }: Props) {
         <AppLayout>
             <Head title={`WO ${workingOrder.voucher_no}`} />
 
-            <div className="mx-auto h-full w-full p-6 shadow-xl bg-gray-100">
-                <div className="h-full rounded-xl border-gray-200 bg-white p-6">
+            <div className="mx-auto h-full w-full p-6 shadow-xl bg-background">
+                <div className="h-full rounded-xl border-gray-200 bg-background p-6">
                     {/* Header */}
                     <PageHeader
                         title={
@@ -76,7 +76,7 @@ export default function Show({ workingOrder }: Props) {
                         {workingOrder.items.map((row) => (
                             <div
                                 key={row.id}
-                                className="grid grid-cols-1 gap-4 rounded border border-gray-100 bg-gray-50 p-4 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-6 xl:grid-cols-12"
+                                className="grid grid-cols-1 gap-4 rounded border border-gray-100 bg-background p-4 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-6 xl:grid-cols-12"
                             >
                                 <div className="col-span-4 lg:col-span-4 text-xs">
                                     <label className="mb-2 block text-sm font-medium text-gray-700">Product</label>

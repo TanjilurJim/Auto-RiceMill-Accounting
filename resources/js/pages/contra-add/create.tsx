@@ -46,7 +46,7 @@ export default function Create({ paymentModes }: any) {
         <AppLayout>
             <Head title={t('addContraTitle')} />
             <div className="h-full w-screen p-4 md:p-12 lg:w-full">
-                <div className="h-full rounded-lg bg-white">
+                <div className="h-full rounded-lg bg-background">
                     <PageHeader title={t('addContraTitle')} addLinkHref="/contra-add" addLinkText={t('backText')} />
 
                     <div className="grid grid-cols-1 gap-2.5">

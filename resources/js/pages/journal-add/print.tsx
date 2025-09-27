@@ -16,7 +16,7 @@ export default function JournalPrint(props: any) {
     const totalCredit = credits.reduce((sum: number, e: any) => sum + parseFloat(e.amount), 0);
 
     return (
-        <div className="max-w-full bg-white p-6 print:p-0">
+        <div className="max-w-full bg-background p-6 print:p-0">
             <Head title={`Journal Voucher ${journal.voucher_no}`} />
 
             {/* Back button (screen-only) */}

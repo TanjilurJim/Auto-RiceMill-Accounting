@@ -37,8 +37,8 @@ export default function TransferForm({ parties, items, godowns, today, generated
     return (
         <AppLayout>
             <Head title="মাল স্থানান্তর ফর্ম" />
-            <div className="h-full w-screen bg-gray-100 p-6 lg:w-full">
-                <div className="h-full rounded-lg bg-white p-6">
+            <div className="h-full w-screen bg-background p-6 lg:w-full">
+                <div className="h-full rounded-lg bg-background p-6">
                     <h1 className="mb-4 text-xl font-bold">মাল স্থানান্তর ফর্ম</h1>
 
                     <form onSubmit={handleSubmit} className="space-y-6">

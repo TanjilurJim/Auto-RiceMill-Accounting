@@ -98,7 +98,7 @@ export default function Index() {
 
                 {/* Filters */}
 
-                <div className="rounded-lg bg-white">
+                <div className="rounded-lg bg-background">
                     <PageHeader title={t('owedOutstandingSalariesTitle')} addLinkHref="/dashboard" addLinkText={t('owedDashboardText')} />
                     <SearchBar endpoint={route('salary-owed.index')} />
 

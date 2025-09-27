@@ -62,7 +62,7 @@ export default function CompanyConvertShow({ header, consumed, generated }: Prop
                 </div>
 
                 {/* Header card */}
-                <div className="mb-6 rounded-lg border bg-white p-4">
+                <div className="mb-6 rounded-lg border bg-background p-4">
                     <div className="grid grid-cols-1 gap-2 sm:grid-cols-4">
                         <div>
                             <div className="text-xs text-slate-500">Date</div>
@@ -84,7 +84,7 @@ export default function CompanyConvertShow({ header, consumed, generated }: Prop
                 </div>
 
                 {/* Consumed */}
-                <div className="mb-6 overflow-x-auto rounded-lg border bg-white">
+                <div className="mb-6 overflow-x-auto rounded-lg border bg-background">
                     <div className="border-b bg-slate-50 p-3 font-semibold">Consumed (Convert-out)</div>
                     <table className="w-full text-sm">
                         <thead className="bg-slate-50 text-slate-600">
@@ -142,7 +142,7 @@ export default function CompanyConvertShow({ header, consumed, generated }: Prop
                 </div>
 
                 {/* Generated */}
-                <div className="overflow-x-auto rounded-lg border bg-white">
+                <div className="overflow-x-auto rounded-lg border bg-background">
                     <div className="border-b bg-slate-50 p-3 font-semibold">Generated (Convert-in)</div>
                     <table className="w-full text-sm">
                         <thead className="bg-slate-50 text-slate-600">

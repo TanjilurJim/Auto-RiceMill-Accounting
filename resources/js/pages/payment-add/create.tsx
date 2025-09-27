@@ -155,7 +155,7 @@ export default function Create({ paymentModes, accountLedgers }: { paymentModes:
                                     type="text"
                                     value={voucherNo}
                                     readOnly
-                                    className="w-full rounded border border-gray-300 bg-gray-100 px-3 py-2 text-gray-500"
+                                    className="w-full rounded border border-gray-300 bg-background px-3 py-2 text-gray-500"
                                 />
                             </div>
                         </div>
@@ -163,7 +163,7 @@ export default function Create({ paymentModes, accountLedgers }: { paymentModes:
                         <div>
                             <label className="mb-1 block font-medium text-gray-700">{t('paymentsLabel')}</label>
 
-                            <div className="mb-4 rounded border border-gray-300 bg-white p-4">
+                            <div className="mb-4 rounded border border-gray-300 bg-background p-4">
                                 <div className="mb-2 hidden grid-cols-5 gap-4 text-center text-xs font-semibold text-gray-600 md:grid">
                                     <div>{t('paymentModeLabel')}</div>
                                     <div>{t('accountLedgerLabel')}</div>

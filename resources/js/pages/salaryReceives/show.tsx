@@ -21,8 +21,8 @@ export default function Show({ salaryReceive }) {
     <AppLayout>
       <Head title={`Salary Receive - ${salaryReceive?.vch_no || 'N/A'}`} />
 
-      <div className="bg-gray-100 p-6 h-full w-screen lg:w-full">
-        <div className="bg-white h-full rounded-lg p-6">
+      <div className="bg-background p-6 h-full w-screen lg:w-full">
+        <div className="bg-background h-full rounded-lg p-6">
           {/* <h1 className="text-2xl font-bold text-gray-800 mb-6">Salary Receive Details</h1> */}
           <PageHeader title="Salary Receive" addLinkHref='/salary-receives' addLinkText="Back" />
 

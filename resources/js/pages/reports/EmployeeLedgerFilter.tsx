@@ -44,7 +44,7 @@ const EmployeeLedgerFilter: React.FC<Props> = ({ employees }) => {
         <AppLayout>
             <Head title={t('employeeLedgerFilterTitle')} />
             <div className="h-full w-screen p-4 md:p-12 lg:w-full">
-                <div className="h-full rounded-lg bg-white">
+                <div className="h-full rounded-lg bg-background">
                     <PageHeader title={t('employeeLedgerReportTitle')} />
 
                     <form onSubmit={handleSubmit} className="space-y-4">

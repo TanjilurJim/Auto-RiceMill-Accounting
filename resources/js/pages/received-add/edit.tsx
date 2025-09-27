@@ -80,7 +80,7 @@ export default function Edit({ receivedAdd, receivedModes, accountLedgers }: Pro
 
                     <form onSubmit={handleSubmit} className="space-y-6">
                         {/* Voucher Info */}
-                        <div className="rounded-lg border bg-white p-6 shadow">
+                        <div className="rounded-lg border bg-background p-6 shadow">
                             <h2 className="mb-4 border-b pb-2 text-lg font-semibold text-gray-700">Voucher Details</h2>
                             <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
                                 <div>
@@ -101,7 +101,7 @@ export default function Edit({ receivedAdd, receivedModes, accountLedgers }: Pro
                         </div>
 
                         {/* Mode & Ledger */}
-                        <div className="rounded-lg border bg-white p-6 shadow">
+                        <div className="rounded-lg border bg-background p-6 shadow">
                             <h2 className="mb-4 border-b pb-2 text-lg font-semibold text-gray-700">Receive From</h2>
                             <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
                                 <div>
@@ -166,7 +166,7 @@ export default function Edit({ receivedAdd, receivedModes, accountLedgers }: Pro
                         </div>
 
                         {/* Description & SMS */}
-                        <div className="space-y-4 rounded-lg border bg-white p-6 shadow">
+                        <div className="space-y-4 rounded-lg border bg-background p-6 shadow">
                             <div>
                                 <label className="mb-1 block text-sm font-medium text-gray-700">Description</label>
                                 <textarea

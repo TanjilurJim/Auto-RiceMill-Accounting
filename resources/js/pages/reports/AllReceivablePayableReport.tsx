@@ -87,7 +87,7 @@ export default function AllReceivablePayableReport({
               Receivables (DR)
             </h3>
             <div className="overflow-x-auto rounded border border-gray-200">
-              <table className="min-w-full bg-white text-sm">
+              <table className="min-w-full bg-background text-sm">
                 <thead className="bg-green-100">
                   <tr>
                     <th className="border-b px-3 py-2 text-left">#</th>
@@ -140,7 +140,7 @@ export default function AllReceivablePayableReport({
               Payables (CR)
             </h3>
             <div className="overflow-x-auto rounded border border-gray-200">
-              <table className="min-w-full bg-white text-sm">
+              <table className="min-w-full bg-background text-sm">
                 <thead className="bg-red-100">
                   <tr>
                     <th className="border-b px-3 py-2 text-left">#</th>

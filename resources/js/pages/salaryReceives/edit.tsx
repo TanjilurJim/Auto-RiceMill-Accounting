@@ -32,7 +32,7 @@ export default function Edit({ salaryReceive, employees, receivedModes, salarySl
                 <div className="h-full rounded-lg ">
                     <PageHeader title="Edit Salary Receive" addLinkHref='/salary-receives' addLinkText="Back" />
 
-                    <form onSubmit={handleSubmit} className="space-y-6 rounded-lg bg-white p-6 border">
+                    <form onSubmit={handleSubmit} className="space-y-6 rounded-lg bg-background p-6 border">
                         <div className='grid grid-cols-1 md:grid-cols-2 gap-4'>
                             {/* Voucher No (read-only) */}
                             <div>

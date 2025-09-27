@@ -119,7 +119,7 @@ export default function Show() {
                         <button
                             type="button"
                             onClick={handlePrint} // The same print handler function
-                            className="inline-flex items-center justify-center gap-2 rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 shadow-sm transition-colors hover:bg-gray-50 focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 focus:outline-none"
+                            className="inline-flex items-center justify-center gap-2 rounded-md border border-gray-300 bg-background px-4 py-2 text-sm font-medium text-gray-700 shadow-sm transition-colors hover:bg-gray-50 focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 focus:outline-none"
                         >
                             <PrinterIcon className="h-5 w-5" aria-hidden="true" />
                             <span>Print Receipt</span>

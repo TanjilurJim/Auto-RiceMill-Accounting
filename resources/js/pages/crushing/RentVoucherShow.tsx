@@ -183,7 +183,7 @@ export default function RentVoucherShow() {
                         </div>
 
                         {/* party & meta */}
-                        <div className="bg-white p-6">
+                        <div className="bg-background p-6">
                             <div className="grid gap-6 md:grid-cols-2">
                                 {/* party */}
                                 <div className="space-y-4">
@@ -284,7 +284,7 @@ export default function RentVoucherShow() {
 
                                     <Dialog.Portal>
                                         <Dialog.Overlay className="fixed inset-0 bg-black/30" />
-                                        <Dialog.Content className="fixed top-1/2 left-1/2 w-[600px] -translate-x-1/2 -translate-y-1/2 rounded-lg bg-white p-6 shadow-lg">
+                                        <Dialog.Content className="fixed top-1/2 left-1/2 w-[600px] -translate-x-1/2 -translate-y-1/2 rounded-lg bg-background p-6 shadow-lg">
                                             <Dialog.Title className="mb-2 text-lg font-semibold">Settle Due</Dialog.Title>
                                             <p className="mb-4 text-sm text-gray-600">
                                                 Remaining: <span className="font-mono">৳{money(remaining)}</span>
@@ -372,13 +372,13 @@ export default function RentVoucherShow() {
 
                     {/* ---------- Items table ---------- */}
                     {/* (unchanged except for imports above) */}
-                    <div className="mb-6 overflow-hidden rounded-lg bg-white shadow-sm print:rounded-none print:shadow-none">
+                    <div className="mb-6 overflow-hidden rounded-lg bg-background shadow-sm print:rounded-none print:shadow-none">
                         {/* ... your existing items table code ... */}
                         {/* keep your original "Items table" block exactly as it is */}
                     </div>
 
                     {/* ---------- Payment History ---------- */}
-                    <div className="mb-6 overflow-hidden rounded-lg bg-white shadow-sm print:rounded-none print:shadow-none">
+                    <div className="mb-6 overflow-hidden rounded-lg bg-background shadow-sm print:rounded-none print:shadow-none">
                         <div className="border-b border-gray-200 bg-gray-50 px-6 py-4">
                             <h2 className="flex items-center text-lg font-semibold text-gray-900">
                                 <svg className="mr-2 h-5 w-5 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -409,7 +409,7 @@ export default function RentVoucherShow() {
                                         </th>
                                     </tr>
                                 </thead>
-                                <tbody className="divide-y divide-gray-200 bg-white">
+                                <tbody className="divide-y divide-gray-200 bg-background">
                                     {payments.length === 0 ? (
                                         <tr>
                                             <td className="px-6 py-4 text-sm text-gray-500" colSpan={5}>
@@ -453,7 +453,7 @@ export default function RentVoucherShow() {
 
                     {/* ---------- Remarks ---------- */}
                     {voucher.remarks && (
-                        <div className="mb-6 overflow-hidden rounded-lg bg-white shadow-sm print:rounded-none print:shadow-none">
+                        <div className="mb-6 overflow-hidden rounded-lg bg-background shadow-sm print:rounded-none print:shadow-none">
                             {/* ... keep your existing Remarks block ... */}
                         </div>
                     )}
@@ -463,7 +463,7 @@ export default function RentVoucherShow() {
                         <div />
                         <Link
                             href={route('party-stock.rent-voucher.index')}
-                            className="inline-flex items-center rounded-lg border border-gray-300 bg-white px-6 py-3 text-base font-medium text-gray-700 transition-colors hover:bg-gray-50 focus:ring-2 focus:ring-gray-500 focus:ring-offset-2 focus:outline-none"
+                            className="inline-flex items-center rounded-lg border border-gray-300 bg-background px-6 py-3 text-base font-medium text-gray-700 transition-colors hover:bg-gray-50 focus:ring-2 focus:ring-gray-500 focus:ring-offset-2 focus:outline-none"
                         >
                             <svg className="mr-2 h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" />

@@ -9,7 +9,7 @@ export default function Show({ salarySlip }: any) {
             <Head title={`Salary Slip #${salarySlip.voucher_number}`} />
 
             <div className="bg-gray-100 p-6 h-full w-screen lg:w-full">
-                <div className="bg-white h-full rounded-lg p-6">
+                <div className="bg-background h-full rounded-lg p-6">
                     {/* <h1 className="mb-4 text-2xl font-bold">Salary Slip Details</h1> */}
 
                     <PageHeader

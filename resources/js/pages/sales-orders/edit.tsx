@@ -83,8 +83,8 @@ export default function SalesOrderEdit({ salesOrder, ledgers, salesmen, products
     return (
         <AppLayout>
                 <Head title="Edit Sales Order" />
-                <div className="bg-gray-100 p-6 h-full w-screen lg:w-full">
-                <div className="bg-white h-full rounded-lg p-6">
+                <div className="p-4 md:p-12 h-full w-screen lg:w-full">
+                <div className="bg-background h-full rounded-lg">
 
                     <PageHeader title='Edit Sales Order' addLinkHref='/sales-orders' addLinkText='Back' />
 
@@ -98,7 +98,7 @@ export default function SalesOrderEdit({ salesOrder, ledgers, salesmen, products
                                 </div>
                                 <div>
                                     <label className="mb-1 block text-sm font-medium">Voucher No</label>
-                                    <input type="text" value={data.voucher_no} readOnly className="w-full rounded border bg-gray-100 px-3 py-2" />
+                                    <input type="text" value={data.voucher_no} readOnly className="w-full rounded border bg-background px-3 py-2" />
                                 </div>
                                 <div>
                                     <label className="mb-1 block text-sm font-medium">Ledger</label>
@@ -155,7 +155,7 @@ export default function SalesOrderEdit({ salesOrder, ledgers, salesmen, products
                             <h3 className="mb-3 text-lg font-semibold text-gray-700">Products</h3>
                             <div className="overflow-x-auto">
                                 <table className="min-w-full border text-sm">
-                                    <thead className="bg-gray-200 text-gray-700">
+                                    <thead className="bg-background text-gray-700">
                                         <tr>
                                             <th className="border px-2 py-2">Product</th>
                                             <th className="border px-2 py-2">Qty</th>
@@ -237,7 +237,7 @@ export default function SalesOrderEdit({ salesOrder, ledgers, salesmen, products
                                                         type="number"
                                                         value={item.subtotal}
                                                         readOnly
-                                                        className="w-full rounded border bg-gray-100 px-1 py-1"
+                                                        className="w-full rounded border bg-background px-1 py-1"
                                                     />
                                                 </td>
                                                 <td className="border px-2 py-1">
@@ -268,7 +268,7 @@ export default function SalesOrderEdit({ salesOrder, ledgers, salesmen, products
                                         ))}
                                     </tbody>
                                     <tfoot>
-                                        <tr className="bg-gray-100 text-sm font-semibold">
+                                        <tr className="bg-background text-sm font-semibold">
                                             <td colSpan={1} className="border px-2 py-2 text-right">Total</td>
                                             <td className="border px-2 py-2 text-center">{totalQuantity}</td>
                                             <td colSpan={4} className="border"></td>

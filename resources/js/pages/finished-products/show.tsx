@@ -56,10 +56,10 @@ export default function Show({ finishedProduct }: { finishedProduct: FinishedPro
         <AppLayout>
             <Head title={`Finished Product - ${finishedProduct.production_voucher_no}`} />
 
-            <div className="h-full w-screen lg:w-full bg-gray-100 p-6">
+            <div className="h-full w-screen lg:w-full bg-background p-6">
                 {/* Page Header */}
 
-                <div className="h-full bg-white rounded-lg p-6">
+                <div className="h-full bg-background rounded-lg p-6">
                     <PageHeader
                         title={`Finished Product: ${finishedProduct.production_voucher_no}`}
                         addLinkHref={route('finished-products.index')}
@@ -69,7 +69,7 @@ export default function Show({ finishedProduct }: { finishedProduct: FinishedPro
                     />
 
                     {/* Basic Info */}
-                    <div className="grid grid-cols-1 gap-4 rounded-lg bg-white p-4 shadow md:grid-cols-2 border">
+                    <div className="grid grid-cols-1 gap-4 rounded-lg bg-background p-4 shadow md:grid-cols-2 border">
                         {/* Left Column */}
                         <div className="space-y-2">
                             <div>
@@ -97,7 +97,7 @@ export default function Show({ finishedProduct }: { finishedProduct: FinishedPro
                     </div>
 
                     {/* Items Table */}
-                    <div className="mt-8 rounded-lg bg-white p-4 shadow border">
+                    <div className="mt-8 rounded-lg bg-background p-4 shadow border">
                         <h2 className="mb-2 text-lg font-semibold text-gray-800">Finished Product Items</h2>
                         <TableComponent
                             columns={columns}

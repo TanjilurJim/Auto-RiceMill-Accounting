@@ -54,7 +54,7 @@ export default function CreateUser({ roles }: { roles: Role[] }) {
                 <div className="bg-background h-full rounded-lg">
                     <PageHeader title={t('us-create-user')} addLinkHref="/users" addLinkText={t('us-back')} />
 
-                    <form onSubmit={submit} className="space-y-4 rounded-lg border bg-white p-4 dark:bg-neutral-900">
+                    <form onSubmit={submit} className="space-y-4 rounded-lg border bg-background p-4 dark:bg-neutral-900">
                         <div>
                             <label className="mb-1 block font-medium">{t('us-name')}</label>
                             <input

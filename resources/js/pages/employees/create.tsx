@@ -34,10 +34,10 @@ export default function CreateEmployee({ departments, designations, shifts, refe
             <Head title={t('empCreateEmployeeTitle')} />
 
             <div className="h-full w-screen p-4 md:p-12 lg:w-full">
-                <div className="h-full rounded-lg bg-white">
+                <div className="h-full rounded-lg bg-background">
                     <PageHeader title={t('empCreateEmployeeTitle')} addLinkHref="/employees" addLinkText={t('backText')} />
 
-                    <form onSubmit={handleSubmit} className="space-y-8 rounded-lg border bg-white p-6">
+                    <form onSubmit={handleSubmit} className="space-y-8 rounded-lg border bg-background p-6">
                         {/* 👤 Personal Info */}
                         <div>
                             <h2 className="mb-4 text-lg font-semibold text-gray-800">{t('empPersonalInfoHeader')}</h2>

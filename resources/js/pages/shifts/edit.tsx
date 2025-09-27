@@ -72,7 +72,7 @@ export default function EditShift({ shift }: { shift: Shift }) {
                 <div className="h-full rounded-lg p-4 md:p-12">
                     <PageHeader title="Edit Shift" addLinkHref="/shifts" addLinkText="Back" />
 
-                    <form onSubmit={handleSubmit} className="space-y-5 rounded-lg border bg-white p-6 dark:bg-neutral-900">
+                    <form onSubmit={handleSubmit} className="space-y-5 rounded-lg border bg-background p-6 dark:bg-neutral-900">
                         <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
                             {/* Shift Name */}
                             <div>

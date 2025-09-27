@@ -58,7 +58,7 @@ export default function Index({
         <AppLayout>
             <Head title={t('receivedModesTitle')} />
             <div className="h-full w-screen lg:w-full">
-                <div className="h-full rounded-lg bg-white p-4 md:p-12">
+                <div className="h-full rounded-lg bg-background p-4 md:p-12">
                     <PageHeader title={t('receivedModesTitle')} addLinkHref="/received-modes/create" addLinkText={t('addNewReceivedMode')} />
 
                     <TableComponent

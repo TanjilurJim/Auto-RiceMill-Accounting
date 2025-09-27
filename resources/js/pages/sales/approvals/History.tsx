@@ -48,9 +48,9 @@ export default function History({ approvals }: { approvals: Paginator }) {
             <div className="p-4 md:p-12">
                 <PageHeader title={t('approvalLogHeader')}></PageHeader>
 
-                <div className="overflow-x-auto rounded-lg border border-gray-200 bg-white shadow-sm dark:border-neutral-700 dark:bg-neutral-900">
+                <div className="overflow-x-auto rounded-lg border border-gray-200 bg-background shadow-sm dark:border-neutral-700 dark:bg-neutral-900">
                     <table className="w-full text-sm">
-                        <thead className="border-b border-gray-200 bg-gray-50 text-left text-xs tracking-wider text-gray-600 uppercase dark:border-neutral-700 dark:bg-neutral-800 dark:text-gray-400">
+                        <thead className="border-b border-gray-200 bg-background text-left text-xs tracking-wider text-gray-600 uppercase dark:border-neutral-700 dark:bg-neutral-800 dark:text-gray-400">
                             <tr>
                                 <th className="p-3">{t('dateHeader')}</th>
                                 <th className="p-3">{t('voucherHeader')}</th>

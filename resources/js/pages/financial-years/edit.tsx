@@ -32,10 +32,10 @@ export default function Edit({ financialYear }: { financialYear: FinancialYear }
         <AppLayout>
             <Head title={t('fyEditPageTitle')} />
             <div className="h-full w-screen p-4 md:p-12 lg:w-full">
-                <div className="h-full rounded-lg bg-white">
+                <div className="h-full rounded-lg bg-background">
                     <PageHeader title={t('fyEditYearTitle')} addLinkHref="/financial-years" addLinkText={t('fyBackButton')} />
 
-                    <form onSubmit={handleSubmit} className="space-y-6 rounded-lg border bg-white p-6 shadow">
+                    <form onSubmit={handleSubmit} className="space-y-6 rounded-lg border bg-background p-6 shadow">
                         {/* Title */}
                         <div>
                             <label className="mb-1 block text-sm font-medium text-gray-700">

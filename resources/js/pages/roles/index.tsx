@@ -85,7 +85,7 @@ export default function RoleIndex({ roles }: Props) {
                         columns={columns}
                         data={tableData}
                         noDataMessage={t('ro-no-roles')}
-                        className="rounded bg-white p-4 shadow dark:bg-neutral-900"
+                        className="rounded bg-background p-4 shadow dark:bg-neutral-900"
                     />
 
                     <Pagination

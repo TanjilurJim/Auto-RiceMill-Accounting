@@ -37,11 +37,11 @@ export default function ReceivedPrint(
     <AppLayout>
       <Head title={`Received #${receivedAdd.voucher_no}`} />
 
-      <div className=" max-w-full bg-white p-8 print:p-4 text-sm">
+      <div className=" max-w-full bg-background p-8 print:p-4 text-sm">
 
         {/* back (hidden on print) */}
         <Link href="/received-add"
-              className="mb-4 inline-block rounded bg-gray-300 px-4 py-2 hover:bg-neutral-100 print:hidden">
+              className="mb-4 inline-block rounded bg-background px-4 py-2 hover:bg-neutral-100 print:hidden">
           Back
         </Link>
 

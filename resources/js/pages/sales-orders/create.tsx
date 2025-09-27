@@ -134,7 +134,7 @@ export default function SalesOrderCreate({ ledgers, salesmen, products, units, g
                                 </div>
                                 <div>
                                     <label className="mb-1 block text-sm font-medium">{t('salesOrderVoucherNoLabel')}</label>
-                                    <input type="text" value={data.voucher_no} readOnly className="w-full rounded border bg-gray-100 px-3 py-2" />
+                                    <input type="text" value={data.voucher_no} readOnly className="w-full rounded border  px-3 py-2" />
                                 </div>
                                 <div>
                                     <label className="mb-1 block text-sm font-medium">{t('ledgerLabel')}</label>
@@ -191,7 +191,7 @@ export default function SalesOrderCreate({ ledgers, salesmen, products, units, g
                             <h3 className="mb-3 text-lg font-semibold text-gray-700">Products</h3>
                             <div className="overflow-x-auto">
                                 <table className="min-w-full border text-sm">
-                                    <thead className="bg-gray-200 text-gray-700">
+                                    <thead className="">
                                         <tr>
                                             <th className="border px-2 py-2">Product</th>
                                             <th className="border px-2 py-2">Qty</th>
@@ -279,7 +279,7 @@ export default function SalesOrderCreate({ ledgers, salesmen, products, units, g
                                                         type="number"
                                                         value={item.subtotal}
                                                         readOnly
-                                                        className="w-full rounded border bg-gray-100 px-1 py-1"
+                                                        className="w-full rounded border px-1 py-1"
                                                     />
                                                 </td>
                                                 <td className="border px-2 py-1">
@@ -310,7 +310,7 @@ export default function SalesOrderCreate({ ledgers, salesmen, products, units, g
                                         ))}
                                     </tbody>
                                     <tfoot>
-                                        <tr className="bg-gray-100 text-sm font-semibold">
+                                        <tr className="text-sm font-semibold">
                                             <td colSpan={1} className="border px-2 py-2 text-right">
                                                 Total
                                             </td>

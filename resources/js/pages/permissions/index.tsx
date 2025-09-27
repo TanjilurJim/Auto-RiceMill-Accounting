@@ -92,7 +92,7 @@ export default function PermissionIndex({ permissions }: { permissions: Permissi
             <div className="h-full w-screen p-4 md:p-12 lg:w-full">
                 <PageHeader title={t('pmPageTitle')} addLinkHref="/permissions/create" addLinkText={t('pmCreatePermissionButton')} />
 
-                <div className="rounded bg-white p-4 shadow dark:bg-neutral-900">
+                <div className="rounded bg-background p-4 shadow dark:bg-neutral-900">
                     <TableComponent columns={tableColumns} data={permissions} actions={renderActions} noDataMessage={t('pmNoPermissionsMessage')} />
                 </div>
             </div>

@@ -99,7 +99,7 @@ export default function SalesInboxTable({ sales, approveRoute, rejectRoute }: Pr
 
     return (
         <>
-            <div className="overflow-hidden rounded-lg border border-gray-200 bg-white shadow-sm dark:border-neutral-700 dark:bg-neutral-900">
+            <div className="overflow-hidden rounded-lg border border-gray-200 bg-background shadow-sm dark:border-neutral-700 dark:bg-neutral-900">
                 <div className="overflow-x-auto">
                     <table className="w-full text-sm">
                         <thead className="border-b border-gray-200 bg-gray-50 text-left text-xs tracking-wider text-gray-600 uppercase dark:border-neutral-700 dark:bg-neutral-800 dark:text-gray-400">
@@ -194,7 +194,7 @@ export default function SalesInboxTable({ sales, approveRoute, rejectRoute }: Pr
 
             {/* --- Bulk Actions Bar --- */}
             {selected.length > 0 && (
-                <div className="mt-4 rounded-lg border border-gray-200 bg-white px-4 py-3 shadow-sm dark:border-neutral-700 dark:bg-neutral-900">
+                <div className="mt-4 rounded-lg border border-gray-200 bg-background px-4 py-3 shadow-sm dark:border-neutral-700 dark:bg-neutral-900">
                     <div className="flex flex-wrap items-center justify-between gap-3">
                         <p className="text-sm font-medium">
                             <span className="font-bold">{selected.length}</span> {t('itemsSelected')}
@@ -234,7 +234,7 @@ export default function SalesInboxTable({ sales, approveRoute, rejectRoute }: Pr
             {/* --- Custom Confirmation Modal --- */}
             {modalState.isOpen && (
                 <div className="bg-opacity-50 fixed inset-0 z-50 flex items-center justify-center bg-black transition-opacity" aria-modal="true">
-                    <div className="w-full max-w-md transform rounded-lg bg-white p-6 shadow-xl transition-all dark:bg-neutral-800">
+                    <div className="w-full max-w-md transform rounded-lg bg-background p-6 shadow-xl transition-all dark:bg-neutral-800">
                         <h3 className="text-lg leading-6 font-medium text-gray-900 dark:text-white">{t('confirmActionTitle')}</h3>
                         <div className="mt-2">
                             <p className="text-sm text-gray-500 dark:text-gray-400">{modalState.message}</p>
@@ -272,5 +272,5 @@ function ActionButton({ as: Component = 'button', tooltip, className, ...props }
   .btn-sky { @apply rounded-md bg-sky-600 px-4 py-2 text-sm font-semibold text-white shadow-sm transition-colors hover:bg-sky-700 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-sky-600; }
   .btn-green-sm { @apply rounded-md bg-green-600 px-3 py-1.5 text-xs font-semibold text-white shadow-sm transition-colors hover:bg-green-700; }
   .btn-red-sm { @apply rounded-md bg-red-600 px-3 py-1.5 text-xs font-semibold text-white shadow-sm transition-colors hover:bg-red-700; }
-  .btn-gray { @apply rounded-md bg-white px-4 py-2 text-sm font-semibold text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 transition-colors hover:bg-gray-50 dark:bg-neutral-700 dark:text-white dark:ring-neutral-600 dark:hover:bg-neutral-600; }
+  .btn-gray { @apply rounded-md bg-background px-4 py-2 text-sm font-semibold text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 transition-colors hover:bg-gray-50 dark:bg-neutral-700 dark:text-white dark:ring-neutral-600 dark:hover:bg-neutral-600; }
 */

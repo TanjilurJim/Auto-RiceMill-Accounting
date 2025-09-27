@@ -121,11 +121,11 @@ export default function SalarySlipIndex({ salarySlips, employees }: Props) {
         <AppLayout>
             <Head title={t('salSlipsTitle')} />
             <div className="h-full w-screen p-4 md:p-12 lg:w-full">
-                <div className="h-full rounded-lg bg-white">
+                <div className="h-full rounded-lg bg-background">
                     <PageHeader title={t('salSlipsTitle')} addLinkHref="/salary-slips/create" addLinkText={t('addNewText')} />
 
                     {/* Summary */}
-                    <div className="mb-4 flex flex-wrap gap-4 rounded-lg border bg-white p-4">
+                    <div className="mb-4 flex flex-wrap gap-4 rounded-lg border bg-background p-4">
                         <div className="text-sm">
                             💰 <strong>{t('salTotalSlipsLabel')}:</strong> {totalSlips}
                         </div>
@@ -135,7 +135,7 @@ export default function SalarySlipIndex({ salarySlips, employees }: Props) {
                     </div>
 
                     {/* Filters */}
-                    <div className="mb-4 flex flex-wrap items-center gap-3 rounded-lg border bg-white p-4">
+                    <div className="mb-4 flex flex-wrap items-center gap-3 rounded-lg border bg-background p-4">
                         <div className="w-full min-w-[150px] sm:w-auto">
                             {/* <select
                             className="rounded border p-2 text-sm w-full sm:w-auto"
@@ -189,7 +189,7 @@ export default function SalarySlipIndex({ salarySlips, employees }: Props) {
                     </div>
 
                     {/* Table */}
-                    <div className="overflow-x-auto rounded-lg border border-gray-300 bg-white">
+                    <div className="overflow-x-auto rounded-lg border border-gray-300 bg-background">
                         <table className="min-w-full border-collapse text-xs sm:text-sm md:text-base lg:text-lg">
                             <thead className="bg-gray-100 text-xs text-gray-600 uppercase sm:text-sm">
                                 <tr>

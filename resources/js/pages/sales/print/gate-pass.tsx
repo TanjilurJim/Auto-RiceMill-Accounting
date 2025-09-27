@@ -23,7 +23,7 @@ export default function GatePass({
   const handlePrint = () => window.print?.();
 
   return (
-    <div className="mx-auto max-w-full bg-white p-6 shadow print:shadow-none">
+    <div className="mx-auto max-w-full bg-background p-6 shadow print:shadow-none">
       <Head title={`Gate Pass #${sale.voucher_no}`} />
 
       {/* Back button — hidden in print */}

@@ -19,7 +19,7 @@ interface GodownFormProps {
 const GodownForm: React.FC<GodownFormProps> = ({ data, setData, handleSubmit, processing, errors, submitText, cancelHref }) => {
     const t = useTranslation();
     return (
-        <form onSubmit={handleSubmit} className="space-y-4 rounded border bg-white p-4 shadow dark:bg-neutral-900">
+        <form onSubmit={handleSubmit} className="space-y-4 rounded border bg-background p-4 shadow dark:bg-neutral-900">
             {/* Godown Name */}
             <div>
                 <label htmlFor="name" className="mb-1 block font-medium">
