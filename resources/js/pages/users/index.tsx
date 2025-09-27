@@ -3,6 +3,7 @@ import { confirmDialog } from '@/components/confirmDialog';
 import PageHeader from '@/components/PageHeader';
 import Pagination from '@/components/Pagination';
 import TableComponent from '@/components/TableComponent';
+import { useTranslation } from '@/components/useTranslation';
 import AppLayout from '@/layouts/app-layout';
 import { type BreadcrumbItem } from '@/types';
 import { Head, Link, router, usePage } from '@inertiajs/react';
@@ -23,15 +24,16 @@ interface Pagination<T> {
     links: { url: string | null; label: string; active: boolean }[];
 }
 
-const breadcrumbs: BreadcrumbItem[] = [
-    { title: 'Dashboard', href: '/dashboard' },
-    { title: 'Users', href: '/users' },
-];
-
 export default function UserIndex({ users, filter, search }: { users: Pagination<User>; filter: string; search: string }) {
+    const t = useTranslation();
     const [query, setQuery] = useState(search);
     const { props } = usePage();
     const authUser = props.auth?.user;
+
+    const breadcrumbs: BreadcrumbItem[] = [
+        { title: t('us-dashboard'), href: '/dashboard' },
+        { title: t('us-users'), href: '/users' },
+    ];
 
     // useEffect(() => {
     //     const timeout = setTimeout(() => {
@@ -67,19 +69,19 @@ export default function UserIndex({ users, filter, search }: { users: Pagination
     };
 
     const columns = [
-        { header: '#', accessor: (_: User, index: number) => index + 1, className: 'py-2 align-middle' },
-        { header: 'Name', accessor: 'name', className: 'py-2 align-middle' },
-        { header: 'Email', accessor: 'email', className: 'py-2 align-middle' },
+        { header: t('us-serial'), accessor: (row: User, index?: number) => (index || 0) + 1, className: 'py-2 align-middle' },
+        { header: t('us-name'), accessor: 'name', className: 'py-2 align-middle' },
+        { header: t('us-email'), accessor: 'email', className: 'py-2 align-middle' },
         // Status
         {
-            header: 'Status',
+            header: t('us-status'),
             accessor: (row: User) => (
                 <span
                     className={`inline-block rounded px-2 py-0.5 text-xs font-medium ${
                         row.status === 'active' ? 'bg-green-500 text-white' : 'bg-red-500 text-white'
                     }`}
                 >
-                    {row.status}
+                    {row.status === 'active' ? t('us-active') : t('us-inactive')}
                 </span>
             ),
             className: 'py-2 align-middle',
@@ -87,14 +89,14 @@ export default function UserIndex({ users, filter, search }: { users: Pagination
         ...(authUser?.roles?.some((r: { id: number; name: string }) => r.name === 'admin')
             ? [
                   {
-                      header: 'Created By',
-                      accessor: (row: User) => row.created_by?.name || 'N/A',
+                      header: t('us-created-by'),
+                      accessor: (row: User) => row.created_by?.name || t('us-na'),
                       className: 'py-2 align-middle',
                   },
               ]
             : []),
         {
-            header: 'Roles',
+            header: t('us-roles'),
             accessor: (row: User) => (
                 <div className="flex items-center gap-1">
                     {row.roles.length > 0 ? (
@@ -104,14 +106,14 @@ export default function UserIndex({ users, filter, search }: { users: Pagination
                             </span>
                         ))
                     ) : (
-                        <span className="text-xs text-gray-500">No Roles</span>
+                        <span className="text-xs text-gray-500">{t('us-no-roles')}</span>
                     )}
                 </div>
             ),
             className: 'py-2 align-middle',
         },
         {
-            header: 'Actions',
+            header: t('us-actions'),
             accessor: (row: User) => (
                 <div className="flex flex-wrap space-x-1">
                     {!row.deleted_at ? (
@@ -119,18 +121,18 @@ export default function UserIndex({ users, filter, search }: { users: Pagination
                             printHref={`/users/${row.id}`}
                             editHref={`/users/${row.id}/edit`}
                             onDelete={() => confirmDelete(row)}
-                            printText="View"
-                            editText="Edit"
-                            deleteText="Delete"
+                            printText={t('us-view')}
+                            editText={t('us-edit')}
+                            deleteText={t('us-delete')}
                         />
                     ) : (
                         <div className="flex gap-2">
                             {/* Restore must be PATCH, not GET */}
                             <button className="rounded bg-blue-600 px-3 py-1 text-white hover:bg-blue-700" onClick={() => restoreUser(row.id)}>
-                                Restore
+                                {t('us-restore')}
                             </button>
                             <button className="rounded bg-red-800 px-3 py-1 text-white hover:bg-red-900" onClick={() => confirmDelete(row)}>
-                                Force Delete
+                                {t('us-force-delete')}
                             </button>
                         </div>
                     )}
@@ -142,10 +144,10 @@ export default function UserIndex({ users, filter, search }: { users: Pagination
 
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
-            <Head title="Users" />
-            <div className="h-full w-screen bg-background p-6 lg:w-full">
-                <div className="h-full rounded-lg bg-background p-6">
-                    <PageHeader title="User" addLinkHref="users/create" addLinkText="+ Create User" />
+            <Head title={t('us-users')} />
+            <div className="bg-background h-full w-screen p-6 lg:w-full">
+                <div className="bg-background h-full rounded-lg p-6">
+                    <PageHeader title={t('us-users')} addLinkHref="users/create" addLinkText={t('us-create-user')} />
 
                     <div className="mb-6 flex space-x-2">
                         {['all', 'active', 'inactive', 'trashed'].map((type) => (
@@ -156,7 +158,13 @@ export default function UserIndex({ users, filter, search }: { users: Pagination
                                     filter === type ? 'bg-blue-600 text-white' : 'border hover:bg-neutral-100 dark:hover:bg-neutral-800'
                                 }`}
                             >
-                                {type === 'all' ? 'All' : type === 'active' ? 'Active' : type === 'inactive' ? 'Inactive' : 'Trashed'}
+                                {type === 'all'
+                                    ? t('us-all')
+                                    : type === 'active'
+                                      ? t('us-active')
+                                      : type === 'inactive'
+                                        ? t('us-inactive')
+                                        : t('us-trashed')}
                             </Link>
                         ))}
                     </div>
@@ -167,23 +175,18 @@ export default function UserIndex({ users, filter, search }: { users: Pagination
                             type="text"
                             value={query}
                             onChange={(e) => setQuery(e.target.value)}
-                            placeholder="Search users..."
+                            placeholder={t('us-search-placeholder')}
                             className="w-64 rounded border px-3 py-1 dark:border-neutral-700 dark:bg-neutral-800"
                         />
                         {query && (
                             <button type="button" onClick={() => setQuery('')} className="text-sm text-red-600 hover:underline">
-                                Clear
+                                {t('us-clear')}
                             </button>
                         )}
                     </div>
 
                     {/* Table */}
-                    <TableComponent
-                        columns={columns}
-                        data={users.data}
-                        noDataMessage="No users found."
-                        className="rounded bg-white p-4 shadow dark:bg-neutral-900"
-                    />
+                    <TableComponent columns={columns} data={users.data} noDataMessage={t('us-no-users-found')} />
 
                     {/* Pagination */}
                     <Pagination links={users.links} currentPage={users.current_page} lastPage={users.last_page} total={users.total} />

@@ -1,8 +1,9 @@
-import { Head, Link, useForm } from '@inertiajs/react';
+import ActionFooter from '@/components/ActionFooter';
+import PageHeader from '@/components/PageHeader';
+import { useTranslation } from '@/components/useTranslation';
 import AppLayout from '@/layouts/app-layout';
 import { type BreadcrumbItem } from '@/types';
-import PageHeader from '@/components/PageHeader';
-import ActionFooter from '@/components/ActionFooter';
+import { Head, useForm } from '@inertiajs/react';
 
 interface Permission {
     id: number;
@@ -14,31 +15,21 @@ interface Role {
     name: string;
 }
 
-export default function EditRole({
-    role,
-    permissions,
-    rolePermissions,
-}: {
-    role: Role;
-    permissions: Permission[];
-    rolePermissions: number[];
-}) {
+export default function EditRole({ role, permissions, rolePermissions }: { role: Role; permissions: Permission[]; rolePermissions: number[] }) {
+    const t = useTranslation();
     const { data, setData, put, processing, errors } = useForm({
         name: role.name,
         permissions: rolePermissions, // pre-populated
     });
 
     const breadcrumbs: BreadcrumbItem[] = [
-        { title: 'Dashboard', href: '/dashboard' },
-        { title: 'Roles', href: '/roles' },
-        { title: `Edit ${role.name}`, href: `/roles/${role.id}/edit` },
+        { title: t('ro-dashboard'), href: '/dashboard' },
+        { title: t('ro-roles'), href: '/roles' },
+        { title: `${t('ro-edit')} ${role.name}`, href: `/roles/${role.id}/edit` },
     ];
 
     const togglePermission = (id: number) => {
-        setData('permissions', data.permissions.includes(id)
-            ? data.permissions.filter(pid => pid !== id)
-            : [...data.permissions, id]
-        );
+        setData('permissions', data.permissions.includes(id) ? data.permissions.filter((pid) => pid !== id) : [...data.permissions, id]);
     };
 
     const submit = (e: React.FormEvent) => {
@@ -48,31 +39,31 @@ export default function EditRole({
 
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
-            <Head title={`Edit ${role.name}`} />
-            <div className="p-4 md:p-12 w-full md:h-screen mx-auto bg-background">
+            <Head title={`${t('ro-edit')} ${role.name}`} />
+            <div className="bg-background mx-auto w-full p-4 md:h-screen md:p-12">
                 {/* <h1 className="text-2xl font-bold mb-6">Edit Role</h1> */}
-                <PageHeader title="Edit Role" addLinkHref='/roles' addLinkText="Back" />
+                <PageHeader title={t('ro-edit-role')} addLinkHref="/roles" addLinkText={t('ro-back')} />
 
-                <form onSubmit={submit} className="space-y-4 bg-white dark:bg-neutral-900 shadow rounded p-4">
+                <form onSubmit={submit} className="space-y-4 rounded bg-white p-4 shadow dark:bg-neutral-900">
                     <div>
-                        <label htmlFor="name" className="block mb-1 font-medium">Role Name</label>
+                        <label htmlFor="name" className="mb-1 block font-medium">
+                            {t('ro-role-name')}
+                        </label>
                         <input
                             type="text"
                             id="name"
                             value={data.name}
-                            onChange={e => setData('name', e.target.value)}
-                            className="w-full border rounded p-2 dark:bg-neutral-800 dark:border-neutral-700"
-                            placeholder="e.g., admin"
+                            onChange={(e) => setData('name', e.target.value)}
+                            className="w-full rounded border p-2 dark:border-neutral-700 dark:bg-neutral-800"
+                            placeholder={t('ro-role-name-example')}
                         />
-                        {errors.name && (
-                            <p className="text-sm text-red-500 mt-1">{errors.name}</p>
-                        )}
+                        {errors.name && <p className="mt-1 text-sm text-red-500">{errors.name}</p>}
                     </div>
 
                     {/* Permissions Checkboxes */}
                     <div>
-                        <label className="block mb-1 font-medium">Assigned Permissions</label>
-                        <div className="grid grid-cols-2 md:grid-cols-6 gap-2">
+                        <label className="mb-1 block font-medium">{t('ro-assigned-permissions')}</label>
+                        <div className="grid grid-cols-2 gap-2 md:grid-cols-6">
                             {permissions.map((perm) => (
                                 <label key={perm.id} className="flex items-center gap-2 text-sm">
                                     <input
@@ -85,9 +76,7 @@ export default function EditRole({
                                 </label>
                             ))}
                         </div>
-                        {errors.permissions && (
-                            <p className="text-sm text-red-500 mt-1">{errors.permissions}</p>
-                        )}
+                        {errors.permissions && <p className="mt-1 text-sm text-red-500">{errors.permissions}</p>}
                     </div>
 
                     {/* <div className="flex justify-end space-x-2">
@@ -108,8 +97,8 @@ export default function EditRole({
                     <ActionFooter
                         processing={processing}
                         onSubmit={submit}
-                        submitText={processing ? 'Saving...' : 'Save Changes'}
-                        className='justify-end'
+                        submitText={processing ? t('ro-saving') : t('ro-save-changes')}
+                        className="justify-end"
                         cancelHref="/roles"
                     />
                 </form>

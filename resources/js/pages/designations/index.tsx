@@ -2,6 +2,7 @@ import ActionButtons from '@/components/ActionButtons';
 import { confirmDialog } from '@/components/confirmDialog';
 import PageHeader from '@/components/PageHeader';
 import TableComponent from '@/components/TableComponent';
+import { useTranslation } from '@/components/useTranslation';
 import AppLayout from '@/layouts/app-layout';
 import { Head, router } from '@inertiajs/react';
 
@@ -13,31 +14,27 @@ interface Designation {
 }
 
 export default function DesignationIndex({ designations }: { designations: Designation[] }) {
+    const t = useTranslation();
 
     const handleDelete = (id: number) => {
-
-        confirmDialog(
-            {}, () => {
-                router.delete(`/designations/${id}`);
-            }
-        )
-
+        confirmDialog({}, () => {
+            router.delete(`/designations/${id}`);
+        });
     };
 
     const columns = [
-        { header: '#', accessor: (_: Designation, index: number) => index + 1, className: 'text-center' },
-        { header: 'Name', accessor: 'name' },
-        { header: 'Description', accessor: 'description' },
-        { header: 'Created By', accessor: (row: Designation) => row.creator?.name || 'N/A' },
+        { header: t('hrNumberHeader'), accessor: (_: Designation, index: number) => index + 1, className: 'text-center' },
+        { header: t('hrNameHeader'), accessor: 'name' },
+        { header: t('hrDescriptionHeader'), accessor: 'description' },
+        { header: t('hrCreatedByHeader'), accessor: (row: Designation) => row.creator?.name || t('hrNaText') },
     ];
 
     return (
         <AppLayout>
-            <Head title="Designations" />
-            <div className="p-4 md:p-12 h-full w-screen lg:w-full">
-                <div className="bg-white h-full rounded-lg p-6">
-
-                    <PageHeader title='Designations' addLinkHref='/designations/create' addLinkText="+ Add New" />
+            <Head title={t('designationsTitle')} />
+            <div className="h-full w-screen p-4 md:p-12 lg:w-full">
+                <div className="h-full rounded-lg bg-white">
+                    <PageHeader title={t('designationsTitle')} addLinkHref="/designations/create" addLinkText={t('hrAddNewText')} />
 
                     <TableComponent
                         columns={columns}
@@ -46,13 +43,12 @@ export default function DesignationIndex({ designations }: { designations: Desig
                             <ActionButtons
                                 editHref={`/designations/${row.id}/edit`}
                                 onDelete={() => handleDelete(row.id)}
-                                editText="Edit"
-                                deleteText="Delete"
+                                editText={t('hrEditText')}
+                                deleteText={t('hrDeleteText')}
                             />
                         )}
-                        noDataMessage="No designations found."
+                        noDataMessage={t('noDesignationsMessage')}
                     />
-
                 </div>
             </div>
         </AppLayout>

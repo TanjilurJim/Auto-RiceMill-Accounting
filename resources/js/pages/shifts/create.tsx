@@ -1,9 +1,12 @@
 import ActionFooter from '@/components/ActionFooter';
 import PageHeader from '@/components/PageHeader';
+import { useTranslation } from '@/components/useTranslation';
 import AppLayout from '@/layouts/app-layout';
-import { Head, Link, useForm } from '@inertiajs/react';
+import { Head, useForm } from '@inertiajs/react';
 
 export default function CreateShift() {
+    const t = useTranslation();
+
     const { data, setData, post, processing, errors } = useForm({
         name: '',
         start_time: '',
@@ -18,29 +21,33 @@ export default function CreateShift() {
 
     return (
         <AppLayout>
-            <Head title="Create Shift" />
-            <div className="bg-gray-100 p-6 h-full w-screen lg:w-full">
-                <div className="bg-white h-full rounded-lg p-6">
-                    <PageHeader title="Create Shift" addLinkHref='/shifts' addLinkText="Back" />
+            <Head title={t('createShiftTitle')} />
+            <div className="h-full w-screen p-4 md:p-12 lg:w-full">
+                <div className="h-full rounded-lg bg-white">
+                    <PageHeader title={t('createShiftTitle')} addLinkHref="/shifts" addLinkText={t('hrBackText')} />
 
-                    <form onSubmit={handleSubmit} className="space-y-5 rounded-lg bg-white p-6 border dark:bg-neutral-900">
+                    <form onSubmit={handleSubmit} className="space-y-5 rounded-lg border bg-white p-6 dark:bg-neutral-900">
                         {/* Shift Name */}
                         <div>
-                            <label htmlFor="name" className="mb-1 block font-medium">Shift Name</label>
+                            <label htmlFor="name" className="mb-1 block font-medium">
+                                {t('shiftNameLabel')}
+                            </label>
                             <input
                                 id="name"
                                 type="text"
                                 value={data.name}
                                 onChange={(e) => setData('name', e.target.value)}
                                 className="w-full rounded border p-2 dark:border-neutral-700 dark:bg-neutral-800"
-                                placeholder="Enter shift name"
+                                placeholder={t('enterShiftNamePlaceholder')}
                             />
                             {errors.name && <p className="text-sm text-red-500">{errors.name}</p>}
                         </div>
 
                         {/* Start Time */}
                         <div>
-                            <label htmlFor="start_time" className="mb-1 block font-medium">Start Time</label>
+                            <label htmlFor="start_time" className="mb-1 block font-medium">
+                                {t('startTimeLabel')}
+                            </label>
                             <input
                                 id="start_time"
                                 type="time"
@@ -53,7 +60,9 @@ export default function CreateShift() {
 
                         {/* End Time */}
                         <div>
-                            <label htmlFor="end_time" className="mb-1 block font-medium">End Time</label>
+                            <label htmlFor="end_time" className="mb-1 block font-medium">
+                                {t('endTimeLabel')}
+                            </label>
                             <input
                                 id="end_time"
                                 type="time"
@@ -66,13 +75,15 @@ export default function CreateShift() {
 
                         {/* Description */}
                         <div>
-                            <label htmlFor="description" className="mb-1 block font-medium">Description</label>
+                            <label htmlFor="description" className="mb-1 block font-medium">
+                                {t('hrDescriptionLabel')}
+                            </label>
                             <textarea
                                 id="description"
                                 value={data.description}
                                 onChange={(e) => setData('description', e.target.value)}
                                 className="w-full rounded border p-2 dark:border-neutral-700 dark:bg-neutral-800"
-                                placeholder="Optional description"
+                                placeholder={t('optionalDescriptionPlaceholder')}
                             />
                             {errors.description && <p className="text-sm text-red-500">{errors.description}</p>}
                         </div>
@@ -94,8 +105,8 @@ export default function CreateShift() {
                             onSubmit={handleSubmit}
                             cancelHref="/shifts"
                             processing={processing}
-                            submitText="Create"
-                            cancelText="Cancel"
+                            submitText={t('hrCreateText')}
+                            cancelText={t('cancelText')}
                             className="justify-end"
                         />
                     </form>

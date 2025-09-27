@@ -1,8 +1,16 @@
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import AppLayout from '@/layouts/app-layout';
-import { Link, Head } from '@inertiajs/react';
+import { Head, Link } from '@inertiajs/react';
 import { FileSpreadsheet, FileText, Printer } from 'lucide-react';
+import { useTranslation } from '../../components/useTranslation';
+                        <div className="absolute top-16 right-4 print:hidden">
+                            <Link href={route('reports.purchase.filter', { tab: 'category' })} className="text-sm text-blue-600 hover:underline">
+                                {t('repChangeFiltersText')}from '@/components/ui/card';
+import AppLayout from '@/layouts/app-layout';
+import { Head, Link } from '@inertiajs/react';
+import { FileSpreadsheet, FileText, Printer } from 'lucide-react';
+import { useTranslation } from '../../components/useTranslation';
 
 interface Row {
     date: string;
@@ -20,7 +28,7 @@ interface Company {
     mobile?: string;
     address?: string;
     logo_path?: string;
-        
+
     logo_url?: string;
     logo_thumb_url?: string;
     website?: string;
@@ -36,6 +44,7 @@ export default function PurchaseCategoryReport({
     filters: { from_date: string; to_date: string; category_id?: string };
     company: Company;
 }) {
+    const t = useTranslation();
     /* --- Totals --- */
     const totalQty = entries.reduce((s, r) => s + Number(r.total_qty), 0);
     const totalAmt = entries.reduce((s, r) => s + Number(r.net_amount), 0);
@@ -51,22 +60,22 @@ export default function PurchaseCategoryReport({
     }, {});
 
     return (
-        <AppLayout title="Category-wise Purchase Report">
+        <AppLayout>
             <div className="max-w-full space-y-4 p-4">
-                <Head title="Category-wise Purchase Report" />
+                <Head title={t('purchaseCategoryReportTitle')} />
                 <Card className="shadow-lg">
                     {/* ── Header ───────────────────────────────────────────── */}
                     <CardHeader className="bg-background py-6 text-center">
                         {/* company block */}
                         <div className="space-y-1">
                             {company?.logo_url && (
-                                <img src={company.logo_url} alt="Company Logo" className="mx-auto mb-2 h-20 object-contain print:h-12" />
+                                <img src={company.logo_url} alt={t('repCompanyLogoAlt')} className="mx-auto mb-2 h-20 object-contain print:h-12" />
                             )}
                             <h1 className="text-3xl font-bold uppercase">{company?.company_name ?? 'Company Name'}</h1>
-                            {company?.address && <p className="text-sm text-foreground">{company?.address}</p>}
-                            {company?.mobile && <p className="text-sm text-foreground">Phone: {company?.mobile}</p>}
+                            {company?.address && <p className="text-foreground text-sm">{company?.address}</p>}
+                            {company?.mobile && <p className="text-foreground text-sm">{t('repPhoneText')}: {company?.mobile}</p>}
                             {(company?.email || company?.website) && (
-                                <p className="text-sm text-foreground">
+                                <p className="text-foreground text-sm">
                                     {company?.email && <span>{company?.email}</span>}
                                     {company?.email && company?.website && <span className="mx-1">|</span>}
                                     {company?.website && <span>{company?.website}</span>}
@@ -77,7 +86,7 @@ export default function PurchaseCategoryReport({
                         {/* title + date range */}
                         <div className="mt-4">
                             <h2 className="text-xl font-semibold underline">Category-wise Purchase Report</h2>
-                            <p className="text-sm text-foreground">
+                            <p className="text-foreground text-sm">
                                 From: <strong>{filters.from_date}</strong>, To: <strong>{filters.to_date}</strong>
                             </p>
                         </div>
@@ -144,7 +153,7 @@ export default function PurchaseCategoryReport({
                                     <tr className="bg-background font-semibold print:bg-white">
                                         <td className="border px-2 py-2 text-sm font-medium" colSpan={9}>
                                             <strong>Total Qty by Unit:</strong>
-                                            <ul className="mt-1 list-disc space-y-0.5 pl-5 text-sm text-foreground">
+                                            <ul className="text-foreground mt-1 list-disc space-y-0.5 pl-5 text-sm">
                                                 {Object.entries(qtyByUnit).map(([unit, qty]) => (
                                                     <li key={unit}>
                                                         {qty.toFixed(2)} {unit}

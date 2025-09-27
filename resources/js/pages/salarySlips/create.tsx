@@ -1,6 +1,7 @@
 import ActionFooter from '@/components/ActionFooter';
 import { confirmDialog } from '@/components/confirmDialog';
 import PageHeader from '@/components/PageHeader';
+import { useTranslation } from '@/components/useTranslation';
 import AppLayout from '@/layouts/app-layout';
 import { Head, useForm } from '@inertiajs/react';
 import { useEffect, useMemo, useState } from 'react';
@@ -153,12 +154,13 @@ export default function SalarySlipCreate({ employees }: { employees: Employee[] 
             onSuccess: () => Swal.fire('Saved!', 'Salary slip created successfully', 'success'),
         });
     };
+    const t = useTranslation();
 
     return (
         <AppLayout>
             <Head title="Create Salary Slip" />
-            <div className="h-full w-screen bg-gray-100 p-6 lg:w-full">
-                <div className="h-full rounded-lg bg-white p-6">
+            <div className="h-full w-screen p-4 md:p-12 lg:w-full">
+                <div className="h-full rounded-lg bg-white">
                     <PageHeader title="Create New Salary Slip" addLinkHref="/salary-slips" addLinkText="Back" />
 
                     <form onSubmit={handleSubmit} className="space-y-6 rounded-lg border bg-white p-6">

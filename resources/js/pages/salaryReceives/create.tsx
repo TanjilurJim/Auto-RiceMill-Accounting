@@ -7,7 +7,6 @@ import { Head, useForm } from '@inertiajs/react';
 
 import dayjs from 'dayjs';
 import React, { useEffect, useMemo, useState } from 'react';
-import DatePicker from 'react-datepicker';
 import 'react-datepicker/dist/react-datepicker.css';
 
 interface Employee {
@@ -126,20 +125,15 @@ export default function Create({ employees, receivedModes, salarySlipEmployees }
             <Head title="Create Salary Receive" />
 
             <div className="h-full w-screen p-4 md:p-12 lg:w-full">
-                <div className="h-full rounded-lg ">
+                <div className="h-full rounded-lg">
                     <PageHeader title="Create Salary Receive" addLinkHref="/salary-receives" addLinkText="Back" />
 
                     <form onSubmit={handleSubmit} className="space-y-6 rounded-lg border bg-white p-6">
                         <div className="grid gap-4 md:grid-cols-2">
                             {/* Voucher No */}
                             <div>
-                                <label className="block font-medium mb-1">Voucher No</label>
-                                <Input
-                                    type="text"
-                                    value={data.vch_no}
-                                    onChange={(e) => setData('vch_no', e.target.value)}
-                                    required
-                                />
+                                <label className="mb-1 block font-medium">Voucher No</label>
+                                <Input type="text" value={data.vch_no} onChange={(e) => setData('vch_no', e.target.value)} required />
                                 {errors.vch_no && <div className="text-red-600">{errors.vch_no}</div>}
                             </div>
 
@@ -236,13 +230,7 @@ export default function Create({ employees, receivedModes, salarySlipEmployees }
                             {/* Amount */}
                             <div>
                                 <label className="block font-medium">Amount</label>
-                                <Input
-                                    type="number"
-                                    step="0.01"
-                                    value={data.amount}
-                                    onChange={(e) => setData('amount', e.target.value)}
-                                    required
-                                />
+                                <Input type="number" step="0.01" value={data.amount} onChange={(e) => setData('amount', e.target.value)} required />
                                 {errors.amount && <div className="text-red-600">{errors.amount}</div>}
                             </div>
 

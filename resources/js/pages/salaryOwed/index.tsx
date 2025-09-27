@@ -3,6 +3,7 @@ import PageHeader from '@/components/PageHeader';
 import Pagination from '@/components/Pagination';
 import TableComponent from '@/components/TableComponent';
 import { SearchBar } from '@/components/ui/search-bar';
+import { useTranslation } from '@/components/useTranslation';
 import AppLayout from '@/layouts/app-layout';
 import { Head, router, usePage } from '@inertiajs/react';
 import React from 'react';
@@ -39,6 +40,7 @@ const money = (n: number | string) =>
 
 /* Simple filter bar (replace with your own component if you have one) */
 const FilterBar = ({ defaultValues }: { defaultValues: Record<string, any> }) => {
+    const t = useTranslation();
     const [search, setSearch] = React.useState(defaultValues.search ?? '');
 
     const apply = () => router.get(route('salary-owed.index', { search }), {}, { preserveState: true });
@@ -47,13 +49,13 @@ const FilterBar = ({ defaultValues }: { defaultValues: Record<string, any> }) =>
         <div className="mb-6 flex gap-2">
             <input
                 className="w-full max-w-xs rounded border px-3 py-2"
-                placeholder="Search employee…"
+                placeholder={t('owedSearchEmployeePlaceholder')}
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
                 onKeyDown={(e) => e.key === 'Enter' && apply()}
             />
             <button onClick={apply} className="rounded bg-gray-800 px-4 py-2 text-white">
-                Go
+                {t('owedGoText')}
             </button>
         </div>
     );
@@ -61,6 +63,7 @@ const FilterBar = ({ defaultValues }: { defaultValues: Record<string, any> }) =>
 
 /* ───── Page component ───── */
 export default function Index() {
+    const t = useTranslation();
     const {
         employees,
         totals,
@@ -75,15 +78,15 @@ export default function Index() {
 
     /* Table columns (without Outstanding, added later) */
     const columns = [
-        { header: '#', accessor: (_: Row, i?: number) => <span>{(i ?? 0) + 1}</span>, className: 'text-center' },
-        { header: 'Name', accessor: 'name' },
-        { header: 'Total', accessor: (r: Row) => money(r.gross_sum) },
-        { header: 'Paid', accessor: (r: Row) => money(r.paid_sum) },
+        { header: t('owedNumberLabel'), accessor: (_: Row, i?: number) => <span>{(i ?? 0) + 1}</span>, className: 'text-center' },
+        { header: t('owedNameLabel'), accessor: 'name' },
+        { header: t('totalLabel'), accessor: (r: Row) => money(r.gross_sum) },
+        { header: t('salPaidLabel'), accessor: (r: Row) => money(r.paid_sum) },
     ];
 
     return (
         <AppLayout>
-            <Head title="Outstanding Salaries" />
+            <Head title={t('owedOutstandingSalariesTitle')} />
             <div className="h-full w-screen p-4 md:p-12 lg:w-full">
                 {/* KPI cards */}
                 {/* <div className="mb-6 grid grid-cols-2 gap-4 md:grid-cols-4">
@@ -96,15 +99,15 @@ export default function Index() {
                 {/* Filters */}
 
                 <div className="rounded-lg bg-white">
-                    <PageHeader title="Outstanding Salaries" addLinkHref="/dashboard" addLinkText="Dashboard" />
+                    <PageHeader title={t('owedOutstandingSalariesTitle')} addLinkHref="/dashboard" addLinkText={t('owedDashboardText')} />
                     <SearchBar endpoint={route('salary-owed.index')} />
 
-                    <div className="max-h-[70vh] overflow-x-auto mt-5">
+                    <div className="mt-5 max-h-[70vh] overflow-x-auto">
                         <TableComponent
                             columns={[
                                 ...columns,
                                 {
-                                    header: 'Outstanding',
+                                    header: t('owedOutstandingLabel'),
                                     accessor: (row: Row) => (
                                         <span className={Number(row.outstanding) > 0 ? 'font-semibold text-red-600' : 'text-green-600'}>
                                             {money(row.outstanding)}
@@ -113,8 +116,8 @@ export default function Index() {
                                 },
                             ]}
                             data={employees.data}
-                            actions={(row: Row) => <ActionButtons viewHref={route('salary-owed.show', row.id)} viewText="Details" />}
-                            noDataMessage="Nobody is owed salary 🎉"
+                            actions={(row: Row) => <ActionButtons viewHref={route('salary-owed.show', row.id)} viewText={t('owedDetailsText')} />}
+                            noDataMessage={t('owedNobodyOwedSalaryMessage')}
                         />
                     </div>
 

@@ -1,5 +1,6 @@
 import ActionFooter from '@/components/ActionFooter';
 import PageHeader from '@/components/PageHeader';
+import { useTranslation } from '@/components/useTranslation';
 import AppLayout from '@/layouts/app-layout';
 import { PlusCircleIcon, TrashIcon } from '@heroicons/react/24/outline';
 import { Head, router } from '@inertiajs/react';
@@ -37,6 +38,8 @@ interface Props {
 }
 
 export default function Create({ workingOrders, products, godowns, autoVoucherNo }: Props) {
+    const t = useTranslation();
+
     const [selectedWOId, setSelectedWOId] = useState<number | null>(null);
     const [selectedWO, setSelectedWO] = useState<WorkingOrder | null>(null);
     const [productionDate, setProductionDate] = useState('');
@@ -111,34 +114,35 @@ export default function Create({ workingOrders, products, godowns, autoVoucherNo
 
     return (
         <AppLayout>
-            <Head title="Add Finished Product" />
+            <Head title={t('fp-add-finished-product')} />
 
-            <div className="mx-auto  bg-gray-100 p-6 border">
-                <div className='h-full bg-white rounded-lg p-6'>
-                    <PageHeader title="Add Finished Product" addLinkHref="/finished-products" addLinkText="Back" />
+            <div className="mx-auto border p-4 md:p-12">
+                <div className="h-full rounded-lg bg-white">
+                    <PageHeader title={t('fp-add-finished-product')} addLinkHref="/finished-products" addLinkText={t('fp-back')} />
 
                     {/* Working Order Selection */}
                     <div className="rounded border bg-white p-6 shadow-md">
-                        <h2 className="mb-4 text-lg font-bold">Select Working Order</h2>
+                        <h2 className="mb-4 text-lg font-bold">{t('fp-select-working-order')}</h2>
                         <Select
                             options={workingOrderOptions}
                             onChange={(option) => setSelectedWOId(option?.value || null)}
-                            placeholder="Search Working Order..."
+                            placeholder={t('fp-search-working-order')}
                             isClearable
                         />
 
                         {selectedWO && (
                             <div className="mt-6 border-t pt-4">
-                                <h3 className="text-md mb-2 font-semibold">Materials Used:</h3>
+                                <h3 className="text-md mb-2 font-semibold">{t('fp-materials-used')}</h3>
                                 <ul className="space-y-1 text-sm text-gray-700">
                                     {selectedWO?.items?.length ? (
                                         selectedWO.items.map((i, idx) => (
                                             <li key={idx}>
-                                                {i.item?.item_name} from {i.godown?.name} — Qty: {i.quantity} @ {i.purchase_price} = {i.subtotal}
+                                                {i.item?.item_name} from {i.godown?.name} — {t('fp-qty')}: {i.quantity} @ {i.purchase_price} ={' '}
+                                                {i.subtotal}
                                             </li>
                                         ))
                                     ) : (
-                                        <li>No material items</li>
+                                        <li>{t('fp-no-material-items')}</li>
                                     )}
                                 </ul>
                             </div>
@@ -147,12 +151,12 @@ export default function Create({ workingOrders, products, godowns, autoVoucherNo
 
                     {/* Production Entry Form */}
                     <form onSubmit={handleSubmit} className="space-y-6 rounded border bg-white p-6 shadow-md">
-                        <h2 className="mb-2 text-lg font-bold">Add Production</h2>
+                        <h2 className="mb-2 text-lg font-bold">{t('fp-add-production')}</h2>
 
                         {/* Header Fields */}
                         <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
                             <div>
-                                <label className="text-sm font-medium text-gray-700">Date</label>
+                                <label className="text-sm font-medium text-gray-700">{t('fp-date')}</label>
                                 <input
                                     type="date"
                                     value={productionDate}
@@ -162,7 +166,7 @@ export default function Create({ workingOrders, products, godowns, autoVoucherNo
                                 />
                             </div>
                             <div>
-                                <label className="text-sm font-medium text-gray-700">Voucher No</label>
+                                <label className="text-sm font-medium text-gray-700">{t('fp-voucher-no')}</label>
                                 <input
                                     type="text"
                                     value={autoVoucherNo}
@@ -171,7 +175,7 @@ export default function Create({ workingOrders, products, godowns, autoVoucherNo
                                 />
                             </div>
                             <div>
-                                <label className="text-sm font-medium text-gray-700">Reference No</label>
+                                <label className="text-sm font-medium text-gray-700">{t('fp-reference-no')}</label>
                                 <input
                                     type="text"
                                     value={referenceNo}
@@ -184,25 +188,21 @@ export default function Create({ workingOrders, products, godowns, autoVoucherNo
                         {/* Dynamic Product Rows */}
                         <div className="space-y-4">
                             <div className="flex items-center justify-between">
-                                <h3 className="font-semibold text-gray-800">Production Output</h3>
-                                <button
-                                    type="button"
-                                    onClick={addRow}
-                                    className="flex items-center gap-1 text-sm text-indigo-600 hover:underline"
-                                >
+                                <h3 className="font-semibold text-gray-800">{t('fp-production-output')}</h3>
+                                <button type="button" onClick={addRow} className="flex items-center gap-1 text-sm text-indigo-600 hover:underline">
                                     <PlusCircleIcon className="h-5 w-5" />
-                                    Add Row
+                                    {t('fp-add-row')}
                                 </button>
                             </div>
 
                             {rows.map((row, idx) => (
                                 <div
                                     key={idx}
-                                    className="grid grid-cols-1 gap-4 rounded bg-gray-50 p-4 sm:grid-cols-2 md:grid-cols-4 lg:grid-cols-6 xl:grid-cols-12 items-center"
+                                    className="grid grid-cols-1 items-center gap-4 rounded bg-gray-50 p-4 sm:grid-cols-2 md:grid-cols-4 lg:grid-cols-6 xl:grid-cols-12"
                                 >
                                     {/* Item */}
                                     <div className="col-span-1 lg:col-span-2">
-                                        <label className="text-sm font-medium text-gray-700">Item</label>
+                                        <label className="text-sm font-medium text-gray-700">{t('fp-item')}</label>
                                         <select
                                             name="product_id"
                                             value={row.product_id}
@@ -210,7 +210,7 @@ export default function Create({ workingOrders, products, godowns, autoVoucherNo
                                             className="w-full rounded border px-2 py-1 text-sm"
                                             required
                                         >
-                                            <option value="">Select Product</option>
+                                            <option value="">{t('fp-select-product')}</option>
                                             {products.map((p) => (
                                                 <option key={p.id} value={p.id}>
                                                     {p.item_name}
@@ -221,7 +221,7 @@ export default function Create({ workingOrders, products, godowns, autoVoucherNo
 
                                     {/* Godown */}
                                     <div className="col-span-1 lg:col-span-2">
-                                        <label className="text-sm font-medium text-gray-700">Godown</label>
+                                        <label className="text-sm font-medium text-gray-700">{t('fp-godown')}</label>
                                         <select
                                             name="godown_id"
                                             value={row.godown_id}
@@ -229,7 +229,7 @@ export default function Create({ workingOrders, products, godowns, autoVoucherNo
                                             className="w-full rounded border px-2 py-1 text-sm"
                                             required
                                         >
-                                            <option value="">Select Godown</option>
+                                            <option value="">{t('fp-select-godown')}</option>
                                             {godowns.map((g) => (
                                                 <option key={g.id} value={g.id}>
                                                     {g.name}
@@ -240,7 +240,7 @@ export default function Create({ workingOrders, products, godowns, autoVoucherNo
 
                                     {/* Quantity */}
                                     <div className="col-span-1 lg:col-span-2">
-                                        <label className="text-sm font-medium text-gray-700">Quantity</label>
+                                        <label className="text-sm font-medium text-gray-700">{t('fp-quantity')}</label>
                                         <input
                                             type="number"
                                             name="quantity"
@@ -253,7 +253,7 @@ export default function Create({ workingOrders, products, godowns, autoVoucherNo
 
                                     {/* Price */}
                                     <div className="col-span-1 lg:col-span-2">
-                                        <label className="text-sm font-medium text-gray-700">Price</label>
+                                        <label className="text-sm font-medium text-gray-700">{t('fp-price')}</label>
                                         <input
                                             type="number"
                                             name="unit_price"
@@ -265,22 +265,21 @@ export default function Create({ workingOrders, products, godowns, autoVoucherNo
 
                                     {/* Total */}
                                     <div className="col-span-1 md:col-span-2">
-                                        <label className="mb-2 block text-sm font-medium text-gray-700">Subtotal</label>
-                                        <span className="text-sm font-medium text-indigo-600">
-                                            {Number(row.total || 0).toFixed(2)}</span>
+                                        <label className="mb-2 block text-sm font-medium text-gray-700">{t('fp-subtotal')}</label>
+                                        <span className="text-sm font-medium text-indigo-600">{Number(row.total || 0).toFixed(2)}</span>
                                     </div>
 
                                     {/* Remove Button */}
                                     <div className="col-span-1 md:col-span-2">
-                                        <label className="mb-2 block text-sm font-medium text-gray-700">Action</label>
-                                            <button
-                                                type="button"
-                                                onClick={() => removeRow(idx)}
-                                                disabled={rows.length === 1}
-                                                className="text-danger hover:text-danger-hover"
-                                            >
-                                                <TrashIcon className="h-5 w-5" />
-                                            </button>
+                                        <label className="mb-2 block text-sm font-medium text-gray-700">{t('fp-action')}</label>
+                                        <button
+                                            type="button"
+                                            onClick={() => removeRow(idx)}
+                                            disabled={rows.length === 1}
+                                            className="text-danger hover:text-danger-hover"
+                                        >
+                                            <TrashIcon className="h-5 w-5" />
+                                        </button>
                                     </div>
                                 </div>
                             ))}
@@ -288,19 +287,23 @@ export default function Create({ workingOrders, products, godowns, autoVoucherNo
 
                         {/* Totals */}
                         <div className="flex items-center justify-between border-t pt-2 text-sm font-medium text-gray-800">
-                            <span>Total Items: {rows.length}</span>
-                            <span>Total Amount: {isNaN(itemTotal) ? '0.00' : itemTotal.toFixed(2)}</span>
+                            <span>
+                                {t('fp-total-items')}: {rows.length}
+                            </span>
+                            <span>
+                                {t('fp-total-amount')}: {isNaN(itemTotal) ? '0.00' : itemTotal.toFixed(2)}
+                            </span>
                         </div>
 
                         {/* Note */}
                         <div>
-                            <label className="block text-sm font-medium text-gray-700">Note</label>
+                            <label className="block text-sm font-medium text-gray-700">{t('fp-note')}</label>
                             <textarea
                                 value={note}
                                 onChange={(e) => setNote(e.target.value)}
                                 className="w-full rounded border px-3 py-2 text-sm"
                                 rows={3}
-                                placeholder="Any additional notes..."
+                                placeholder={t('fp-note-placeholder')}
                             ></textarea>
                         </div>
 
@@ -310,8 +313,8 @@ export default function Create({ workingOrders, products, godowns, autoVoucherNo
                             onSubmit={handleSubmit}
                             cancelHref="/finished-products"
                             processing={false}
-                            submitText="Save Finished Product"
-                            cancelText="Cancel"
+                            submitText={t('fp-save-finished-product')}
+                            cancelText={t('fp-cancel')}
                         />
                     </form>
                 </div>

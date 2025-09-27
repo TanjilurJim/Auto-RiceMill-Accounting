@@ -1,4 +1,5 @@
 import TrialBanner from '@/components/TrialBanner';
+import { useTranslation } from '@/components/useTranslation';
 import { type BreadcrumbItem, type SharedData } from '@/types';
 import { Transition } from '@headlessui/react';
 import { Head, Link, useForm, usePage } from '@inertiajs/react';
@@ -17,12 +18,6 @@ import { Circle } from 'lucide-react';
 
 // If you have a Badge component:
 import { Badge } from '@/components/ui/badge';
-const breadcrumbs: BreadcrumbItem[] = [
-    {
-        title: 'Profile settings',
-        href: '/settings/profile',
-    },
-];
 
 interface ProfileForm {
     name: string;
@@ -30,12 +25,20 @@ interface ProfileForm {
 }
 
 export default function Profile({ mustVerifyEmail, status }: { mustVerifyEmail: boolean; status?: string }) {
+    const t = useTranslation();
     const { auth } = usePage<SharedData>().props;
 
     const { data, setData, patch, errors, processing, recentlySuccessful } = useForm<Required<ProfileForm>>({
         name: auth.user.name,
         email: auth.user.email,
     });
+
+    const breadcrumbs: BreadcrumbItem[] = [
+        {
+            title: t('set-profile-settings'),
+            href: '/settings/profile',
+        },
+    ];
 
     const submit: FormEventHandler = (e) => {
         e.preventDefault();
@@ -64,12 +67,12 @@ export default function Profile({ mustVerifyEmail, status }: { mustVerifyEmail: 
 
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
-            <Head title="Profile settings" />
+            <Head title={t('set-profile-settings')} />
             <TrialBanner />
             <Card className="m-4">
                 <CardHeader>
                     <CardTitle className="flex items-center gap-2">
-                        Account status
+                        {t('set-account-status')}
                         {inactive ? (
                             <span className="relative inline-flex h-2.5 w-2.5">
                                 <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-red-400 opacity-75"></span>
@@ -87,7 +90,7 @@ export default function Profile({ mustVerifyEmail, status }: { mustVerifyEmail: 
                 </CardHeader>
                 <CardContent className="space-y-3">
                     <div>
-                        <div className="text-muted-foreground text-xs">Roles</div>
+                        <div className="text-muted-foreground text-xs">{t('set-roles')}</div>
                         <div className="mt-1 flex flex-wrap gap-2">
                             {roles.length ? (
                                 roles.map((r: string) => (
@@ -96,30 +99,32 @@ export default function Profile({ mustVerifyEmail, status }: { mustVerifyEmail: 
                                     </Badge>
                                 ))
                             ) : (
-                                <span className="text-muted-foreground text-sm">No roles</span>
+                                <span className="text-muted-foreground text-sm">{t('set-no-roles')}</span>
                             )}
                         </div>
                     </div>
 
                     <div className="grid gap-2 sm:grid-cols-3">
                         <div>
-                            <div className="text-muted-foreground text-xs">Active since</div>
+                            <div className="text-muted-foreground text-xs">{t('set-active-since')}</div>
                             <div className="text-sm">{fmt(activeSince)}</div>
                         </div>
                         <div>
-                            <div className="text-muted-foreground text-xs">Trial ends</div>
+                            <div className="text-muted-foreground text-xs">{t('set-trial-ends')}</div>
                             <div className="text-sm">
                                 {endsAt ? fmt(endsAt) : '—'}
                                 {trial?.days_left != null && (
                                     <span className={`ml-2 text-xs ${expired ? 'text-red-600' : 'text-muted-foreground'}`}>
-                                        {expired ? 'Expired' : `${trial.days_left} day(s) left`}
+                                        {expired ? t('set-expired') : t('set-days-left', { days: trial.days_left })}
                                     </span>
                                 )}
                             </div>
                         </div>
                         <div>
-                            <div className="text-muted-foreground text-xs">Status</div>
-                            <div className={`text-sm ${inactive ? 'text-red-600' : 'text-emerald-600'}`}>{inactive ? 'Inactive' : 'Active'}</div>
+                            <div className="text-muted-foreground text-xs">{t('set-status')}</div>
+                            <div className={`text-sm ${inactive ? 'text-red-600' : 'text-emerald-600'}`}>
+                                {inactive ? t('set-inactive') : t('set-active')}
+                            </div>
                         </div>
                     </div>
                 </CardContent>
@@ -127,11 +132,11 @@ export default function Profile({ mustVerifyEmail, status }: { mustVerifyEmail: 
 
             <SettingsLayout>
                 <div className="space-y-6">
-                    <HeadingSmall title="Profile information" description="Update your name and email address" />
+                    <HeadingSmall title={t('set-profile-information')} description={t('set-profile-description')} />
 
                     <form onSubmit={submit} className="space-y-6">
                         <div className="grid gap-2">
-                            <Label htmlFor="name">Name</Label>
+                            <Label htmlFor="name">{t('set-name')}</Label>
 
                             <Input
                                 id="name"
@@ -140,14 +145,14 @@ export default function Profile({ mustVerifyEmail, status }: { mustVerifyEmail: 
                                 onChange={(e) => setData('name', e.target.value)}
                                 required
                                 autoComplete="name"
-                                placeholder="Full name"
+                                placeholder={t('set-name-placeholder')}
                             />
 
                             <InputError className="mt-2" message={errors.name} />
                         </div>
 
                         <div className="grid gap-2">
-                            <Label htmlFor="email">Email address</Label>
+                            <Label htmlFor="email">{t('set-email-address')}</Label>
 
                             <Input
                                 id="email"
@@ -157,7 +162,7 @@ export default function Profile({ mustVerifyEmail, status }: { mustVerifyEmail: 
                                 onChange={(e) => setData('email', e.target.value)}
                                 required
                                 autoComplete="username"
-                                placeholder="Email address"
+                                placeholder={t('set-email-placeholder')}
                             />
 
                             <InputError className="mt-2" message={errors.email} />
@@ -166,27 +171,25 @@ export default function Profile({ mustVerifyEmail, status }: { mustVerifyEmail: 
                         {mustVerifyEmail && auth.user.email_verified_at === null && (
                             <div>
                                 <p className="text-muted-foreground -mt-4 text-sm">
-                                    Your email address is unverified.{' '}
+                                    {t('set-email-unverified')}{' '}
                                     <Link
                                         href={route('verification.send')}
                                         method="post"
                                         as="button"
                                         className="text-foreground underline decoration-neutral-300 underline-offset-4 transition-colors duration-300 ease-out hover:decoration-current! dark:decoration-neutral-500"
                                     >
-                                        Click here to resend the verification email.
+                                        {t('set-resend-verification')}
                                     </Link>
                                 </p>
 
                                 {status === 'verification-link-sent' && (
-                                    <div className="mt-2 text-sm font-medium text-green-600">
-                                        A new verification link has been sent to your email address.
-                                    </div>
+                                    <div className="mt-2 text-sm font-medium text-green-600">{t('set-verification-sent')}</div>
                                 )}
                             </div>
                         )}
 
                         <div className="flex items-center gap-4">
-                            <Button disabled={processing}>Save</Button>
+                            <Button disabled={processing}>{t('set-save')}</Button>
 
                             <Transition
                                 show={recentlySuccessful}
@@ -195,7 +198,7 @@ export default function Profile({ mustVerifyEmail, status }: { mustVerifyEmail: 
                                 leave="transition ease-in-out"
                                 leaveTo="opacity-0"
                             >
-                                <p className="text-sm text-neutral-600">Saved</p>
+                                <p className="text-sm text-neutral-600">{t('set-saved')}</p>
                             </Transition>
                         </div>
                     </form>
