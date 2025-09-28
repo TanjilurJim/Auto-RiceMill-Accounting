@@ -25,8 +25,8 @@
 
         /* Language-based font switching */
         /* .font-english {
-            font-family: 'LiAdorNoirritEnglish', ui-sans-serif, system-ui, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol', 'Noto Color Emoji';
-        } */
+                font-family: 'LiAdorNoirritEnglish', ui-sans-serif, system-ui, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol', 'Noto Color Emoji';
+            } */
 
         .font-bangla {
             font-family: 'LiAdorNoirritBangla', ui-sans-serif, system-ui, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol', 'Noto Color Emoji';
@@ -1520,17 +1520,39 @@
             });
         }
 
+        // Get initial language from localStorage or default to 'en'
+        function getInitialLanguage() {
+            try {
+                const savedLanguage = localStorage.getItem('language');
+                return savedLanguage && (savedLanguage === 'en' || savedLanguage === 'bn') ? savedLanguage : 'en';
+            } catch (error) {
+                console.warn('LocalStorage not available:', error);
+                return 'en';
+            }
+        }
+
+        // Save language to localStorage
+        function saveLanguage(lang) {
+            try {
+                localStorage.setItem('language', lang);
+            } catch (error) {
+                console.warn('Could not save language to localStorage:', error);
+            }
+        }
+
         // Attach event listeners to all toggle buttons
         document.addEventListener('DOMContentLoaded', function() {
-            let currentLang = 'en';
+            // Initialize language from localStorage
+            let currentLang = getInitialLanguage();
 
-            // Set initial font class
-            document.body.classList.add('font-english');
+            // Set initial language and font
+            toggleLanguage(currentLang);
 
             document.querySelectorAll('[id^="langToggleBtn"]').forEach(btn => {
                 btn.addEventListener('click', function() {
                     currentLang = currentLang === 'en' ? 'bn' : 'en';
                     toggleLanguage(currentLang);
+                    saveLanguage(currentLang);
                 });
             });
         });

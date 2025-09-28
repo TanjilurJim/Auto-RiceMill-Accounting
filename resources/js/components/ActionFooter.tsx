@@ -23,7 +23,7 @@ const ActionFooter: React.FC<ActionFooterProps> = ({
     processing = false,
     submitText,
     saveAndPrintText,
-    cancelText = 'Cancel',
+    cancelText = '',
     printHref = '#',
     printText,
     className = '',

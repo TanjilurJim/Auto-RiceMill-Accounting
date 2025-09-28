@@ -170,6 +170,7 @@ export default function CreateUser({ roles }: { roles: Role[] }) {
                             submitText={processing ? t('us-creating') : t('us-create-user')}
                             cancelHref="/users"
                             className="justify-end"
+                            cancelText={t('cancelButtonText')}
                         />
                     </form>
                 </div>

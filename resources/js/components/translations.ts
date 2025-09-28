@@ -265,7 +265,7 @@ export const translations = {
         cancelButtonText: 'Cancel',
         deletedSuccess: 'Deleted!',
         deletedError: 'Error',
-        dayBook: 'ডে বুক',
+        dayBook: 'Day Book',
 
         // AdminDashboard.tsx
         user: 'User',
