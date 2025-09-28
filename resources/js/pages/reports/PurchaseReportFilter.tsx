@@ -1,11 +1,12 @@
+import InputCalendar from '@/components/Btn&Link/InputCalendar';
 import PageHeader from '@/components/PageHeader';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import AppLayout from '@/layouts/app-layout';
 import { Head, useForm } from '@inertiajs/react';
-import React, { useState } from 'react';
-import InputCalendar from '@/components/Btn&Link/InputCalendar';
 import dayjs from 'dayjs';
+import React, { useState } from 'react';
+import { useTranslation } from '../../components/useTranslation';
 
 interface Props {
     tab: 'category' | 'item' | 'party' | 'return' | 'all';
@@ -14,17 +15,18 @@ interface Props {
     suppliers: { id: number; name: string }[];
 }
 
-const tabs = [
-    { key: 'category', label: 'Category-wise' },
-    { key: 'item', label: 'Item-wise' },
-    { key: 'party', label: 'Party-wise' },
-    { key: 'return', label: 'Purchase Returns' },
-    { key: 'all', label: 'All Purchases' },
-];
-
 export default function PurchaseReportFilter({ tab, categories, items, suppliers }: Props) {
-            const today = dayjs().format('YYYY-MM-DD');
-    
+    const t = useTranslation();
+    const today = dayjs().format('YYYY-MM-DD');
+
+    const tabs = [
+        { key: 'category', label: t('purchaseCategoryWiseTab') },
+        { key: 'item', label: t('purchaseItemWiseTab') },
+        { key: 'party', label: t('purchasePartyWiseTab') },
+        { key: 'return', label: t('purchaseReturnsTab') },
+        { key: 'all', label: t('purchaseAllPurchasesTab') },
+    ];
+
     const [activeTab, setActiveTab] = useState(tab ?? 'category');
 
     const { data, setData, get, processing, errors } = useForm({
@@ -49,28 +51,27 @@ export default function PurchaseReportFilter({ tab, categories, items, suppliers
     const is = (k: string) => activeTab === k;
 
     return (
-        <AppLayout title="Purchase Report Filter">
-            <Head title="Purchase Report" />
+        <AppLayout>
+            <Head title={t('purchaseReportTitle')} />
 
-            <div className="bg-background p-6 h-full w-screen lg:w-full">
-                <div className="bg-background h-full rounded-lg p-6">
-                    <PageHeader title="Purchase Report Filter" />
+            <div className="bg-background h-full w-screen p-4 md:p-12 lg:w-full">
+                <div className="bg-background h-full rounded-lg">
+                    <PageHeader title={t('purchaseReportFilterTitle')} />
                     <Card>
                         {/* ── Header + tab bar ───────────────────────────── */}
-                        <CardHeader className="border-b bg-background/20 px-6 py-4">
-                            
-
-                            <nav className="border-b border-background">
+                        <CardHeader className="bg-background/20 border-b px-6 py-4">
+                            <nav className="border-background border-b">
                                 <ul className="flex flex-wrap gap-2 sm:gap-4 md:gap-6 lg:gap-8 xl:gap-10">
                                     {tabs.map((t) => (
                                         <li key={t.key} className="flex">
                                             <button
                                                 type="button"
                                                 onClick={() => setActiveTab(t.key)}
-                                                className={`inline-block px-3 py-2 text-sm font-medium ${activeTab === t.key
+                                                className={`inline-block px-3 py-2 text-sm font-medium ${
+                                                    activeTab === t.key
                                                         ? 'border-b-2 border-blue-500 text-blue-600'
                                                         : 'text-foreground hover:text-blue-600'
-                                                    }`}
+                                                }`}
                                             >
                                                 {t.label}
                                             </button>
@@ -78,7 +79,6 @@ export default function PurchaseReportFilter({ tab, categories, items, suppliers
                                     ))}
                                 </ul>
                             </nav>
-
                         </CardHeader>
 
                         {/* ── Form ───────────────────────────────────────── */}
@@ -89,7 +89,7 @@ export default function PurchaseReportFilter({ tab, categories, items, suppliers
                                     <div>
                                         <InputCalendar
                                             value={data.from_date}
-                                            onChange={val => {
+                                            onChange={(val) => {
                                                 setData('from_date', val);
                                                 setData('year', '');
                                             }}
@@ -104,7 +104,7 @@ export default function PurchaseReportFilter({ tab, categories, items, suppliers
                                     <div>
                                         <InputCalendar
                                             value={data.to_date}
-                                            onChange={val => {
+                                            onChange={(val) => {
                                                 setData('to_date', val);
                                                 setData('year', '');
                                             }}
@@ -117,11 +117,9 @@ export default function PurchaseReportFilter({ tab, categories, items, suppliers
                                     {/* Year Filter (Only for All Purchases Tab) */}
                                     {is('all') && (
                                         <div>
-                                            <label className="block text-sm font-medium">
-                                                Year <span className="text-gray-400">(optional)</span>
-                                            </label>
+                                            <label className="block text-sm font-medium">{t('purchaseYearLabel')}</label>
                                             <select
-                                                className="w-full rounded border px-3 py-2 mt-1"
+                                                className="mt-1 w-full rounded border px-3 py-2"
                                                 value={data.year ?? ''}
                                                 onChange={(e) => {
                                                     const selectedYear = e.target.value;
@@ -149,15 +147,13 @@ export default function PurchaseReportFilter({ tab, categories, items, suppliers
                                     {/* Conditional extra dropdowns */}
                                     {is('category') && (
                                         <div>
-                                            <label className="block text-sm font-medium">
-                                                Category <span className="text-gray-400">(optional)</span>
-                                            </label>
+                                            <label className="block text-sm font-medium">{t('purchaseCategoryLabel')}</label>
                                             <select
-                                                className="w-full rounded border px-3 py-2 mt-1"
+                                                className="mt-1 w-full rounded border px-3 py-2"
                                                 value={data.category_id}
                                                 onChange={(e) => setData('category_id', e.target.value)}
                                             >
-                                                <option value="">— All Categories —</option>
+                                                <option value="">{t('stockAllCategoriesOption')}</option>
                                                 {categories.map((c) => (
                                                     <option key={c.id} value={c.id}>
                                                         {c.name}
@@ -169,15 +165,13 @@ export default function PurchaseReportFilter({ tab, categories, items, suppliers
 
                                     {is('item') && (
                                         <div>
-                                            <label className="block text-sm font-medium">
-                                                Item <span className="text-gray-400">(optional)</span>
-                                            </label>
+                                            <label className="block text-sm font-medium">{t('purchaseItemLabel')}</label>
                                             <select
-                                                className="w-full rounded border px-3 py-2 mt-1"
+                                                className="mt-1 w-full rounded border px-3 py-2"
                                                 value={data.item_id}
                                                 onChange={(e) => setData('item_id', e.target.value)}
                                             >
-                                                <option value="">— All Items —</option>
+                                                <option value="">{t('stockAllItemsOption')}</option>
                                                 {items.map((i) => (
                                                     <option key={i.id} value={i.id}>
                                                         {i.item_name}
@@ -189,11 +183,9 @@ export default function PurchaseReportFilter({ tab, categories, items, suppliers
 
                                     {is('party') && (
                                         <div>
-                                            <label className="block text-sm font-medium">
-                                                Supplier <span className="text-gray-400">(optional)</span>
-                                            </label>
+                                            <label className="block text-sm font-medium">{t('purchaseSupplierLabel')}</label>
                                             <select
-                                                className="w-full rounded border px-3 py-2 mt-1"
+                                                className="mt-1 w-full rounded border px-3 py-2"
                                                 value={data.supplier_id}
                                                 onChange={(e) => setData('supplier_id', e.target.value)}
                                             >
@@ -211,7 +203,7 @@ export default function PurchaseReportFilter({ tab, categories, items, suppliers
                                 {/* Submit */}
                                 <div className="flex justify-end pt-2">
                                     <Button type="submit" disabled={processing}>
-                                        View Report
+                                        {t('stockViewReportText')}
                                     </Button>
                                 </div>
                             </form>
@@ -219,7 +211,6 @@ export default function PurchaseReportFilter({ tab, categories, items, suppliers
                     </Card>
                 </div>
             </div>
-
         </AppLayout>
     );
 }

@@ -105,9 +105,9 @@ export default function Register() {
                     </div>
                 </div>
                 <div className="flex justify-center items-center">
-                    <img 
-                        src={loginImg} 
-                        alt="Login Illustration" 
+                    <img
+                        src={loginImg}
+                        alt="Login Illustration"
                         className="w-full max-w-md h-auto object-contain"
                     />
                 </div>

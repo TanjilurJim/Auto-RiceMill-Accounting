@@ -3,6 +3,7 @@ import { confirmDialog } from '@/components/confirmDialog';
 import PageHeader from '@/components/PageHeader';
 import Pagination from '@/components/Pagination';
 import TableComponent from '@/components/TableComponent';
+import { useTranslation } from '@/components/useTranslation';
 import AppLayout from '@/layouts/app-layout';
 import { type BreadcrumbItem } from '@/types';
 import { Head, router } from '@inertiajs/react';
@@ -23,13 +24,14 @@ interface Props {
     };
 }
 
-const breadcrumbs: BreadcrumbItem[] = [
-    { title: 'Dashboard', href: '/dashboard' },
-    { title: 'Roles', href: '/roles' },
-];
-
 export default function RoleIndex({ roles }: Props) {
+    const t = useTranslation();
     const tableData = roles.data;
+
+    const breadcrumbs: BreadcrumbItem[] = [
+        { title: t('ro-dashboard'), href: '/dashboard' },
+        { title: t('ro-roles'), href: '/roles' },
+    ];
 
     // 🛑 Handle Delete Confirmation
     const handleDelete = (roleId: number) => {
@@ -39,15 +41,15 @@ export default function RoleIndex({ roles }: Props) {
     };
 
     const columns = [
-        { header: '#', accessor: (_: any, index: number) => index + 1, className: 'py-2 align-middle' },
-        { header: 'Name', accessor: 'name', className: 'py-2 align-middle' },
+        { header: t('ro-serial'), accessor: (row: Role, index?: number) => (index || 0) + 1, className: 'py-2 align-middle' },
+        { header: t('ro-name'), accessor: 'name', className: 'py-2 align-middle' },
         {
-            header: 'Created At',
+            header: t('ro-created-at'),
             accessor: (row: Role) => new Date(row.created_at).toLocaleDateString(),
             className: 'py-2 align-middle',
         },
         {
-            header: 'Actions',
+            header: t('ro-actions'),
             accessor: (row: Role) => (
                 <ActionButtons
                     editHref={`/roles/${row.id}/edit`}
@@ -55,13 +57,13 @@ export default function RoleIndex({ roles }: Props) {
                     deleteText={
                         <div className="flex items-center">
                             <Trash2 size={14} className="mr-1" />
-                            <span className='hidden md:inline'>Delete</span>
+                            <span className="hidden md:inline">{t('ro-delete')}</span>
                         </div>
                     }
                     editText={
                         <div className="flex items-center">
                             <Pencil size={14} className="mr-1" />
-                             <span className='hidden md:inline'>Edit</span>
+                            <span className="hidden md:inline">{t('ro-edit')}</span>
                         </div>
                     }
                     className="justify-items-center"
@@ -73,18 +75,17 @@ export default function RoleIndex({ roles }: Props) {
 
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
-            <Head title="Roles" />
+            <Head title={t('ro-roles')} />
             <div className="bg-background h-full w-screen p-6 lg:w-full">
                 <div className="bg-background h-full rounded-lg p-6">
-                    <PageHeader title="Roles" addLinkHref="/roles/create" addLinkText="+ Create Role" />
+                    <PageHeader title={t('ro-roles')} addLinkHref="/roles/create" addLinkText={t('ro-create-role')} />
 
                     {/* Table */}
                     <TableComponent
                         columns={columns}
                         data={tableData}
-                        pagination={roles}
-                        noDataMessage="No roles found."
-                        className="rounded bg-white p-4 shadow dark:bg-neutral-900"
+                        noDataMessage={t('ro-no-roles')}
+                        className="rounded bg-background p-4 shadow dark:bg-neutral-900"
                     />
 
                     <Pagination

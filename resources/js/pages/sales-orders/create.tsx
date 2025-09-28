@@ -1,10 +1,11 @@
 import ActionFooter from '@/components/ActionFooter';
+import InputCalendar from '@/components/Btn&Link/InputCalendar';
 import PageHeader from '@/components/PageHeader';
+import { useTranslation } from '@/components/useTranslation';
 import AppLayout from '@/layouts/app-layout';
 import { Head, useForm } from '@inertiajs/react';
-import React, { useEffect, useState } from 'react';
 import axios from 'axios';
-import InputCalendar from '@/components/Btn&Link/InputCalendar';
+import React, { useEffect, useState } from 'react';
 
 interface Props {
     ledgers: { id: number; name: string }[];
@@ -44,11 +45,9 @@ export default function SalesOrderCreate({ ledgers, salesmen, products, units, g
         ],
     });
 
+    const t = useTranslation();
 
     const [filteredProducts, setFilteredProducts] = useState<Product[]>([]);
-
-
-
 
     useEffect(() => {
         if (!data.voucher_no) {
@@ -81,8 +80,6 @@ export default function SalesOrderCreate({ ledgers, salesmen, products, units, g
         const rate = parseFloat(updatedItems[index].rate as any) || 0;
         const discount = parseFloat(updatedItems[index].discount_value as any) || 0;
         const type = updatedItems[index].discount_type;
-
-
 
         let subtotal = qty * rate;
         if (type === 'percentage') subtotal -= (subtotal * discount) / 100;
@@ -120,36 +117,33 @@ export default function SalesOrderCreate({ ledgers, salesmen, products, units, g
 
     return (
         <AppLayout>
-            <Head title="Create Sales Order" />
-            <div className="p-4 md:p-12 h-full w-screen lg:w-full">
+            <Head title={t('createSalesOrderTitle')} />
+            <div className="h-full w-screen p-4 md:p-12 lg:w-full">
                 <div className="h-full rounded-lg">
                     {/* <h2 className="mb-6 border-b pb-2 text-2xl font-bold text-gray-800">Create Sales Order</h2> */}
 
-                    <PageHeader title='Create Sales Order' addLinkHref='/sales-orders' addLinkText='Back' />
+                    <PageHeader title={t('createSalesOrderTitle')} addLinkHref="/sales-orders" addLinkText={t('backText')} />
 
                     <form onSubmit={handleSubmit} className="space-y-6">
                         {/* Basic Info */}
                         <div>
-                            <h3 className="mb-3 text-lg font-semibold text-gray-700">Order Details</h3>
+                            <h3 className="mb-3 text-lg font-semibold text-gray-700">{t('orderDetailsHeader')}</h3>
                             <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
                                 <div>
-                                    <InputCalendar
-                                        value={data.date}
-                                        onChange={(val) => setData('date', val)}
-                                    />
+                                    <InputCalendar value={data.date} onChange={(val) => setData('date', val)} />
                                 </div>
                                 <div>
-                                    <label className="mb-1 block text-sm font-medium">Voucher No</label>
-                                    <input type="text" value={data.voucher_no} readOnly className="w-full rounded border bg-gray-100 px-3 py-2" />
+                                    <label className="mb-1 block text-sm font-medium">{t('salesOrderVoucherNoLabel')}</label>
+                                    <input type="text" value={data.voucher_no} readOnly className="w-full rounded border  px-3 py-2" />
                                 </div>
                                 <div>
-                                    <label className="mb-1 block text-sm font-medium">Ledger</label>
+                                    <label className="mb-1 block text-sm font-medium">{t('ledgerLabel')}</label>
                                     <select
                                         value={data.ledger_id}
                                         onChange={(e) => setData('ledger_id', e.target.value)}
                                         className="w-full rounded border px-3 py-2"
                                     >
-                                        <option value="">Select Ledger</option>
+                                        <option value="">{t('selectLedgerOption')}</option>
                                         {ledgers.map((l) => (
                                             <option key={l.id} value={l.id}>
                                                 {l.name}
@@ -159,13 +153,13 @@ export default function SalesOrderCreate({ ledgers, salesmen, products, units, g
                                 </div>
 
                                 <div>
-                                    <label className="mb-1 block text-sm font-medium">Salesman</label>
+                                    <label className="mb-1 block text-sm font-medium">{t('salesmanLabel')}</label>
                                     <select
                                         value={data.salesman_id}
                                         onChange={(e) => setData('salesman_id', e.target.value)}
                                         className="w-full rounded border px-3 py-2"
                                     >
-                                        <option value="">Select Salesman</option>
+                                        <option value="">{t('selectSalesmanOption')}</option>
                                         {salesmen.map((s) => (
                                             <option key={s.id} value={s.id}>
                                                 {s.name}
@@ -197,7 +191,7 @@ export default function SalesOrderCreate({ ledgers, salesmen, products, units, g
                             <h3 className="mb-3 text-lg font-semibold text-gray-700">Products</h3>
                             <div className="overflow-x-auto">
                                 <table className="min-w-full border text-sm">
-                                    <thead className="bg-gray-200 text-gray-700">
+                                    <thead className="">
                                         <tr>
                                             <th className="border px-2 py-2">Product</th>
                                             <th className="border px-2 py-2">Qty</th>
@@ -285,7 +279,7 @@ export default function SalesOrderCreate({ ledgers, salesmen, products, units, g
                                                         type="number"
                                                         value={item.subtotal}
                                                         readOnly
-                                                        className="w-full rounded border bg-gray-100 px-1 py-1"
+                                                        className="w-full rounded border px-1 py-1"
                                                     />
                                                 </td>
                                                 <td className="border px-2 py-1">
@@ -293,7 +287,7 @@ export default function SalesOrderCreate({ ledgers, salesmen, products, units, g
                                                         {i > 0 && (
                                                             <button
                                                                 type="button"
-                                                                className="rounded bg-danger hover:bg-danger-hover px-3 py-1 text-white"
+                                                                className="bg-danger hover:bg-danger-hover rounded px-3 py-1 text-white"
                                                                 onClick={() => removeRow(i)}
                                                                 title="Remove Item"
                                                             >
@@ -303,7 +297,7 @@ export default function SalesOrderCreate({ ledgers, salesmen, products, units, g
                                                         {i === data.items.length - 1 && (
                                                             <button
                                                                 type="button"
-                                                                className="rounded bg-primary hover:bg-primary-hover px-3 py-1 text-white"
+                                                                className="bg-primary hover:bg-primary-hover rounded px-3 py-1 text-white"
                                                                 onClick={addRow}
                                                                 title="Add Item"
                                                             >
@@ -316,7 +310,7 @@ export default function SalesOrderCreate({ ledgers, salesmen, products, units, g
                                         ))}
                                     </tbody>
                                     <tfoot>
-                                        <tr className="bg-gray-100 text-sm font-semibold">
+                                        <tr className="text-sm font-semibold">
                                             <td colSpan={1} className="border px-2 py-2 text-right">
                                                 Total
                                             </td>
@@ -363,12 +357,12 @@ export default function SalesOrderCreate({ ledgers, salesmen, products, units, g
                             </button>
                         </div> */}
                         <ActionFooter
-                            className='w-full justify-end'
+                            className="w-full justify-end"
                             onSubmit={handleSubmit} // Function to handle form submission
                             cancelHref="/sales-orders" // URL for the cancel action
                             processing={processing} // Indicates whether the form is processing
-                            submitText={processing ? 'Saving...' : 'Submit Order'} // Text for the submit button
-                            cancelText="Cancel" // Text for the cancel button
+                            submitText={processing ? t('savingText') : t('submitOrderText')} // Text for the submit button
+                            cancelText={t('cancelText')} // Text for the cancel button
                         />
                     </form>
                 </div>

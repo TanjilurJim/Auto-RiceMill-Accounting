@@ -19,8 +19,8 @@ export default function EditSalesman({ salesman }: { salesman: any }) {
     return (
         <AppLayout>
             <Head title="Edit Salesman" />
-            <div className="h-full bg-gray-100 p-6">
-                <div className="h-full bg-white rounded-lg p-6">
+            <div className="h-full bg-background p-6">
+                <div className="h-full bg-background rounded-lg p-6">
                     <PageHeader title='Edit Salesman' addLinkHref='/salesmen' addLinkText="Back" />
 
                     <SalesmanForm

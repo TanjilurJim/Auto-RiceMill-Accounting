@@ -3,6 +3,7 @@ import { confirmDialog } from '@/components/confirmDialog';
 import PageHeader from '@/components/PageHeader';
 import Pagination from '@/components/Pagination';
 import TableComponent from '@/components/TableComponent';
+import { useTranslation } from '@/components/useTranslation';
 import AppLayout from '@/layouts/app-layout';
 import { Head, router } from '@inertiajs/react';
 
@@ -26,26 +27,24 @@ interface PaginatedReturns {
 }
 
 export default function PurchaseReturnIndex({ returns }: { returns: PaginatedReturns }) {
+    const t = useTranslation();
     const handleDelete = (id: number) => {
-        confirmDialog(
-            {}, () => {
-                router.delete(`/purchase-returns/${id}`);
-            }
-        );
+        confirmDialog({}, () => {
+            router.delete(`/purchase-returns/${id}`);
+        });
     };
-
 
     const columns = [
         {
-            header: 'SL',
+            header: t('slHeader'),
             accessor: (_row: ReturnItem, index?: number) => <div className="text-center">{(index || 0) + 1}</div>,
         },
-        { header: 'Date', accessor: 'date' },
-        { header: 'Return Vch. No', accessor: 'return_voucher_no' },
-        { header: 'Ledger', accessor: (row: ReturnItem) => row.account_ledger.account_ledger_name },
-        { header: 'Godown', accessor: (row: ReturnItem) => row.godown.name },
+        { header: t('dateHeader'), accessor: 'date' },
+        { header: t('returnVchNoHeader'), accessor: 'return_voucher_no' },
+        { header: t('ledgerHeader'), accessor: (row: ReturnItem) => row.account_ledger.account_ledger_name },
+        { header: t('godownHeader'), accessor: (row: ReturnItem) => row.godown.name },
         {
-            header: 'Item + Qty',
+            header: t('itemQtyHeader'),
             accessor: (row: ReturnItem) => (
                 <div>
                     {row.return_items.map((item, idx) => (
@@ -56,9 +55,9 @@ export default function PurchaseReturnIndex({ returns }: { returns: PaginatedRet
                 </div>
             ),
         },
-        { header: 'Total Qty', accessor: (row: ReturnItem) => <div className="text-center">{row.total_qty}</div> },
+        { header: t('totalQtyHeader'), accessor: (row: ReturnItem) => <div className="text-center">{row.total_qty}</div> },
         {
-            header: 'Return Value',
+            header: t('returnValueHeader'),
             accessor: (row: ReturnItem) => {
                 const totalAmount = row.return_items.reduce((sum, item) => sum + (parseFloat(item.subtotal as any) || 0), 0);
                 return <div className="text-right font-semibold">{totalAmount.toFixed(2)} Tk</div>;
@@ -68,31 +67,27 @@ export default function PurchaseReturnIndex({ returns }: { returns: PaginatedRet
 
     return (
         <AppLayout>
-            <Head title="All Purchase Returns" />
-            <div className="bg-background p-4 md:p-12 h-full w-screen lg:w-full">
+            <Head title={t('allPurchaseReturnsTitle')} />
+            <div className="bg-background h-full w-screen p-4 md:p-12 lg:w-full">
                 <div className="bg-background h-full rounded-lg">
                     {/* Header */}
-                    <PageHeader title='Purchase Return List' addLinkHref='/purchase-returns/create' addLinkText='+ Add Return' />
+                    <PageHeader title={t('purchaseReturnListHeader')} addLinkHref="/purchase-returns/create" addLinkText={t('addReturnButton')} />
                     {/* Table */}
                     <TableComponent
                         columns={columns}
                         data={returns.data}
+                        noDataMessage={t('noPurchaseReturnsFound')}
                         actions={(row: ReturnItem) => (
                             <ActionButtons
                                 editHref={`/purchase-returns/${row.id}/edit`}
                                 onDelete={() => handleDelete(row.id)}
-                                printText="Print"
+                                printText={t('printText')}
                                 printHref={`/purchase-returns/${row.id}/invoice`}
                             />
                         )}
                     />
                     {/* Pagination */}
-                    <Pagination
-                        links={returns.links}
-                        currentPage={returns.current_page}
-                        lastPage={returns.last_page}
-                        total={returns.total}
-                    />
+                    <Pagination links={returns.links} currentPage={returns.current_page} lastPage={returns.last_page} total={returns.total} />
                 </div>
             </div>
         </AppLayout>

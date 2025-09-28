@@ -25,11 +25,11 @@ export default function EditAccountGroup({
     return (
         <AppLayout>
             <Head title={`Edit Account Group - ${accountGroup.name}`} />
-            <div className="flex min-h-screen items-center justify-center bg-gray-100">
+            <div className="flex min-h-screen items-center justify-center bg-background">
                 <div className="w-full max-w-xl p-6">
                     <h1 className="mb-4 text-2xl font-bold">Edit Account Group</h1>
 
-                    <form onSubmit={handleSubmit} className="space-y-4 rounded bg-white p-4 shadow dark:bg-neutral-900">
+                    <form onSubmit={handleSubmit} className="space-y-4 rounded bg-background p-4 shadow dark:bg-neutral-900">
 
                         {/* Name */}
                         <div>

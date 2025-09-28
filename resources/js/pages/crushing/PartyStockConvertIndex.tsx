@@ -64,7 +64,7 @@ export default function PartyStockConvertIndex({ conversions, pagination }: Prop
                 </div>
 
                 {/* Table */}
-                <div className="overflow-x-auto rounded-lg border border-slate-200 bg-white">
+                <div className="overflow-x-auto rounded-lg border border-slate-200 bg-background">
                     <table className="w-full text-sm">
                         <thead className="bg-slate-50 text-slate-600">
                             <tr>
@@ -142,7 +142,7 @@ export default function PartyStockConvertIndex({ conversions, pagination }: Prop
                                                 <td colSpan={8} className="bg-slate-50 p-0">
                                                     <div className="overflow-x-auto">
                                                         <table className="w-full text-xs">
-                                                            <thead className="bg-white text-slate-500">
+                                                            <thead className="bg-background text-slate-500">
                                                                 <tr>
                                                                     <th className="p-2 text-left">Type</th>
                                                                     <th className="p-2 text-left">Item</th>
@@ -152,7 +152,7 @@ export default function PartyStockConvertIndex({ conversions, pagination }: Prop
                                                             </thead>
                                                             <tbody className="divide-y divide-slate-200">
                                                                 {c.items.map((it, i) => (
-                                                                    <tr key={i} className="bg-white">
+                                                                    <tr key={i} className="bg-background">
                                                                         <td className="p-2">
                                                                             {it.move_type === 'convert-in' ? 'Generated (+)' : 'Consumed (−)'}
                                                                         </td>

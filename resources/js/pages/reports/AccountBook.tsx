@@ -1,4 +1,5 @@
 import { Button } from '@/components/ui/button';
+import { useTranslation } from '@/components/useTranslation';
 import AppLayout from '@/layouts/app-layout';
 import { Head, Link } from '@inertiajs/react';
 import { Printer } from 'lucide-react';
@@ -48,6 +49,7 @@ interface Props {
 }
 
 export default function AccountBook({ company, entries, opening_balance, from, to, ledgers, ledger_id, ledger }: Props) {
+    const t = useTranslation();
     const ledgerName = ledgers.find((l) => l.id === ledger_id)?.account_ledger_name || 'Ledger';
 
     const { rows, closingBalance, totalDebit, totalCredit } = useMemo(() => {
@@ -70,27 +72,37 @@ export default function AccountBook({ company, entries, opening_balance, from, t
     }, [entries, opening_balance]);
 
     return (
-        <AppLayout title="Account Book">
+        <AppLayout>
             <div className="absolute top-16 right-4 print:hidden">
                 <Link href={route('reports.account-book')} className="text-sm text-blue-600 hover:underline">
-                    Change Filters
+                    {t('repChangeFiltersText')}
                 </Link>
             </div>
-            <Head title="Account Book" />
+            <Head title={t('repAccountBookTitle')} />
 
-            <div className=" mt-6 l rounded bg-background p-4 shadow print:text-xs print:font-normal">
+            <div className="l bg-background mt-6 rounded p-4 shadow print:text-xs print:font-normal">
                 {/* Header */}
                 {/* Header Layout */}
                 <div className="mb-6 text-center">
-                    {company?.logo_url && <img src={company?.logo_url} alt="Company Logo" className="mx-auto mb-2 h-20 object-contain print:h-12" />}
+                    {company?.logo_url && (
+                        <img src={company?.logo_url} alt={t('repCompanyLogoAlt')} className="mx-auto mb-2 h-20 object-contain print:h-12" />
+                    )}
                     <h2 className="text-2xl font-bold">{company?.company_name}</h2>
 
                     {company?.address && <p className="text-sm">{company?.address}</p>}
-                    {company?.mobile && <p className="text-sm">Mobile: {company?.mobile}</p>}
-                    {company?.email && <p className="text-sm">Email: {company?.email}</p>}
+                    {company?.mobile && (
+                        <p className="text-sm">
+                            {t('repMobileLabel')}: {company?.mobile}
+                        </p>
+                    )}
+                    {company?.email && (
+                        <p className="text-sm">
+                            {t('repEmailLabel')}: {company?.email}
+                        </p>
+                    )}
                     {company?.website && (
                         <p className="text-sm">
-                            Website:{' '}
+                            {t('repWebsiteLabel')}:{' '}
                             <a href={company?.website} target="_blank" rel="noopener noreferrer" className="text-blue-600 underline">
                                 {company?.website}
                             </a>
@@ -98,36 +110,50 @@ export default function AccountBook({ company, entries, opening_balance, from, t
                     )}
                     {company?.financial_year && (
                         <p className="mt-1 text-sm italic">
-                            Financial Year: <strong> {company?.financial_year}</strong>
+                            {t('repFinancialYearLabel')}: <strong> {company?.financial_year}</strong>
                         </p>
                     )}
                 </div>
                 <div className="mb-4 flex flex-col items-start justify-between md:flex-row md:items-center">
                     {/* LEFT  ─ Ledger details */}
                     <div className="mb-3 md:mb-0">
-                        <p className="text-base font-semibold">Ledger&nbsp;:&nbsp;{ledger.account_ledger_name}</p>
+                        <p className="text-base font-semibold">
+                            {t('repLedgerLabel')}:&nbsp;{ledger.account_ledger_name}
+                        </p>
 
-                        {ledger.phone_number && <p className="text-sm">Phone&nbsp;:&nbsp;{ledger.phone_number}</p>}
-                        {ledger.email && <p className="text-sm">Email&nbsp;:&nbsp;{ledger.email}</p>}
-                        {ledger.address && <p className="text-sm">Address&nbsp;:&nbsp;{ledger.address}</p>}
+                        {ledger.phone_number && (
+                            <p className="text-sm">
+                                {t('repPhoneLabel')}:&nbsp;{ledger.phone_number}
+                            </p>
+                        )}
+                        {ledger.email && (
+                            <p className="text-sm">
+                                {t('repEmailLabel')}:&nbsp;{ledger.email}
+                            </p>
+                        )}
+                        {ledger.address && (
+                            <p className="text-sm">
+                                {t('repAddressLabel')}:&nbsp;{ledger.address}
+                            </p>
+                        )}
                     </div>
 
                     {/* RIGHT ─ Opening / Closing balances */}
                     <div className="text-right">
                         <p className="text-sm">
                             <strong>
-                                From&nbsp;:&nbsp;{from}&nbsp;—&nbsp;To&nbsp;:&nbsp;{to}
+                                {t('repFromLabel')}:&nbsp;{from}&nbsp;—&nbsp;{t('repToLabel')}:&nbsp;{to}
                             </strong>
                         </p>
                         <p className="text-sm text-blue-600">
-                            Opening&nbsp;Balance:&nbsp;
+                            {t('repOpeningBalanceText')}:&nbsp;
                             {Math.abs(opening_balance).toFixed(2)}
-                            &nbsp;({ledger.debit_credit === 'debit' ? 'Dr' : 'Cr'})
+                            &nbsp;({ledger.debit_credit === 'debit' ? t('repDrText') : t('repCrText')})
                         </p>
                         <p className="text-sm text-blue-600">
-                            Closing&nbsp;Balance:&nbsp;
+                            {t('repClosingBalanceText')}:&nbsp;
                             {Math.abs(closingBalance).toFixed(2)}
-                            &nbsp;({closingBalance >= 0 ? 'Dr' : 'Cr'})
+                            &nbsp;({closingBalance >= 0 ? t('repDrText') : t('repCrText')})
                         </p>
                     </div>
                 </div>
@@ -136,13 +162,13 @@ export default function AccountBook({ company, entries, opening_balance, from, t
                 <table className="mt-4 w-full table-auto border-collapse border text-sm print:text-xs">
                     <thead className="bg-gray-100">
                         <tr className="border">
-                            <th className="border px-2 py-1">Date</th>
-                            <th className="border px-2 py-1">Type</th>
-                            <th className="border px-2 py-1">Vch. No</th>
-                            <th className="border px-2 py-1">Accounts</th>
-                            <th className="border px-2 py-1">Debit (TK)</th>
-                            <th className="border px-2 py-1">Credit (TK)</th>
-                            <th className="border px-2 py-1">Balance (TK)</th>
+                            <th className="border px-2 py-1">{t('repDateHeader')}</th>
+                            <th className="border px-2 py-1">{t('repTypeHeader')}</th>
+                            <th className="border px-2 py-1">{t('repVoucherNoHeader')}</th>
+                            <th className="border px-2 py-1">{t('repAccountsHeader')}</th>
+                            <th className="border px-2 py-1">{t('repDebitHeader')} (TK)</th>
+                            <th className="border px-2 py-1">{t('repCreditHeader')} (TK)</th>
+                            <th className="border px-2 py-1">{t('repBalanceHeader')} (TK)</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -155,7 +181,8 @@ export default function AccountBook({ company, entries, opening_balance, from, t
                                 <td className="border px-2 py-1 text-right">{Number(entry.debit || 0).toFixed(2)}(TK) </td>
                                 <td className="border px-2 py-1 text-right">{Number(entry.credit || 0).toFixed(2)}(TK)</td>
                                 <td className="border px-2 py-1 text-right">
-                                    {Math.abs(Number(entry.runningBalance)).toFixed(2)} ({Number(entry.runningBalance) >= 0 ? 'Dr' : 'Cr'})
+                                    {Math.abs(Number(entry.runningBalance)).toFixed(2)} (
+                                    {Number(entry.runningBalance) >= 0 ? t('repDrText') : t('repCrText')})
                                 </td>
                             </tr>
                         ))}
@@ -163,12 +190,12 @@ export default function AccountBook({ company, entries, opening_balance, from, t
                     <tfoot>
                         <tr className="bg-gray-100 font-semibold">
                             <td colSpan={4} className="border px-2 py-1 text-right">
-                                Total
+                                {t('repTotalText')}
                             </td>
                             <td className="border px-2 py-1 text-right text-blue-700">{totalDebit.toFixed(2)}(TK)</td>
                             <td className="border px-2 py-1 text-right text-blue-700">{totalCredit.toFixed(2)}(TK)</td>
                             <td className="border px-2 py-1 text-right text-blue-700">
-                                {Math.abs(closingBalance).toFixed(2)} ({closingBalance >= 0 ? 'Dr' : 'Cr'})
+                                {Math.abs(closingBalance).toFixed(2)} ({closingBalance >= 0 ? t('repDrText') : t('repCrText')})
                             </td>
                         </tr>
                     </tfoot>
@@ -181,18 +208,18 @@ export default function AccountBook({ company, entries, opening_balance, from, t
                         className="rounded bg-green-600 px-4 py-2 text-sm font-medium text-white hover:bg-green-700"
                         download
                     >
-                        Export Excel
+                        {t('repSaveAsExcelText')}
                     </a>
                     <a
                         href={route('reports.account-book.pdf', { ledger_id, from, to })}
                         download
                         className="rounded bg-red-600 px-4 py-2 text-sm font-medium text-white hover:bg-red-700"
                     >
-                        Export PDF
+                        {t('repSaveAsPdfText')}
                     </a>
                     <Button onClick={() => window.print()}>
                         <Printer className="mr-2 h-4 w-4" />
-                        Print
+                        {t('repPrintText')}
                     </Button>
                 </div>
             </div>

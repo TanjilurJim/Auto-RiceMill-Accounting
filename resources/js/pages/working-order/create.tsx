@@ -3,6 +3,7 @@ import { Head, router } from '@inertiajs/react';
 
 import ActionFooter from '@/components/ActionFooter';
 import PageHeader from '@/components/PageHeader';
+import { useTranslation } from '@/components/useTranslation';
 import { PlusCircleIcon, TrashIcon } from '@heroicons/react/24/outline';
 import { useState } from 'react';
 
@@ -33,6 +34,8 @@ const WorkingOrderCreate: React.FC<Props> = ({ autoVoucherNo, products, godowns 
 
     /* expense rows */
     const [extras, setExtras] = useState([{ title: '', quantity: '', price: '', total: 0 }]);
+
+    const t = useTranslation();
 
     /* ───── handlers: stock rows ───── */
     const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>, idx: number) => {
@@ -100,18 +103,18 @@ const WorkingOrderCreate: React.FC<Props> = ({ autoVoucherNo, products, godowns 
     /* ─────────── JSX ─────────── */
     return (
         <AppLayout>
-            <Head title="Create Working Order" />
+            <Head title={t('createWorkingOrderTitle')} />
 
-            <div className="mx-auto w-full h-full ">
-                <div className="h-full border border-gray-200 bg-background p-6">
-                    <div className="w-full h-full bg-background rounded-lg p-6 ">
+            <div className="mx-auto h-full w-full">
+                <div className="h-full border p-4 md:p-12">
+                    <div className="h-full w-full rounded-lg bg-background">
                         {/* Header bar */}
 
                         <PageHeader
                             title={
                                 <>
-                                    <h1>Create Working Order</h1>
-                                    <p className="text-xs text-gray-500">Add materials and extra expenses</p>
+                                    <h1>{t('createWorkingOrderTitle')}</h1>
+                                    <p className="text-xs text-gray-500">{t('addMaterialsExpensesText')}</p>
                                 </>
                             }
                             addLinkHref={route('working-orders.index')}
@@ -124,19 +127,19 @@ const WorkingOrderCreate: React.FC<Props> = ({ autoVoucherNo, products, godowns 
                                             clipRule="evenodd"
                                         />
                                     </svg>
-                                    Back to Orders
+                                    {t('backToOrdersText')}
                                 </span>
                             }
                         />
 
                         {/* FORM */}
-                        <form onSubmit={handleSubmit} className="space-y-8 px-6 py-5">
+                        <form onSubmit={handleSubmit} className="space-y-8 py-5">
                             {/* Header fields */}
                             <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
                                 {/* date */}
                                 <div>
                                     <label className="mb-1 block text-xs font-medium text-gray-600">
-                                        Order Date <span className="ml-1 text-red-500">*</span>
+                                        {t('orderDateLabel')} <span className="ml-1 text-red-500">*</span>
                                     </label>
                                     <input
                                         type="date"
@@ -149,7 +152,7 @@ const WorkingOrderCreate: React.FC<Props> = ({ autoVoucherNo, products, godowns 
 
                                 {/* voucher */}
                                 <div>
-                                    <label className="mb-1 block text-xs font-medium text-gray-600">Voucher No</label>
+                                    <label className="mb-1 block text-xs font-medium text-gray-600">{t('woVoucherNoHeader')}</label>
                                     <input
                                         type="text"
                                         value={autoVoucherNo}
@@ -160,13 +163,13 @@ const WorkingOrderCreate: React.FC<Props> = ({ autoVoucherNo, products, godowns 
 
                                 {/* reference */}
                                 <div>
-                                    <label className="mb-1 block text-xs font-medium text-gray-600">Reference No</label>
+                                    <label className="mb-1 block text-xs font-medium text-gray-600">{t('woReferenceNoLabel')}</label>
                                     <input
                                         type="text"
                                         value={referenceNo}
                                         onChange={(e) => setReferenceNo(e.target.value)}
                                         className="w-full rounded border border-gray-400 px-3 py-2 text-sm focus:border-indigo-500 focus:ring-indigo-200"
-                                        placeholder="REF-001"
+                                        placeholder={t('refPlaceholder')}
                                     />
                                 </div>
                             </div>
@@ -174,25 +177,25 @@ const WorkingOrderCreate: React.FC<Props> = ({ autoVoucherNo, products, godowns 
                             {/* ───── Materials grid ───── */}
                             <div className="space-y-1">
                                 <div className="flex items-center justify-between">
-                                    <h3 className="text-sm font-medium text-foreground">Materials / Stock</h3>
+                                    <h3 className="text-sm font-medium text-gray-900">{t('materialsStockHeader')}</h3>
                                     <button
                                         type="button"
                                         onClick={addRow}
                                         className="inline-flex items-center gap-1 text-sm font-medium text-indigo-600 hover:text-indigo-700"
                                     >
                                         <PlusCircleIcon className="h-5 w-5" />
-                                        Add Item
+                                        {t('addItemText')}
                                     </button>
                                 </div>
 
                                 {rows.map((row, idx) => (
                                     <div
                                         key={idx}
-                                        className="grid grid-cols-1 md:grid-cols-4 lg:grid-cols-6 xl:grid-cols-12  gap-4 rounded border border-background bg-background p-4 shadow-md"
+                                        className="grid grid-cols-1 gap-4 rounded border border-gray-100 bg-gray-50 p-4 shadow-md md:grid-cols-4 lg:grid-cols-6 xl:grid-cols-12"
                                     >
                                         {/* Product */}
                                         <div className="col-span-1 md:col-span-2">
-                                            <label className="mb-2 block text-sm font-medium text-foreground">Product</label>
+                                            <label className="mb-2 block text-sm font-medium text-gray-700">{t('woProductLabel')}</label>
                                             <select
                                                 name="product_id"
                                                 value={row.product_id}
@@ -211,7 +214,7 @@ const WorkingOrderCreate: React.FC<Props> = ({ autoVoucherNo, products, godowns 
 
                                         {/* Godown */}
                                         <div className="col-span-1 md:col-span-2">
-                                            <label className="mb-2 block text-sm font-medium text-foreground">Godown</label>
+                                            <label className="mb-2 block text-sm font-medium text-gray-700">{t('woGodownLabel')}</label>
                                             <select
                                                 name="godown_id"
                                                 value={row.godown_id}
@@ -230,7 +233,7 @@ const WorkingOrderCreate: React.FC<Props> = ({ autoVoucherNo, products, godowns 
 
                                         {/* Quantity */}
                                         <div className="col-span-1 md:col-span-2">
-                                            <label className="mb-2 block text-sm font-medium text-foreground">Qty</label>
+                                            <label className="mb-2 block text-sm font-medium text-gray-700">{t('woQtyLabel')}</label>
                                             <input
                                                 type="number"
                                                 name="quantity"
@@ -244,7 +247,7 @@ const WorkingOrderCreate: React.FC<Props> = ({ autoVoucherNo, products, godowns 
 
                                         {/* Unit Price */}
                                         <div className="col-span-1 md:col-span-2">
-                                            <label className="mb-2 block text-sm font-medium text-foreground">Unit Price</label>
+                                            <label className="mb-2 block text-sm font-medium text-gray-700">{t('unitPriceLabel')}</label>
                                             <input
                                                 type="number"
                                                 name="purchase_price"
@@ -258,13 +261,13 @@ const WorkingOrderCreate: React.FC<Props> = ({ autoVoucherNo, products, godowns 
 
                                         {/* Subtotal */}
                                         <div className="col-span-1 md:col-span-2">
-                                            <label className="mb-2 block text-sm font-medium text-foreground">Subtotal</label>
+                                            <label className="mb-2 block text-sm font-medium text-gray-700">{t('woSubtotalHeader')}</label>
                                             <span className="text-sm font-medium text-indigo-600">{row.subtotal.toFixed(2)}</span>
                                         </div>
 
                                         {/* Remove Button */}
                                         <div className="col-span-1 md:col-span-2">
-                                            <label className="mb-2 block text-sm font-medium text-foreground">Action</label>
+                                            <label className="mb-2 block text-sm font-medium text-gray-700">{t('woActionLabel')}</label>
                                             <button
                                                 type="button"
                                                 onClick={() => removeRow(idx)}
@@ -297,7 +300,7 @@ const WorkingOrderCreate: React.FC<Props> = ({ autoVoucherNo, products, godowns 
                                         key={idx}
                                         className="grid grid-cols-1 gap-4 rounded border border-gray-100 bg-gray-50 p-4 shadow-md sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-6 xl:grid-cols-12"
                                     >
-                                        
+
                                         <div className="col-span-1 lg:col-span-5">
                                             <label className="mb-2 block text-sm font-medium text-foreground">Title</label>
                                             <input
@@ -310,7 +313,7 @@ const WorkingOrderCreate: React.FC<Props> = ({ autoVoucherNo, products, godowns 
                                                 required
                                             />
                                         </div>
-                                        
+
                                         <div className="col-span-1 lg:col-span-2">
                                             <label className="mb-2 block text-sm font-medium text-foreground">Qty</label>
                                             <input
@@ -322,7 +325,7 @@ const WorkingOrderCreate: React.FC<Props> = ({ autoVoucherNo, products, godowns 
                                                 min="1"
                                             />
                                         </div>
-                                        
+
                                         <div className="col-span-1 lg:col-span-2">
                                             <label className="mb-2 block text-sm font-medium text-foreground">Price</label>
                                             <input
@@ -334,11 +337,11 @@ const WorkingOrderCreate: React.FC<Props> = ({ autoVoucherNo, products, godowns 
                                                 step="0.01"
                                             />
                                         </div>
-                                        
+
                                         <div className="col-span-1 lg:col-span-2 flex items-center justify-end">
                                             <span className="text-sm font-medium text-indigo-600">{row.total.toFixed(2)}</span>
                                         </div>
-                                        
+
                                         <div className="col-span-1 flex items-center justify-end">
                                             <button
                                                 type="button"
@@ -356,7 +359,7 @@ const WorkingOrderCreate: React.FC<Props> = ({ autoVoucherNo, products, godowns 
                             {/* ───── Grand total card ───── */}
                             <div className="mt-4 rounded border border-indigo-100 bg-background px-4 py-3 shadow">
                                 <div className="flex items-center justify-between">
-                                    <span className="text-sm font-semibold text-foreground">Total Amount</span>
+                                    <span className="text-sm font-semibold text-gray-800">{t('woTotalAmountHeader')}</span>
                                     <span className="text-lg font-bold text-indigo-700">{grandTotal.toFixed(2)}</span>
                                 </div>
                             </div>
@@ -367,8 +370,8 @@ const WorkingOrderCreate: React.FC<Props> = ({ autoVoucherNo, products, godowns 
                                 onSubmit={handleSubmit}
                                 cancelHref={route('working-orders.index')}
                                 processing={false}
-                                submitText="Save Working Order"
-                                cancelText="Cancel"
+                                submitText={t('saveWorkingOrderText')}
+                                cancelText={t('cancelText')}
                             />
                         </form>
                     </div>

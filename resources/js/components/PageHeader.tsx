@@ -1,55 +1,49 @@
-import { Link } from "@inertiajs/react";
-import React, { ReactNode } from "react";
+import { Link } from '@inertiajs/react';
+import React, { ReactNode } from 'react';
+import { useTranslation } from './useTranslation';
 
 interface PageHeaderProps {
-  title?: ReactNode;
-  addLinkText?: ReactNode;
-  addLinkHref?: string;
-  printLinkHref?: string;
-  printLinkText?: ReactNode;
-  headingLevel?: 1 | 2;
+    title?: ReactNode;
+    addLinkText?: ReactNode;
+    addLinkHref?: string;
+    printLinkHref?: string;
+    printLinkText?: ReactNode;
+    headingLevel?: 1 | 2;
 }
 
-const PageHeader: React.FC<PageHeaderProps> = ({
-  title = "Title",
-  addLinkText,
-  addLinkHref,
-  printLinkHref,
-  printLinkText = "Print",
-  headingLevel = 2,
-}) => {
-  const HeadingTag = headingLevel === 1 ? "h1" : "h2";
+const PageHeader: React.FC<PageHeaderProps> = ({ title, addLinkText, addLinkHref, printLinkHref, printLinkText, headingLevel = 2 }) => {
+    const t = useTranslation();
+    const HeadingTag = headingLevel === 1 ? 'h1' : 'h2';
 
-  return (
-    <div className="mb-4 flex md:flex-row md:gap-2 items-center justify-between">
-      {/* Use token so it adapts to light/dark */}
-      {React.createElement(
-        HeadingTag,
-        { className: "text-lg md:text-2xl font-semibold tracking-tight text-foreground" },
-        title
-      )}
+    const displayTitle = title || t('defaultPageTitle');
+    const displayPrintText = printLinkText || t('printText');
 
-      <div className="flex items-center gap-2">
-        {printLinkHref && (
-          <Link
-            href={printLinkHref}
-            className="inline-flex items-center rounded-md border bg-accent px-4 py-2 text-sm font-medium text-accent-foreground shadow-sm transition-colors hover:bg-accent/90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-          >
-            {printLinkText}
-          </Link>
-        )}
+    return (
+        <div className="mb-4 flex items-center justify-between md:flex-row md:gap-2">
+            {/* Use token so it adapts to light/dark */}
+            {React.createElement(HeadingTag, { className: 'text-lg md:text-2xl font-semibold tracking-tight text-foreground' }, displayTitle)}
 
-        {addLinkText && addLinkHref && (
-          <Link
-            href={addLinkHref}
-            className="inline-flex items-center rounded-md border bg-primary px-4 py-2 text-sm font-medium text-primary-foreground shadow-sm transition-colors hover:bg-primary/90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-          >
-            {addLinkText}
-          </Link>
-        )}
-      </div>
-    </div>
-  );
+            <div className="flex items-center gap-2">
+                {printLinkHref && (
+                    <Link
+                        href={printLinkHref}
+                        className="bg-accent text-accent-foreground hover:bg-accent/90 focus-visible:ring-ring inline-flex items-center rounded-md border px-4 py-2 text-sm font-medium shadow-sm transition-colors focus-visible:ring-2 focus-visible:outline-none"
+                    >
+                        {displayPrintText}
+                    </Link>
+                )}
+
+                {addLinkText && addLinkHref && (
+                    <Link
+                        href={addLinkHref}
+                        className="bg-primary text-primary-foreground hover:bg-primary/90 focus-visible:ring-ring inline-flex items-center rounded-md border px-4 py-2 text-sm font-medium shadow-sm transition-colors focus-visible:ring-2 focus-visible:outline-none"
+                    >
+                        {addLinkText}
+                    </Link>
+                )}
+            </div>
+        </div>
+    );
 };
 
 export default PageHeader;

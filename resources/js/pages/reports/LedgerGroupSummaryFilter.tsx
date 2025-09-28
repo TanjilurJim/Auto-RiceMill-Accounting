@@ -1,17 +1,20 @@
-import React from 'react';
-import { router, usePage, Head } from '@inertiajs/react';
-import AppLayout from '@/layouts/app-layout';
-import { Button } from '@/components/ui/button';
-import PageHeader from '@/components/PageHeader';
 import InputCalendar from '@/components/Btn&Link/InputCalendar';
+import PageHeader from '@/components/PageHeader';
+import { Button } from '@/components/ui/button';
+import AppLayout from '@/layouts/app-layout';
+import { Head, router, usePage } from '@inertiajs/react';
 import dayjs from 'dayjs';
+import React from 'react';
+import { useTranslation } from '../../components/useTranslation';
+
 interface GroupUnder {
     id: number;
     name: string;
 }
 
 export default function LedgerGroupSummaryFilter() {
-        const today = dayjs().format('YYYY-MM-DD');
+    const t = useTranslation();
+    const today = dayjs().format('YYYY-MM-DD');
 
     const { group_unders = [] } = usePage().props as { group_unders: GroupUnder[] };
 
@@ -25,7 +28,7 @@ export default function LedgerGroupSummaryFilter() {
 
     const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
         const { name, value } = e.target;
-        setForm(prev => ({ ...prev, [name]: value }));
+        setForm((prev) => ({ ...prev, [name]: value }));
     };
 
     const handleSubmit = (e: React.FormEvent) => {
@@ -41,18 +44,17 @@ export default function LedgerGroupSummaryFilter() {
 
     return (
         <AppLayout>
-            <Head title="Ledger Group Summary" />
-            <div className="bg-background p-6 h-full w-screen lg:w-full">
-                <div className="bg-background h-full rounded-lg p-6">
-                    {/* <h1 className="text-xl font-semibold mb-4 text-gray-700">Ledger Group Summary</h1> */}
-                    <PageHeader title="Ledger Group Summary" />
+            <Head title={t('ledgerGroupSummaryTitle')} />
+            <div className="bg-background h-full w-screen p-4 md:p-12 lg:w-full">
+                <div className="bg-background h-full rounded-lg">
+                    <PageHeader title={t('ledgerGroupSummaryTitle')} />
 
-                    <form onSubmit={handleSubmit} className=' rounded-lg border p-6'>
-                        <div className="grid grid-cols-1 gap-4 md:grid-cols-2 mb-4">
+                    <form onSubmit={handleSubmit} className="rounded-lg border p-6">
+                        <div className="mb-4 grid grid-cols-1 gap-4 md:grid-cols-2">
                             <div>
                                 <InputCalendar
                                     value={form.from_date}
-                                    onChange={val => setForm(f => ({ ...f, from_date: val }))}
+                                    onChange={(val) => setForm((f) => ({ ...f, from_date: val }))}
                                     label="From Date"
                                     required
                                 />
@@ -60,7 +62,7 @@ export default function LedgerGroupSummaryFilter() {
                             <div>
                                 <InputCalendar
                                     value={form.to_date}
-                                    onChange={val => setForm(f => ({ ...f, to_date: val }))}
+                                    onChange={(val) => setForm((f) => ({ ...f, to_date: val }))}
                                     label="To Date"
                                     required
                                 />
@@ -68,15 +70,15 @@ export default function LedgerGroupSummaryFilter() {
                         </div>
 
                         <div className="mb-4">
-                            <label className="text-sm font-medium text-forground">Group Under </label>
+                            <label className="text-forground text-sm font-medium">{t('ledgerGroupUnderLabel')}</label>
                             <select
                                 name="group_under_id"
                                 value={form.group_under_id}
                                 onChange={handleChange}
                                 className="mt-1 w-full rounded border px-3 py-2 text-sm shadow-sm"
                             >
-                                <option value="">All Groups</option>
-                                {group_unders.map(group => (
+                                <option value="">{t('ledgerAllGroupsOption')}</option>
+                                {group_unders.map((group) => (
                                     <option key={group.id} value={group.id}>
                                         {group.name}
                                     </option>
@@ -85,8 +87,8 @@ export default function LedgerGroupSummaryFilter() {
                         </div>
 
                         <div className="flex justify-end pt-2">
-                            <Button type="submit" disabled={submitting} className="bg-blue-600 hover:bg-blue-700 text-right">
-                                {submitting ? 'Loading...' : 'Generate Report'}
+                            <Button type="submit" disabled={submitting} className="bg-blue-600 text-right hover:bg-blue-700">
+                                {submitting ? t('ledgerLoadingText') : t('stockViewReportText')}
                             </Button>
                         </div>
                     </form>

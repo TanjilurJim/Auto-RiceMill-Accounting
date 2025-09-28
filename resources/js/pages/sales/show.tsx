@@ -221,7 +221,7 @@ export default function SaleShow({ sale }: { sale: Sale }) {
 /*  Reusable helpers                                                          */
 function Card({ children, title, noPadding }: { children: React.ReactNode; title?: string; noPadding?: boolean }) {
     return (
-        <div className="rounded-lg border border-gray-200 bg-white shadow-sm dark:border-neutral-700 dark:bg-neutral-900">
+        <div className="rounded-lg border border-gray-200 bg-background shadow-sm dark:border-neutral-700 dark:bg-neutral-900">
             {title && <h2 className="px-6 pt-6 text-lg font-semibold">{title}</h2>}
             <div className={noPadding ? '' : 'p-6'}>{children}</div>
         </div>
@@ -274,7 +274,7 @@ function Modal({ children, onClose }: { children: React.ReactNode; onClose: () =
             {/* backdrop */}
             <div className="fixed inset-0 bg-black/60" onClick={onClose} />
             {/* dialog */}
-            <div className="relative z-10 w-full max-w-lg rounded-lg bg-white p-6 shadow-xl dark:bg-neutral-800">{children}</div>
+            <div className="relative z-10 w-full max-w-lg rounded-lg bg-background p-6 shadow-xl dark:bg-neutral-800">{children}</div>
         </div>
     );
 }
@@ -284,6 +284,6 @@ function Modal({ children, onClose }: { children: React.ReactNode; onClose: () =
 /*
 .btn-green { @apply inline-flex items-center rounded-md bg-green-600 px-4 py-2 text-sm font-semibold text-white shadow-sm transition-colors hover:bg-green-700 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-green-600; }
 .btn-red   { @apply inline-flex items-center rounded-md bg-red-600   px-4 py-2 text-sm font-semibold text-white shadow-sm transition-colors hover:bg-red-700   focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-red-600; }
-.btn-gray  { @apply inline-flex items-center rounded-md bg-white     px-4 py-2 text-sm font-semibold text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 transition-colors hover:bg-gray-50 dark:bg-neutral-700 dark:text-white dark:ring-neutral-600 dark:hover:bg-neutral-600; }
+.btn-gray  { @apply inline-flex items-center rounded-md bg-background     px-4 py-2 text-sm font-semibold text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 transition-colors hover:bg-gray-50 dark:bg-neutral-700 dark:text-white dark:ring-neutral-600 dark:hover:bg-neutral-600; }
 .input     { @apply block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-sky-600 sm:text-sm sm:leading-6 dark:bg-neutral-800 dark:text-white dark:ring-neutral-600 dark:focus:ring-sky-500; }
 */

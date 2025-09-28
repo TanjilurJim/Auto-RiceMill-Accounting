@@ -26,7 +26,7 @@ const TableComponent = <T,>({ columns, data, actions, noDataMessage = 'No data f
                                 {column.header}
                             </th>
                         ))}
-                        {actions && <th className="border-border border-b px-3 py-2 text-left text-sm font-medium">{t('tableActions')}</th>}
+                        {actions && <th className="border-border border-b px-3 py-2 text-left text-sm font-medium">{t('tableActionsHeader')}</th>}
                     </tr>
                 </thead>
 

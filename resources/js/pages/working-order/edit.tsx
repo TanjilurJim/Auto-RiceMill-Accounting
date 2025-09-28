@@ -123,7 +123,7 @@ const WorkingOrderEdit: React.FC<Props> = ({ workingOrder, products, godowns }) 
 
       <div className="mx-auto w-full h-full ">
         <div className="h-full border p-4 md:p-12">
-          <div className="w-full h-full bg-white rounded-md p-6 ">
+          <div className="w-full h-full bg-background rounded-md p-6 ">
             <PageHeader title="Edit Working Order" addLinkText="Back to Orders" addLinkHref="/working-orders" />
 
             <form onSubmit={handleSubmit} className="space-y-8 py-5">
@@ -138,7 +138,7 @@ const WorkingOrderEdit: React.FC<Props> = ({ workingOrder, products, godowns }) 
                     type="text"
                     value={workingOrder.voucher_no}
                     readOnly
-                    className="w-full cursor-not-allowed rounded border border-gray-400 bg-gray-100 px-3 py-2 text-sm"
+                    className="w-full cursor-not-allowed rounded border border-gray-400 bg-background px-3 py-2 text-sm"
                   />
                 </div>
 

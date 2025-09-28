@@ -88,7 +88,7 @@ const FilterBar: React.FC<{
                 </button>
                 <button
                     onClick={reset}
-                    className="items-center rounded-md border bg-white px-4 py-2 text-sm text-gray-700 shadow-sm hover:bg-gray-50"
+                    className="items-center rounded-md border bg-background px-4 py-2 text-sm text-gray-700 shadow-sm hover:bg-gray-50"
                 >
                     Reset
                 </button>

@@ -1,6 +1,7 @@
 // resources/js/Pages/roles/Create.tsx
 import ActionFooter from '@/components/ActionFooter';
 import PageHeader from '@/components/PageHeader';
+import { useTranslation } from '@/components/useTranslation';
 import AppLayout from '@/layouts/app-layout';
 import { PageProps } from '@/types';
 import { Head, useForm, usePage } from '@inertiajs/react';
@@ -23,6 +24,7 @@ interface Props {
 }
 
 export default function CreateRole({ modules }: Props) {
+    const t = useTranslation();
     const { flash } = usePage<PageProps>().props;
     const [selected, setSelected] = useState<number[]>([]);
     const [expandedModules, setExpandedModules] = useState<Record<string, boolean>>({});
@@ -91,13 +93,13 @@ export default function CreateRole({ modules }: Props) {
     // Update form data whenever selection changes
     useEffect(() => {
         setData('permissions', selected);
-    }, [selected]);
+    }, [selected, setData]);
 
     return (
         <AppLayout>
             <div className="p-4 md:p-12">
-                <Head title="Create Role" />
-                <PageHeader title="Create New Role" addLinkHref="/roles" addLinkText="Back to Roles" />
+                <Head title={t('ro-create-role')} />
+                <PageHeader title={t('ro-create-new-role')} addLinkHref="/roles" addLinkText={t('ro-back-to-roles')} />
 
                 {/* Success Message */}
                 {flash.success && (
@@ -111,11 +113,11 @@ export default function CreateRole({ modules }: Props) {
 
                 <form
                     onSubmit={submit}
-                    className="rounded-xl border border-gray-100 bg-white p-6 shadow-sm dark:border-neutral-800 dark:bg-neutral-900"
+                    className="rounded-xl border border-gray-100 bg-background p-6 shadow-sm dark:border-neutral-800 dark:bg-neutral-900"
                 >
                     {/* Role Name */}
                     <div className="mb-8">
-                        <label className="mb-1 block text-lg font-semibold text-gray-700 md:text-xl">Role Name</label>
+                        <label className="mb-1 block text-lg font-semibold text-gray-700 md:text-xl">{t('ro-role-name')}</label>
                         <div className="relative">
                             <input
                                 value={data.name}
@@ -123,7 +125,7 @@ export default function CreateRole({ modules }: Props) {
                                 className={`w-full rounded-lg border px-4 py-3 focus:ring-2 focus:outline-none ${
                                     errors.name ? 'border-red-300 focus:ring-red-200' : 'border-gray-300 focus:border-blue-500 focus:ring-blue-200'
                                 }`}
-                                placeholder="e.g. Content Moderator"
+                                placeholder={t('ro-role-name-placeholder')}
                             />
                             {errors.name && (
                                 <div className="absolute top-3.5 right-3 text-red-500">
@@ -145,11 +147,11 @@ export default function CreateRole({ modules }: Props) {
                     <div className="mb-8">
                         {/* Header and Search */}
                         <div className="mb-4 grid grid-cols-1 items-center gap-4 md:grid-cols-2 md:justify-between">
-                            <h2 className="text-lg font-semibold text-gray-800 md:text-xl">Permissions</h2>
+                            <h2 className="text-lg font-semibold text-gray-800 md:text-xl">{t('ro-permissions')}</h2>
                             <div className="">
                                 <input
                                     type="text"
-                                    placeholder="Search permissions..."
+                                    placeholder={t('ro-search-permissions')}
                                     value={searchTerm}
                                     onChange={(e) => setSearchTerm(e.target.value)}
                                     className="w-full rounded-lg border border-gray-300 px-4 py-2 text-sm focus:border-blue-500 focus:ring-blue-500"
@@ -177,16 +179,18 @@ export default function CreateRole({ modules }: Props) {
                                         </button>
 
                                         {expandedModules[module.name] && (
-                                            <div className="bg-white p-4 dark:bg-neutral-900">
+                                            <div className="bg-background p-4 dark:bg-neutral-900">
                                                 {/* Permissions + Select All */}
                                                 <div className="mb-3 flex items-center justify-between">
-                                                    <h3 className="font-medium text-gray-700 dark:text-gray-300">Permissions</h3>
+                                                    <h3 className="font-medium text-gray-700 dark:text-gray-300">{t('ro-permissions')}</h3>
                                                     <button
                                                         type="button"
                                                         className="text-sm text-blue-600 hover:underline"
                                                         onClick={() => toggleModule(module.name)}
                                                     >
-                                                        {module.permissions.every((p) => selected.includes(p.id)) ? 'Deselect All' : 'Select All'}
+                                                        {module.permissions.every((p) => selected.includes(p.id))
+                                                            ? t('ro-deselect-all')
+                                                            : t('ro-select-all')}
                                                     </button>
                                                 </div>
 
@@ -223,7 +227,7 @@ export default function CreateRole({ modules }: Props) {
                                     </div>
                                 ))
                             ) : (
-                                <div className="py-8 text-center text-gray-500 dark:text-gray-400">No permissions match your search</div>
+                                <div className="py-8 text-center text-gray-500 dark:text-gray-400">{t('ro-no-permissions-match')}</div>
                             )}
                         </div>
                     </div>
@@ -232,20 +236,22 @@ export default function CreateRole({ modules }: Props) {
                     <div className="mb-6 rounded-lg bg-gray-50 p-4 dark:bg-neutral-800">
                         <div className="mb-2 flex items-center justify-between">
                             <h3 className="font-medium text-gray-700 dark:text-gray-300">
-                                Selected Permissions
-                                <span className="ml-2 text-sm text-gray-500 dark:text-gray-400">({selected.length} selected)</span>
+                                {t('ro-selected-permissions')}
+                                <span className="ml-2 text-sm text-gray-500 dark:text-gray-400">
+                                    ({selected.length} {t('ro-selected')})
+                                </span>
                             </h3>
                             <button
                                 type="button"
                                 className="text-sm text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300"
                                 onClick={() => setSelected([])}
                             >
-                                Clear All
+                                {t('ro-clear-all')}
                             </button>
                         </div>
 
                         {selected.length === 0 ? (
-                            <p className="py-2 text-sm text-gray-500 dark:text-gray-400">No permissions selected yet</p>
+                            <p className="py-2 text-sm text-gray-500 dark:text-gray-400">{t('ro-no-permissions-selected')}</p>
                         ) : (
                             <div className="flex max-h-40 flex-wrap gap-2 overflow-y-auto py-2">
                                 {selectedPermissions.map((permission) => (
@@ -286,10 +292,10 @@ export default function CreateRole({ modules }: Props) {
                                             d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
                                         ></path>
                                     </svg>
-                                    Creating...
+                                    {t('ro-creating')}
                                 </span>
                             ) : (
-                                'Create Role'
+                                t('ro-create-role')
                             )
                         }
                         cancelHref="/roles"

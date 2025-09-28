@@ -182,7 +182,7 @@ export default function PartyStockReportIndex({ parties, items, rows, totals, fi
                             </button>
                             <button
                                 onClick={reset}
-                                className="inline-flex items-center rounded-md border bg-white px-4 py-2 text-sm text-gray-700 shadow-sm hover:bg-gray-50"
+                                className="inline-flex items-center rounded-md border bg-background px-4 py-2 text-sm text-gray-700 shadow-sm hover:bg-gray-50"
                             >
                                 Reset
                             </button>
@@ -194,7 +194,7 @@ export default function PartyStockReportIndex({ parties, items, rows, totals, fi
                         columns={columns}
                         data={rows}
                         noDataMessage="No records"
-                        className="max-h-[65vh] overflow-auto [&_tbody_tr:nth-child(odd)]:bg-gray-50 [&_thead_th]:sticky [&_thead_th]:top-0 [&_thead_th]:bg-white"
+                        className="max-h-[65vh] overflow-auto [&_tbody_tr:nth-child(odd)]:bg-gray-50 [&_thead_th]:sticky [&_thead_th]:top-0 [&_thead_th]:bg-background"
                     />
 
                     {/* totals ribbon */}

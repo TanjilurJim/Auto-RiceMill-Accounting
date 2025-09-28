@@ -1,11 +1,14 @@
 import ActionFooter from '@/components/ActionFooter';
 import PageHeader from '@/components/PageHeader';
 import { Card, CardContent } from '@/components/ui/card';
+import { useTranslation } from '@/components/useTranslation';
 import AppLayout from '@/layouts/app-layout';
 import { Head, router } from '@inertiajs/react';
 import { useEffect, useState } from 'react';
 
 export default function Create({ paymentModes }: any) {
+    const t = useTranslation();
+
     const [date, setDate] = useState('');
     const [voucherNo, setVoucherNo] = useState('');
     const [modeFromId, setModeFromId] = useState('');
@@ -41,19 +44,18 @@ export default function Create({ paymentModes }: any) {
 
     return (
         <AppLayout>
-            <Head title="Add Contra Entry" />
-            <div className="bg-gray-background p-6 h-full w-screen lg:w-full">
-                <div className="bg-background h-full rounded-lg p-6">
-
-                    <PageHeader title='Add Contra Entry' addLinkHref='/contra-add' addLinkText='Back' />
+            <Head title={t('addContraTitle')} />
+            <div className="h-full w-screen p-4 md:p-12 lg:w-full">
+                <div className="h-full rounded-lg bg-background">
+                    <PageHeader title={t('addContraTitle')} addLinkHref="/contra-add" addLinkText={t('backText')} />
 
                     <div className="grid grid-cols-1 gap-2.5">
                         <Card>
                             <CardContent className="space-y-4 p-6">
-                                <h2 className="text-lg font-semibold">Voucher Info</h2>
-                                <div className="grid md:grid-cols-2 gap-4">
+                                <h2 className="text-lg font-semibold">{t('voucherInfoHeader')}</h2>
+                                <div className="grid gap-4 md:grid-cols-2">
                                     <div>
-                                        <label className="mb-1 block text-sm font-medium">Date</label>
+                                        <label className="mb-1 block text-sm font-medium">{t('dateLabel')}</label>
                                         <input
                                             type="date"
                                             value={date}
@@ -62,8 +64,8 @@ export default function Create({ paymentModes }: any) {
                                         />
                                     </div>
                                     <div>
-                                        <label className="mb-1 block text-sm font-medium">Voucher No</label>
-                                        <input type="text" value={voucherNo} readOnly className="w-full rounded border bg-background px-3 py-2" />
+                                        <label className="mb-1 block text-sm font-medium">{t('voucherNoLabel')}</label>
+                                        <input type="text" value={voucherNo} readOnly className="w-full rounded border bg-gray-100 px-3 py-2" />
                                     </div>
                                 </div>
                             </CardContent>
@@ -71,16 +73,16 @@ export default function Create({ paymentModes }: any) {
 
                         <Card>
                             <CardContent className="space-y-4 p-6">
-                                <h2 className="text-lg font-semibold">Contra Details</h2>
-                                <div className="grid md:grid-cols-2 gap-4">
+                                <h2 className="text-lg font-semibold">{t('contraDetailsHeader')}</h2>
+                                <div className="grid gap-4 md:grid-cols-2">
                                     <div>
-                                        <label className="mb-1 block text-sm font-medium">From Mode</label>
+                                        <label className="mb-1 block text-sm font-medium">{t('fromModeLabel')}</label>
                                         <select
                                             value={modeFromId}
                                             onChange={(e) => setModeFromId(e.target.value)}
                                             className="w-full rounded border px-3 py-2"
                                         >
-                                            <option value="">Select Mode</option>
+                                            <option value="">{t('selectModeOption')}</option>
                                             {paymentModes.map((mode: any) => (
                                                 <option key={mode.id} value={mode.id} disabled={mode.id == modeToId}>
                                                     {mode.mode_name} ({getBalance(mode.id)})
@@ -89,9 +91,13 @@ export default function Create({ paymentModes }: any) {
                                         </select>
                                     </div>
                                     <div>
-                                        <label className="mb-1 block text-sm font-medium">To Mode</label>
-                                        <select value={modeToId} onChange={(e) => setModeToId(e.target.value)} className="w-full rounded border px-3 py-2">
-                                            <option value="">Select Mode</option>
+                                        <label className="mb-1 block text-sm font-medium">{t('toModeLabel')}</label>
+                                        <select
+                                            value={modeToId}
+                                            onChange={(e) => setModeToId(e.target.value)}
+                                            className="w-full rounded border px-3 py-2"
+                                        >
+                                            <option value="">{t('selectModeOption')}</option>
                                             {paymentModes.map((mode: any) => (
                                                 <option key={mode.id} value={mode.id} disabled={mode.id == modeFromId}>
                                                     {mode.mode_name} ({getBalance(mode.id)})
@@ -102,7 +108,7 @@ export default function Create({ paymentModes }: any) {
                                 </div>
 
                                 <div>
-                                    <label className="mb-1 block text-sm font-medium">Amount</label>
+                                    <label className="mb-1 block text-sm font-medium">{t('amountHeader')}</label>
                                     <input
                                         type="number"
                                         value={amount}
@@ -115,9 +121,9 @@ export default function Create({ paymentModes }: any) {
 
                         <Card>
                             <CardContent className="space-y-4 p-6">
-                                <h2 className="text-lg font-semibold">Notes & Actions</h2>
+                                <h2 className="text-lg font-semibold">{t('notesActionsHeader')}</h2>
                                 <div>
-                                    <label className="mb-1 block text-sm font-medium">Description</label>
+                                    <label className="mb-1 block text-sm font-medium">{t('descriptionHeader')}</label>
                                     <textarea
                                         value={description}
                                         onChange={(e) => setDescription(e.target.value)}
@@ -131,14 +137,13 @@ export default function Create({ paymentModes }: any) {
                                 </div> */}
 
                                 <ActionFooter
-                                    className='justify-end'
+                                    className="justify-end"
                                     onSubmit={handleSubmit}
                                     cancelHref="/contra-add"
                                     processing={false}
-                                    submitText="Save Contra Entry"
-                                    cancelText="Cancel"
+                                    submitText={t('saveContraText')}
+                                    cancelText={t('cancelText')}
                                 />
-
                             </CardContent>
                         </Card>
                     </div>

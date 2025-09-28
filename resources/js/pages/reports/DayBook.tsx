@@ -1,8 +1,9 @@
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardHeader } from '@/components/ui/card';
+import { useTranslation } from '@/components/useTranslation';
 import AppLayout from '@/layouts/app-layout';
 import { Head, Link } from '@inertiajs/react';
 import dayjs from 'dayjs';
-import { Button } from '@/components/ui/button';
 import { FileSpreadsheet, FileText, Printer } from 'lucide-react';
 
 interface Entry {
@@ -27,43 +28,46 @@ interface Props {
     company: {
         company_name: string;
         logo_path?: string;
-         email?: string;
-    financial_year?: string;
-    website?: string;
+        email?: string;
+        financial_year?: string;
+        website?: string;
 
-    mobile?: string;
-    address?: string;
-    logo_url?: string;
-    logo_thumb_url?: string;
+        mobile?: string;
+        address?: string;
+        logo_url?: string;
+        logo_thumb_url?: string;
     };
 }
 
 export default function DayBook({ entries, filters, company }: Props) {
+    const t = useTranslation();
     const totalDebit = entries.reduce((sum, e) => sum + (Number(e.debit) || 0), 0);
     const totalCredit = entries.reduce((sum, e) => sum + (Number(e.credit) || 0), 0);
 
     return (
         <AppLayout>
-            <Head title="Day Book Report" />
+            <Head title={t('repDayBookTitle')} />
             <div className="absolute top-16 right-4 print:hidden">
                 <Link href={route('reports.day-book')} className="text-sm text-blue-600 hover:underline">
-                    Change Filters
+                    {t('repChangeFiltersText')}
                 </Link>
             </div>
             <div className="space-y-6 p-6">
-
-
                 <Card>
-                    <CardHeader className="relative bg-background/20 py-6 text-center">
+                    <CardHeader className="bg-background/20 relative py-6 text-center">
                         <div className="space-y-1">
                             {company?.logo_url && (
-                                <img src={company.logo_url} alt="Company Logo" className="mx-auto mb-2 h-20 object-contain print:h-12" />
+                                <img src={company.logo_url} alt={t('repCompanyLogoAlt')} className="mx-auto mb-2 h-20 object-contain print:h-12" />
                             )}
-                            <h1 className="text-3xl font-bold uppercase">{company?.company_name ?? 'Company Name'}</h1>
-                            {company?.address && <p className="text-sm text-foreground">{company?.address}</p>}
-                            {company?.mobile && <p className="text-sm text-foreground">Phone: {company?.mobile}</p>}
+                            <h1 className="text-3xl font-bold uppercase">{company?.company_name ?? t('repCompanyNamePlaceholder')}</h1>
+                            {company?.address && <p className="text-foreground text-sm">{company?.address}</p>}
+                            {company?.mobile && (
+                                <p className="text-foreground text-sm">
+                                    {t('repPhoneLabel')}: {company?.mobile}
+                                </p>
+                            )}
                             {(company?.email || company?.website) && (
-                                <p className="text-sm text-foreground">
+                                <p className="text-foreground text-sm">
                                     {company?.email && <span>{company?.email}</span>}
                                     {company?.email && company?.website && <span className="mx-1">|</span>}
                                     {company?.website && <span>{company?.website}</span>}
@@ -72,12 +76,12 @@ export default function DayBook({ entries, filters, company }: Props) {
                         </div>
 
                         <div className="mt-4">
-                            <h2 className="text-xl font-semibold underline">Day Book Report</h2>
-                            <p className="text-sm text-foreground">
-                                From: <strong>{dayjs(filters.from).format('MMMM D, YYYY')}</strong>, To:{' '}
+                            <h2 className="text-xl font-semibold underline">{t('repDayBookTitle')}</h2>
+                            <p className="text-foreground text-sm">
+                                {t('repFromLabel')}: <strong>{dayjs(filters.from).format('MMMM D, YYYY')}</strong>, {t('repToLabel')}:{' '}
                                 <strong>{dayjs(filters.to).format('MMMM D, YYYY')}</strong>
-                                {filters.transaction_type && ` | Type: ${filters.transaction_type}`}
-                                {filters.created_by && ` | Created by: ${filters.created_by}`}
+                                {filters.transaction_type && ` | ${t('repTypeLabel')}: ${filters.transaction_type}`}
+                                {filters.created_by && ` | ${t('repCreatedByLabel')}: ${filters.created_by}`}
                             </p>
                         </div>
                     </CardHeader>
@@ -86,21 +90,21 @@ export default function DayBook({ entries, filters, company }: Props) {
                             <table className="w-full border text-sm">
                                 <thead>
                                     <tr className="bg-gray-100">
-                                        <th className="border p-2">Date</th>
-                                        <th className="border p-2">Type</th>
-                                        <th className="border p-2">Voucher No</th>
-                                        <th className="border p-2">Ledger</th>
-                                        <th className="border p-2">Created By</th>
-                                        <th className="border p-2 text-right">Debit(TK)</th>
-                                        <th className="border p-2 text-right">Credit(TK)</th>
-                                        <th className="border p-2">Note</th>
+                                        <th className="border p-2">{t('repDateHeader')}</th>
+                                        <th className="border p-2">{t('repTypeHeader')}</th>
+                                        <th className="border p-2">{t('repVoucherNoHeader')}</th>
+                                        <th className="border p-2">{t('repLedgerHeader')}</th>
+                                        <th className="border p-2">{t('repCreatedByHeader')}</th>
+                                        <th className="border p-2 text-right">{t('repDebitHeader')}(TK)</th>
+                                        <th className="border p-2 text-right">{t('repCreditHeader')}(TK)</th>
+                                        <th className="border p-2">{t('repNoteHeader')}</th>
                                     </tr>
                                 </thead>
                                 <tbody>
                                     {entries.length === 0 ? (
                                         <tr>
                                             <td colSpan={8} className="py-4 text-center text-gray-500">
-                                                No records found.
+                                                {t('repNoRecordsFoundText')}
                                             </td>
                                         </tr>
                                     ) : (
@@ -120,7 +124,7 @@ export default function DayBook({ entries, filters, company }: Props) {
                                     {entries.length > 0 && (
                                         <tr className="bg-gray-100 font-semibold">
                                             <td colSpan={5} className="border p-2 text-right">
-                                                Total
+                                                {t('repTotalText')}
                                             </td>
                                             <td className="border p-2 text-right">{totalDebit.toFixed(2)}(TK)</td>
                                             <td className="border p-2 text-right">{totalCredit.toFixed(2)}(TK)</td>
@@ -133,8 +137,10 @@ export default function DayBook({ entries, filters, company }: Props) {
                     </CardContent>
                 </Card>
                 <div className="mt-4 flex justify-end gap-2 print:hidden">
-                    <Button variant="outline" onClick={() => window.print()}> <Printer className="mr-2 h-4 w-4" />
-                        Print
+                    <Button variant="outline" onClick={() => window.print()}>
+                        {' '}
+                        <Printer className="mr-2 h-4 w-4" />
+                        {t('repPrintText')}
                     </Button>
                     <a
                         href={route('reports.day-book.pdf', {
@@ -147,7 +153,7 @@ export default function DayBook({ entries, filters, company }: Props) {
                         className="inline-flex items-center gap-1 rounded-md border px-4 py-2 text-sm hover:bg-gray-100"
                     >
                         <FileText className="h-4 w-4" />
-                        Download PDF
+                        {t('repDownloadPdfText')}
                     </a>
                     <a
                         href={route('reports.day-book.excel', {
@@ -157,8 +163,9 @@ export default function DayBook({ entries, filters, company }: Props) {
                             created_by: filters.created_by,
                         })}
                         className="inline-flex items-center gap-1 rounded-md border px-4 py-2 text-sm hover:bg-gray-100"
-                    ><FileSpreadsheet className="h-4 w-4" />
-                        Export Excel
+                    >
+                        <FileSpreadsheet className="h-4 w-4" />
+                        {t('repSaveAsExcelText')}
                     </a>
                 </div>
             </div>

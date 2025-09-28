@@ -105,7 +105,7 @@ export default function PurchaseReturnReport({
           <CardContent className="p-6">
             <div className="overflow-x-auto">
               <table className="min-w-full border border-gray-300 text-sm print:text-xs">
-                <thead className="bg-gray-100 print:bg-white">
+                <thead className="bg-background print:bg-white">
                   <tr>
                     <th className="border px-2 py-1">#</th>
                     <th className="border px-2 py-1">Date</th>
@@ -141,7 +141,7 @@ export default function PurchaseReturnReport({
                       ))}
 
                       {/* ─── grand total row ─── */}
-                      <tr className="bg-gray-100 font-semibold print:bg-white">
+                      <tr className="bg-background font-semibold print:bg-white">
                         <td className="border px-2 py-1 text-right" colSpan={5}>
                           Grand&nbsp;Total
                         </td>
@@ -156,7 +156,7 @@ export default function PurchaseReturnReport({
                       </tr>
 
                       {/* ─── qty by unit list ─── */}
-                      <tr className="bg-gray-50 print:bg-white">
+                      <tr className="bg-background print:bg-white">
                         <td className="border px-2 py-2 text-sm font-medium" colSpan={8}>
                           <strong>Total Qty by Unit:</strong>
                           <ul className="mt-1 list-disc space-y-0.5 pl-5 text-sm text-foreground">

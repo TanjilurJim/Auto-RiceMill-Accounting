@@ -1,12 +1,12 @@
 import ActionFooter from '@/components/ActionFooter';
 import InputCalendar from '@/components/Btn&Link/InputCalendar';
 import PageHeader from '@/components/PageHeader';
-import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { useTranslation } from '@/components/useTranslation';
 import AppLayout from '@/layouts/app-layout';
 import { Head, useForm } from '@inertiajs/react';
 import axios from 'axios';
-import { useEffect, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 
 const scrollToFirstError = (errors: Record<string, any>) => {
     const firstField = Object.keys(errors)[0];
@@ -74,6 +74,7 @@ export default function SaleCreate({
     inventoryLedgers: Ledger[];
     accountGroups: { id: number; name: string }[];
 }) {
+    const t = useTranslation();
     const { data, setData, post, processing, errors } = useForm({
         date: '',
         voucher_no: '',
@@ -300,8 +301,8 @@ export default function SaleCreate({
                         <button
                             type="button"
                             className="rounded bg-emerald-600 px-2 py-[2px] text-white hover:bg-emerald-500"
-                            onClick={() => onApplyUnitPrice(parseFloat(perUnit))}
-                            title="Use this per-unit price"
+                            onClick={() => onApplyUnitPrice(Number(perUnit))}
+                            title="Use this converted per-unit price"
                         >
                             Use
                         </button>
@@ -311,387 +312,35 @@ export default function SaleCreate({
         );
     }
 
+    // Add types for the event handler
+    const handleCogsLedgerChange: React.ChangeEventHandler<HTMLSelectElement> = (e) => {
+        setData('cogs_ledger_id', e.target.value);
+    };
+
     return (
         <AppLayout>
-            <Head title="Add Sale" />
+            <Head title={t('addSaleTitle')} />
             <div className="bg-background h-full w-screen p-6 lg:w-full">
                 <div className="bg-background h-full rounded-lg p-6">
                     {/* Header */}
-
-                    <PageHeader title="Create Sale" addLinkHref="/sales" addLinkText="Back" />
+                    <PageHeader title={t('createSaleHeader')} addLinkHref="/sales" addLinkText={t('backText')} />
 
                     {/* Form */}
                     <form onSubmit={handleSubmit} className="bg-background space-y-8 rounded-lg border p-6">
                         {/* Section 1: Basic Sale Info */}
                         <div>
-                            <h2 className="text-foreground mb-3 border-b pb-1 text-lg font-semibold">Sale Information</h2>
+                            <h2 className="text-foreground mb-3 border-b pb-1 text-lg font-semibold">{t('saleInfoHeader')}</h2>
                             <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
-                                {/* Date */}
                                 <div>
-                                    <InputCalendar value={data.date} onChange={(val) => setData('date', val)} label="Date" required />
-                                    {errors.date && <div className="mt-1 text-sm text-red-500">{errors.date}</div>}
+                                    <InputCalendar value={data.date} onChange={(val) => setData('date', val)} label={t('dateLabel')} required />
                                 </div>
-
-                                {/* Voucher No */}
                                 <div>
-                                    <label className="text-foreground mb-1 block text-sm font-medium">Voucher No</label>
                                     <Input type="text" className="bg-background w-full rounded border p-1" value={data.voucher_no} readOnly />
                                 </div>
-
-                                {/* Godown */}
                                 <div>
-                                    <label className="text-foreground mb-1 block text-sm font-medium">Godown</label>
-                                    <select
-                                        className="w-full rounded border p-2"
-                                        value={data.godown_id}
-                                        onChange={(e) => setData('godown_id', e.target.value)}
-                                    >
-                                        <option value="">Select Godown</option>
-                                        {godowns.map((g) => (
-                                            <option key={g.id} value={g.id}>
-                                                {g.name}
-                                            </option>
-                                        ))}
-                                    </select>
-                                    {errors.godown_id && <div className="mt-1 text-sm text-red-500">{errors.godown_id}</div>}
-                                </div>
-
-                                {/* Salesman */}
-                                <div>
-                                    <label className="text-foreground mb-1 block text-sm font-medium">Salesman</label>
-                                    <select
-                                        className="w-full rounded border p-2"
-                                        value={data.salesman_id}
-                                        onChange={(e) => setData('salesman_id', e.target.value)}
-                                    >
-                                        <option value="">Select Salesman</option>
-                                        {salesmen.map((s) => (
-                                            <option key={s.id} value={s.id}>
-                                                {s.name}
-                                            </option>
-                                        ))}
-                                    </select>
-                                    {errors.salesman_id && <div className="mt-1 text-sm text-red-500">{errors.salesman_id}</div>}
-                                </div>
-
-                                {/* Party Ledger */}
-                                <div>
-                                    <label className="text-foreground mb-1 block text-sm font-medium">Customer Ledger</label>
-                                    <select
-                                        className="w-full rounded border p-2"
-                                        value={data.account_ledger_id}
-                                        onChange={(e) => setData('account_ledger_id', e.target.value)}
-                                    >
-                                        <option value="">Choose the buyer's Ledger</option>
-                                        {customerLedgers.map((l) => (
-                                            <option key={l.id} value={l.id}>
-                                                {l.account_ledger_name}
-                                            </option>
-                                        ))}
-                                    </select>
-
-                                    {/* Helper Text and Link */}
-                                    <div className="text-foreground mt-1 text-sm">
-                                        Create Customer Ledger if not created yet.{' '}
-                                        <a href="/account-ledgers/create" target="_blank" className="text-blue-600 underline hover:text-blue-800">
-                                            Create New
-                                        </a>
-                                    </div>
-
-                                    {errors.account_ledger_id && <div className="mt-1 text-sm text-red-500">{errors.account_ledger_id}</div>}
-                                </div>
-
-                                {/* Phone */}
-                                <div>
-                                    <label className="text-foreground mb-1 block text-sm font-medium">Phone</label>
-                                    <input
-                                        type="text"
-                                        className="w-full rounded border p-2"
-                                        value={data.phone}
-                                        onChange={(e) => setData('phone', e.target.value)}
-                                    />
-                                </div>
-
-                                {/* Address */}
-                                <div>
-                                    <label className="text-foreground mb-1 block text-sm font-medium">Address</label>
-                                    <input
-                                        type="text"
-                                        className="w-full rounded border p-2"
-                                        value={data.address}
-                                        onChange={(e) => setData('address', e.target.value)}
-                                    />
-                                </div>
-                            </div>
-                        </div>
-
-                        {/* Section 2: Product Rows */}
-                        <div>
-                            <h2 className="text-foreground mb-3 border-b pb-1 text-lg font-semibold">Products</h2>
-
-                            {data.sale_items.map((item, index) => (
-                                // <div key={index} className="mb-3 grid grid-cols-12 items-end gap-2">
-                                <div key={index} className="mb-3 flex h-full w-full flex-col gap-2 md:flex-row">
-                                    {/* Product */}
-                                    {/* ───────── Product ───────── */}
-                                    <div className="h-full w-full">
-                                        <label className="text-foreground mb-1 block text-sm font-medium">Product</label>
-                                        <select
-                                            className="h-fit w-full rounded border p-2"
-                                            value={item.product_id}
-                                            onChange={(e) => handleItemChange(index, 'product_id', e.target.value)}
-                                        >
-                                            <option value="">Select</option>
-                                            {filteredItems.map((p) => (
-                                                <option key={p.id} value={p.id}>
-                                                    {p.item_name}
-                                                </option>
-                                            ))}
-                                        </select>
-                                        {errors[`sale_items.${index}.product_id`] && (
-                                            <div className="mt-1 text-sm text-red-500">{errors[`sale_items.${index}.product_id`]}</div>
-                                        )}
-                                    </div>
-
-                                    {/* ───────── Lot ───────── */}
-                                    <div className="h-full w-full">
-                                        <label className="text-foreground mb-1 block text-sm font-medium">Lot</label>
-                                        <select
-                                            className="h-fit w-full rounded border p-2"
-                                            value={item.lot_id}
-                                            onChange={(e) => handleLotChange(index, e.target.value)}
-                                            disabled={!item.product_id}
-                                        >
-                                            <option value="">Select Lot</option>
-                                            {(() => {
-                                                const prod = filteredItems.find((p) => p.id == item.product_id);
-                                                return prod?.lots.map((l) => (
-                                                    <option key={l.lot_id} value={l.lot_id}>
-                                                        {l.lot_no} – {l.stock_qty} {prod.unit} left
-                                                    </option>
-                                                ));
-                                            })()}
-                                        </select>
-                                        {errors[`sale_items.${index}.lot_id`] && (
-                                            <div className="mt-1 text-sm text-red-500">{errors[`sale_items.${index}.lot_id`]}</div>
-                                        )}
-                                    </div>
-
-                                    {/* Qty */}
-                                    <div className="h-full w-full">
-                                        <label className="text-foreground mb-1 block text-sm font-medium">Qty</label>
-                                        <input
-                                            type="number"
-                                            className="h-fit w-full rounded border p-2"
-                                            value={item.qty}
-                                            onChange={(e) => handleItemChange(index, 'qty', e.target.value)}
-                                        />
-                                        {errors[`sale_items.${index}.qty`] && (
-                                            <div className="mt-1 h-fit text-sm text-red-500">{errors[`sale_items.${index}.qty`]}</div>
-                                        )}
-                                    </div>
-
-                                    {/* Main Price */}
-                                    {/* Sale Price */}
-                                    <div className="h-full w-full">
-                                        <label className="text-foreground mb-1 block text-sm font-medium">Sale Price</label>
-                                        <input
-                                            type="number"
-                                            className="w-full rounded border p-2"
-                                            value={item.main_price}
-                                            onChange={(e) => handleItemChange(index, 'main_price', e.target.value)}
-                                        />
-                                        {errors[`sale_items.${index}.main_price`] && (
-                                            <div className="mt-1 text-sm text-red-500">{errors[`sale_items.${index}.main_price`]}</div>
-                                        )}
-
-                                        {/* helper: convert per-kg to product-unit */}
-                                        {(() => {
-                                            const prod = filteredItems.find((p) => String(p.id) === String(item.product_id));
-                                            const lot = prod?.lots.find((l) => String(l.lot_id) === String(item.lot_id));
-                                            if (!prod || !lot) return null;
-
-                                            const toProdUnitFromPerKg = (perKg?: number | null) => {
-                                                if (perKg == null) return undefined;
-                                                if (String(prod.unit).toLowerCase() === 'kg') return perKg;
-                                                const uw = Number(lot.unit_weight || 0); // kg per {prod.unit}, e.g. per bosta
-                                                return uw > 0 ? perKg * uw : undefined;
-                                            };
-
-                                            const unitFromPerKg = toProdUnitFromPerKg(lot.per_kg_rate);
-
-                                            return (
-                                                <div className="mt-1 space-y-2 text-xs text-gray-700">
-                                                    {/* 1) Saved unit cost (normalized to product unit) */}
-                                                    {lot.saved_rate != null && (
-                                                        <div className="flex items-center gap-2">
-                                                            <span>
-                                                                Saved:{' '}
-                                                                <b>
-                                                                    ৳{Number(lot.saved_rate).toFixed(2)}/{prod.unit}
-                                                                </b>
-                                                            </span>
-                                                            <button
-                                                                type="button"
-                                                                className="rounded bg-emerald-600 px-2 py-[2px] text-white hover:bg-emerald-500"
-                                                                onClick={() => handleItemChange(index, 'main_price', String(lot.saved_rate))}
-                                                                title="Use saved lot-wise unit price"
-                                                            >
-                                                                Use
-                                                            </button>
-                                                        </div>
-                                                    )}
-
-                                                    {/* 2) Per-kg rate + Use (converted to product unit) */}
-                                                    {lot.per_kg_rate != null && (
-                                                        <div className="flex items-center gap-2">
-                                                            <span>
-                                                                Per-kg: <b>৳{Number(lot.per_kg_rate).toFixed(2)}/kg</b>
-                                                            </span>
-                                                            {unitFromPerKg != null && (
-                                                                <button
-                                                                    type="button"
-                                                                    className="rounded bg-emerald-600 px-2 py-[2px] text-white hover:bg-emerald-500"
-                                                                    onClick={() => handleItemChange(index, 'main_price', String(unitFromPerKg))}
-                                                                    title={`Use converted rate (৳${unitFromPerKg.toFixed(2)}/${prod.unit})`}
-                                                                >
-                                                                    Use
-                                                                </button>
-                                                            )}
-                                                        </div>
-                                                    )}
-
-                                                    {/* 3) What-if converter (per-kg ↔ per-{prod.unit}) */}
-                                                    <PricePreview
-                                                        prodUnit={prod.unit}
-                                                        unitWeightKg={Number(lot.unit_weight || 0)}
-                                                        onApplyUnitPrice={(val) => handleItemChange(index, 'main_price', String(val))}
-                                                    />
-                                                </div>
-                                            );
-                                        })()}
-                                    </div>
-
-                                    {/* Discount */}
-                                    <div className="h-full w-full">
-                                        <label className="text-foreground mb-1 block text-sm font-medium">Disc</label>
-                                        <input
-                                            type="number"
-                                            className="w-full rounded border p-2"
-                                            value={item.discount}
-                                            onChange={(e) => handleItemChange(index, 'discount', e.target.value)}
-                                        />
-                                    </div>
-
-                                    {/* Discount Type */}
-                                    <div className="h-full w-full">
-                                        <label className="text-foreground mb-1 block text-sm font-medium">Type</label>
-                                        <select
-                                            className="w-full rounded border p-2"
-                                            value={item.discount_type}
-                                            onChange={(e) => handleItemChange(index, 'discount_type', e.target.value)}
-                                        >
-                                            <option value="bdt">BDT</option>
-                                            <option value="percent">%</option>
-                                        </select>
-                                    </div>
-
-                                    {/* Subtotal */}
-                                    <div className="h-full w-full">
-                                        <label className="text-foreground mb-1 block text-sm font-medium">Subtotal</label>
-                                        <input type="number" className="bg-background w-full rounded border p-2" value={item.subtotal} readOnly />
-                                    </div>
-
-                                    {/* Add/Remove Buttons */}
-                                    <div className="justify-s flex w-full items-start gap-2 md:pt-6">
-                                        {data.sale_items.length > 1 && (
-                                            <button
-                                                type="button"
-                                                className="bg-danger hover:bg-danger-hover w-full rounded px-3 py-2 text-white md:w-fit"
-                                                onClick={() => removeProductRow(index)}
-                                            >
-                                                &minus;
-                                            </button>
-                                        )}
-                                        {index === data.sale_items.length - 1 && (
-                                            <button
-                                                type="button"
-                                                className="bg-primary hover:bg-primary-hover w-full rounded px-3 py-2 text-white md:w-fit cursor-pointer"
-                                                onClick={addProductRow}
-                                            >
-                                                + Add Product
-                                            </button>
-                                        )}
-                                    </div>
-                                </div>
-                            ))}
-                            {/* Section 2: Product Rows */}
-                            <div>
-                                <h2 className="text-foreground mb-3 border-b pb-1 text-lg font-semibold">Products</h2>
-
-                                {data.sale_items.map((item, index) => (
-                                    <div key={index} className="mb-3 grid grid-cols-12 items-end gap-2">
-                                        {/* ... your product inputs (Product, Qty, Price, etc.) */}
-                                    </div>
-                                ))}
-                            </div>
-
-                            {/* 🚩 Section 3: Financial Placeholders */}
-                            <div className="mt-6 grid grid-cols-1 gap-4 md:grid-cols-3">
-                                {/* Inventory Ledger */}
-                                <div className="col-span-1">
-                                    <label className="text-foreground mb-1 block flex items-center gap-1 text-sm font-semibold">
-                                        Inventory Ledger <span className="text-red-500">*</span>
-                                        {/* Tooltip icon */}
-                                        <div className="group relative cursor-pointer">
-                                            <span className="inline-block h-4 w-4 rounded-full bg-gray-300 text-center text-xs font-bold">?</span>
-
-                                            {/* Tooltip text */}
-                                            <div className="absolute top-6 left-1/2 z-10 hidden w-64 -translate-x-1/2 rounded-md bg-gray-700 p-2 text-xs text-white shadow-md group-hover:block">
-                                                This is the account where purchased or stocked items are tracked. It represents your inventory value
-                                                in accounting.
-                                            </div>
-                                        </div>
-                                    </label>
-                                    <select
-                                        className="w-full rounded border p-2"
-                                        value={data.inventory_ledger_id}
-                                        onChange={(e) => setData('inventory_ledger_id', e.target.value)}
-                                    >
-                                        <option value="">Your Inventory Ledger</option>
-                                        {inventoryLedgers.map((l) => (
-                                            <option key={l.id} value={l.id}>
-                                                {l.account_ledger_name}
-                                            </option>
-                                        ))}
-                                    </select>
-                                    <div className="text-foreground mt-1 text-sm">
-                                        Don’t see your ledger?{' '}
-                                        <button onClick={() => setShowInventoryLedgerModal(true)} className="text-blue-600 underline">
-                                            Create here
-                                        </button>
-                                    </div>
-                                    {errors.inventory_ledger_id && <div className="text-sm text-red-500">{errors.inventory_ledger_id}</div>}
-                                </div>
-                                {/* Other Amount */}
-                                {/* COGS Ledger */}
-                                <div className="col-span-1">
-                                    <label className="text-foreground mb-1 block flex items-center gap-1 text-sm font-semibold">
-                                        COGS Ledger <span className="text-red-500">*</span>
-                                        <div className="group relative cursor-pointer">
-                                            <span className="inline-block h-4 w-4 rounded-full bg-gray-300 text-center text-xs font-bold">?</span>
-                                            <div className="absolute top-6 left-1/2 z-10 hidden w-64 -translate-x-1/2 rounded-md bg-gray-700 p-2 text-xs text-white shadow-md group-hover:block">
-                                                COGS (Cost of Goods Sold) tracks the cost associated with items sold. It reduces your inventory and
-                                                reflects business expense.
-                                            </div>
-                                        </div>
-                                    </label>
-                                    <select
-                                        className="w-full rounded border p-2"
-                                        value={data.cogs_ledger_id}
-                                        onChange={(e) => setData('cogs_ledger_id', e.target.value)}
-                                    >
-                                        <option value="">Select cost tracking ledger</option>
+                                    <label className="text-foreground mb-1 block text-sm font-semibold">{t('cogsLedgerLabel')}</label>
+                                    <select className="w-full border p-2" value={data.cogs_ledger_id || ''} onChange={handleCogsLedgerChange}>
+                                        <option value="">{t('selectCostTrackingLedger')}</option>
                                         {ledgers.map((l) => (
                                             <option key={l.id} value={l.id}>
                                                 {l.account_ledger_name}
@@ -700,60 +349,59 @@ export default function SaleCreate({
                                     </select>
                                     <div className="text-foreground mt-1 text-sm">
                                         Used to track cost of goods sold. Don’t see one?{' '}
-                                        <button onClick={() => setShowCogsLedgerModal(true)} className="text-blue-600 underline">
+                                        <button type="button" onClick={() => setShowCogsLedgerModal(true)} className="text-blue-600 underline">
                                             Create one
                                         </button>
                                     </div>
                                     {errors.cogs_ledger_id && <div className="text-sm text-red-500">{errors.cogs_ledger_id}</div>}
                                 </div>
-                                {/* Receive Mode */}
-                                <div>
-                                    <label className="text-foreground mb-1 block text-sm font-semibold">Receive Mode</label>
-                                    <select
-                                        className="w-full border p-2"
-                                        value={data.received_mode_id || ''}
-                                        onChange={(e) => setData('received_mode_id', e.target.value)}
-                                    >
-                                        <option value="">Select Mode</option>
-                                        {receivedModes.map((mode) => (
-                                            <option key={mode.id} value={mode.id}>
-                                                {mode.mode_name}
-                                            </option>
-                                        ))}
-                                    </select>
-                                    <div className="text-foreground mt-1 text-sm">Projected Closing Bal.: {uiClosingBal}</div>
-                                </div>
-                                {/* Receive Amount */}
-                                <div>
-                                    <label className="text-foreground mb-1 block text-sm font-semibold">Receive Amount</label>
-                                    <input
-                                        type="number"
-                                        placeholder="0.00"
-                                        className="w-full border p-2"
-                                        value={data.amount_received || ''}
-                                        onChange={(e) => setData('amount_received', e.target.value)}
-                                    />
-                                </div>
-                                {/* Total Due */}
-                                <div>
-                                    <label className="text-foreground mb-1 block text-sm font-semibold">Total Due</label>
-                                    <input type="number" readOnly className="bg-background w-full border p-2" value={uiTotalDue} />
-                                </div>
-                                {/* Closing Balance */}
-                                <div>
-                                    <label className="text-foreground mb-1 block text-sm font-semibold">Closing Balance</label>
-                                    <input type="number" readOnly className="bg-background w-full border p-2" value={uiClosingBal} />
-                                </div>
                             </div>
+                        </div>
+
+                        {/* Section 2: Receive Mode, Amount, Due, Closing Balance */}
+                        <div>
+                            <label className="text-foreground mb-1 block text-sm font-semibold">{t('receiveModeLabel')}</label>
+                            <select
+                                className="w-full border p-2"
+                                value={data.received_mode_id || ''}
+                                onChange={(e) => setData('received_mode_id', e.target.value)}
+                            >
+                                <option value="">{t('selectModeOption')}</option>
+                                {receivedModes.map((mode) => (
+                                    <option key={mode.id} value={mode.id}>
+                                        {mode.mode_name}
+                                    </option>
+                                ))}
+                            </select>
+                            <div className="text-foreground mt-1 text-sm">
+                                {t('projectedClosingBalance')} {uiClosingBal}
+                            </div>
+                        </div>
+                        <div>
+                            <label className="text-foreground mb-1 block text-sm font-semibold">{t('receiveAmountLabel')}</label>
+                            <input
+                                type="number"
+                                placeholder="0.00"
+                                className="w-full border p-2"
+                                value={data.amount_received || ''}
+                                onChange={(e) => setData('amount_received', e.target.value)}
+                            />
+                        </div>
+                        <div>
+                            <label className="text-foreground mb-1 block text-sm font-semibold">{t('totalDueLabel')}</label>
+                            <input type="number" readOnly className="bg-background w-full border p-2" value={uiTotalDue} />
+                        </div>
+                        <div>
+                            <label className="text-foreground mb-1 block text-sm font-semibold">{t('closingBalanceLabel')}</label>
+                            <input type="number" readOnly className="bg-background w-full border p-2" value={uiClosingBal} />
                         </div>
 
                         {/* Section 3: Shipping, Delivery, Truck Info */}
                         <div>
-                            <h2 className="text-foreground mb-3 border-b pb-1 text-lg font-semibold">Shipping & Truck Details</h2>
+                            <h2 className="text-foreground mb-3 border-b pb-1 text-lg font-semibold">{t('shippingDetailsHeader')}</h2>
                             <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-                                {/* Shipping Details */}
                                 <div>
-                                    <label className="text-foreground mb-1 block text-sm font-medium">Shipping Details</label>
+                                    <label className="text-foreground mb-1 block text-sm font-medium">{t('shippingDetailsLabel')}</label>
                                     <textarea
                                         className="w-full rounded border p-2"
                                         rows={3}
@@ -761,10 +409,8 @@ export default function SaleCreate({
                                         onChange={(e) => setData('shipping_details', e.target.value)}
                                     />
                                 </div>
-
-                                {/* Delivered To */}
                                 <div>
-                                    <label className="text-foreground mb-1 block text-sm font-medium">Delivered To</label>
+                                    <label className="text-foreground mb-1 block text-sm font-medium">{t('deliveredToLabel')}</label>
                                     <textarea
                                         className="w-full rounded border p-2"
                                         rows={3}
@@ -773,11 +419,9 @@ export default function SaleCreate({
                                     />
                                 </div>
                             </div>
-
                             <div className="mt-4 grid grid-cols-1 gap-4 md:grid-cols-3">
-                                {/* Truck Rent */}
                                 <div>
-                                    <label className="text-foreground mb-1 block text-sm font-medium">Truck Rent</label>
+                                    <label className="text-foreground mb-1 block text-sm font-medium">{t('truckRentLabel')}</label>
                                     <input
                                         type="text"
                                         className="w-full rounded border p-2"
@@ -785,10 +429,8 @@ export default function SaleCreate({
                                         onChange={(e) => setData('truck_rent', e.target.value)}
                                     />
                                 </div>
-
-                                {/* Rent Advance */}
                                 <div>
-                                    <label className="text-foreground mb-1 block text-sm font-medium">Rent Advance</label>
+                                    <label className="text-foreground mb-1 block text-sm font-medium">{t('rentAdvanceLabel')}</label>
                                     <input
                                         type="text"
                                         className="w-full rounded border p-2"
@@ -796,10 +438,8 @@ export default function SaleCreate({
                                         onChange={(e) => setData('rent_advance', e.target.value)}
                                     />
                                 </div>
-
-                                {/* Net Rent */}
                                 <div>
-                                    <label className="text-foreground mb-1 block text-sm font-medium">Due Rent</label>
+                                    <label className="text-foreground mb-1 block text-sm font-medium">{t('netRentLabel')}</label>
                                     <input
                                         type="text"
                                         className="w-full rounded border p-2"
@@ -807,10 +447,8 @@ export default function SaleCreate({
                                         onChange={(e) => setData('net_rent', e.target.value)}
                                     />
                                 </div>
-
-                                {/* Truck Driver Name */}
                                 <div>
-                                    <label className="text-foreground mb-1 block text-sm font-medium">Truck Driver Name</label>
+                                    <label className="text-foreground mb-1 block text-sm font-medium">{t('truckDriverNameLabel')}</label>
                                     <input
                                         type="text"
                                         className="w-full rounded border p-2"
@@ -818,10 +456,8 @@ export default function SaleCreate({
                                         onChange={(e) => setData('truck_driver_name', e.target.value)}
                                     />
                                 </div>
-
-                                {/* Driver Address */}
                                 <div>
-                                    <label className="text-foreground mb-1 block text-sm font-medium">Driver Address</label>
+                                    <label className="text-foreground mb-1 block text-sm font-medium">{t('driverAddressLabel')}</label>
                                     <input
                                         type="text"
                                         className="w-full rounded border p-2"
@@ -829,10 +465,8 @@ export default function SaleCreate({
                                         onChange={(e) => setData('driver_address', e.target.value)}
                                     />
                                 </div>
-
-                                {/* Driver Mobile */}
                                 <div>
-                                    <label className="text-foreground mb-1 block text-sm font-medium">Driver Mobile</label>
+                                    <label className="text-foreground mb-1 block text-sm font-medium">{t('driverMobileLabel')}</label>
                                     <input
                                         type="text"
                                         className="w-full rounded border p-2"
@@ -849,8 +483,8 @@ export default function SaleCreate({
                             onSubmit={handleSubmit}
                             cancelHref="/sales"
                             processing={processing}
-                            submitText={processing ? 'Saving...' : 'Save'}
-                            cancelText="Cancel"
+                            submitText={processing ? t('savingText') : t('saveText')}
+                            cancelText={t('cancelText')}
                         />
                     </form>
                 </div>
@@ -865,19 +499,19 @@ export default function SaleCreate({
                         backgroundColor: 'rgba(0, 0, 0, 0.5)',
                     }}
                 >
-                    <div className="w-full max-w-md rounded bg-white p-6 shadow-lg">
-                        <h2 className="text-foreground mb-4 text-lg font-semibold">Create Inventory Ledger</h2>
+                    <div className="w-full max-w-md rounded bg-background p-6 shadow-lg">
+                        <h2 className="text-foreground mb-4 text-lg font-semibold">{t('createLedgerHeader')}</h2>
 
                         <input
                             type="text"
-                            placeholder="Ledger Name"
+                            placeholder={t('ledgerNamePlaceholder')}
                             className="mb-3 w-full rounded border p-2"
                             value={newLedgerName}
                             onChange={(e) => setNewLedgerName(e.target.value)}
                         />
 
                         <select className="mb-4 w-full rounded border p-2" value={newGroupId} onChange={(e) => setNewGroupId(e.target.value)}>
-                            <option value="">Select Group</option>
+                            <option value="">{t('selectGroupOption')}</option>
                             {accountGroups.map((g) => (
                                 <option key={g.id} value={g.id}>
                                     {g.name}
@@ -887,7 +521,7 @@ export default function SaleCreate({
 
                         <div className="flex justify-end gap-3">
                             <button className="rounded bg-gray-400 px-4 py-2 text-white" onClick={() => setShowInventoryLedgerModal(false)}>
-                                Cancel
+                                {t('cancelText')}
                             </button>
 
                             <button
@@ -908,18 +542,18 @@ export default function SaleCreate({
                                         const newLedger = response.data;
 
                                         setData('inventory_ledger_id', newLedger.id);
-                                        setInventoryLedgers((prev) => [...prev, newLedger]);
+                                        // setInventoryLedgers((prev) => [...prev, newLedger]);
 
                                         setNewLedgerName('');
                                         setNewGroupId('');
                                         setShowInventoryLedgerModal(false);
                                     } catch (err) {
                                         console.error(err);
-                                        alert('Failed to create ledger');
+                                        alert(t('failedToCreateLedger'));
                                     }
                                 }}
                             >
-                                Create Ledger
+                                {t('createLedgerButton')}
                             </button>
                         </div>
                     </div>
@@ -935,19 +569,19 @@ export default function SaleCreate({
                         backgroundColor: 'rgba(0, 0, 0, 0.5)',
                     }}
                 >
-                    <div className="w-full max-w-md rounded bg-white p-6 shadow-lg">
-                        <h2 className="text-foreground mb-4 text-lg font-semibold">Create COGS Ledger</h2>
+                    <div className="w-full max-w-md rounded bg-background p-6 shadow-lg">
+                        <h2 className="text-foreground mb-4 text-lg font-semibold">{t('createCogsLedgerHeader')}</h2>
 
                         <input
                             type="text"
-                            placeholder="Ledger Name"
+                            placeholder={t('ledgerNamePlaceholder')}
                             className="mb-3 w-full rounded border p-2"
                             value={newLedgerName}
                             onChange={(e) => setNewLedgerName(e.target.value)}
                         />
 
                         <select className="mb-4 w-full rounded border p-2" value={newGroupId} onChange={(e) => setNewGroupId(e.target.value)}>
-                            <option value="">Select Group</option>
+                            <option value="">{t('selectGroupOption')}</option>
                             {accountGroups.map((g) => (
                                 <option key={g.id} value={g.id}>
                                     {g.name}
@@ -957,7 +591,7 @@ export default function SaleCreate({
 
                         <div className="flex justify-end gap-3">
                             <button className="rounded bg-gray-400 px-4 py-2 text-white" onClick={() => setShowCogsLedgerModal(false)}>
-                                Cancel
+                                {t('cancelText')}
                             </button>
 
                             <button
@@ -985,11 +619,11 @@ export default function SaleCreate({
                                         setShowCogsLedgerModal(false);
                                     } catch (err) {
                                         console.error(err);
-                                        alert('Failed to create ledger');
+                                        alert(t('failedToCreateLedger'));
                                     }
                                 }}
                             >
-                                Create Ledger
+                                {t('createLedgerButton')}
                             </button>
                         </div>
                     </div>

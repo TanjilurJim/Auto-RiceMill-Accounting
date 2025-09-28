@@ -3,41 +3,69 @@ import { confirmDialog } from '@/components/confirmDialog';
 import PageHeader from '@/components/PageHeader';
 import Pagination from '@/components/Pagination';
 import TableComponent from '@/components/TableComponent';
+import { useTranslation } from '@/components/useTranslation';
 import AppLayout from '@/layouts/app-layout';
 import { Head, router } from '@inertiajs/react';
 
 export default function Index({ journals }: any) {
+    const t = useTranslation();
     const handleDelete = (id: number) => {
-        confirmDialog(
-            {}, () => {
-                router.delete(`/journal-add/${id}`);
-            }
-        );
+        confirmDialog({}, () => {
+            router.delete(`/journal-add/${id}`);
+        });
     };
 
     const columns = [
-        { header: 'Date', accessor: 'date' },
-        { header: 'Voucher No', accessor: 'voucher_no' },
+        { header: t('dateHeader'), accessor: 'date' },
+        { header: t('voucherNoHeader'), accessor: 'voucher_no' },
         {
-            header: 'Ledgers', accessor: (row: any) => (
+            header: t('journalLedgerHeader'),
+            accessor: (row: any) => (
                 <>
-                    <div><strong>Debits:</strong> {row.entries.filter((entry: any) => entry.type === 'debit').map((entry: any) => entry.ledger?.account_ledger_name).join(', ') || '—'}</div>
-                    <div><strong>Credits:</strong> {row.entries.filter((entry: any) => entry.type === 'credit').map((entry: any) => entry.ledger?.account_ledger_name).join(', ') || '—'}</div>
+                    <div>
+                        <strong>{t('debitsText')}:</strong>{' '}
+                        {row.entries
+                            .filter((entry: any) => entry.type === 'debit')
+                            .map((entry: any) => entry.ledger?.account_ledger_name)
+                            .join(', ') || '—'}
+                    </div>
+                    <div>
+                        <strong>{t('creditsText')}:</strong>{' '}
+                        {row.entries
+                            .filter((entry: any) => entry.type === 'credit')
+                            .map((entry: any) => entry.ledger?.account_ledger_name)
+                            .join(', ') || '—'}
+                    </div>
                 </>
-            )
+            ),
         },
-        { header: 'Total Debit', accessor: (row: any) => row.entries.filter((entry: any) => entry.type === 'debit').reduce((sum: number, entry: any) => sum + parseFloat(entry.amount), 0).toFixed(2), className: 'text-right' },
-        { header: 'Total Credit', accessor: (row: any) => row.entries.filter((entry: any) => entry.type === 'credit').reduce((sum: number, entry: any) => sum + parseFloat(entry.amount), 0).toFixed(2), className: 'text-right' },
-        { header: 'Note', accessor: (row: any) => row.entries[0]?.note || '—' },
+        {
+            header: t('totalDebitHeader'),
+            accessor: (row: any) =>
+                row.entries
+                    .filter((entry: any) => entry.type === 'debit')
+                    .reduce((sum: number, entry: any) => sum + parseFloat(entry.amount), 0)
+                    .toFixed(2),
+            className: 'text-right',
+        },
+        {
+            header: t('totalCreditHeader'),
+            accessor: (row: any) =>
+                row.entries
+                    .filter((entry: any) => entry.type === 'credit')
+                    .reduce((sum: number, entry: any) => sum + parseFloat(entry.amount), 0)
+                    .toFixed(2),
+            className: 'text-right',
+        },
+        { header: t('journalNoteHeader'), accessor: (row: any) => row.entries[0]?.note || '—' },
     ];
 
     return (
         <AppLayout>
-            <Head title="Journal Entries" />
+            <Head title={t('journalEntriesTitle')} />
             <div className="h-full w-screen lg:w-full">
-                <div className="bg-background h-full rounded-lg p-4 md:p-12">
-
-                    <PageHeader title='Journal Entries' addLinkHref='/journal-add/create' addLinkText="+ Add New" />
+                <div className="h-full rounded-lg bg-background p-4 md:p-12">
+                    <PageHeader title={t('journalEntriesTitle')} addLinkHref="/journal-add/create" addLinkText={t('addJournalText')} />
 
                     <TableComponent
                         columns={columns}
@@ -54,12 +82,7 @@ export default function Index({ journals }: any) {
                     />
 
                     {/* Pagination */}
-                    <Pagination
-                        links={journals.links}
-                        currentPage={journals.current_page}
-                        lastPage={journals.last_page}
-                        total={journals.total}
-                    />
+                    <Pagination links={journals.links} currentPage={journals.current_page} lastPage={journals.last_page} total={journals.total} />
                 </div>
             </div>
         </AppLayout>

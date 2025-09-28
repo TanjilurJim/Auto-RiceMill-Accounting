@@ -183,7 +183,6 @@ Route::middleware(['auth', 'verified'])->group(function () {
     });
 
 
-
     // account-groups  (make sure you seeded 'account-groups' module)
     Route::resource('account-groups', AccountGroupController::class)->only(['index', ])
         ->middleware(perm('account-groups', 'view'));

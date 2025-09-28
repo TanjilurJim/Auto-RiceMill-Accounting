@@ -1,6 +1,7 @@
 // resources/js/pages/items/create.tsx
 import ItemForm from '@/components/Form/ItemForm';
 import PageHeader from '@/components/PageHeader';
+import { useTranslation } from '@/components/useTranslation';
 import AppLayout from '@/layouts/app-layout';
 import { Head, useForm } from '@inertiajs/react';
 
@@ -19,7 +20,14 @@ interface Godown {
     name: string;
 }
 
-export default function ItemCreate({ categories, units, godowns }: { categories: Category[]; units: Unit[]; godowns: Godown[] }) {
+interface AllProps {
+    categories: Category[];
+    units: Unit[];
+    godowns: Godown[];
+}
+
+export default function ItemCreate({ categories, units, godowns }: AllProps) {
+    const t = useTranslation();
     const { data, setData, post, processing, errors } = useForm({
         date: '',
         item_name: '',
@@ -44,10 +52,10 @@ export default function ItemCreate({ categories, units, godowns }: { categories:
 
     return (
         <AppLayout>
-            <Head title="Create Item" />
-            <div className="h-full bg-background p-6">
-                <div className="h-full rounded-lg bg-forground p-6">
-                    <PageHeader title="Create Item" addLinkHref="/items" addLinkText="Back" />
+            <Head title={t('createItemTitle')} />
+            <div className="bg-background h-full p-6">
+                <div className="bg-forground h-full rounded-lg p-6">
+                    <PageHeader title={t('createItemTitle')} addLinkHref="/items" addLinkText={t('backToItems')} />
 
                     <ItemForm
                         data={data}
@@ -55,7 +63,7 @@ export default function ItemCreate({ categories, units, godowns }: { categories:
                         handleSubmit={handleSubmit}
                         processing={processing}
                         errors={errors}
-                        submitText="Create Item"
+                        submitText={t('createItemSubmit')}
                         cancelHref="/items"
                         categories={categories}
                         units={units}

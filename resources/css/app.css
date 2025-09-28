@@ -1,3 +1,17 @@
+/* @font-face {
+  font-family: 'LiAdorNoirritEnglish';
+  src: url('/assets/fonts/LiAdorNoirritMultiweight/ANSI V2/Li Ador Noirrit A-V2 Regular.ttf') format('truetype');
+  font-weight: normal;
+  font-style: normal;
+} */
+
+@font-face {
+  font-family: 'LiAdorNoirritBangla';
+  src: url('/assets/fonts/LiAdorNoirritMultiweight/Unicode/Li Ador Noirrit Regular.ttf') format('truetype');
+  font-weight: normal;
+  font-style: normal;
+}
+
 @import 'tailwindcss';
 
 @plugin 'tailwindcss-animate';
@@ -83,7 +97,6 @@
   color utility to any element that depends on these defaults.
 */
 @layer base {
-
     *,
     ::after,
     ::before,
@@ -259,7 +272,7 @@
     .btn-gray {
         @apply inline-flex items-center justify-center rounded-md bg-white px-4 py-2 text-sm font-semibold text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 transition-colors;
     }
-
+a
     /* IMPORTANT: no variants here */
     .input {
         @apply block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300;
@@ -354,7 +367,7 @@
         background-color: var(--popover);
         color: var(--popover-foreground);
     }
-    
+
 
 
     /* Optional: reduce OS forced-colors overriding your palette */
@@ -577,5 +590,14 @@
 
   .dark table tbody tr:hover {
     background-color: var(--table-hover);
+  }
+
+  /* Language-based font switching */
+  .font-english {
+    font-family: 'LiAdorNoirritEnglish', ui-sans-serif, system-ui, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol', 'Noto Color Emoji';
+  }
+
+  .font-bangla {
+    font-family: 'LiAdorNoirritBangla', ui-sans-serif, system-ui, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol', 'Noto Color Emoji';
   }
 }

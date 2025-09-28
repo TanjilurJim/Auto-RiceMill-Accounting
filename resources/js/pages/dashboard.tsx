@@ -122,52 +122,27 @@ export default function Dashboard({ runningDryers }: DashboardProps) {
 
             {/* KPIs */}
             <div className="m-2 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-                {kpis.map(({ title, value, icon: Icon, color, bg, href, onClick }) => {
-                    const CardBody = (
-                        <Card
-                            key={title}
-                            className={cn(
-                                'dark:border-muted/30 flex items-center gap-4 rounded-lg border border-gray-100 p-4',
-                                'dark:bg-muted/40 bg-white shadow-sm transition-transform duration-200',
-                                'hover:border-primary/40 focus-visible:ring-primary/40 hover:-translate-y-1 hover:shadow-lg focus-visible:ring-2',
-                                bg,
-                                (href || onClick) && 'cursor-pointer',
-                            )}
-                            aria-label={href ? `Open ${title}` : undefined}
-                        >
-                            <div className={cn('flex h-12 w-12 items-center justify-center rounded-full shadow-sm', color, 'bg-opacity-10')}>
-                                <Icon className={cn('h-7 w-7', color)} />
-                            </div>
-                            <div className="min-w-0 flex-1 text-center">
-                                <p className="truncate text-xs text-gray-500 dark:text-gray-400">{title}</p>
-                                <p className="mt-1 text-2xl font-bold text-gray-800 dark:text-gray-100">
-                                    {typeof value === 'number' ? value.toLocaleString() : value}
-                                </p>
-                            </div>
-                        </Card>
-                    );
-
-                    // Prefer Link when there is an href
-                    if (href) {
-                        return (
-                            <Link key={title} href={href} className="block focus:outline-none">
-                                {CardBody}
-                            </Link>
-                        );
-                    }
-
-                    // Optional: handle imperative navigation or filtered visits
-                    if (onClick) {
-                        return (
-                            <button key={title} type="button" onClick={onClick} className="block text-left focus:outline-none">
-                                {CardBody}
-                            </button>
-                        );
-                    }
-
-                    // Non-clickable fallback
-                    return <div key={title}>{CardBody}</div>;
-                })}
+                {kpis.map(({ title, value, icon: Icon, color, bg }) => (
+                    <Card
+                        key={title}
+                        className={cn(
+                            'dark:border-muted/30 flex items-center gap-4 rounded-lg border border-gray-100 p-4',
+                            'dark:bg-muted/40 bg-background shadow-sm transition-transform duration-200',
+                            'hover:border-primary/40 hover:-translate-y-1 hover:shadow-lg',
+                            bg,
+                        )}
+                    >
+                        <div className={cn('flex h-12 w-12 items-center justify-center rounded-full shadow-sm', color, 'bg-opacity-10')}>
+                            <Icon className={cn('h-7 w-7', color)} />
+                        </div>
+                        <div className="min-w-0 flex-1 text-center">
+                            <p className="truncate text-xs text-gray-500 dark:text-gray-400">{title}</p>
+                            <p className="mt-1 text-2xl font-bold text-gray-800 dark:text-gray-100">
+                                {typeof value === 'number' ? value.toLocaleString() : value}
+                            </p>
+                        </div>
+                    </Card>
+                ))}
             </div>
 
             {/* Running dryers + Payables */}

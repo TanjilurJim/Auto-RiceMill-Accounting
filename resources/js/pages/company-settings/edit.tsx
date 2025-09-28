@@ -1,5 +1,6 @@
 import ActionFooter from '@/components/ActionFooter';
 import PageHeader from '@/components/PageHeader';
+import { useTranslation } from '@/components/useTranslation';
 import AppLayout from '@/layouts/app-layout';
 import { Head, router, useForm } from '@inertiajs/react';
 import { FaCamera } from 'react-icons/fa';
@@ -58,28 +59,33 @@ export default function Edit({ setting, financialYears, interestBasisOptions = [
         e.preventDefault();
         router.post('/company-settings', { ...data, _method: 'put' }, { forceFormData: true });
     };
+    const t = useTranslation();
 
     return (
         <AppLayout>
-            <Head title="Company Settings" />
+            <Head title={t('csPageTitle')} />
 
-            <div className="h-full w-screen bg-background p-6 lg:w-full">
-                <div className="h-full rounded-lg bg-background p-6">
-                    <PageHeader title="Company Profile" />
+            <div className="bg-background h-full w-screen p-4 md:p-12 lg:w-full">
+                <div className="bg-background h-full rounded-lg">
+                    <PageHeader title={t('csCompanyProfileTitle')} />
 
-                    <form onSubmit={handleSubmit} encType="multipart/form-data" className="space-y-6 rounded-lg border bg-background text-foreground p-6">
+                    <form
+                        onSubmit={handleSubmit}
+                        encType="multipart/form-data"
+                        className="bg-background text-foreground space-y-6 rounded-lg border p-6"
+                    >
                         {/* Basic text inputs */}
                         <div className="grid grid-cols-1 gap-6 sm:grid-cols-2">
                             {[
-                                ['Company Name', 'company_name'],
-                                ['Mailing Name', 'mailing_name'],
-                                ['Country', 'country'],
-                                ['Email', 'email'],
-                                ['Website', 'website'],
-                                ['Mobile Number', 'mobile'],
+                                [t('csCompanyNameLabel'), 'company_name'],
+                                [t('csMailingNameLabel'), 'mailing_name'],
+                                [t('csCountryLabel'), 'country'],
+                                [t('csEmailLabel'), 'email'],
+                                [t('csWebsiteLabel'), 'website'],
+                                [t('csMobileNumberLabel'), 'mobile'],
                             ].map(([label, key]) => (
                                 <div key={key}>
-                                    <label className="mb-1 block text-sm font-medium text-foreground">{label}</label>
+                                    <label className="text-foreground mb-1 block text-sm font-medium">{label}</label>
                                     <input
                                         type="text"
                                         value={data[key as keyof typeof data] as string}
@@ -94,11 +100,11 @@ export default function Edit({ setting, financialYears, interestBasisOptions = [
                         {/* Address + description */}
                         <div className="grid grid-cols-1 gap-6">
                             {[
-                                ['Address', 'address'],
-                                ['Description', 'description'],
+                                [t('csAddressLabel'), 'address'],
+                                [t('csDescriptionLabel'), 'description'],
                             ].map(([label, key]) => (
                                 <div key={key}>
-                                    <label className="mb-1 block text-sm font-medium text-foreground">{label}</label>
+                                    <label className="text-foreground mb-1 block text-sm font-medium">{label}</label>
                                     <textarea
                                         rows={3}
                                         value={data[key as keyof typeof data] as string}
@@ -112,16 +118,16 @@ export default function Edit({ setting, financialYears, interestBasisOptions = [
 
                         {/* FY dropdown */}
                         <div>
-                            <label className="mb-1 block text-sm font-medium text-foreground">Financial Year</label>
+                            <label className="text-foreground mb-1 block text-sm font-medium">{t('csFinancialYearLabel')}</label>
                             <select
                                 value={data.financial_year_id}
                                 onChange={(e) => setData('financial_year_id', Number(e.target.value) || '')}
                                 className="w-full rounded border px-3 py-2 shadow-sm focus:border-blue-500 focus:ring-blue-500"
                             >
-                                <option value="">Select Financial Year</option>
+                                <option value="">{t('csSelectFinancialYearOption')}</option>
                                 {financialYears.map((fy) => (
                                     <option key={fy.id} value={fy.id}>
-                                        {fy.title} ({fy.start_date} to {fy.end_date})
+                                        {fy.title} ({fy.start_date} {t('csToText')} {fy.end_date})
                                     </option>
                                 ))}
                             </select>
@@ -130,7 +136,7 @@ export default function Edit({ setting, financialYears, interestBasisOptions = [
 
                         {/* ── Sale approval flow ───────────────────────────────────── */}
                         <div>
-                            <label className="mb-1 block text-sm font-medium text-foreground">Sale approval flow</label>
+                            <label className="text-foreground mb-1 block text-sm font-medium">{t('csSaleApprovalFlowLabel')}</label>
 
                             <select
                                 value={data.sale_approval_flow}
@@ -149,7 +155,7 @@ export default function Edit({ setting, financialYears, interestBasisOptions = [
 
                         {/* ── Purchase approval flow ─────────────────────────────── */}
                         <div>
-                            <label className="mb-1 block text-sm font-medium text-foreground">Purchase approval flow</label>
+                            <label className="text-foreground mb-1 block text-sm font-medium">{t('csPurchaseApprovalFlowLabel')}</label>
 
                             <select
                                 value={data.purchase_approval_flow}
@@ -176,13 +182,13 @@ export default function Edit({ setting, financialYears, interestBasisOptions = [
                                     onChange={(e) => setData('apply_interest', e.target.checked)}
                                     className="h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
                                 />
-                                <label htmlFor="apply_interest" className="text-sm font-medium text-foreground">
-                                    Apply interest on overdue invoices
+                                <label htmlFor="apply_interest" className="text-foreground text-sm font-medium">
+                                    {t('csApplyInterestLabel')}
                                 </label>
                             </div>
 
                             <div>
-                                <label className="mb-1 block text-sm font-medium text-foreground">Interest basis</label>
+                                <label className="text-foreground mb-1 block text-sm font-medium">{t('csInterestBasisLabel')}</label>
                                 <select
                                     value={data.interest_basis}
                                     onChange={(e) => setData('interest_basis', e.target.value)}
@@ -198,20 +204,20 @@ export default function Edit({ setting, financialYears, interestBasisOptions = [
                             </div>
                         </div>
                         <div>
-                            <label className="mb-1 block text-sm font-medium text-foreground">Interest type</label>
+                            <label className="text-foreground mb-1 block text-sm font-medium">{t('csInterestTypeLabel')}</label>
                             <select
                                 value={data.interest_type}
                                 onChange={(e) => setData('interest_type', e.target.value)}
                                 className="w-full rounded border px-3 py-2 shadow-sm focus:border-blue-500 focus:ring-blue-500"
                             >
-                                <option value="percentage">Percentage</option>
-                                <option value="flat">Flat per day</option>
+                                <option value="percentage">{t('csPercentageOption')}</option>
+                                <option value="flat">{t('csFlatPerDayOption')}</option>
                             </select>
                             {errors.interest_type && <p className="mt-1 text-xs text-red-500">{errors.interest_type}</p>}
                         </div>
                         {data.interest_type === 'flat' && (
                             <div className="mt-6">
-                                <label className="mb-1 block text-sm font-medium text-foreground">Flat charge per day</label>
+                                <label className="text-foreground mb-1 block text-sm font-medium">{t('csFlatChargePerDayLabel')}</label>
                                 <input
                                     type="number"
                                     step="0.01"
@@ -226,7 +232,7 @@ export default function Edit({ setting, financialYears, interestBasisOptions = [
                         {/* ② new inputs — put these under the “Interest basis” select */}
                         <div className="grid grid-cols-1 gap-6 sm:grid-cols-2">
                             <div>
-                                <label className="mb-1 block text-sm font-medium text-foreground">Yearly interest %</label>
+                                <label className="text-foreground mb-1 block text-sm font-medium">{t('csYearlyInterestLabel')}</label>
                                 <input
                                     type="number"
                                     step="0.0001"
@@ -238,7 +244,7 @@ export default function Edit({ setting, financialYears, interestBasisOptions = [
                             </div>
 
                             <div>
-                                <label className="mb-1 block text-sm font-medium text-foreground">Monthly interest %</label>
+                                <label className="text-foreground mb-1 block text-sm font-medium">{t('csMonthlyInterestLabel')}</label>
                                 <input
                                     type="number"
                                     step="0.0001"
@@ -252,12 +258,20 @@ export default function Edit({ setting, financialYears, interestBasisOptions = [
 
                         {/* Logo upload */}
                         <div>
-                            <label className="mb-1 block text-sm font-medium text-foreground">Company Logo</label>
+                            <label className="text-foreground mb-1 block text-sm font-medium">{t('csCompanyLogoLabel')}</label>
                             <div className="flex items-center gap-4">
                                 {data.logo ? (
-                                    <img src={URL.createObjectURL(data.logo)} alt="Logo Preview" className="h-16 w-16 rounded border object-cover" />
+                                    <img
+                                        src={URL.createObjectURL(data.logo)}
+                                        alt={t('csLogoPreviewAlt')}
+                                        className="h-16 w-16 rounded border object-cover"
+                                    />
                                 ) : setting?.logo_path ? (
-                                    <img src={`/storage/${setting.logo_path}`} alt="Current Logo" className="h-16 w-16 rounded border object-cover" />
+                                    <img
+                                        src={`/storage/${setting.logo_path}`}
+                                        alt={t('csCurrentLogoAlt')}
+                                        className="h-16 w-16 rounded border object-cover"
+                                    />
                                 ) : (
                                     <div className="flex h-10 w-16 items-center justify-center rounded border bg-gray-100 text-gray-400">
                                         <FaCamera size={20} />
@@ -281,7 +295,7 @@ export default function Edit({ setting, financialYears, interestBasisOptions = [
                         <ActionFooter
                             processing={processing}
                             onSubmit={handleSubmit}
-                            submitText={processing ? 'Saving…' : 'Save Settings'}
+                            submitText={processing ? t('csSavingText') : t('csSaveSettingsButton')}
                             className="justify-end"
                         />
                     </form>

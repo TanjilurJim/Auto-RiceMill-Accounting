@@ -274,62 +274,60 @@ export default function StockSummary({ stocks, filters, company, grand, grandByG
                           <td className="border px-2 py-1">—</td>
                         </tr>
 
-                        {/* Closing stock by item (page) */}
-                        <tr className="bg-gray-50 print:bg-white">
-                          <td className="border px-2 py-2 text-sm font-medium" colSpan={7}>
-                            <strong>Closing Stock by Item (page):</strong>
-                            <ul className="mt-1 list-disc space-y-0.5 pl-5 text-sm text-foreground">
-                              {Object.entries(
-                                rows.reduce<Record<string, number>>((acc, s) => {
-                                  const key = `${s.item_name} (${s.unit})`;
-                                  acc[key] = (acc[key] || 0) + Number(s.qty || 0);
-                                  return acc;
-                                }, {})
-                              ).map(([item, qty]) => (
-                                <li key={item}>
-                                  {item}: {qty.toFixed(2)}
-                                </li>
-                              ))}
-                            </ul>
-                          </td>
-                        </tr>
+                                            {/* Closing stock by item (this page) */}
+                                            <tr className="bg-background print:bg-white">
+                                                <td className="border px-2 py-2 text-sm font-medium" colSpan={7}>
+                                                    <strong>Closing Stock&nbsp;by&nbsp;Item (page):</strong>
+                                                    <ul className="mt-1 list-disc space-y-0.5 pl-5 text-sm text-foreground">
+                                                        {Object.entries(
+                                                            rows.reduce<Record<string, number>>((acc, s) => {
+                                                                const key = `${s.item_name} (${s.unit})`;
+                                                                acc[key] = (acc[key] || 0) + Number(s.qty || 0);
+                                                                return acc;
+                                                            }, {}),
+                                                        ).map(([item, qty]) => (
+                                                            <li key={item}>
+                                                                {item}: {qty.toFixed(2)}
+                                                            </li>
+                                                        ))}
+                                                    </ul>
+                                                </td>
+                                            </tr>
+                                            <tr className="bg-background print:bg-white">
+                                                <td className="border px-2 py-2 text-sm font-medium" colSpan={7}>
+                                                    <strong>Closing Stock by Godown → Item (all pages):</strong>
 
-                        {/* Closing stock by Godown → Item (all pages) */}
-                        <tr className="bg-gray-50 print:bg-white">
-                          <td className="border px-2 py-2 text-sm font-medium" colSpan={7}>
-                            <strong>Closing Stock by Godown → Item (all pages):</strong>
-                            {Object.keys(grandByGodownItem).length === 0 ? (
-                              <div className="mt-1 text-sm text-foreground">No data.</div>
-                            ) : (
-                              <div className="mt-2 space-y-2">
-                                {Object.entries(grandByGodownItem).map(([godown, items]) => (
-                                  <div key={godown}>
-                                    <div className="font-semibold">{godown}</div>
-                                    <ul className="mt-1 list-disc space-y-0.5 pl-5 text-sm text-foreground">
-                                      {Object.entries(items).map(([itemLabel, qty]) => (
-                                        <li key={`${godown}-${itemLabel}`}>
-                                          {itemLabel}: {Number(qty).toFixed(2)}
-                                        </li>
-                                      ))}
-                                    </ul>
-                                  </div>
-                                ))}
-                              </div>
-                            )}
-                          </td>
-                        </tr>
-                      </>
-                    ) : (
-                      <tr>
-                        <td colSpan={7} className="px-4 py-4 text-center text-gray-500">
-                          No stock data found.
-                        </td>
-                      </tr>
-                    )}
-                  </tbody>
-                </table>
-              </div>
-            </div>
+                                                    {Object.keys(grandByGodownItem).length === 0 ? (
+                                                        <div className="mt-1 text-sm text-foreground">No data.</div>
+                                                    ) : (
+                                                        <div className="mt-2 space-y-2">
+                                                            {Object.entries(grandByGodownItem).map(([godown, items]) => (
+                                                                <div key={godown}>
+                                                                    <div className="font-semibold">{godown}</div>
+                                                                    <ul className="mt-1 list-disc space-y-0.5 pl-5 text-sm text-foreground">
+                                                                        {Object.entries(items).map(([itemLabel, qty]) => (
+                                                                            <li key={`${godown}-${itemLabel}`}>
+                                                                                {itemLabel}: {Number(qty).toFixed(2)}
+                                                                            </li>
+                                                                        ))}
+                                                                    </ul>
+                                                                </div>
+                                                            ))}
+                                                        </div>
+                                                    )}
+                                                </td>
+                                            </tr>
+                                        </>
+                                    ) : (
+                                        <tr>
+                                            <td colSpan={7} className="px-4 py-4 text-center text-gray-500">
+                                                No stock data found.
+                                            </td>
+                                        </tr>
+                                    )}
+                                </tbody>
+                            </table>
+                        </div>
 
             {/* Actions: stack on mobile, inline on desktop */}
             <div className="mt-4 flex flex-col items-stretch gap-2 print:hidden sm:flex-row sm:justify-end">

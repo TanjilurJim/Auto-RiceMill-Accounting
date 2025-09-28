@@ -301,7 +301,7 @@ export default function PurchaseShow({ purchase, paid_summary }: { purchase: Pur
 
 function Card({ children, title, noPadding }: { children: React.ReactNode; title?: string; noPadding?: boolean }) {
     return (
-        <div className="rounded-lg border border-gray-200 bg-white shadow-sm dark:border-neutral-700 dark:bg-neutral-900">
+        <div className="rounded-lg border border-gray-200 bg-background shadow-sm dark:border-neutral-700 dark:bg-neutral-900">
             {title && <h2 className="border-b border-gray-200 px-6 py-4 text-lg font-semibold dark:border-neutral-700">{title}</h2>}
             <div className={noPadding ? '' : 'p-6'}>{children}</div>
         </div>
@@ -355,7 +355,7 @@ function Modal({ children, show, onClose, title }: { children: React.ReactNode; 
     return (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
             <div className="fixed inset-0 bg-black/70" onClick={onClose} />
-            <div className="relative z-10 w-full max-w-lg rounded-lg bg-white shadow-xl dark:bg-neutral-900">
+            <div className="relative z-10 w-full max-w-lg rounded-lg bg-background shadow-xl dark:bg-neutral-900">
                 <header className="flex items-center justify-between border-b p-4 dark:border-neutral-700">
                     <h3 className="text-lg font-bold">{title}</h3>
                     <button onClick={onClose} className="rounded-full p-1 text-gray-400 hover:bg-gray-100 dark:hover:bg-neutral-800">

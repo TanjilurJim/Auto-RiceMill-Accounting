@@ -1,5 +1,6 @@
 // resources/js/Pages/employee-reports/index.tsx
 import PageHeader from '@/components/PageHeader';
+import { useTranslation } from '@/components/useTranslation';
 import AppLayout from '@/layouts/app-layout';
 import type { PageProps } from '@/types';
 import { Head, router, usePage } from '@inertiajs/react';
@@ -37,6 +38,7 @@ const monthName = (m: number) => ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul
 
 export default function EmployeeReport() {
     const { rows, employees, selectedId, totals, type, empAdvances } = usePage<PageProps<Props>>().props;
+    const t = useTranslation();
 
     const onChangeEmp = (e: React.ChangeEvent<HTMLSelectElement>) =>
         router.get(route('employee-reports.index', { employee_id: e.target.value || undefined, type }), {}, { preserveState: true });
@@ -46,18 +48,18 @@ export default function EmployeeReport() {
 
     return (
         <AppLayout>
-            <Head title="Employee Salary Report" />
+            <Head title={t('employeeSalaryReportTitle')} />
 
             <div className="h-full w-screen p-4 md:p-12 lg:w-full">
-                <div className="rounded-lg bg-background-100 p-6">
-                    <PageHeader title="Employee Salary Report" />
+                <div className="rounded-lg bg-background">
+                    <PageHeader title={t('employeeSalaryReportTitle')} />
 
                     {/* Filters */}
                     <div className="mb-6 flex flex-col gap-3 md:flex-row md:items-center">
                         <div>
-                            <label className="text-sm font-medium mr-1">Employee:</label>
+                            <label className="mr-1 text-sm font-medium">{t('empEmployeeFilterLabel')}</label>
                             <select value={selectedId ?? ''} onChange={onChangeEmp} className="rounded border px-3 py-2">
-                                <option value="">— All Employees —</option>
+                                <option value="">{t('allEmployeesOption')}</option>
                                 {employees.map((e) => (
                                     <option key={e.id} value={e.id}>
                                         {e.name}
@@ -67,22 +69,22 @@ export default function EmployeeReport() {
                         </div>
 
                         <div>
-                            <label className="ml-4 text-sm font-medium mr-1">Payment Type:</label>
+                            <label className="mr-1 ml-4 text-sm font-medium">{t('empPaymentTypeLabel')}</label>
                             <select value={type} onChange={onChangeType} className="rounded border px-3 py-2">
-                                <option value="all">All</option>
-                                <option value="advance">Advance only</option>
-                                <option value="regular">Regular only</option>
+                                <option value="all">{t('empAllOption')}</option>
+                                <option value="advance">{t('empAdvanceOnlyOption')}</option>
+                                <option value="regular">{t('empRegularOnlyOption')}</option>
                             </select>
                         </div>
                     </div>
 
                     {/* Totals */}
-                    <div className="mb-6 grid gap-4 text-center sm:grid-cols-5">
-                        <StatCard title="Total Gross" colour="blue" value={money(totals.gross)} />
-                        <StatCard title="Total Paid" colour="green" value={money(totals.paid)} />
-                        <StatCard title="Advance Paid" colour="yellow" value={money(totals.advance)} />
-                        <StatCard title="Regular Paid" colour="teal" value={money(totals.regular)} />
-                        <StatCard title="Outstanding" colour="red" value={money(totals.outstanding)} />
+                    <div className="mb-6 grid grid-cols-1 gap-3 md:grid-cols-2 lg:grid-cols-5">
+                        <StatCard title={t('totalGrossTitle')} value={money(totals.gross)} colour="blue" />
+                        <StatCard title={t('totalPaidTitle')} value={money(totals.paid)} colour="green" />
+                        <StatCard title={t('advancePaidTitle')} value={money(totals.advance)} colour="teal" />
+                        <StatCard title={t('regularPaidTitle')} value={money(totals.regular)} colour="teal" />
+                        <StatCard title={t('outstandingTitle')} value={money(totals.outstanding)} colour="red" />
                     </div>
 
                     {/* Table */}
@@ -90,12 +92,12 @@ export default function EmployeeReport() {
                         <table className="min-w-full border text-sm">
                             <thead className="bg-gray-50">
                                 <tr>
-                                    <th className="px-3 py-2 text-left">Month</th>
-                                    <th className="px-3 py-2 text-right">Gross</th>
-                                    <th className="px-3 py-2 text-right">Advance Paid</th>
-                                    <th className="px-3 py-2 text-right">Regular Paid</th>
-                                    <th className="px-3 py-2 text-right">Paid (Total)</th>
-                                    <th className="px-3 py-2 text-right">Outstanding</th>
+                                    <th className="px-3 py-2 text-left">{t('monthHeaderLabel')}</th>
+                                    <th className="px-3 py-2 text-right">{t('grossHeaderLabel')}</th>
+                                    <th className="px-3 py-2 text-right">{t('advancePaidHeaderLabel')}</th>
+                                    <th className="px-3 py-2 text-right">{t('regularPaidHeaderLabel')}</th>
+                                    <th className="px-3 py-2 text-right">{t('paidTotalHeaderLabel')}</th>
+                                    <th className="px-3 py-2 text-right">{t('outstandingHeaderLabel')}</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -104,7 +106,9 @@ export default function EmployeeReport() {
                                         <td className="px-3 py-1">
                                             {monthName(r.month)} {r.year}
                                             {r.has_advance && (
-                                                <span className="ml-2 rounded bg-yellow-100 px-2 py-0.5 text-xs text-yellow-800">Advance</span>
+                                                <span className="ml-2 rounded bg-yellow-100 px-2 py-0.5 text-xs text-yellow-800">
+                                                    {t('advanceBadgeLabel')}
+                                                </span>
                                             )}
                                         </td>
                                         <td className="px-3 py-1 text-right">{money(r.gross)}</td>
@@ -119,7 +123,7 @@ export default function EmployeeReport() {
                                 {rows.length === 0 && (
                                     <tr>
                                         <td colSpan={6} className="px-3 py-4 text-center text-gray-500">
-                                            No data
+                                            {t('noDataMessage')}
                                         </td>
                                     </tr>
                                 )}
@@ -130,7 +134,7 @@ export default function EmployeeReport() {
                     {/* Optional: “Who got advances” mini list */}
                     {empAdvances?.length > 0 && (
                         <div className="mt-8">
-                            <div className="mb-2 text-sm font-semibold">Employees who received advances (in this view):</div>
+                            <div className="mb-2 text-sm font-semibold">{t('employeesAdvanceListTitle')}</div>
                             <ul className="list-disc pl-6 text-sm">
                                 {empAdvances.map((a) => (
                                     <li key={a.employee_id}>

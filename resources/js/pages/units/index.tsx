@@ -6,6 +6,7 @@ import { confirmDialog } from '@/components/confirmDialog';
 import PageHeader from '@/components/PageHeader';
 import Pagination from '@/components/Pagination';
 import TableComponent from '@/components/TableComponent';
+import { useTranslation } from '@/components/useTranslation';
 import AppLayout from '@/layouts/app-layout';
 import { Head, useForm } from '@inertiajs/react';
 import { useState } from 'react';
@@ -25,6 +26,7 @@ interface PaginatedUnits {
 
 export default function UnitIndex({ units }: { units: PaginatedUnits }) {
     const [editUnit, setEditUnit] = useState<Unit | null>(null);
+    const t = useTranslation();
 
     const {
         data,
@@ -75,32 +77,31 @@ export default function UnitIndex({ units }: { units: PaginatedUnits }) {
 
     const columns = [
         {
-            header: '#SL',
+            header: '#',
             accessor: (_: Unit, index?: number) => (index !== undefined ? index + 1 : '—'),
-            className: 'text-center',
         },
-        { header: 'Unit Name', accessor: 'name' },
+        { header: t('unitNameLabel'), accessor: 'name' },
         {
-            header: 'Action',
+            header: t('actions'),
             accessor: (unit: Unit) => <ActionButtons onEdit={() => handleEdit(unit)} onDelete={() => handleDelete(unit.id)} />,
             className: 'text-center',
         },
     ];
 
-    const inputCls = 'w-full rounded-md border bg-background p-2 text-foreground outline-none focus:ring-2 focus:ring-ring';
+    // const inputCls = 'w-full rounded-md border bg-background p-2 text-foreground outline-none focus:ring-2 focus:ring-ring';
 
     return (
-        <AppLayout title="Unit Manage">
-            <Head title="Unit Manage" />
+        <AppLayout>
+            <Head title={t('unitManage')} />
 
             <div className="text-foreground w-full p-4 md:p-12">
                 <div className="grid grid-cols-12 gap-4">
                     {/* Left: List */}
                     <div className="col-span-12 lg:col-span-8">
                         <div className="space-y-4">
-                            <PageHeader title="Unit Manage" />
+                            <PageHeader title={t('unitManage')} />
                             <div className="rounded-md border">
-                                <TableComponent columns={columns} data={units.data} noDataMessage="No units found." />
+                                <TableComponent columns={columns} data={units.data} noDataMessage={t('noUnitsFound')} />
                             </div>
                         </div>
                     </div>
@@ -108,11 +109,11 @@ export default function UnitIndex({ units }: { units: PaginatedUnits }) {
                     {/* Right: Form */}
                     <div className="col-span-12 lg:col-span-4">
                         <div className="bg-background space-y-3 rounded-md border p-4">
-                            <PageHeader title={editUnit ? 'Edit Unit' : 'Add Unit'} />
+                            <PageHeader title={editUnit ? t('editUnitTitle') : t('addUnitTitle')} />
                             <form onSubmit={handleSubmit} className="space-y-3">
                                 <input
                                     type="text"
-                                    placeholder="Unit Name"
+                                    placeholder={t('unitNamePlaceholder')}
                                     value={data.name}
                                     onChange={(e) => setData('name', e.target.value)}
                                     className="w-full rounded border p-2"
@@ -128,11 +129,11 @@ export default function UnitIndex({ units }: { units: PaginatedUnits }) {
                                             onSubmit={handleSubmit}
                                             onCancel={handleCancel}
                                             processing={processing}
-                                            submitText="Update"
-                                            cancelText="Cancel"
+                                            submitText={t('updateButton')}
+                                            cancelText={t('cancelButton')}
                                         />
                                     ) : (
-                                        <AddBtn processing={processing}>Add Unit</AddBtn>
+                                        <AddBtn processing={processing}>{t('addUnitButton')}</AddBtn>
                                     )}
                                 </div>
                             </form>

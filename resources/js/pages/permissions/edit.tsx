@@ -1,3 +1,4 @@
+import { useTranslation } from '@/components/useTranslation';
 import AppLayout from '@/layouts/app-layout';
 import { type BreadcrumbItem } from '@/types';
 import { Head, Link, useForm } from '@inertiajs/react';
@@ -5,10 +6,12 @@ import { Head, Link, useForm } from '@inertiajs/react';
 interface Permission {
     id: number;
     name: string;
+    description?: string;
     created_at: string;
 }
 
 export default function EditPermission({ permission }: { permission: Permission }) {
+    const t = useTranslation();
     const { data, setData, put, processing, errors } = useForm({
         name: permission.name,
         description: permission.description || '',
@@ -27,15 +30,15 @@ export default function EditPermission({ permission }: { permission: Permission 
 
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
-            <Head title={`Edit - ${permission.name}`} />
+            <Head title={`${t('pmEditPageTitle')} - ${permission.name}`} />
 
             <div className="p-4 md:p-12">
-                <h1 className="mb-6 text-2xl font-bold">Edit Permission</h1>
+                <h1 className="mb-6 text-2xl font-bold">{t('pmEditPermissionTitle')}</h1>
 
-                <form onSubmit={submit} className="space-y-4 rounded bg-white p-4 shadow dark:bg-neutral-900">
+                <form onSubmit={submit} className="space-y-4 rounded bg-background p-4 shadow dark:bg-neutral-900">
                     <div>
                         <label htmlFor="name" className="mb-1 block font-medium">
-                            Permission Name
+                            {t('pmPermissionNameLabel')}
                         </label>
                         <input
                             type="text"
@@ -43,34 +46,34 @@ export default function EditPermission({ permission }: { permission: Permission 
                             value={data.name}
                             onChange={(e) => setData('name', e.target.value)}
                             className="w-full rounded border p-2 dark:border-neutral-700 dark:bg-neutral-800"
-                            placeholder="e.g., edit articles"
+                            placeholder={t('pmNamePlaceholder')}
                         />
                         {errors.name && <p className="mt-1 text-sm text-red-500">{errors.name}</p>}
                     </div>
                     <div>
                         <label htmlFor="description" className="mb-1 block font-medium">
-                            Description
+                            {t('pmDescriptionLabel')}
                         </label>
                         <textarea
                             id="description"
                             value={data.description}
                             onChange={(e) => setData('description', e.target.value)}
                             className="w-full rounded border p-2 dark:border-neutral-700 dark:bg-neutral-800"
-                            placeholder="e.g., Allows user to assign roles to others"
+                            placeholder={t('pmDescriptionPlaceholder')}
                         />
                         {errors.description && <p className="mt-1 text-sm text-red-500">{errors.description}</p>}
                     </div>
 
                     <div className="flex justify-end space-x-2">
                         <Link href="/permissions" className="rounded border px-4 py-2 hover:bg-neutral-100 dark:hover:bg-neutral-800">
-                            Cancel
+                            {t('pmCancelButton')}
                         </Link>
                         <button
                             type="submit"
                             disabled={processing}
                             className="rounded bg-blue-600 px-4 py-2 text-white hover:bg-blue-700 disabled:opacity-50"
                         >
-                            {processing ? 'Saving...' : 'Save Changes'}
+                            {processing ? t('pmSavingText') : t('pmSaveChangesButton')}
                         </button>
                     </div>
                 </form>

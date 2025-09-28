@@ -118,12 +118,12 @@ export default function Create({ receivedModes, accountLedgers, prefill }: Props
             <Head title="Add Received Voucher" />
 
             <div className="h-full w-screen bg-gray-100 p-6 lg:w-full">
-                <div className="h-full rounded-lg bg-white p-6">
+                <div className="h-full rounded-lg bg-background p-6">
                     <PageHeader title="Add Received Voucher" addLinkHref="/received-add" addLinkText="Back" />
 
                     <form onSubmit={handleSubmit} className="space-y-6">
                         {/* Voucher Details */}
-                        <div className="rounded-lg border bg-white p-6 shadow">
+                        <div className="rounded-lg border bg-background p-6 shadow">
                             <h2 className="mb-4 border-b pb-2 text-lg font-semibold text-gray-700">Voucher Details</h2>
                             <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
                                 <div>
@@ -155,7 +155,7 @@ export default function Create({ receivedModes, accountLedgers, prefill }: Props
 
                         {/* Mode & Ledger Block */}
                         {/* Mode & Ledger Block */}
-                        <div className="rounded-lg border bg-white p-6 shadow">
+                        <div className="rounded-lg border bg-background p-6 shadow">
                             <h2 className="mb-4 border-b pb-2 text-lg font-semibold text-gray-700">Receive From</h2>
                             <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
                                 {/* Received Mode */}
@@ -230,7 +230,7 @@ export default function Create({ receivedModes, accountLedgers, prefill }: Props
                         </div>
 
                         {/* Amount & Note */}
-                        <div className="space-y-4 rounded-lg border bg-white p-6 shadow">
+                        <div className="space-y-4 rounded-lg border bg-background p-6 shadow">
                             <div>
                                 <label className="block text-sm font-medium text-gray-700">
                                     Amount<span className="text-red-500">*</span>

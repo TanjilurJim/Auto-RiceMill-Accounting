@@ -31,11 +31,11 @@ export default function SalesReturnInvoice(
     <AppLayout>
       <Head title={`Sales-Return #${ret.voucher_no}`} />
 
-      <div className="container mx-auto bg-white shadow p-8 print:p-4">
+      <div className="container mx-auto bg-background shadow p-8 print:p-4">
 
         {/* back link – hidden on print */}
         <Link href="/sales-returns"
-              className="mb-4 inline-block rounded bg-gray-300 px-4 py-2 hover:bg-neutral-100 print:hidden">
+              className="mb-4 inline-block rounded bg-background px-4 py-2 hover:bg-neutral-100 print:hidden">
           Back
         </Link>
 

@@ -40,12 +40,12 @@ export default function Edit({ receivedMode }: ReceivedModeProps) {
             <Head title="Edit Received Mode" />
 
             <div className="bg-gray-100 p-6 h-full w-screen lg:w-full">
-                <div className="bg-white h-full rounded-lg p-6">
+                <div className="bg-background h-full rounded-lg p-6">
 
                     <PageHeader title='Edit Received Mode' addLinkText='Back' addLinkHref='/received-modes' />
 
                     <form onSubmit={handleSubmit} className="space-y-6">
-                        <div className="rounded-lg border bg-white p-6 shadow">
+                        <div className="rounded-lg border bg-background p-6 shadow">
                             <h2 className="mb-4 border-b pb-2 text-lg font-semibold text-gray-700">Mode Information</h2>
 
                             <div className="grid grid-cols-1 gap-6 md:grid-cols-2">

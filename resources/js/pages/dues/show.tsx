@@ -103,7 +103,7 @@ function Stat({
 /** Renders the overview of financial figures related to the due. */
 function FinancialSnapshot({ s }: { s: Props['sale'] }) {
     return (
-        <div className="grid gap-4 rounded-2xl border border-gray-200 bg-white p-6 shadow-sm md:grid-cols-2 lg:grid-cols-3">
+        <div className="grid gap-4 rounded-2xl border border-gray-200 bg-background p-6 shadow-sm md:grid-cols-2 lg:grid-cols-3">
             <Stat label="Original Sale Amount" value={fmtCurrency(s.total_sale)} bgColor="bg-blue-50" color="text-blue-700" icon={<span>💰</span>} />
             <Stat label="Principal Due" value={fmtCurrency(s.principal_due)} bgColor="bg-purple-50" color="text-purple-700" icon={<span>📊</span>} />
             <Stat label="Daily Interest" value={fmtCurrency(s.daily_interest)} color="text-amber-700" bgColor="bg-amber-50" icon={<span>📈</span>} />
@@ -151,11 +151,11 @@ function PaymentTimeline({ payments }: { payments: Payment[] }) {
                             <th className="px-6 py-4 text-left text-xs font-semibold tracking-wider text-gray-600 uppercase">Note</th>
                         </tr>
                     </thead>
-                    <tbody className="divide-y divide-gray-100 bg-white">
+                    <tbody className="divide-y divide-gray-100 bg-background">
                         {payments.map((p, index) => (
                             <tr
                                 key={p.id}
-                                className={`transition-colors duration-150 hover:bg-gray-50 ${index % 2 === 0 ? 'bg-white' : 'bg-gray-50/50'}`}
+                                className={`transition-colors duration-150 hover:bg-gray-50 ${index % 2 === 0 ? 'bg-background' : 'bg-gray-50/50'}`}
                             >
                                 <td className="px-6 py-4 text-sm font-medium whitespace-nowrap text-gray-900">{formatDate(p.date)}</td>
                                 <td className="px-6 py-4 whitespace-nowrap">
@@ -246,7 +246,7 @@ export default function DueShow({ sale, items, payments, receivedModes }: Props)
                         <button
                             type="button"
                             onClick={handlePrint} // The same print handler function
-                            className="inline-flex items-center justify-center gap-2 rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 shadow-sm transition-colors hover:bg-gray-50 focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 focus:outline-none"
+                            className="inline-flex items-center justify-center gap-2 rounded-md border border-gray-300 bg-background px-4 py-2 text-sm font-medium text-gray-700 shadow-sm transition-colors hover:bg-gray-50 focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 focus:outline-none"
                         >
                             <PrinterIcon className="h-5 w-5" aria-hidden="true" />
                             <span>Print Receipt</span>
@@ -264,7 +264,7 @@ export default function DueShow({ sale, items, payments, receivedModes }: Props)
                     )}
 
                     {/* Invoice Header */}
-                    <div className="overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-sm">
+                    <div className="overflow-hidden rounded-2xl border border-gray-200 bg-background shadow-sm">
                         <div className="bg-gradient-to-r from-blue-600 to-blue-700 px-6 py-4">
                             <h1 className="text-xl font-bold text-white">Invoice #{sale.voucher_no}</h1>
                             <p className="text-sm text-blue-100">
@@ -274,8 +274,8 @@ export default function DueShow({ sale, items, payments, receivedModes }: Props)
                     </div>
 
                     {/* Invoice Items */}
-                    <section className="overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-sm">
-                        <div className="border-b border-gray-200 bg-gray-50 px-6 py-4">
+                    <section className="overflow-hidden rounded-2xl border border-gray-200 bg-background shadow-sm">
+                        <div className="border-b border-gray-200 bg-background px-6 py-4">
                             <h3 className="text-lg font-semibold text-gray-800">Invoice Items</h3>
                         </div>
                         <div className="p-6">
@@ -296,7 +296,7 @@ export default function DueShow({ sale, items, payments, receivedModes }: Props)
                     </section>
 
                     {/* New Payment Form */}
-                    <section className="no-print overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-sm">
+                    <section className="no-print overflow-hidden rounded-2xl border border-gray-200 bg-background shadow-sm">
                         <div className="border-b border-green-200 bg-gradient-to-r from-green-50 to-emerald-50 px-6 py-4">
                             <h2 className="flex items-center gap-2 text-lg font-semibold text-gray-800">
                                 <span>💳</span>

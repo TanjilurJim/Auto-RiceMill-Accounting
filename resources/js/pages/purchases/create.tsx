@@ -684,7 +684,7 @@ export default function PurchaseCreate({
                     {/* Ledger Modal */}
                     {showLedgerModal && (
                         <div className="bg-opacity-50 fixed inset-0 z-50 flex items-center justify-center bg-black">
-                            <div className="w-full max-w-md rounded bg-white p-6 shadow-lg">
+                            <div className="w-full max-w-md rounded bg-background p-6 shadow-lg">
                                 <h2 className="text-foreground mb-4 text-lg font-semibold">Create New Inventory Ledger</h2>
 
                                 <input

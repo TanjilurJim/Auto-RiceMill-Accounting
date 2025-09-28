@@ -372,16 +372,16 @@ export default function RentVoucherShow() {
 
                     {/* ---------- Items table ---------- */}
                     {/* (unchanged except for imports above) */}
-                    <div className="mb-6 overflow-hidden rounded-lg bg-white shadow-sm print:rounded-none print:shadow-none">
+                    <div className="mb-6 overflow-hidden rounded-lg bg-background shadow-sm print:rounded-none print:shadow-none">
                         {/* ... your existing items table code ... */}
                         {/* keep your original "Items table" block exactly as it is */}
                     </div>
 
                     {/* ---------- Payment History ---------- */}
                     <div className="mb-6 overflow-hidden rounded-lg bg-background shadow-sm print:rounded-none print:shadow-none">
-                        <div className="border-b border-gray-200 bg-background0 px-6 py-4">
-                            <h2 className="flex items-center text-lg font-semibold text-foreground">
-                                <svg className="mr-2 h-5 w-5 text-foreground" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <div className="border-b border-gray-200 bg-gray-50 px-6 py-4">
+                            <h2 className="flex items-center text-lg font-semibold text-gray-900">
+                                <svg className="mr-2 h-5 w-5 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 17v-6h13M9 8h13" />
                                 </svg>
                                 Payment History
@@ -409,7 +409,7 @@ export default function RentVoucherShow() {
                                         </th>
                                     </tr>
                                 </thead>
-                                <tbody className="divide-y divide-gray-200 bg-white">
+                                <tbody className="divide-y divide-gray-200 bg-background">
                                     {payments.length === 0 ? (
                                         <tr>
                                             <td className="px-6 py-4 text-sm text-foreground" colSpan={5}>
@@ -463,7 +463,7 @@ export default function RentVoucherShow() {
                         <div />
                         <Link
                             href={route('party-stock.rent-voucher.index')}
-                            className="inline-flex items-center rounded-lg border border-gray-300 bg-background px-6 py-3 text-base font-medium text-foreground transition-colors hover:bg-background focus:ring-2 focus:ring-gray-500 focus:ring-offset-2 focus:outline-none"
+                            className="inline-flex items-center rounded-lg border border-gray-300 bg-background px-6 py-3 text-base font-medium text-gray-700 transition-colors hover:bg-gray-50 focus:ring-2 focus:ring-gray-500 focus:ring-offset-2 focus:outline-none"
                         >
                             <svg className="mr-2 h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" />

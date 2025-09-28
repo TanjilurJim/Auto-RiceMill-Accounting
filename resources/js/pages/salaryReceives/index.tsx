@@ -3,12 +3,11 @@ import { confirmDialog } from '@/components/confirmDialog';
 import PageHeader from '@/components/PageHeader';
 import Pagination from '@/components/Pagination';
 import TableComponent from '@/components/TableComponent';
+import { useTranslation } from '@/components/useTranslation';
 import AppLayout from '@/layouts/app-layout';
 import { Head, router } from '@inertiajs/react';
 
 interface Employee {
-    id: number;
-    name: string;
     id: number;
     name: string;
 }
@@ -19,13 +18,6 @@ interface ReceivedMode {
 }
 
 interface SalaryReceive {
-    id: number;
-    vch_no: string;
-    date: string;
-    employee: Employee;
-    receivedMode: ReceivedMode;
-    amount: string;
-    description: string | null;
     id: number;
     vch_no: string;
     date: string;
@@ -44,33 +36,30 @@ interface PaginatedSalaryReceives {
 }
 
 export default function SalaryReceiveIndex({ salaryReceives }: { salaryReceives: PaginatedSalaryReceives }) {
+    const t = useTranslation();
     // Handle delete action
     const handleDelete = (id: number) => {
-
-        confirmDialog(
-            {}, () => {
-                router.delete(`/salary-receives/${id}`);
-            }
-        )
-
+        confirmDialog({}, () => {
+            router.delete(`/salary-receives/${id}`);
+        });
     };
 
     const columns = [
-        { header: 'SL', accessor: (_: any, index: number) => index + 1, className: 'text-center' },
-        { header: 'Voucher No', accessor: 'vch_no' },
-        { header: 'Date', accessor: 'date' },
-        { header: 'Employee', accessor: (row: any) => row.employee.name },
-        { header: 'Amount', accessor: 'amount' },
+        { header: t('salSlLabel'), accessor: (_: any, index: number) => index + 1, className: 'text-center' },
+        { header: t('recVoucherNoLabel'), accessor: 'vch_no' },
+        { header: t('dateLabel'), accessor: 'date' },
+        { header: t('salEmployeeLabel'), accessor: (row: any) => row.employee.name },
+        { header: t('empAmountHeader'), accessor: 'amount' },
         {
-            header: 'Actions',
+            header: t('salActionsLabel'),
             accessor: (row: any) => (
                 <ActionButtons
                     printHref={route('salary-receives.show', row.id)}
                     editHref={`/salary-receives/${row.id}/edit`}
                     onDelete={() => handleDelete(row.id)}
-                    printText="View"
-                    editText="Edit"
-                    deleteText="Delete"
+                    printText={t('salViewText')}
+                    editText={t('editText')}
+                    deleteText={t('deleteText')}
                 />
             ),
             className: 'text-center',
@@ -79,18 +68,13 @@ export default function SalaryReceiveIndex({ salaryReceives }: { salaryReceives:
 
     return (
         <AppLayout>
-            <Head title="Salary Receives" />
-            <div className="p-4 md:p-12 h-full w-screen lg:w-full">
-                <div className="bg-background h-full rounded-lg p-6">
-
-                    <PageHeader title="Salary Receives" addLinkHref='/salary-receives/create' addLinkText='+ Add New' />
+            <Head title={t('recSalaryReceivesTitle')} />
+            <div className="h-full w-screen p-4 md:p-12 lg:w-full">
+                <div className="h-full rounded-lg bg-background">
+                    <PageHeader title={t('recSalaryReceivesTitle')} addLinkHref="/salary-receives/create" addLinkText={t('addNewText')} />
 
                     {/* Table */}
-                    <TableComponent
-                        columns={columns}
-                        data={salaryReceives.data}
-                        noDataMessage="No salary receives found."
-                    />
+                    <TableComponent columns={columns} data={salaryReceives.data} noDataMessage={t('recNoSalaryReceivesMessage')} />
 
                     {/* Pagination */}
                     <Pagination

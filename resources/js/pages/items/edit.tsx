@@ -66,7 +66,7 @@ export default function EditItem({ item, categories, units, godowns }: { item: I
         <AppLayout>
             <Head title="Edit Item" />
             <div className="h-full p-4 md:p-12">
-                <div className="h-full rounded-lg bg-white">
+                <div className="h-full rounded-lg bg-background">
                     <PageHeader title="Edit Item" addLinkHref="/items" addLinkText="Back" />
                     <ItemForm
                         data={data}

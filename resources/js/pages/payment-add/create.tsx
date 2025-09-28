@@ -1,6 +1,7 @@
-import InputCalendar from '@/components/Btn&Link/InputCalendar';
 import ActionFooter from '@/components/ActionFooter';
+import InputCalendar from '@/components/Btn&Link/InputCalendar';
 import PageHeader from '@/components/PageHeader';
+import { useTranslation } from '@/components/useTranslation';
 import AppLayout from '@/layouts/app-layout';
 import { Head, router } from '@inertiajs/react';
 import axios from 'axios';
@@ -33,6 +34,8 @@ type DuesPayload = {
 };
 
 export default function Create({ paymentModes, accountLedgers }: { paymentModes: PaymentMode[]; accountLedgers: AccountLedger[] }) {
+    const t = useTranslation();
+
     const [rows, setRows] = useState<
         Array<{
             payment_mode_id: string | number;
@@ -126,19 +129,19 @@ export default function Create({ paymentModes, accountLedgers }: { paymentModes:
 
     return (
         <AppLayout>
-            <Head title="Add Payment" />
+            <Head title={t('addPaymentTitle')} />
 
-            <div className="h-full w-screen bg-background p-6 lg:w-full">
-                <div className="h-full rounded-lg bg-background p-6">
-                    <PageHeader title="Add Payment" addLinkHref="/payment-add" addLinkText="Back" />
+            <div className="h-full w-screen p-4 md:p-12 lg:w-full">
+                <div className="h-full rounded-lg">
+                    <PageHeader title={t('addPaymentTitle')} addLinkHref="/payment-add" addLinkText={t('backText')} />
 
                     <form onSubmit={handleSubmit} className="space-y-6">
                         <div className="grid grid-cols-1 gap-6 sm:grid-cols-2">
                             {/* Date Field */}
-                            <div className='py-2 items-end'>
+                            <div className="items-end py-2">
                                 {/* <label className="mb-1 block font-medium text-gray-700">Date</label> */}
                                 <InputCalendar
-                                    label="Date"
+                                    label={t('dateLabel')}
                                     value={date}
                                     onChange={(e) => setDate(e.target.value)}
                                     className="focus:ring-primary focus:border-primary w-full rounded border border-gray-300 px-3 py-2 focus:ring"
@@ -147,25 +150,25 @@ export default function Create({ paymentModes, accountLedgers }: { paymentModes:
 
                             {/* Voucher No Field */}
                             <div>
-                                <label className="mb-1 block font-medium text-gray-700">Voucher No</label>
+                                <label className="mb-1 block font-medium text-gray-700">{t('voucherNoLabel')}</label>
                                 <input
                                     type="text"
                                     value={voucherNo}
                                     readOnly
-                                    className="w-full rounded border border-gray-300 bg-background px-3 py-2 text-foreground"
+                                    className="w-full rounded border border-gray-300 bg-background px-3 py-2 text-gray-500"
                                 />
                             </div>
                         </div>
 
                         <div>
-                            <label className="mb-1 block font-medium text-foreground">Payments</label>
+                            <label className="mb-1 block font-medium text-gray-700">{t('paymentsLabel')}</label>
 
                             <div className="mb-4 rounded border border-gray-300 bg-background p-4">
                                 <div className="mb-2 hidden grid-cols-5 gap-4 text-center text-xs font-semibold text-gray-600 md:grid">
-                                    <div>Payment Mode</div>
-                                    <div>Account Ledger</div>
-                                    <div>Amount</div>
-                                    <div>New Ledger Balance</div>
+                                    <div>{t('paymentModeLabel')}</div>
+                                    <div>{t('accountLedgerLabel')}</div>
+                                    <div>{t('amountHeader')}</div>
+                                    <div>{t('newLedgerBalanceLabel')}</div>
                                     <div>Remove</div>
                                 </div>
 
@@ -174,7 +177,7 @@ export default function Create({ paymentModes, accountLedgers }: { paymentModes:
                                         <div className="grid grid-cols-1 items-center gap-4 md:grid-cols-5 md:gap-4">
                                             {/* Payment Mode */}
                                             <div>
-                                                <label className="block text-xs font-semibold text-gray-600 md:hidden">Payment Mode</label>
+                                                <label className="block text-xs font-semibold text-gray-600 md:hidden">{t('paymentModeLabel')}</label>
                                                 <select
                                                     className="focus:ring-primary focus:border-primary w-full rounded border border-gray-300 px-2 py-1 text-sm focus:ring"
                                                     value={row.payment_mode_id}
@@ -299,12 +302,12 @@ export default function Create({ paymentModes, accountLedgers }: { paymentModes:
                             </div>
 
                             <button type="button" onClick={addRow} className="text-primary hover:text-primary-hover text-sm">
-                                + Add Row
+                                {t('addRowText')}
                             </button>
                         </div>
 
                         <div>
-                            <label className="mb-1 block font-medium text-gray-700">Description</label>
+                            <label className="mb-1 block font-medium text-gray-700">{t('descriptionHeader')}</label>
                             <textarea
                                 value={description}
                                 onChange={(e) => setDescription(e.target.value)}
@@ -315,15 +318,17 @@ export default function Create({ paymentModes, accountLedgers }: { paymentModes:
 
                         {/* If you re-enable SMS later, just uncomment the block you already had. */}
 
-                        <div className="text-right font-bold text-gray-700">Total: {fmt(totalAmount)}</div>
+                        <div className="text-right font-bold text-gray-700">
+                            {t('totalText')}: {fmt(totalAmount)}
+                        </div>
 
                         <ActionFooter
                             className="justify-end"
                             onSubmit={handleSubmit}
                             cancelHref="/payment-add"
                             processing={false}
-                            submitText="Save Payment"
-                            cancelText="Cancel"
+                            submitText={t('savePaymentText')}
+                            cancelText={t('cancelText')}
                         />
                     </form>
                 </div>

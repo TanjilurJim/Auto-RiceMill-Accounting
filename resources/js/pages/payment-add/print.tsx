@@ -24,7 +24,7 @@ export default function Print({
         <AppLayout>
             <Head title={`Voucher - ${voucher_no}`} />
 
-            <div className=" max-w-full p-6 text-sm text-gray-800 bg-white print:shadow-none print:p-0 print:text-black">
+            <div className=" max-w-full p-6 text-sm text-gray-800 bg-background print:shadow-none print:p-0 print:text-black">
                 {/* Company Info */}
                 <div className="text-center mb-4">
                     <h1 className="text-lg font-bold uppercase">{company?.company_name}</h1>
@@ -52,7 +52,7 @@ export default function Print({
 
                 {/* Table of particulars */}
                 <table className="w-full border text-left text-sm mt-4">
-                    <thead className="bg-gray-100 print:bg-white">
+                    <thead className="bg-background print:bg-white">
                         <tr>
                             <th className="border px-2 py-1">Particulars</th>
                             <th className="border px-2 py-1 text-right">Amount</th>

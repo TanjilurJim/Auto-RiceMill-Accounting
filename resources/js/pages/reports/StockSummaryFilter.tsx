@@ -6,6 +6,7 @@ import AppLayout from '@/layouts/app-layout';
 import { Head, useForm } from '@inertiajs/react';
 import dayjs from 'dayjs';
 import React, { useState } from 'react';
+import { useTranslation } from '../../components/useTranslation';
 
 interface Props {
     godowns: { id: number; name: string }[];
@@ -13,15 +14,17 @@ interface Props {
     items: { id: number; item_name: string }[]; // 👈 include this in props
 }
 
-const tabs = [
-    { name: 'Stock Detail', route: 'reports.stock-summary' },
-    { name: 'Category Wise Stock Summary', route: 'reports.stock-summary.category-wise' },
-    { name: 'Item Wise Stock Summary', route: 'reports.stock-summary.item-wise' }, // 👈 added
-];
-
 export default function StockSummaryFilter({ godowns, categories, items }: Props) {
+    const t = useTranslation();
     const today = dayjs().format('YYYY-MM-DD');
     const startOfMonth = dayjs().startOf('month').format('YYYY-MM-DD');
+
+    const tabs = [
+        { name: t('stockDetailTab'), route: 'reports.stock-summary' },
+        { name: t('categoryWiseStockTab'), route: 'reports.stock-summary.category-wise' },
+        { name: t('itemWiseStockTab'), route: 'reports.stock-summary.item-wise' },
+    ];
+
     const [activeTab, setActiveTab] = useState<string>(tabs[0].route);
 
     const { data, setData, get, processing, errors } = useForm({
@@ -42,18 +45,18 @@ export default function StockSummaryFilter({ godowns, categories, items }: Props
 
     return (
         <AppLayout>
-            <Head title="Stock Report" />
+            <Head title={t('stockReportTitle')} />
 
-            <div className="h-full w-screen bg-background p-6 lg:w-full">
-                <div className="h-full rounded-lg bg-background p-6">
-                    <PageHeader title="Stock Report Filter" />
+            <div className="bg-background h-full w-screen p-4 md:p-12 lg:w-full">
+                <div className="bg-background h-full rounded-lg">
+                    <PageHeader title={t('stockReportFilterTitle')} />
 
                     {/* Tabs for different report types */}
                     <Card>
-                        <CardHeader className="border-b bg-background px-6 py-4">
+                        <CardHeader className="bg-background border-b px-6 py-4">
                             {/* <h2 className="text-2xl font-semibold">Generate Stock Report</h2> */}
                             {/* <nav className="mt-4 border-b border-gray-200"> */}
-                            <nav className="border-b border-background/20">
+                            <nav className="border-background/20 border-b">
                                 <ul className="-mb-px flex space-x-4">
                                     {tabs.map((tab, idx) => (
                                         <li key={idx}>
@@ -91,15 +94,13 @@ export default function StockSummaryFilter({ godowns, categories, items }: Props
 
                                     {/* Godown Dropdown */}
                                     <div>
-                                        <label className="block text-sm font-medium text-gray-700">
-                                            Select Godown <span className="text-gray-400">(Optional)</span>
-                                        </label>
+                                        <label className="block text-sm font-medium text-gray-700">{t('stockSelectGodownOptional')}</label>
                                         <select
                                             className="w-full rounded border px-3 py-2 focus:border-blue-500 focus:ring-blue-500"
                                             value={data.godown_id}
                                             onChange={(e) => setData('godown_id', e.target.value)}
                                         >
-                                            <option value="">— All Godowns —</option>
+                                            <option value="">{t('stockAllGodownsOption')}</option>
                                             {godowns.map((g) => (
                                                 <option key={g.id} value={g.id}>
                                                     {g.name}
@@ -111,15 +112,13 @@ export default function StockSummaryFilter({ godowns, categories, items }: Props
                                     {/* Conditionally show Category dropdown */}
                                     {activeTab === 'reports.stock-summary.category-wise' && (
                                         <div>
-                                            <label className="block text-sm font-medium text-gray-700">
-                                                Select Category <span className="text-gray-400">(Optional)</span>
-                                            </label>
+                                            <label className="block text-sm font-medium text-gray-700">{t('stockSelectCategoryLabel')}</label>
                                             <select
                                                 className="w-full rounded border px-3 py-2 focus:border-blue-500 focus:ring-blue-500"
                                                 value={data.category_id}
                                                 onChange={(e) => setData('category_id', e.target.value)}
                                             >
-                                                <option value="">— All Categories —</option>
+                                                <option value="">{t('stockAllCategoriesOption')}</option>
                                                 {categories.map((cat) => (
                                                     <option key={cat.id} value={cat.id}>
                                                         {cat.name}
@@ -132,15 +131,13 @@ export default function StockSummaryFilter({ godowns, categories, items }: Props
                                     {/* Conditionally show Item dropdown */}
                                     {activeTab === 'reports.stock-summary.item-wise' && (
                                         <div>
-                                            <label className="block text-sm font-medium text-gray-700">
-                                                Select Item <span className="text-gray-400">(Optional)</span>
-                                            </label>
+                                            <label className="block text-sm font-medium text-gray-700">{t('stockSelectItemLabel')}</label>
                                             <select
                                                 className="w-full rounded border px-3 py-2 focus:border-blue-500 focus:ring-blue-500"
                                                 value={data.item_id}
                                                 onChange={(e) => setData('item_id', e.target.value)}
                                             >
-                                                <option value="">— All Items —</option>
+                                                <option value="">{t('stockAllItemsOption')}</option>
                                                 {items.map((item) => (
                                                     <option key={item.id} value={item.id}>
                                                         {item.item_name}
@@ -153,7 +150,7 @@ export default function StockSummaryFilter({ godowns, categories, items }: Props
 
                                 <div className="flex justify-end pt-2">
                                     <Button type="submit" disabled={processing}>
-                                        View Report
+                                        {t('stockViewReportText')}
                                     </Button>
                                 </div>
                             </form>

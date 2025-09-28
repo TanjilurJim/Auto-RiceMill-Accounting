@@ -85,7 +85,7 @@ export default function CompanyConvertShow({ header, consumed, generated }: Prop
 
                 {/* Consumed */}
                 <div className="mb-6 overflow-x-auto rounded-lg border bg-background">
-                    <div className="border-b bg-background p-3 font-semibold">Consumed (Convert-out)</div>
+                    <div className="border-b bg-slate-50 p-3 font-semibold">Consumed (Convert-out)</div>
                     <table className="w-full text-sm">
                         <thead className="bg-foreground text-foreground">
                             <tr>
@@ -143,7 +143,7 @@ export default function CompanyConvertShow({ header, consumed, generated }: Prop
 
                 {/* Generated */}
                 <div className="overflow-x-auto rounded-lg border bg-background">
-                    <div className="border-b bg-background p-3 font-semibold ">Generated (Convert-in)</div>
+                    <div className="border-b bg-slate-50 p-3 font-semibold">Generated (Convert-in)</div>
                     <table className="w-full text-sm">
                         <thead className="bg-foreground text-foreground">
                             <tr>

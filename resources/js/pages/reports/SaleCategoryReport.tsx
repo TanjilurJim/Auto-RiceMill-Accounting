@@ -3,6 +3,7 @@ import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import AppLayout from '@/layouts/app-layout';
 import { Link } from '@inertiajs/react';
 import { FileSpreadsheet, FileText, Printer } from 'lucide-react';
+import { useTranslation } from '../../components/useTranslation';
 
 interface Row {
     date: string;
@@ -39,6 +40,7 @@ export default function SaleCategoryReport({
     filters: { from_date: string; to_date: string; year?: string };
     company: Company;
 }) {
+    const t = useTranslation();
     const handlePrint = () => window.print();
 
     const totalQty = entries.reduce((sum, r) => sum + Number(r.qty ?? 0), 0);
@@ -56,35 +58,37 @@ export default function SaleCategoryReport({
     );
 
     return (
-        <AppLayout title="Category-wise Sale Report">
+        <AppLayout>
             <div className="max-w-full space-y-4 p-4">
                 <Card className="shadow-lg">
                     {/* ── Header ───────────────────── */}
-                    <CardHeader className="relative bg-background  text-center">
+                    <CardHeader className="bg-background relative text-center">
                         {company?.logo_url && (
-                                <img src={company.logo_url} alt="Company Logo" className="mx-auto mb-2 h-20 object-contain print:h-12" />
-                            )}
+                            <img src={company.logo_url} alt={t('repCompanyLogoAlt')} className="mx-auto mb-2 h-20 object-contain print:h-12" />
+                        )}
                         <h1 className="text-3xl font-bold uppercase">{company?.company_name}</h1>
                         {company?.address && <p className="text-sm">{company?.address}</p>}
-                        {company?.mobile && <p className="text-sm">Phone: {company?.mobile}</p>}
+                        {company?.mobile && (
+                            <p className="text-sm">
+                                {t('repPhoneText')}: {company?.mobile}
+                            </p>
+                        )}
                         {company?.email && <p className="text-sm">{company?.email}</p>}
 
                         <div className="mt-4">
-                            <h2 className="text-xl font-semibold underline">Category-wise Sales Report</h2>
+                            <h2 className="text-xl font-semibold underline">{t('saleCategoryReportTitle')}</h2>
                             {filters.year ? (
                                 <p className="text-sm">
-                                    Showing for Year <strong>{filters.year}</strong>
+                                    {t('repShowingForYearText')} <strong>{filters.year}</strong>
                                 </p>
                             ) : (
-                                <p className="text-sm">
-                                    From <strong>{filters.from_date}</strong> to <strong>{filters.to_date}</strong>
-                                </p>
+                                <p className="text-sm">{t('repFromToDateText', { from: filters.from_date, to: filters.to_date })}</p>
                             )}
                         </div>
 
                         <div className="absolute top-16 right-4 print:hidden">
                             <Link href={route('reports.sale.filter', { tab: 'category' })} className="text-sm text-blue-600 hover:underline">
-                                Change Filters
+                                {t('repChangeFiltersText')}
                             </Link>
                         </div>
                     </CardHeader>
@@ -93,25 +97,25 @@ export default function SaleCategoryReport({
                     <CardContent className="p-6">
                         <div className="overflow-x-auto">
                             <table className="min-w-full border border-gray-300 text-sm print:text-xs">
-                                <thead className="bg-gray-100 print:bg-white">
+                                <thead className="bg-background print:bg-white">
                                     <tr>
-                                        <th className="border px-2 py-1">#</th>
+                                        <th className="border px-2 py-1">{t('repSerialNoHeader')}</th>
                                         {filters.year ? (
                                             <>
-                                                <th className="border px-2 py-1">Month</th>
-                                                <th className="border px-2 py-1 text-right">Amount (Tk)</th>
+                                                <th className="border px-2 py-1">{t('repMonthHeader')}</th>
+                                                <th className="border px-2 py-1 text-right">{t('repAmountHeader')} (Tk)</th>
                                             </>
                                         ) : (
                                             <>
-                                                <th className="border px-2 py-1">Date</th>
-                                                <th className="border px-2 py-1">Vch No</th>
-                                                <th className="border px-2 py-1">Party</th>
-                                                <th className="border px-2 py-1">Category</th>
-                                                <th className="border px-2 py-1">Item</th>
-                                                <th className="border px-2 py-1 text-right">Qty</th>
+                                                <th className="border px-2 py-1">{t('repDateHeader')}</th>
+                                                <th className="border px-2 py-1">{t('repVoucherNoHeader')}</th>
+                                                <th className="border px-2 py-1">{t('repPartyHeader')}</th>
+                                                <th className="border px-2 py-1">{t('repCategoryHeader')}</th>
+                                                <th className="border px-2 py-1">{t('repItemHeader')}</th>
+                                                <th className="border px-2 py-1 text-right">{t('repQuantityHeader')}</th>
                                                 <th className="border px-2 py-1">Unit</th>
                                                 <th className="border px-2 py-1 text-right">Rate</th>
-                                                <th className="border px-2 py-1 text-right">Amount (Tk)</th>
+                                                <th className="border px-2 py-1 text-right">{t('repAmountHeader')} (Tk)</th>
                                             </>
                                         )}
                                     </tr>
@@ -149,7 +153,7 @@ export default function SaleCategoryReport({
                                             ))}
 
                                             {/* Grand Total Row */}
-                                            <tr className="bg-gray-100 font-semibold print:bg-white">
+                                            <tr className="bg-background font-semibold print:bg-white">
                                                 <td colSpan={filters.year ? 2 : 9} className="border px-2 py-1 text-right">
                                                     Grand Total
                                                 </td>
@@ -169,7 +173,9 @@ export default function SaleCategoryReport({
                             {/* Totals Summary */}
                             {!filters.year && entries.length > 0 && (
                                 <div className="mt-2 space-y-2">
-                                    <p className="text-sm font-semibold">Total Qty: {totalQty.toFixed(2)}</p>
+                                    <p className="text-sm font-semibold">
+                                        {t('repTotalText')} {t('repQuantityHeader')}: {totalQty.toFixed(2)}
+                                    </p>
 
                                     <div className="text-sm">
                                         {qtyByUnit.map(([unit, qty]) => (
@@ -185,20 +191,20 @@ export default function SaleCategoryReport({
                         {/* Buttons */}
                         <div className="mt-4 flex justify-end gap-2 print:hidden">
                             <Button variant="outline" onClick={handlePrint}>
-                                <Printer className="mr-2 h-4 w-4" /> Print
+                                <Printer className="mr-2 h-4 w-4" /> {t('repPrintText')}
                             </Button>
                             <a
                                 href={route('reports.sale.export', { tab: 'category', type: 'pdf', ...filters })}
                                 target="_blank"
                                 className="inline-flex items-center gap-1 rounded-md border px-4 py-2 text-sm hover:bg-gray-100"
                             >
-                                <FileText className="h-4 w-4" /> Save PDF
+                                <FileText className="h-4 w-4" /> {t('repSaveAsPdfText')}
                             </a>
                             <a
                                 href={route('reports.sale.export', { tab: 'category', type: 'xlsx', ...filters })}
                                 className="inline-flex items-center gap-1 rounded-md border px-4 py-2 text-sm hover:bg-gray-100"
                             >
-                                <FileSpreadsheet className="h-4 w-4" /> Export Excel
+                                <FileSpreadsheet className="h-4 w-4" /> {t('repSaveAsExcelText')}
                             </a>
                         </div>
                     </CardContent>
