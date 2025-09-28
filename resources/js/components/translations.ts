@@ -28,6 +28,7 @@ export const translations = {
         mainPriceLabel: 'Unit Price',
         discountLabel: 'Discount',
         discountTypeLabel: 'Discount Type',
+        typeLabel: "Type",
         subtotalLabel: 'Subtotal',
         noteLabel: 'Note',
         shippingDetailsHeader: 'Shipping & Truck Details',
