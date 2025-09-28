@@ -6,6 +6,32 @@
 @push('styles')
     {{-- If you had ./style/index.css, move it to public/style/index.css or compile it; then reference: --}}
     <link rel="stylesheet" href="{{ asset('style/index.css') }}" />
+
+    {{-- Custom Font Declarations --}}
+    <style>
+        @font-face {
+            font-family: 'LiAdorNoirritEnglish';
+            src: url('{{ asset('assets/fonts/LiAdorNoirritMultiweight/ANSI V2/Li Ador Noirrit A-V2 Regular.ttf') }}') format('truetype');
+            font-weight: normal;
+            font-style: normal;
+        }
+
+        @font-face {
+            font-family: 'LiAdorNoirritBangla';
+            src: url('{{ asset('assets/fonts/LiAdorNoirritMultiweight/Unicode/Li Ador Noirrit Regular.ttf') }}') format('truetype');
+            font-weight: normal;
+            font-style: normal;
+        }
+
+        /* Language-based font switching */
+        /* .font-english {
+            font-family: 'LiAdorNoirritEnglish', ui-sans-serif, system-ui, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol', 'Noto Color Emoji';
+        } */
+
+        .font-bangla {
+            font-family: 'LiAdorNoirritBangla', ui-sans-serif, system-ui, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol', 'Noto Color Emoji';
+        }
+    </style>
 @endpush
 
 @section('body')
@@ -40,7 +66,7 @@
                         <span class="lang-en">Contact</span>
                         <span class="lang-bn" style="display:none">যোগাযোগ</span>
                     </a>
-                    <a href="{{route('privacy-policy')}}" class="font-semibold dark:text-white">
+                    <a href="{{ route('privacy-policy') }}" class="font-semibold dark:text-white">
                         <span class="lang-en">Privacy-Policy</span>
                         <span class="lang-bn" style="display:none">গোপনীয়তা নীতি</span>
                     </a>
@@ -117,7 +143,8 @@
                 </li>
                 <li><a href="#pricing"
                         class="block px-3 py-2 rounded hover:bg-gray-50 dark:hover:bg-gray-800 dark:text-white lang-en">Pricing</a>
-                    <a href="#pricing" class="font-semibold dark:text-white lang-bn" style="display:none">মূল্য নির্ধারণ</a>
+                    <a href="#pricing" class="font-semibold dark:text-white lang-bn" style="display:none">মূল্য
+                        নির্ধারণ</a>
                 </li>
                 <li><a href="#footer"
                         class="block px-3 py-2 rounded hover:bg-gray-50 dark:hover:bg-gray-800 dark:text-white lang-en">Contact</a>
@@ -150,32 +177,29 @@
                         <div class="panel gap-2 sm:text-center lg:text-start rtl:lg:text-end py-4">
                             <h1
                                 class="text-2xl md:text-3xl xl:text-5xl font-bold mb-1 xl:mb-2 opacity-0 translate-y-8 transition-all duration-700 banner-animate dark:text-white">
-                                <span class="lang-en">Auto Rice Mill ERP -</span>
-                                <span class="lang-bn" style="display:none">অটো রাইস মিল ইআরপি -</span>
+                                {{-- <span class="lang-en">Auto Rice Mill ERP -</span>
+                                <span class="lang-bn" style="display:none">অটো রাইস মিল ইআরপি -</span> --}}
 
-                                <span class="text-bgPrimary dark:text-white lang-en">The All-in-One Platform for Industry
-                                    Leaders</span>
-                                <span class="text-bgPrimary dark:text-white lang-bn" style="display:none">শিল্প নেতাদের
-                                    জন্য
-                                    সর্বাত্মক প্ল্যাটফর্ম</span>
+                                <span class="text-bgPrimary dark:text-white lang-en">All In One Auto Rice Mill Software
+                                    ERP</span>
+                                <span class="text-bgPrimary dark:text-white lang-bn" style="display:none">অল ইন ওয়ান অটো
+                                    রাইস মিল সফটওয়্যার ইআরপি</span>
                             </h1>
                             <p
                                 class="text-justify md:text-left text-sm lg:text-base text-dark dark:text-white text-opacity-70 opacity-0 translate-y-8 transition-all duration-700 banner-animate py-4">
-                                <span class="lang-en">Ricemill ERP seamlessly integrates every aspect of your
-                                    operation—from procurement and
-                                    milling to inventory, sales, and finance—onto a single, intuitive dashboard. Move beyond
-                                    guesswork and unlock new levels of profitability with real-time data and analytics
-                                    designed
-                                    to optimize recovery rates, reduce waste, and cultivate a more sustainable
-                                    business.</span>
-                                <span class="lang-bn" style="display:none">রাইসমিল ইআরপি আপনার কার্যক্রমের প্রতিটি দিককে
-                                    নির্বিঘ্নে একীভূত করে - ক্রয় এবং মিলিং থেকে
-                                    শুরু করে ইনভেন্টরি, বিক্রয় এবং অর্থায়ন - একটি একক, স্বজ্ঞাত ড্যাশবোর্ডে। অনুমানের
-                                    বাইরে
-                                    যান এবং পুনরুদ্ধারের হার অপ্টিমাইজ করার জন্য, অপচয় কমাতে এবং আরও টেকসই ব্যবসা গড়ে
-                                    তোলার
-                                    জন্য ডিজাইন করা রিয়েল-টাইম ডেটা এবং বিশ্লেষণের মাধ্যমে লাভের নতুন স্তর আনলক
-                                    করুন।</span>
+                                <span class="lang-en">Run your rice mill smarter with Rice mill ERP. Our easy to use
+                                    software connects everything procurement, milling, inventory, sales, and finance on one
+                                    clean dashboard.
+                                    No more guesswork. Get real time data and insights that help you increase recovery
+                                    rates, cut down waste, and maximize profits. With Rice mill software, you can streamline
+                                    daily operations, save time, and grow a more sustainable business.</span>
+                                <span class="lang-bn" style="display:none">রাইসমিল ইআরপির সাথে আপনার রাইসমিলকে আরও
+                                    স্মার্টলি চালান। আমাদের ব্যবহার করা সহজ সফ্টওয়্যার ক্রয়, মিলিং, ইনভেন্টরি, বিক্রয় এবং
+                                    অর্থায়নকে একটি পরিষ্কার ড্যাশবোর্ডে সংযুক্ত করে। আর অনুমান কাজ নেই। বাস্তব সময়ের ডেটা
+                                    এবং অন্তর্দৃষ্টি পান যা আপনাকে রিকভারি রেট বৃদ্ধি করতে, বর্জ্য কমাতে এবং লাভ সর্বাধিক
+                                    করতে সাহায্য করে। রাইসমিল সফ্টওয়্যার দিয়ে, আপনি দৈনিক অপারেশনগুলি সহজতর করতে, সময়
+                                    বাঁচাতে এবং আরও টেকসই ব্যবসা বৃদ্ধি করতে পারেন।</span>
+                                {{-- <span class="lang-bn" style="display:none"></span> --}}
                             </p>
 
                             <form method="" action=""
@@ -198,7 +222,7 @@
                                 <span class="lang-bn" style="display:none">আমরা আপনার ডেটা সম্পর্কে যত্নশীল আমাদের</span>
 
                                 <a class="underline text-bgPrimary dark:text-white hover:text-primary-700 dark:hover:text-primary-300 transition-colors duration-200"
-                                    href="{{route('privacy-policy')}}"><span class="lang-en">privacy policy</span>
+                                    href="{{ route('privacy-policy') }}"><span class="lang-en">privacy policy</span>
                                     <span class="lang-bn" style="display:none">গোপনীয়তা নীতি</span>
                                 </a>.
                             </p>
@@ -1374,7 +1398,8 @@
                         <span class="lang-bn hidden">রাইসমিল ইআরপি © ২০২৫, সকল অধিকার সংরক্ষিত।</span>
                     </div>
                     <div class="flex flex-col md:flex-row md:items-center gap-4 md:gap-8 text-center md:text-left">
-                        <a href="{{route('privacy-policy')}}" class="text-gray-700 hover:text-[#B71F25] transition-colors duration-300">
+                        <a href="{{ route('privacy-policy') }}"
+                            class="text-gray-700 hover:text-[#B71F25] transition-colors duration-300">
                             <span class="lang-en">Privacy Policy</span>
                             <span class="lang-bn" style="display: none;">গোপনীয়তা নীতি</span>
                         </a>
@@ -1448,6 +1473,16 @@
             document.querySelectorAll('[id^="langToggleBtn"]').forEach(btn => {
                 btn.textContent = lang === 'en' ? 'বাংলা' : 'Eng:';
             });
+
+            // Apply font class based on language
+            const body = document.body;
+            if (lang === 'bn') {
+                body.classList.remove('font-english');
+                body.classList.add('font-bangla');
+            } else {
+                body.classList.remove('font-bangla');
+                body.classList.add('font-english');
+            }
         }
 
         // Copy to clipboard function
@@ -1488,6 +1523,10 @@
         // Attach event listeners to all toggle buttons
         document.addEventListener('DOMContentLoaded', function() {
             let currentLang = 'en';
+
+            // Set initial font class
+            document.body.classList.add('font-english');
+
             document.querySelectorAll('[id^="langToggleBtn"]').forEach(btn => {
                 btn.addEventListener('click', function() {
                     currentLang = currentLang === 'en' ? 'bn' : 'en';
