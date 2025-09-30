@@ -2,6 +2,7 @@ import ActionFooter from '@/components/ActionFooter';
 import InputCalendar from '@/components/Btn&Link/InputCalendar';
 import PageHeader from '@/components/PageHeader';
 import { Input } from '@/components/ui/input';
+import { useTranslation } from '@/components/useTranslation';
 import AppLayout from '@/layouts/app-layout';
 import { Head, useForm } from '@inertiajs/react';
 
@@ -54,6 +55,7 @@ interface Props {
 }
 
 export default function Create({ employees, receivedModes, salarySlipEmployees }: Props) {
+    const t = useTranslation();
     const todayIso = dayjs().format('YYYY-MM-DD');
     const vchNo = `SR-${dayjs().format('DDMMYYYY')}-${Math.floor(1000 + Math.random() * 9000)}`;
 
@@ -122,37 +124,37 @@ export default function Create({ employees, receivedModes, salarySlipEmployees }
 
     return (
         <AppLayout>
-            <Head title="Create Salary Receive" />
+            <Head title={t('srCreateTitle')} />
 
             <div className="h-full w-screen p-4 md:p-12 lg:w-full">
                 <div className="h-full rounded-lg">
-                    <PageHeader title="Create Salary Receive" addLinkHref="/salary-receives" addLinkText="Back" />
+                    <PageHeader title={t('srCreateTitle')} addLinkHref="/salary-receives" addLinkText={t('srBackButton')} />
 
                     <form onSubmit={handleSubmit} className="bg-background space-y-6 rounded-lg border p-6">
                         <div className="grid gap-4 md:grid-cols-2">
                             {/* Voucher No */}
                             <div>
-                                <label className="mb-1 block font-medium">Voucher No</label>
+                                <label className="mb-1 block font-medium">{t('srVoucherNoLabel')}</label>
                                 <Input type="text" value={data.vch_no} onChange={(e) => setData('vch_no', e.target.value)} required />
                                 {errors.vch_no && <div className="text-red-600">{errors.vch_no}</div>}
                             </div>
 
                             {/* Date */}
                             <div>
-                                <InputCalendar value={data.date} label="Date" onChange={(val) => setData('date', val)} />
+                                <InputCalendar value={data.date} label={t('srDateLabel')} onChange={(val) => setData('date', val)} />
                                 {errors.date && <div className="text-red-600">{errors.date}</div>}
                             </div>
 
                             {/* Employee */}
                             <div>
-                                <label className="block font-medium">Employee</label>
+                                <label className="block font-medium">{t('srEmployeeLabel')}</label>
                                 <select
                                     value={data.employee_id}
                                     onChange={(e) => setData('employee_id', e.target.value)}
                                     className="w-full rounded border px-3 py-2"
                                     required
                                 >
-                                    <option value="">Select Employee</option>
+                                    <option value="">{t('srSelectEmployeeOption')}</option>
                                     {employees.map((emp) => (
                                         <option key={emp.id} value={emp.id}>
                                             {emp.name}
@@ -164,14 +166,14 @@ export default function Create({ employees, receivedModes, salarySlipEmployees }
 
                             {/* Received Mode */}
                             <div>
-                                <label className="block font-medium">Received By</label>
+                                <label className="block font-medium">{t('srReceivedByLabel')}</label>
                                 <select
                                     value={data.received_by}
                                     onChange={(e) => setData('received_by', e.target.value)}
                                     className="w-full rounded border px-3 py-2"
                                     required
                                 >
-                                    <option value="">Select Mode</option>
+                                    <option value="">{t('srSelectModeOption')}</option>
                                     {receivedModes.map((mode) => (
                                         <option key={mode.id} value={mode.id}>
                                             {mode.mode_name}
@@ -183,14 +185,14 @@ export default function Create({ employees, receivedModes, salarySlipEmployees }
 
                             {/* Slip line (filtered by employee) */}
                             <div className="">
-                                <label className="block font-medium">Salary Slip (required)</label>
+                                <label className="block font-medium">{t('srSalarySlipLabel')}</label>
                                 <select
                                     value={data.salary_slip_employee_id}
                                     onChange={(e) => setData('salary_slip_employee_id', e.target.value)}
                                     className="w-full rounded border px-3 py-2"
                                     required
                                 >
-                                    <option value="">Select Salary Slip</option>
+                                    <option value="">{t('srSelectSalarySlipOption')}</option>
                                     {slipsForEmployee.map((s) => {
                                         const label = [
                                             s.salary_slip.voucher_number,
@@ -213,30 +215,40 @@ export default function Create({ employees, receivedModes, salarySlipEmployees }
                                 {/* Inline slip summary */}
                                 {selectedSlip && (
                                     <div className="mt-2 flex flex-wrap items-center gap-2 text-sm">
-                                        <span className="rounded bg-gray-100 px-2 py-1">Slip: {selectedSlip.salary_slip.voucher_number}</span>
+                                        <span className="rounded bg-gray-100 px-2 py-1">
+                                            {t('srSlipLabel')}: {selectedSlip.salary_slip.voucher_number}
+                                        </span>
                                         {selectedSlip.salary_slip.month && selectedSlip.salary_slip.year && (
                                             <span className="rounded bg-gray-100 px-2 py-1">
-                                                Period: {selectedSlip.salary_slip.month}/{selectedSlip.salary_slip.year}
+                                                {t('srPeriodLabel')}: {selectedSlip.salary_slip.month}/{selectedSlip.salary_slip.year}
                                             </span>
                                         )}
-                                        <span className="rounded bg-gray-100 px-2 py-1">Status: {selectedSlip.status}</span>
-                                        <span className="rounded bg-blue-50 px-2 py-1">Total: ৳{selectedSlip.total.toLocaleString()}</span>
-                                        <span className="rounded bg-yellow-50 px-2 py-1">Paid: ৳{selectedSlip.paid.toLocaleString()}</span>
-                                        <span className="rounded bg-green-50 px-2 py-1">Remaining: ৳{selectedSlip.remaining.toLocaleString()}</span>
+                                        <span className="rounded bg-gray-100 px-2 py-1">
+                                            {t('srStatusLabel')}: {selectedSlip.status}
+                                        </span>
+                                        <span className="rounded bg-blue-50 px-2 py-1">
+                                            {t('srTotalLabel')}: ৳{selectedSlip.total.toLocaleString()}
+                                        </span>
+                                        <span className="rounded bg-yellow-50 px-2 py-1">
+                                            {t('srPaidLabel')}: ৳{selectedSlip.paid.toLocaleString()}
+                                        </span>
+                                        <span className="rounded bg-green-50 px-2 py-1">
+                                            {t('srRemainingLabel')}: ৳{selectedSlip.remaining.toLocaleString()}
+                                        </span>
                                     </div>
                                 )}
                             </div>
 
                             {/* Amount */}
                             <div>
-                                <label className="block font-medium">Amount</label>
+                                <label className="block font-medium">{t('srAmountLabel')}</label>
                                 <Input type="number" step="0.01" value={data.amount} onChange={(e) => setData('amount', e.target.value)} required />
                                 {errors.amount && <div className="text-red-600">{errors.amount}</div>}
                             </div>
 
                             {/* Description */}
                             <div className="md:col-span-2">
-                                <label className="block font-medium">Description</label>
+                                <label className="block font-medium">{t('srDescriptionLabel')}</label>
                                 <textarea
                                     value={data.description}
                                     onChange={(e) => setData('description', e.target.value)}
@@ -251,8 +263,8 @@ export default function Create({ employees, receivedModes, salarySlipEmployees }
                             onSubmit={handleSubmit}
                             cancelHref="/salary-receives"
                             processing={processing}
-                            submitText="Save Salary Receive"
-                            cancelText="Cancel"
+                            submitText={t('srSaveButton')}
+                            cancelText={t('srCancelButton')}
                         />
                     </form>
                 </div>

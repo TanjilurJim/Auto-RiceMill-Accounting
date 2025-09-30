@@ -8,6 +8,8 @@ import axios from 'axios';
 import dayjs from 'dayjs';
 import { useEffect, useState } from 'react';
 
+import { useTranslation } from '@/components/useTranslation';
+
 const scrollToFirstError = (errors: Record<string, any>) => {
     const firstField = Object.keys(errors)[0];
     if (firstField) {
@@ -70,6 +72,7 @@ export default function PurchaseCreate({
     receivedModes: ReceivedMode[]; // 👈
     stockItemsByGodown: { [k: number]: StockRow[] }; //  👈  NEW
 }) {
+    const t = useTranslation();
     const { data, setData, post, processing, errors } = useForm({
         date: '',
         voucher_no: '',
@@ -251,28 +254,33 @@ export default function PurchaseCreate({
     console.log(godownItems);
     return (
         <AppLayout>
-            <Head title="Add Purchase" />
+            <Head title={t('purchase-add-title')} />
             <div className="bg-background h-full w-screen p-6 lg:w-full">
                 <div className="bg-background h-full rounded-lg p-6">
-                    <PageHeader title="Purchase Information" addLinkHref="/purchases" addLinkText="Back" />
+                    <PageHeader title={t('purchase-info-header')} addLinkHref="/purchases" addLinkText={t('purchase-back-button')} />
 
                     {/* Form Card */}
                     <form onSubmit={handleSubmit} className="bg-background space-y-6 rounded-lg border p-6 shadow-md">
                         {/* Section 1 - Purchase Info */}
                         <div className="space-y-4">
-                            <h2 className="border-b pb-1 text-lg font-semibold">Purchase Information</h2>
+                            <h2 className="border-b pb-1 text-lg font-semibold">{t('purchase-info-header')}</h2>
                             <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
                                 {/* Date & Voucher No in same row */}
                                 <div className="flex flex-col gap-2 md:col-span-2 md:flex-row">
                                     <div className="flex-1">
-                                        <InputCalendar value={data.date} onChange={(val) => setData('date', val)} label="Date" required />
+                                        <InputCalendar
+                                            value={data.date}
+                                            onChange={(val) => setData('date', val)}
+                                            label={t('purchase-date-label')}
+                                            required
+                                        />
                                     </div>
                                     <div className="flex flex-1 flex-col justify-end">
-                                        <label className="invisible mb-1 block text-sm font-medium md:visible">Voucher No</label>
+                                        <label className="invisible mb-1 block text-sm font-medium md:visible">{t('purchase-voucher-label')}</label>
                                         <input
                                             type="text"
                                             className="w-full border p-2"
-                                            placeholder="Voucher No"
+                                            placeholder={t('purchase-voucher-label')}
                                             value={data.voucher_no}
                                             onChange={(e) => setData('voucher_no', e.target.value)}
                                             readOnly
@@ -282,7 +290,7 @@ export default function PurchaseCreate({
                                 </div>
                                 {/* Godown */}
                                 <div>
-                                    <label className="invisible mb-1 block text-sm font-medium md:visible">Godown</label>
+                                    <label className="invisible mb-1 block text-sm font-medium md:visible">{t('purchase-godown-label')}</label>
                                     <select
                                         name="godown_id" //  👈 name is important for scroll
                                         className={cn(
@@ -292,7 +300,7 @@ export default function PurchaseCreate({
                                         value={data.godown_id}
                                         onChange={(e) => setData('godown_id', e.target.value)}
                                     >
-                                        <option value="">Select Godown</option>
+                                        <option value="">{t('purchase-select-godown')}</option>
                                         {godowns.map((g) => (
                                             <option key={g.id} value={g.id}>
                                                 {g.name}
@@ -305,13 +313,13 @@ export default function PurchaseCreate({
 
                                 {/* Salesman */}
                                 <div>
-                                    <label className="invisible mb-1 block text-sm font-medium md:visible">Salesman</label>
+                                    <label className="invisible mb-1 block text-sm font-medium md:visible">{t('purchase-salesman-label')}</label>
                                     <select
                                         className="w-full border p-2"
                                         value={data.salesman_id}
                                         onChange={(e) => setData('salesman_id', e.target.value)}
                                     >
-                                        <option value="">Select Salesman</option>
+                                        <option value="">{t('purchase-select-salesman')}</option>
                                         {salesmen.map((s) => (
                                             <option key={s.id} value={s.id}>
                                                 {s.name}
@@ -322,7 +330,7 @@ export default function PurchaseCreate({
 
                                 <div>
                                     {/* Party Ledger */}
-                                    <label className="invisible mb-1 block text-sm font-medium md:visible">Party Ledger</label>
+                                    <label className="invisible mb-1 block text-sm font-medium md:visible">{t('purchase-party-ledger-label')}</label>
                                     <select
                                         className="h-fit w-full border p-2"
                                         value={data.account_ledger_id}
@@ -332,7 +340,7 @@ export default function PurchaseCreate({
                                             fetchBalance(val, 'party'); // ☑ now hits the new route
                                         }}
                                     >
-                                        <option value="">Select Supplier Ledger</option>
+                                        <option value="">{t('purchase-select-supplier')}</option>
                                         {ledgers.map((l) => (
                                             <option key={l.id} value={l.id}>
                                                 {l.account_ledger_name}
@@ -343,14 +351,16 @@ export default function PurchaseCreate({
                                     {/* Party balance label – put directly after the select */}
                                     {partyBalance !== null && (
                                         <div className="text-foreground col-span-2 py-0.5 text-xs">
-                                            Party Balance: {Number(partyBalance).toFixed(2)}
+                                            {t('purchase-party-balance')}: {Number(partyBalance).toFixed(2)}
                                         </div>
                                     )}
                                 </div>
 
                                 {/* Inventory Ledger */}
                                 <div>
-                                    <label className="invisible mb-1 block text-sm font-medium md:visible">Inventory Ledger</label>
+                                    <label className="invisible mb-1 block text-sm font-medium md:visible">
+                                        {t('purchase-inventory-ledger-label')}
+                                    </label>
 
                                     <div className="flex h-fit w-full flex-col items-center gap-2 md:flex-row">
                                         <select
@@ -358,7 +368,7 @@ export default function PurchaseCreate({
                                             value={data.inventory_ledger_id}
                                             onChange={(e) => setData('inventory_ledger_id', e.target.value)}
                                         >
-                                            <option value="">Select Inventory Ledger</option>
+                                            <option value="">{t('purchase-select-inventory')}</option>
                                             {inventoryLedgerOptions.map((l) => (
                                                 <option key={l.id} value={l.id}>
                                                     {l.account_ledger_name}
@@ -368,7 +378,7 @@ export default function PurchaseCreate({
 
                                         {inventoryBalance !== null && (
                                             <div className="text-foreground mt-1 text-xs">
-                                                Inventory Balance: {Number(inventoryBalance).toFixed(2)}
+                                                {t('purchase-inventory-balance')}: {Number(inventoryBalance).toFixed(2)}
                                             </div>
                                         )}
 
@@ -378,28 +388,28 @@ export default function PurchaseCreate({
                                             className="h-full w-full rounded bg-blue-500 p-2 text-white"
                                             onClick={() => setShowLedgerModal(true)}
                                         >
-                                            + Create New Ledger
+                                            {t('purchase-create-ledger-button')}
                                         </button>
                                     </div>
                                 </div>
 
                                 {/* Phone and Address Inputs */}
                                 <div>
-                                    <label className="invisible mb-1 block text-sm font-medium md:visible">Phone</label>
+                                    <label className="invisible mb-1 block text-sm font-medium md:visible">{t('purchase-phone-label')}</label>
                                     <input
                                         type="text"
                                         className="w-full border p-2"
-                                        placeholder="Phone"
+                                        placeholder={t('purchase-phone-placeholder')}
                                         value={data.phone}
                                         onChange={(e) => setData('phone', e.target.value)}
                                     />
                                 </div>
                                 <div>
-                                    <label className="invisible mb-1 block text-sm font-medium md:visible">Address</label>
+                                    <label className="invisible mb-1 block text-sm font-medium md:visible">{t('purchase-address-label')}</label>
                                     <input
                                         type="text"
                                         className="w-full border p-2"
-                                        placeholder="Address"
+                                        placeholder={t('purchase-address-placeholder')}
                                         value={data.address}
                                         onChange={(e) => setData('address', e.target.value)}
                                     />
@@ -409,20 +419,20 @@ export default function PurchaseCreate({
 
                         {/* Section 2 - Product Table */}
                         <div>
-                            <h2 className="bg-background/80 mb-3 border-b pb-1 text-lg font-semibold">Products</h2>
+                            <h2 className="bg-background/80 mb-3 border-b pb-1 text-lg font-semibold">{t('purchase-products-header')}</h2>
                             <div className="overflow-x-auto rounded border">
                                 <table className="min-w-full text-left">
                                     <thead className="bg-text-foreground text-sm">
                                         <tr>
-                                            <th className="border px-2 py-1">Product</th>
-                                            <th className="border px-2 py-1">Lot No</th>
-                                            <th className="border px-2 py-1">Qty</th>
-                                            <th className="border px-2 py-1">Bosta Weight (kg)</th>
-                                            <th className="border px-2 py-1">Rate</th>
-                                            <th className="border px-2 py-1">Discount</th>
-                                            <th className="border px-2 py-1">Type</th>
-                                            <th className="border px-2 py-1">Subtotal</th>
-                                            <th className="border px-2 py-1 text-center">Action</th>
+                                            <th className="border px-2 py-1">{t('purchase-product-column')}</th>
+                                            <th className="border px-2 py-1">{t('purchase-lot-column')}</th>
+                                            <th className="border px-2 py-1">{t('purchase-qty-column')}</th>
+                                            <th className="border px-2 py-1">{t('purchase-weight-column')}</th>
+                                            <th className="border px-2 py-1">{t('purchase-rate-column')}</th>
+                                            <th className="border px-2 py-1">{t('purchase-discount-column')}</th>
+                                            <th className="border px-2 py-1">{t('purchase-type-column')}</th>
+                                            <th className="border px-2 py-1">{t('purchase-subtotal-column')}</th>
+                                            <th className="border px-2 py-1 text-center">{t('purchase-action-column')}</th>
                                         </tr>
                                     </thead>
                                     <tbody>
@@ -472,7 +482,7 @@ export default function PurchaseCreate({
                                                         className="w-full"
                                                         value={item.lot_no}
                                                         onChange={(e) => handleItemChange(index, 'lot_no', e.target.value)}
-                                                        placeholder="e.g. BATCH-23"
+                                                        placeholder={t('purchase-lot-placeholder')}
                                                         required
                                                     />
                                                 </td>
@@ -560,12 +570,12 @@ export default function PurchaseCreate({
 
                         {/* Payment Info Section */}
                         <div className="mt-8 space-y-4 border-t pt-4">
-                            <h2 className="text-lg font-semibold">Payment Info</h2>
+                            <h2 className="text-lg font-semibold">{t('purchase-payment-info-header')}</h2>
 
                             <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                                 {/* Payment Mode */}
                                 <div className="col-span-1">
-                                    <label className="text-foreground block text-sm font-medium">Payment Mode</label>
+                                    <label className="text-foreground block text-sm font-medium">{t('purchase-payment-mode-label')}</label>
                                     <select
                                         className="w-full rounded border p-2"
                                         value={data.received_mode_id}
@@ -581,7 +591,7 @@ export default function PurchaseCreate({
                                             }
                                         }}
                                     >
-                                        <option value="">Select Payment Mode</option>
+                                        <option value="">{t('purchase-select-payment-mode')}</option>
                                         {receivedModes.map((mode) => (
                                             <option key={mode.id} value={mode.id}>
                                                 {mode.mode_name}
@@ -590,18 +600,18 @@ export default function PurchaseCreate({
                                     </select>
                                     {paymentLedgerBalance !== null && (
                                         <div className="text-foreground mt-1 w-full text-xs">
-                                            Payment Ledger Balance: {Number(paymentLedgerBalance).toFixed(2)}
+                                            {t('purchase-payment-balance')}: {Number(paymentLedgerBalance).toFixed(2)}
                                         </div>
                                     )}
                                 </div>
 
                                 {/* Amount Paid */}
                                 <div className="col-span-1">
-                                    <label className="text-foreground block text-sm font-medium">Amount Paid</label>
+                                    <label className="text-foreground block text-sm font-medium">{t('purchase-amount-paid-label')}</label>
                                     <input
                                         type="number"
                                         className="w-full rounded border p-2"
-                                        placeholder="Amount Paid"
+                                        placeholder={t('purchase-amount-paid-placeholder')}
                                         value={data.amount_paid}
                                         onChange={(e) => {
                                             const val = e.target.value;
@@ -616,7 +626,7 @@ export default function PurchaseCreate({
 
                                 {/* Remaining Due */}
                                 <div className="col-span-1 text-xs text-red-600 sm:col-span-2 lg:col-span-3">
-                                    <label className="text-foreground block text-sm font-medium">Remaining Due</label>
+                                    <label className="text-foreground block text-sm font-medium">{t('purchase-remaining-due-label')}</label>
                                     <div>{remainingDue.toFixed(2)}</div>
                                 </div>
                             </div>
@@ -627,19 +637,19 @@ export default function PurchaseCreate({
                         <div className="mt-6">
                             <div className="grid-cols- grid gap-6 md:grid-cols-3">
                                 <div className="bg-text-foreground flex justify-between rounded border p-3 shadow-sm">
-                                    <span className="text-foreground font-semibold">Item Qty Total:</span>
+                                    <span className="text-foreground font-semibold">{t('purchase-item-qty-total')}:</span>
                                     <span className="font-semibold">
                                         {data.purchase_items.reduce((sum, item) => sum + (parseFloat(item.qty) || 0), 0)}
                                     </span>
                                 </div>
                                 <div className="bg-text-foreground flex justify-between rounded border p-3 shadow-sm">
-                                    <span className="text-foreground font-semibold">Total Discount:</span>
+                                    <span className="text-foreground font-semibold">{t('purchase-total-discount')}:</span>
                                     <span className="font-semibold">
                                         {data.purchase_items.reduce((sum, item) => sum + (parseFloat(item.discount) || 0), 0)}
                                     </span>
                                 </div>
                                 <div className="bg-text-foreground flex justify-between rounded border p-3 shadow-sm">
-                                    <span className="text-foreground font-semibold">All Total Amount:</span>
+                                    <span className="text-foreground font-semibold">{t('purchase-total-amount')}:</span>
                                     <span className="font-semibold">
                                         {data.purchase_items.reduce((sum, item) => sum + (parseFloat(item.subtotal) || 0), 0)}
                                     </span>
@@ -651,7 +661,7 @@ export default function PurchaseCreate({
                         <div className="col-span-2 grid grid-cols-1 gap-4 space-y-4 md:grid-cols-2">
                             {/* using this for supplier info and shipping details */}
                             <div>
-                                <label className="text-foreground mb-1 block font-semibold">Supplier Info</label>
+                                <label className="text-foreground mb-1 block font-semibold">{t('purchase-supplier-info-label')}</label>
                                 <textarea
                                     className="bg-background/80 w-full rounded border p-2 shadow-sm focus:ring-1 focus:ring-blue-500 focus:outline-none"
                                     rows={3}
@@ -660,7 +670,7 @@ export default function PurchaseCreate({
                                 ></textarea>
                             </div>
                             <div className="">
-                                <label className="text-foreground mb-1 block font-semibold">Shipping Details</label>
+                                <label className="text-foreground mb-1 block font-semibold">{t('purchase-shipping-details-label')}</label>
                                 <textarea
                                     className="bg-background w-full rounded border p-2 shadow-sm focus:ring-1 focus:ring-blue-500 focus:outline-none"
                                     rows={3}
@@ -676,27 +686,27 @@ export default function PurchaseCreate({
                             onSubmit={handleSubmit}
                             cancelHref="/purchases"
                             processing={processing}
-                            submitText={processing ? 'Saving...' : 'Save'}
+                            submitText={processing ? t('purchase-saving-button') : t('purchase-save-button')}
                             // saveAndPrintText="Save & Print"
-                            cancelText="Cancel"
+                            cancelText={t('purchase-cancel-button')}
                         />
                     </form>
                     {/* Ledger Modal */}
                     {showLedgerModal && (
                         <div className="bg-opacity-50 fixed inset-0 z-50 flex items-center justify-center bg-black">
-                            <div className="w-full max-w-md rounded bg-background p-6 shadow-lg">
-                                <h2 className="text-foreground mb-4 text-lg font-semibold">Create New Inventory Ledger</h2>
+                            <div className="bg-background w-full max-w-md rounded p-6 shadow-lg">
+                                <h2 className="text-foreground mb-4 text-lg font-semibold">{t('purchase-create-ledger-modal-title')}</h2>
 
                                 <input
                                     type="text"
-                                    placeholder="Ledger Name"
+                                    placeholder={t('purchase-ledger-name-placeholder')}
                                     className="mb-3 w-full rounded border p-2"
                                     value={newLedgerName}
                                     onChange={(e) => setNewLedgerName(e.target.value)}
                                 />
 
                                 <select className="mb-4 w-full rounded border p-2" value={newGroupId} onChange={(e) => setNewGroupId(e.target.value)}>
-                                    <option value="">Select Group</option>
+                                    <option value="">{t('purchase-select-group')}</option>
                                     {accountGroups.map((g) => (
                                         <option key={g.id} value={g.id}>
                                             {g.name}
@@ -706,7 +716,7 @@ export default function PurchaseCreate({
 
                                 <div className="flex justify-end gap-3">
                                     <button className="rounded bg-gray-400 px-4 py-2 text-white" onClick={() => setShowLedgerModal(false)}>
-                                        Cancel
+                                        {t('purchase-cancel-button')}
                                     </button>
 
                                     <button
@@ -735,11 +745,11 @@ export default function PurchaseCreate({
                                                 setShowLedgerModal(false);
                                             } catch (err) {
                                                 console.error(err);
-                                                alert('Failed to create ledger');
+                                                alert(t('purchase-create-ledger-error'));
                                             }
                                         }}
                                     >
-                                        Create Ledger
+                                        {t('purchase-create-ledger-confirm')}
                                     </button>
                                 </div>
                             </div>

@@ -113,7 +113,7 @@ export default function SaleIndex({ sales }: { sales: PaginatedSales }) {
                 )),
         },
         {
-            header: t('statusHeader'),
+            header: t('fyStatusHeader'),
             accessor: (row: Sale) => {
                 const statusMap: Record<string, string> = {
                     draft: t('draftBadge'),

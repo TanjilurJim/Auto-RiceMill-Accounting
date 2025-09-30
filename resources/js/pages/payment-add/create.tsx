@@ -169,7 +169,7 @@ export default function Create({ paymentModes, accountLedgers }: { paymentModes:
                                     <div>{t('accountLedgerLabel')}</div>
                                     <div>{t('amountHeader')}</div>
                                     <div>{t('newLedgerBalanceLabel')}</div>
-                                    <div>Remove</div>
+                                    <div>{t('pcsRemoveRowTitle')}</div>
                                 </div>
 
                                 {rows.map((row, index) => (

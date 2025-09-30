@@ -1,4 +1,5 @@
 import ActionFooter from '@/components/ActionFooter';
+import { useTranslation } from '@/components/useTranslation';
 import React, { FormEvent } from 'react';
 
 interface Props {
@@ -29,7 +30,6 @@ const Form: React.FC<Props> = ({
   onSubmit,
   processing,
   errors,
-  submitText = 'Save',
   cancelHref,
 }) => {
   const handleChange = (key: string, value: any) => setData(key, value);
@@ -39,6 +39,7 @@ const Form: React.FC<Props> = ({
   const labelCls = 'mb-1 block text-sm font-medium text-foreground';
   const optNoteCls = 'text-xs text-muted-foreground ml-1';
   const errCls = 'mt-1 text-xs text-rose-500';
+  const t = useTranslation();
 
   return (
     <form onSubmit={onSubmit} className="space-y-4 rounded-lg border bg-background p-6 text-foreground">
@@ -46,7 +47,7 @@ const Form: React.FC<Props> = ({
         {/* Dryer Name (Required) */}
         <div>
           <label htmlFor="dryer_name" className={labelCls}>
-            Dryer Name <span className="text-rose-500">*</span>
+            {t('dryerName')} <span className="text-rose-500">*</span>
           </label>
           <input
             id="dryer_name"
@@ -64,7 +65,7 @@ const Form: React.FC<Props> = ({
         {/* Dryer Type (Optional) */}
         <div>
           <label htmlFor="dryer_type" className={labelCls}>
-            Dryer Type <span className={optNoteCls}>(optional)</span>
+            {t('dryerType')} <span className={optNoteCls}>{t('optional')}</span>
           </label>
           <input
             id="dryer_type"
@@ -81,7 +82,7 @@ const Form: React.FC<Props> = ({
         {/* Capacity (Required) */}
         <div>
           <label htmlFor="capacity" className={labelCls}>
-            Capacity (tonnes) <span className="text-rose-500">*</span>
+            {t('dryerCapacity')} <span className="text-rose-500">*</span>
           </label>
           <input
             id="capacity"
@@ -119,14 +120,14 @@ const Form: React.FC<Props> = ({
       {/* Technical Specs */}
       <div className="mt-6 grid grid-cols-1 gap-4 md:grid-cols-2">
         {[
-          { id: 'manufacturer', label: 'Manufacturer', type: 'text' },
-          { id: 'model_number', label: 'Model Number', type: 'text' },
-          { id: 'power_kw', label: 'Power (kW)', type: 'number', inputMode: 'decimal', step: 'any' },
-          { id: 'fuel_type', label: 'Fuel Type', type: 'text' },
+          { id: 'manufacturer', label: t('dryerManufacturer'), type: 'text' },
+          { id: 'model_number', label: t('modelNumber'), type: 'text' },
+          { id: 'power_kw', label: t('powerKw'), type: 'number', inputMode: 'decimal', step: 'any' },
+          { id: 'fuel_type', label: t('fuelType'), type: 'text' },
         ].map((field) => (
           <div key={field.id}>
             <label htmlFor={field.id} className={labelCls}>
-              {field.label} <span className={optNoteCls}>(optional)</span>
+              {field.label} <span className={optNoteCls}>{t('optional')}</span>
             </label>
             <input
               id={field.id}
@@ -146,9 +147,9 @@ const Form: React.FC<Props> = ({
       {/* Physical Dimensions */}
       <div className="mt-6 grid grid-cols-1 gap-4 md:grid-cols-3">
         {[
-          { id: 'length_mm', label: 'Length (mm)' },
-          { id: 'width_mm', label: 'Width (mm)' },
-          { id: 'height_mm', label: 'Height (mm)' },
+          { id: 'length_mm', label: t('lengthmm') },
+          { id: 'width_mm', label: t('widthmm') },
+          { id: 'height_mm', label: t('heightmm') },
         ].map((field) => (
           <div key={field.id}>
             <label htmlFor={field.id} className={labelCls}>
@@ -173,8 +174,8 @@ const Form: React.FC<Props> = ({
         onSubmit={onSubmit}
         cancelHref={cancelHref}
         processing={processing}
-        submitText={submitText}
-        cancelText="Cancel"
+        submitText={t('pmCreateButton')}
+        cancelText={t('cancelText')}
       />
     </form>
   );

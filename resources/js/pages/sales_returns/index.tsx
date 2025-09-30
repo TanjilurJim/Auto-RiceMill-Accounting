@@ -37,7 +37,7 @@ export default function SalesReturnIndex({ salesReturns }: { salesReturns: Pagin
     const columns = [
         { header: t('slNo'), accessor: (_: SalesReturn, index?: number) => <span>{(index ?? 0) + 1}</span>, className: 'text-center' },
         { header: t('dateHeader'), accessor: 'return_date' },
-        { header: t('voucherNoHeader'), accessor: 'voucher_no' },
+        { header: t('saleVoucherNoHeader'), accessor: 'voucher_no' },
         { header: t('saleVoucherNoHeader'), accessor: (row: SalesReturn) => row.sale?.voucher_no ?? '—' },
         {
             header: t('ledgerHeader'),

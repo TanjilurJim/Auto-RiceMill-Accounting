@@ -82,13 +82,18 @@ export default function StockSummaryFilter({ godowns, categories, items }: Props
                                 <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
                                     {/* From Date */}
                                     <div>
-                                        <InputCalendar value={data.from} onChange={(val) => setData('from', val)} label="From Date" required />
+                                        <InputCalendar
+                                            value={data.from}
+                                            onChange={(val) => setData('from', val)}
+                                            label={t('fromDateLabel')}
+                                            required
+                                        />
                                         {errors.from && <p className="text-sm text-red-500">{errors.from}</p>}
                                     </div>
 
                                     {/* To Date */}
                                     <div>
-                                        <InputCalendar value={data.to} onChange={(val) => setData('to', val)} label="To Date" required />
+                                        <InputCalendar value={data.to} onChange={(val) => setData('to', val)} label={t('toDateLabel')} required />
                                         {errors.to && <p className="text-sm text-red-500">{errors.to}</p>}
                                     </div>
 

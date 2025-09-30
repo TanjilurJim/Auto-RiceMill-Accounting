@@ -17,7 +17,7 @@ export default function Index({ journals }: any) {
 
     const columns = [
         { header: t('dateHeader'), accessor: 'date' },
-        { header: t('voucherNoHeader'), accessor: 'voucher_no' },
+        { header: t('woVoucherNoHeader'), accessor: 'voucher_no' },
         {
             header: t('journalLedgerHeader'),
             accessor: (row: any) => (

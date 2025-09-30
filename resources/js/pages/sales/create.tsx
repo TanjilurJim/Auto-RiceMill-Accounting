@@ -335,7 +335,8 @@ export default function SaleCreate({
                                     <InputCalendar value={data.date} onChange={(val) => setData('date', val)} label={t('dateLabel')} required />
                                 </div>
                                 <div>
-                                    <Input type="text" className="bg-background w-full rounded border p-1" value={data.voucher_no} readOnly />
+                                    <label htmlFor="voucher_no">{t('voucherNoLabel')}</label>
+                                    <Input type="text" className="bg-background w-full rounded border p-1 mt-1" value={data.voucher_no} readOnly />
                                 </div>
                                 <div>
                                     <label className="text-foreground mb-1 block text-sm font-semibold">{t('cogsLedgerLabel')}</label>

@@ -7,6 +7,7 @@ import AppLayout from '@/layouts/app-layout'
 import PageHeader from '@/components/PageHeader'
 import { Head, router, useForm } from '@inertiajs/react'
 import dayjs from 'dayjs'
+import { useTranslation } from '@/components/useTranslation';
 export default function AllReceivedPaymentFilter() {
           const today = dayjs().format('YYYY-MM-DD');
 
@@ -19,7 +20,7 @@ export default function AllReceivedPaymentFilter() {
     e.preventDefault()
     router.get(route('reports.all-received-payment'), data, { preserveState: true })
   }
-
+const t = useTranslation();
   return (
     <AppLayout>
       <Head title="Received & Payment — Filter" />
@@ -38,7 +39,7 @@ export default function AllReceivedPaymentFilter() {
                     <InputCalendar
                       value={data.from_date}
                       onChange={val => setData('from_date', val)}
-                      label="From Date"
+                      label={t('fromDateLabel')}
                       required
                     />
                   </div>
@@ -46,7 +47,7 @@ export default function AllReceivedPaymentFilter() {
                     <InputCalendar
                       value={data.to_date}
                       onChange={val => setData('to_date', val)}
-                      label="To Date"
+                      label={t('toDateLabel')}
                       required
                     />
                   </div>

@@ -45,7 +45,7 @@ export default function SalaryReceiveIndex({ salaryReceives }: { salaryReceives:
     };
 
     const columns = [
-        { header: t('salSlLabel'), accessor: (_: any, index: number) => index + 1, className: 'text-center' },
+        { header: t('#'), accessor: (_: any, index: number) => index + 1, },
         { header: t('recVoucherNoLabel'), accessor: 'vch_no' },
         { header: t('dateLabel'), accessor: 'date' },
         { header: t('salEmployeeLabel'), accessor: (row: any) => row.employee.name },
@@ -71,7 +71,7 @@ export default function SalaryReceiveIndex({ salaryReceives }: { salaryReceives:
             <Head title={t('recSalaryReceivesTitle')} />
             <div className="h-full w-screen p-4 md:p-12 lg:w-full">
                 <div className="h-full rounded-lg bg-background">
-                    <PageHeader title={t('recSalaryReceivesTitle')} addLinkHref="/salary-receives/create" addLinkText={t('addNewText')} />
+                    <PageHeader title={t('recSalaryReceivesTitle')} addLinkHref="/salary-receives/create" addLinkText={t('hrAddNewText')} />
 
                     {/* Table */}
                     <TableComponent columns={columns} data={salaryReceives.data} noDataMessage={t('recNoSalaryReceivesMessage')} />

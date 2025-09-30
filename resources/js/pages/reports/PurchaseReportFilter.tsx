@@ -93,7 +93,7 @@ export default function PurchaseReportFilter({ tab, categories, items, suppliers
                                                 setData('from_date', val);
                                                 setData('year', '');
                                             }}
-                                            label="From Date"
+                                            label={t('fromDateLabel')}
                                             required={!data.year}
                                             disabled={!!data.year}
                                         />
@@ -108,7 +108,7 @@ export default function PurchaseReportFilter({ tab, categories, items, suppliers
                                                 setData('to_date', val);
                                                 setData('year', '');
                                             }}
-                                            label="To Date"
+                                            label={t('toDateLabel')}
                                             required={!data.year}
                                             disabled={!!data.year}
                                         />
@@ -131,7 +131,7 @@ export default function PurchaseReportFilter({ tab, categories, items, suppliers
                                                     }
                                                 }}
                                             >
-                                                <option value="">— All Years —</option>
+                                                <option value="">{t('allYears')}</option>
                                                 {Array.from({ length: 6 }, (_, i) => {
                                                     const year = new Date().getFullYear() + i;
                                                     return (

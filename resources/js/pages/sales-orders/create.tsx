@@ -134,7 +134,7 @@ export default function SalesOrderCreate({ ledgers, salesmen, products, units, g
                                 </div>
                                 <div>
                                     <label className="mb-1 block text-sm font-medium">{t('salesOrderVoucherNoLabel')}</label>
-                                    <input type="text" value={data.voucher_no} readOnly className="w-full rounded border  px-3 py-2" />
+                                    <input type="text" value={data.voucher_no} readOnly className="w-full rounded border px-3 py-2" />
                                 </div>
                                 <div>
                                     <label className="mb-1 block text-sm font-medium">{t('ledgerLabel')}</label>
@@ -169,13 +169,13 @@ export default function SalesOrderCreate({ ledgers, salesmen, products, units, g
                                 </div>
 
                                 <div>
-                                    <label className="mb-1 block text-sm font-medium">Godown</label>
+                                    <label className="mb-1 block text-sm font-medium">{t('soGodownLabel')}</label>
                                     <select
                                         value={data.godown_id}
                                         onChange={(e) => setData('godown_id', e.target.value)}
                                         className="w-full rounded border px-3 py-2"
                                     >
-                                        <option value="">Select Godown</option>
+                                        <option value="">{t('soSelectGodownOption')}</option>
                                         {godowns.map((g) => (
                                             <option key={g.id} value={g.id}>
                                                 {g.name}
@@ -188,19 +188,19 @@ export default function SalesOrderCreate({ ledgers, salesmen, products, units, g
 
                         {/* Product Items */}
                         <div>
-                            <h3 className="mb-3 text-lg font-semibold text-gray-700">Products</h3>
+                            <h3 className="mb-3 text-lg font-semibold text-gray-700">{t('productsHeader')}</h3>
                             <div className="overflow-x-auto">
                                 <table className="min-w-full border text-sm">
                                     <thead className="">
                                         <tr>
-                                            <th className="border px-2 py-2">Product</th>
-                                            <th className="border px-2 py-2">Qty</th>
-                                            <th className="border px-2 py-2">Unit</th>
-                                            <th className="border px-2 py-2">Rate</th>
-                                            <th className="border px-2 py-2">Discount</th>
-                                            <th className="border px-2 py-2">Type</th>
-                                            <th className="border px-2 py-2">Subtotal</th>
-                                            <th className="border px-2 py-2">Action</th>
+                                            <th className="border px-2 py-2">{t('soProductColumnHeader')}</th>
+                                            <th className="border px-2 py-2">{t('soQtyColumnHeader')}</th>
+                                            <th className="border px-2 py-2">{t('soUnitColumnHeader')}</th>
+                                            <th className="border px-2 py-2">{t('soRateColumnHeader')}</th>
+                                            <th className="border px-2 py-2">{t('soDiscountColumnHeader')}</th>
+                                            <th className="border px-2 py-2">{t('soTypeColumnHeader')}</th>
+                                            <th className="border px-2 py-2">{t('soSubtotalColumnHeader')}</th>
+                                            <th className="border px-2 py-2">{t('soActionColumnHeader')}</th>
                                         </tr>
                                     </thead>
                                     <tbody>
@@ -213,7 +213,7 @@ export default function SalesOrderCreate({ ledgers, salesmen, products, units, g
                                                         className="w-full rounded border px-1 py-1"
                                                         disabled={!data.godown_id}
                                                     >
-                                                        <option value="">Select</option>
+                                                        <option value="">{t('soSelectProductOption')}</option>
                                                         {/* {products.map((p) => (
                                                             <option key={p.id} value={p.id}>
                                                                 {p.name} ({p.stock})
@@ -240,7 +240,7 @@ export default function SalesOrderCreate({ ledgers, salesmen, products, units, g
                                                         onChange={(e) => handleItemChange(i, 'unit_id', e.target.value)}
                                                         className="w-full rounded border px-1 py-1"
                                                     >
-                                                        <option value="">Unit</option>
+                                                        <option value="">{t('soSelectUnitOption')}</option>
                                                         {units.map((u) => (
                                                             <option key={u.id} value={u.id}>
                                                                 {u.name}
@@ -270,17 +270,12 @@ export default function SalesOrderCreate({ ledgers, salesmen, products, units, g
                                                         onChange={(e) => handleItemChange(i, 'discount_type', e.target.value)}
                                                         className="w-full rounded border px-1 py-1"
                                                     >
-                                                        <option value="flat">৳</option>
-                                                        <option value="percentage">%</option>
+                                                        <option value="flat">{t('soFlatDiscountOption')}</option>
+                                                        <option value="percentage">{t('soPercentDiscountOption')}</option>
                                                     </select>
                                                 </td>
                                                 <td className="border px-2 py-1">
-                                                    <input
-                                                        type="number"
-                                                        value={item.subtotal}
-                                                        readOnly
-                                                        className="w-full rounded border px-1 py-1"
-                                                    />
+                                                    <input type="number" value={item.subtotal} readOnly className="w-full rounded border px-1 py-1" />
                                                 </td>
                                                 <td className="border px-2 py-1">
                                                     <div className="flex justify-center gap-1">
@@ -289,7 +284,7 @@ export default function SalesOrderCreate({ ledgers, salesmen, products, units, g
                                                                 type="button"
                                                                 className="bg-danger hover:bg-danger-hover rounded px-3 py-1 text-white"
                                                                 onClick={() => removeRow(i)}
-                                                                title="Remove Item"
+                                                                title={t('soRemoveItemTitle')}
                                                             >
                                                                 −
                                                             </button>
@@ -299,7 +294,7 @@ export default function SalesOrderCreate({ ledgers, salesmen, products, units, g
                                                                 type="button"
                                                                 className="bg-primary hover:bg-primary-hover rounded px-3 py-1 text-white"
                                                                 onClick={addRow}
-                                                                title="Add Item"
+                                                                title={t('soAddItemTitle')}
                                                             >
                                                                 +
                                                             </button>
@@ -312,7 +307,7 @@ export default function SalesOrderCreate({ ledgers, salesmen, products, units, g
                                     <tfoot>
                                         <tr className="text-sm font-semibold">
                                             <td colSpan={1} className="border px-2 py-2 text-right">
-                                                Total
+                                                {t('soTotalLabel')}
                                             </td>
                                             <td className="border px-2 py-2 text-center">{totalQuantity}</td>
                                             <td colSpan={4} className="border"></td>
@@ -332,18 +327,18 @@ export default function SalesOrderCreate({ ledgers, salesmen, products, units, g
 
                         {/* Shipping + Delivered To */}
                         <div>
-                            <h3 className="mb-3 text-lg font-semibold text-gray-700">Delivery Info</h3>
+                            <h3 className="mb-3 text-lg font-semibold text-gray-700">{t('soDeliveryInfoHeader')}</h3>
                             <div className="grid grid-cols-2 gap-4">
                                 <textarea
                                     className="w-full rounded border px-3 py-2"
-                                    placeholder="Shipping Details"
+                                    placeholder={t('soShippingDetailsPlaceholder')}
                                     value={data.shipping_details}
                                     onChange={(e) => setData('shipping_details', e.target.value)}
                                 />
                                 <input
                                     type="text"
                                     className="w-full rounded border px-3 py-2"
-                                    placeholder="Delivered To"
+                                    placeholder={t('soDeliveredToPlaceholder')}
                                     value={data.delivered_to}
                                     onChange={(e) => setData('delivered_to', e.target.value)}
                                 />

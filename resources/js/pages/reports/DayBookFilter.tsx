@@ -50,7 +50,7 @@ export default function DayBookFilter({ users, isAdmin }: { users: any[]; isAdmi
                                 <InputCalendar
                                     value={filters.from_date}
                                     onChange={(val) => setFilters((f) => ({ ...f, from_date: val }))}
-                                    label="From Date"
+                                    label={t('fromDateLabel')}
                                     required
                                 />
                             </div>
@@ -58,7 +58,7 @@ export default function DayBookFilter({ users, isAdmin }: { users: any[]; isAdmi
                                 <InputCalendar
                                     value={filters.to_date}
                                     onChange={(val) => setFilters((f) => ({ ...f, to_date: val }))}
-                                    label="To Date"
+                                    label={t('toDateLabel')}
                                     required
                                 />
                             </div>

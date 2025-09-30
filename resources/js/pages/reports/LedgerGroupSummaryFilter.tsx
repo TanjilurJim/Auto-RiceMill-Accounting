@@ -55,7 +55,7 @@ export default function LedgerGroupSummaryFilter() {
                                 <InputCalendar
                                     value={form.from_date}
                                     onChange={(val) => setForm((f) => ({ ...f, from_date: val }))}
-                                    label="From Date"
+                                    label={t('fromDateLabel')}
                                     required
                                 />
                             </div>
@@ -63,7 +63,7 @@ export default function LedgerGroupSummaryFilter() {
                                 <InputCalendar
                                     value={form.to_date}
                                     onChange={(val) => setForm((f) => ({ ...f, to_date: val }))}
-                                    label="To Date"
+                                    label={t('toDateLabel')}
                                     required
                                 />
                             </div>
