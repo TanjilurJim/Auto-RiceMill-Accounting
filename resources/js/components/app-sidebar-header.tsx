@@ -1,4 +1,4 @@
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogTrigger } from '@/components/ui/dialog';
 import { SidebarTrigger } from '@/components/ui/sidebar';
 import { type BreadcrumbItem as BreadcrumbItemType } from '@/types';
 import { Link, usePage } from '@inertiajs/react';
@@ -20,6 +20,8 @@ import { useEffect } from 'react';
 import Calculator from './calculator';
 import { useLanguage } from './LanguageContext';
 import { useTranslation } from './useTranslation';
+
+// import { Button } from '@headlessui/react';
 
 export function AppSidebarHeader({ breadcrumbs = [] }: { breadcrumbs?: BreadcrumbItemType[] }) {
     const t = useTranslation();
@@ -124,7 +126,28 @@ export function AppSidebarHeader({ breadcrumbs = [] }: { breadcrumbs?: Breadcrum
 
                 {quickLinks.map(({ label, href, icon: Icon, color, isCalculator }) =>
                     isCalculator ? (
-                        <Dialog key={label}>
+                        // <Dialog key={label}>
+                        //     <DialogTrigger asChild>
+                        //         <button
+                        //             className={cn(
+                        //                 'flex cursor-pointer items-center gap-1 rounded-md px-2 py-2 text-sm font-medium text-white',
+                        //                 'shadow transition hover:-translate-y-0.5 hover:shadow-md focus-visible:ring focus-visible:outline-none',
+                        //                 color,
+                        //             )}
+                        //         >
+                        //             <Icon className="h-4 w-4" />
+                        //             <span className="hidden md:inline">{label}</span>
+                        //         </button>
+                        //     </DialogTrigger>
+                        //     {/* <DialogOverlay /> */}
+                        //     <DialogContent className="border-none bg-transparent p-0">
+                        //         {/* <DialogHeader className="sr-only">
+                        //             <DialogTitle>{label}</DialogTitle>
+                        //         </DialogHeader> */}
+                        //         <Calculator />
+                        //     </DialogContent>
+                        // </Dialog>
+                        <Dialog>
                             <DialogTrigger asChild>
                                 <button
                                     className={cn(
@@ -137,10 +160,7 @@ export function AppSidebarHeader({ breadcrumbs = [] }: { breadcrumbs?: Breadcrum
                                     <span className="hidden md:inline">{label}</span>
                                 </button>
                             </DialogTrigger>
-                            <DialogContent className="max-w-fit border-none bg-transparent p-0">
-                                <DialogHeader className="sr-only">
-                                    <DialogTitle>{label}</DialogTitle>
-                                </DialogHeader>
+                            <DialogContent className="sm:max-w-[400px]">
                                 <Calculator />
                             </DialogContent>
                         </Dialog>

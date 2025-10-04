@@ -20,7 +20,7 @@ export function UserMenuContent({ user }: UserMenuContentProps) {
             {},
             {
                 onFinish: () => {
-                    window.location.href = '/';
+                    window.location.href = '/login';
                 },
             },
         );
@@ -29,10 +29,8 @@ export function UserMenuContent({ user }: UserMenuContentProps) {
     return (
         <>
             <DropdownMenuLabel className="p-0 font-normal">
-                
                 <div className="flex items-center gap-2 px-1 py-1.5 text-left text-sm">
                     <UserInfo user={user} showEmail={true} />
-                    
                 </div>
             </DropdownMenuLabel>
             <DropdownMenuSeparator />
@@ -42,11 +40,15 @@ export function UserMenuContent({ user }: UserMenuContentProps) {
                         <Settings className="mr-2" />
                         Settings
                         {needsAttention && (
-                <span className="ml-2 relative inline-flex h-2.5 w-2.5">
-                  <span className={`absolute inline-flex h-full w-full animate-ping rounded-full ${trial.inactive ? 'bg-red-400' : 'bg-amber-400'} opacity-75`}></span>
-                  <span className={`relative inline-flex h-2.5 w-2.5 rounded-full ${trial.inactive ? 'bg-red-500' : 'bg-amber-500'}`}></span>
-                </span>
-              )}
+                            <span className="relative ml-2 inline-flex h-2.5 w-2.5">
+                                <span
+                                    className={`absolute inline-flex h-full w-full animate-ping rounded-full ${trial.inactive ? 'bg-red-400' : 'bg-amber-400'} opacity-75`}
+                                ></span>
+                                <span
+                                    className={`relative inline-flex h-2.5 w-2.5 rounded-full ${trial.inactive ? 'bg-red-500' : 'bg-amber-500'}`}
+                                ></span>
+                            </span>
+                        )}
                     </Link>
                 </DropdownMenuItem>
             </DropdownMenuGroup>
