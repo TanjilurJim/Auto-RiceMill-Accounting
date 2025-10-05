@@ -20,7 +20,7 @@ export function UserMenuContent({ user }: UserMenuContentProps) {
             {},
             {
                 onFinish: () => {
-                    window.location.href = '/';
+                    window.location.href = '/login';
                 },
             },
         );
