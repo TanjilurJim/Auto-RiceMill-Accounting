@@ -3,6 +3,7 @@ import PageHeader from '@/components/PageHeader';
 import Pagination from '@/components/Pagination';
 import TableComponent from '@/components/TableComponent';
 import { confirmDialog } from '@/components/confirmDialog';
+import { useTranslation } from '@/components/useTranslation';
 import AppLayout from '@/layouts/app-layout';
 import { Head, router } from '@inertiajs/react';
 
@@ -30,27 +31,28 @@ interface Paginated<T> {
 
 /* ───── Page Component ───── */
 export default function EmployeeIndex({ employees }: { employees: Paginated<Employee> }) {
+    const t = useTranslation();
     const handleDelete = (id: number) => confirmDialog({}, () => router.delete(`/employees/${id}`));
 
     const columns = [
-        { header: '#', accessor: (_: Employee, i: number) => i + 1, className: 'text-center' },
-        { header: 'Name', accessor: 'name' },
-        { header: 'Email', accessor: 'email' },
-        { header: 'Mobile', accessor: 'mobile' },
-        { header: 'Salary', accessor: 'salary' },
-        { header: 'Department', accessor: (row: Employee) => row.department?.name },
-        { header: 'Designation', accessor: (row: Employee) => row.designation?.name },
-        { header: 'Shift', accessor: (row: Employee) => row.shift?.name },
-        { header: 'Status', accessor: 'status' },
+        { header: '#', accessor: (_: Employee, i?: number) => (i ?? 0) + 1, className: 'text-center' },
+        { header: t('empIndexNameHeader'), accessor: 'name' },
+        { header: t('empIndexEmailHeader'), accessor: 'email' },
+        { header: t('empIndexMobileHeader'), accessor: 'mobile' },
+        { header: t('empIndexSalaryHeader'), accessor: 'salary' },
+        { header: t('empIndexDepartmentHeader'), accessor: (row: Employee) => row.department?.name },
+        { header: t('empIndexDesignationHeader'), accessor: (row: Employee) => row.designation?.name },
+        { header: t('empIndexShiftHeader'), accessor: (row: Employee) => row.shift?.name },
+        { header: t('empIndexStatusHeader'), accessor: 'status' },
     ];
 
     return (
         <AppLayout>
-            <Head title="Employees" />
+            <Head title={t('employeesTitle')} />
 
             <div className="h-full w-screen p-4 md:p-12 lg:w-full">
-                <div className="h-full rounded-lg bg-background p-6">
-                    <PageHeader title="Employees" addLinkHref="/employees/create" addLinkText="+ Add Employee" />
+                <div className="bg-background h-full rounded-lg p-6">
+                    <PageHeader title={t('employeesTitle')} addLinkHref="/employees/create" addLinkText={t('employeesAddButton')} />
 
                     {/* Data table */}
                     <TableComponent
@@ -60,11 +62,11 @@ export default function EmployeeIndex({ employees }: { employees: Paginated<Empl
                             <ActionButtons
                                 editHref={`/employees/${row.id}/edit`}
                                 onDelete={() => handleDelete(row.id)}
-                                editText="Edit"
-                                deleteText="Delete"
+                                editText={t('empIndexEditText')}
+                                deleteText={t('empIndexDeleteText')}
                             />
                         )}
-                        noDataMessage="No employees found."
+                        noDataMessage={t('empIndexNoDataMessage')}
                     />
 
                     {/* Pagination bar */}

@@ -261,7 +261,7 @@ export default function SalesReturnCreate({
                                     ))}
                                 </select>
                                 <div className="text-sm text-gray-500">
-                                    Don’t see one?{' '}
+                                    {t('dontSeeOne')} {' '}
                                     <button
                                         type="button"
                                         className="text-blue-600 underline"
@@ -270,7 +270,7 @@ export default function SalesReturnCreate({
                                             setShowInventoryLedgerModal(true);
                                         }}
                                     >
-                                        Create
+                                        {t('create')}
                                     </button>
                                 </div>
                             </div>
@@ -292,7 +292,7 @@ export default function SalesReturnCreate({
                                     ))}
                                 </select>
                                 <div className="text-sm text-gray-500">
-                                    Don’t see one?{' '}
+                                    {t('dontSeeOne')} {' '}
                                     <button
                                         type="button"
                                         className="text-blue-600 underline"
@@ -301,7 +301,7 @@ export default function SalesReturnCreate({
                                             setShowInventoryLedgerModal(true);
                                         }}
                                     >
-                                        Create
+                                        {t('create')}
                                     </button>
                                 </div>
                             </div>
@@ -535,7 +535,7 @@ export default function SalesReturnCreate({
                             onSubmit={handleSubmit} // Function to handle form submission
                             cancelHref="/sales-returns" // URL for the cancel action
                             processing={processing} // Indicates whether the form is processing
-                            submitText={processing ? t('savingText') : t('saveSalesReturnButton')} // Text for the submit button
+                            submitText={processing ? t('savingText') : t('fySaveButton')} // Text for the submit button
                             cancelText={t('cancelText')} // Text for the cancel button
                         />
                     </form>

@@ -122,7 +122,7 @@ export default function SalarySlipIndex({ salarySlips, employees }: Props) {
             <Head title={t('salSlipsTitle')} />
             <div className="h-full w-screen p-4 md:p-12 lg:w-full">
                 <div className="h-full rounded-lg bg-background">
-                    <PageHeader title={t('salSlipsTitle')} addLinkHref="/salary-slips/create" addLinkText={t('addNewText')} />
+                    <PageHeader title={t('salSlipsTitle')} addLinkHref="/salary-slips/create" addLinkText={t('hrAddNewText')} />
 
                     {/* Summary */}
                     <div className="mb-4 flex flex-wrap gap-4 rounded-lg border bg-background p-4">

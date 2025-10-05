@@ -269,7 +269,7 @@ export default function PurchaseReturnCreate({
                                 <div className="bg-background flex w-full justify-between rounded border p-3 shadow-sm">
                                     <span className="text-foreground0 font-semibold">{t('totalReturnValueLabel')}</span>
                                     <span className="font-semibold">
-                                        {data.return_items.reduce((sum, item) => sum + (parseFloat(item.subtotal) || 0), 0)} Tk
+                                        {data.return_items.reduce((sum, item) => sum + (parseFloat(item.subtotal) || 0), 0)} {t('currencyTk')}
                                     </span>
                                 </div>
                             </div>
@@ -290,7 +290,6 @@ export default function PurchaseReturnCreate({
                                             setData('refund_modes', updated);
                                         }}
                                     >
-                                        <option value="">Select Refund Mode</option>
                                         <option value="">{t('selectRefundModeOption')}</option>
                                         {receivedModes.map((rm) => (
                                             <option key={rm.ledger_id} value={rm.ledger_id}>

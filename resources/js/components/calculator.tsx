@@ -342,193 +342,197 @@ export default function Calculator() {
 
     /* ───────── UI ───────── */
     return (
-        <div className="mx-auto w-screen lg:w-full max-w-sm space-y-4 rounded-3xl bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 p-6 shadow-2xl">
-            {/* expression history */}
-            {/* <div className="min-h-[24px] text-right font-mono text-sm text-slate-400" aria-live="polite">
+        <div className="flex items-center justify-center">
+            <div className=" space-y-4 rounded-3xl bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 p-6 shadow-2xl">
+                {/* expression history */}
+                {/* <div className="min-h-[24px] text-right font-mono text-sm text-slate-400" aria-live="polite">
                 {expression || ' '}
             </div> */}
 
-            {/* display */}
-            <div className="mt-4 rounded-2xl border border-slate-700/50 bg-slate-950/50 p-6 text-right backdrop-blur-sm">
-                <div className={cn('text-5xl leading-tight font-light break-all text-white', error && 'text-red-400')}>{formatDisplay(display)}</div>
-            </div>
+                {/* display */}
+                <div className="mt-4 rounded-2xl border border-slate-700/50 bg-slate-950/50 p-6 text-right backdrop-blur-sm">
+                    <div className={cn('text-5xl leading-tight font-light break-all text-white', error && 'text-red-400')}>
+                        {formatDisplay(display)}
+                    </div>
+                </div>
 
-            {/* quick actions */}
-            <div className="flex items-center justify-end mr-3">
-                {/* <div className="text-sm text-slate-400">{memory !== 0 && `M: ${memory}`}</div> */}
+                {/* quick actions */}
+                <div className="mr-3 flex items-center justify-end">
+                    {/* <div className="text-sm text-slate-400">{memory !== 0 && `M: ${memory}`}</div> */}
 
-                <div className="">
+                    <div className="">
+                        <Button
+                            onClick={copyValue}
+                            size="icon"
+                            className={cn(
+                                'h-12 w-12 rounded-xl border border-slate-600 bg-slate-700 transition-all duration-150 hover:bg-slate-600',
+                                pressedKey === 'copy' && 'scale-95 bg-slate-600',
+                                copied && 'bg-green-600 hover:bg-green-500',
+                            )}
+                            title="Copy result (Ctrl+C)"
+                            aria-label="Copy result"
+                        >
+                            {copied ? <Check className="animate-ping-once h-5 w-5" /> : <Copy className="h-5 w-5" />}
+                        </Button>
+                    </div>
+                </div>
+
+                {/* keypad */}
+                <div className="grid grid-cols-4 justify-items-center gap-3">
                     <Button
-                        onClick={copyValue}
-                        size="icon"
+                        onClick={clearAll}
                         className={cn(
-                            'h-12 w-12 rounded-xl border border-slate-600 bg-slate-700 transition-all duration-150 hover:bg-slate-600',
-                            pressedKey === 'copy' && 'scale-95 bg-slate-600',
-                            copied && 'bg-green-600 hover:bg-green-500',
+                            button('border border-red-500 bg-red-600 text-white hover:bg-red-500'),
+                            pressedKey === 'clear' && 'scale-95 bg-red-500',
                         )}
-                        title="Copy result (Ctrl+C)"
-                        aria-label="Copy result"
+                        aria-label="All clear"
                     >
-                        {copied ? <Check className="animate-ping-once h-5 w-5" /> : <Copy className="h-5 w-5" />}
+                        AC
+                    </Button>
+                    <Button
+                        onClick={backspace}
+                        className={cn(
+                            button('border border-slate-500 bg-slate-600 text-white hover:bg-slate-500'),
+                            pressedKey === 'backspace' && 'scale-95 bg-slate-500',
+                        )}
+                        aria-label="Backspace"
+                    >
+                        <Delete className="h-6 w-6" />
+                    </Button>
+                    <Button
+                        onClick={percentage}
+                        className={cn(
+                            button('border border-violet-500 bg-violet-600 text-white hover:bg-violet-500'),
+                            pressedKey === '%' && 'scale-95 bg-violet-500',
+                        )}
+                        aria-label="Percentage"
+                    >
+                        %
+                    </Button>
+                    <Button
+                        onClick={() => operate('/')}
+                        className={cn(
+                            button('border border-amber-400 bg-amber-500 text-white hover:bg-amber-400'),
+                            pressedKey === '/' && 'scale-95 bg-amber-400',
+                        )}
+                        aria-label="Divide"
+                    >
+                        ÷
+                    </Button>
+
+                    {['7', '8', '9'].map((n) => (
+                        <Button
+                            key={n}
+                            onClick={() => inputDigit(n)}
+                            className={cn(
+                                button('border border-slate-600 bg-slate-700 text-white hover:bg-slate-600'),
+                                pressedKey === n && 'scale-95 bg-slate-600',
+                            )}
+                            aria-label={`Digit ${n}`}
+                        >
+                            {n}
+                        </Button>
+                    ))}
+                    <Button
+                        onClick={() => operate('*')}
+                        className={cn(
+                            button('border border-amber-400 bg-amber-500 text-white hover:bg-amber-400'),
+                            pressedKey === '*' && 'scale-95 bg-amber-400',
+                        )}
+                        aria-label="Multiply"
+                    >
+                        ×
+                    </Button>
+
+                    {['4', '5', '6'].map((n) => (
+                        <Button
+                            key={n}
+                            onClick={() => inputDigit(n)}
+                            className={cn(
+                                button('border border-slate-600 bg-slate-700 text-white hover:bg-slate-600'),
+                                pressedKey === n && 'scale-95 bg-slate-600',
+                            )}
+                            aria-label={`Digit ${n}`}
+                        >
+                            {n}
+                        </Button>
+                    ))}
+                    <Button
+                        onClick={() => operate('-')}
+                        className={cn(
+                            button('border border-amber-400 bg-amber-500 text-white hover:bg-amber-400'),
+                            pressedKey === '-' && 'scale-95 bg-amber-400',
+                        )}
+                        aria-label="Subtract"
+                    >
+                        −
+                    </Button>
+
+                    {['1', '2', '3'].map((n) => (
+                        <Button
+                            key={n}
+                            onClick={() => inputDigit(n)}
+                            className={cn(
+                                button('border border-slate-600 bg-slate-700 text-white hover:bg-slate-600'),
+                                pressedKey === n && 'scale-95 bg-slate-600',
+                            )}
+                            aria-label={`Digit ${n}`}
+                        >
+                            {n}
+                        </Button>
+                    ))}
+                    <Button
+                        onClick={() => operate('+')}
+                        className={cn(
+                            button('border border-amber-400 bg-amber-500 text-white hover:bg-amber-400'),
+                            pressedKey === '+' && 'scale-95 bg-amber-400',
+                        )}
+                        aria-label="Add"
+                    >
+                        +
+                    </Button>
+
+                    <Button
+                        onClick={toggleSign}
+                        className={cn(
+                            button('border border-slate-600 bg-slate-700 text-white hover:bg-slate-600'),
+                            pressedKey === '±' && 'scale-95 bg-slate-600',
+                        )}
+                        aria-label="Toggle sign"
+                    >
+                        ±
+                    </Button>
+                    <Button
+                        onClick={() => inputDigit('0')}
+                        className={cn(
+                            button('border border-slate-600 bg-slate-700 text-white hover:bg-slate-600'),
+                            pressedKey === '0' && 'scale-95 bg-slate-600',
+                        )}
+                        aria-label="Digit zero"
+                    >
+                        0
+                    </Button>
+                    <Button
+                        onClick={inputDecimal}
+                        className={cn(
+                            button('border border-slate-600 bg-slate-700 text-white hover:bg-slate-600'),
+                            pressedKey === '.' && 'scale-95 bg-slate-600',
+                        )}
+                        aria-label="Decimal point"
+                    >
+                        .
+                    </Button>
+                    <Button
+                        onClick={() => operate('=')}
+                        className={cn(
+                            button('border border-emerald-500 bg-emerald-600 text-white hover:bg-emerald-500'),
+                            pressedKey === '=' && 'scale-95 bg-emerald-500',
+                        )}
+                        aria-label="Equals"
+                    >
+                        =
                     </Button>
                 </div>
-            </div>
-
-            {/* keypad */}
-            <div className="grid grid-cols-4 justify-items-center gap-3">
-                <Button
-                    onClick={clearAll}
-                    className={cn(
-                        button('border border-red-500 bg-red-600 text-white hover:bg-red-500'),
-                        pressedKey === 'clear' && 'scale-95 bg-red-500',
-                    )}
-                    aria-label="All clear"
-                >
-                    AC
-                </Button>
-                <Button
-                    onClick={backspace}
-                    className={cn(
-                        button('border border-slate-500 bg-slate-600 text-white hover:bg-slate-500'),
-                        pressedKey === 'backspace' && 'scale-95 bg-slate-500',
-                    )}
-                    aria-label="Backspace"
-                >
-                    <Delete className="h-6 w-6" />
-                </Button>
-                <Button
-                    onClick={percentage}
-                    className={cn(
-                        button('border border-violet-500 bg-violet-600 text-white hover:bg-violet-500'),
-                        pressedKey === '%' && 'scale-95 bg-violet-500',
-                    )}
-                    aria-label="Percentage"
-                >
-                    %
-                </Button>
-                <Button
-                    onClick={() => operate('/')}
-                    className={cn(
-                        button('border border-amber-400 bg-amber-500 text-white hover:bg-amber-400'),
-                        pressedKey === '/' && 'scale-95 bg-amber-400',
-                    )}
-                    aria-label="Divide"
-                >
-                    ÷
-                </Button>
-
-                {['7', '8', '9'].map((n) => (
-                    <Button
-                        key={n}
-                        onClick={() => inputDigit(n)}
-                        className={cn(
-                            button('border border-slate-600 bg-slate-700 text-white hover:bg-slate-600'),
-                            pressedKey === n && 'scale-95 bg-slate-600',
-                        )}
-                        aria-label={`Digit ${n}`}
-                    >
-                        {n}
-                    </Button>
-                ))}
-                <Button
-                    onClick={() => operate('*')}
-                    className={cn(
-                        button('border border-amber-400 bg-amber-500 text-white hover:bg-amber-400'),
-                        pressedKey === '*' && 'scale-95 bg-amber-400',
-                    )}
-                    aria-label="Multiply"
-                >
-                    ×
-                </Button>
-
-                {['4', '5', '6'].map((n) => (
-                    <Button
-                        key={n}
-                        onClick={() => inputDigit(n)}
-                        className={cn(
-                            button('border border-slate-600 bg-slate-700 text-white hover:bg-slate-600'),
-                            pressedKey === n && 'scale-95 bg-slate-600',
-                        )}
-                        aria-label={`Digit ${n}`}
-                    >
-                        {n}
-                    </Button>
-                ))}
-                <Button
-                    onClick={() => operate('-')}
-                    className={cn(
-                        button('border border-amber-400 bg-amber-500 text-white hover:bg-amber-400'),
-                        pressedKey === '-' && 'scale-95 bg-amber-400',
-                    )}
-                    aria-label="Subtract"
-                >
-                    −
-                </Button>
-
-                {['1', '2', '3'].map((n) => (
-                    <Button
-                        key={n}
-                        onClick={() => inputDigit(n)}
-                        className={cn(
-                            button('border border-slate-600 bg-slate-700 text-white hover:bg-slate-600'),
-                            pressedKey === n && 'scale-95 bg-slate-600',
-                        )}
-                        aria-label={`Digit ${n}`}
-                    >
-                        {n}
-                    </Button>
-                ))}
-                <Button
-                    onClick={() => operate('+')}
-                    className={cn(
-                        button('border border-amber-400 bg-amber-500 text-white hover:bg-amber-400'),
-                        pressedKey === '+' && 'scale-95 bg-amber-400',
-                    )}
-                    aria-label="Add"
-                >
-                    +
-                </Button>
-
-                <Button
-                    onClick={toggleSign}
-                    className={cn(
-                        button('border border-slate-600 bg-slate-700 text-white hover:bg-slate-600'),
-                        pressedKey === '±' && 'scale-95 bg-slate-600',
-                    )}
-                    aria-label="Toggle sign"
-                >
-                    ±
-                </Button>
-                <Button
-                    onClick={() => inputDigit('0')}
-                    className={cn(
-                        button('border border-slate-600 bg-slate-700 text-white hover:bg-slate-600'),
-                        pressedKey === '0' && 'scale-95 bg-slate-600',
-                    )}
-                    aria-label="Digit zero"
-                >
-                    0
-                </Button>
-                <Button
-                    onClick={inputDecimal}
-                    className={cn(
-                        button('border border-slate-600 bg-slate-700 text-white hover:bg-slate-600'),
-                        pressedKey === '.' && 'scale-95 bg-slate-600',
-                    )}
-                    aria-label="Decimal point"
-                >
-                    .
-                </Button>
-                <Button
-                    onClick={() => operate('=')}
-                    className={cn(
-                        button('border border-emerald-500 bg-emerald-600 text-white hover:bg-emerald-500'),
-                        pressedKey === '=' && 'scale-95 bg-emerald-500',
-                    )}
-                    aria-label="Equals"
-                >
-                    =
-                </Button>
             </div>
         </div>
     );

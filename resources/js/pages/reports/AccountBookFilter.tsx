@@ -96,12 +96,12 @@ export default function AccountBookFilter({ ledgers }: Props) {
                                         <InputCalendar
                                             value={data.from_date}
                                             onChange={(val) => setData('from_date', val)}
-                                            label="From Date"
+                                            label={t('fromDateLabel')}
                                             required
                                         />
                                     </div>
                                     <div className="space-y-2">
-                                        <InputCalendar value={data.to_date} onChange={(val) => setData('to_date', val)} label="To Date" required />
+                                        <InputCalendar value={data.to_date} onChange={(val) => setData('to_date', val)} label={t('toDateLabel')} required />
                                     </div>
                                 </div>
 

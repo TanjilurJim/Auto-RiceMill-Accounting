@@ -82,7 +82,7 @@ export default function UnitIndex({ units }: { units: PaginatedUnits }) {
         },
         { header: t('unitNameLabel'), accessor: 'name' },
         {
-            header: t('actions'),
+            header: t('tableActionsHeader'),
             accessor: (unit: Unit) => <ActionButtons onEdit={() => handleEdit(unit)} onDelete={() => handleDelete(unit.id)} />,
             className: 'text-center',
         },

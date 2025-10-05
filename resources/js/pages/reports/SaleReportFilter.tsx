@@ -94,7 +94,7 @@ export default function SaleReportFilter({ tab, categories, items, parties, godo
                                                 setData('from_date', val);
                                                 setData('year', '');
                                             }}
-                                            label="From Date"
+                                            label={t('fromDateLabel')}
                                             required={!data.year}
                                         />
                                         {errors.from_date && <p className="text-sm text-red-500">{errors.from_date}</p>}
@@ -108,7 +108,7 @@ export default function SaleReportFilter({ tab, categories, items, parties, godo
                                                 setData('to_date', val);
                                                 setData('year', '');
                                             }}
-                                            label="To Date"
+                                            label={t('toDateLabel')}
                                             required={!data.year}
                                         />
                                         {errors.to_date && <p className="text-sm text-red-500">{errors.to_date}</p>}

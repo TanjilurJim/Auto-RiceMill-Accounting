@@ -111,7 +111,7 @@ export default function Create({ accountLedgers = [] }: any) {
                                                     onChange={(e) => handleChangeRow(index, 'ledger_id', e.target.value)}
                                                     className="w-full rounded border px-2 py-1"
                                                 >
-                                                    <option value="">{t('selectLedgerPlaceholder')}</option>
+                                                    <option value="">{t('accountSelectLedgerPlaceholder')}</option>
                                                     {accountLedgers.map((ledger: any) => (
                                                         <option key={ledger.id} value={ledger.id}>
                                                             {ledger.account_ledger_name}
@@ -128,8 +128,8 @@ export default function Create({ accountLedgers = [] }: any) {
                                                     onChange={(e) => handleChangeRow(index, 'type', e.target.value)}
                                                     className={`w-full rounded border px-2 py-1 ${row.type === 'debit' ? 'bg-background' : 'bg-background'} `}
                                                 >
-                                                    <option value="debit">{t('debitText')}</option>
-                                                    <option value="credit">{t('creditText')}</option>
+                                                    <option value="debit">{t('totalDebitText')}</option>
+                                                    <option value="credit">{t('totalCreditText')}</option>
                                                 </select>
                                             </td>
                                             <td className="border p-2 text-right">
