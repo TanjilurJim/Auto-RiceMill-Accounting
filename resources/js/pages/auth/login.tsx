@@ -64,6 +64,7 @@ export default function Login({ status, canResetPassword }: LoginProps) {
                                         value={data.email}
                                         onChange={(e) => setData('email', e.target.value)}
                                         placeholder="email@example.com"
+                                        className="bg-white"
                                     />
                                     <InputError message={errors.email} />
                                 </div>
@@ -79,6 +80,7 @@ export default function Login({ status, canResetPassword }: LoginProps) {
                                         value={data.password}
                                         onChange={(e) => setData('password', e.target.value)}
                                         placeholder="Password"
+                                        className="bg-white"
                                     />
                                     <InputError message={errors.password} />
                                 </div>
@@ -107,7 +109,7 @@ export default function Login({ status, canResetPassword }: LoginProps) {
 
                                 <button
                                     type="submit"
-                                    className="mt-4 inline-flex w-full items-center justify-center gap-1 rounded bg-[#5e0404] px-6 py-2 text-white transition duration-300 ease-in-out hover:bg-[#1D1C1E] hover:text-white cursor-pointer"
+                                    className="mt-4 inline-flex w-full items-center justify-center gap-1 rounded-sm bg-[#5e0404] px-6 py-2 text-white transition duration-300 ease-in-out hover:bg-[#1D1C1E] hover:text-white cursor-pointer"
                                     tabIndex={4}
                                     disabled={processing}
                                 >
@@ -117,7 +119,7 @@ export default function Login({ status, canResetPassword }: LoginProps) {
 
                                 <a
                                     href={route('google.redirect')}
-                                    className="inline-flex w-full items-center justify-center gap-2 rounded border px-4 py-2"
+                                    className="inline-flex w-full items-center justify-center gap-2 rounded-sm border px-4 py-2 bg-white"
                                 >
                                     <FcGoogle className="h-5 w-5" />
                                     Continue with Google

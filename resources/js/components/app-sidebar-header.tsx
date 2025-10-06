@@ -108,13 +108,13 @@ export function AppSidebarHeader({ breadcrumbs = [] }: { breadcrumbs?: Breadcrum
                     onClick={toggleFullscreen}
                     type="button"
                     className={cn(
-                        'font-large items-center gap-1 rounded-md pl-1 py-2 text-xl text-black',
+                        'font-large items-center gap-1 rounded-md pl-2 py-2 text-xl text-white bg-teal-500',
                         'shadow transition hover:shadow-md focus-visible:ring focus-visible:outline-none',
                     )}
                 >
                     {isFullscreen ? (
                         <div className="flex cursor-pointer items-center gap-2">
-                            <Minimize className="h-4 w-4" /> <span className='text-xs md:text-base  font-medium'>{t('exitFullScreen')}</span>
+                            <Minimize className="h-4 w-4" /> <span className='text-xs md:text-base font-medium'>{t('exitFullScreen')}</span>
                         </div>
                     ) : (
                         <div className="flex cursor-pointer items-center gap-2">

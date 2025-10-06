@@ -62,6 +62,7 @@ export default function Register() {
                                         onChange={(e) => setData('name', e.target.value)}
                                         disabled={processing}
                                         placeholder="Full name"
+                                        className='bg-white'
                                     />
                                     <InputError message={errors.name} className="mt-2" />
                                 </div>
@@ -78,6 +79,7 @@ export default function Register() {
                                         onChange={(e) => setData('email', e.target.value)}
                                         disabled={processing}
                                         placeholder="email@example.com"
+                                        className="bg-white"
                                     />
                                     <InputError message={errors.email} />
                                 </div>
@@ -94,6 +96,7 @@ export default function Register() {
                                         onChange={(e) => setData('password', e.target.value)}
                                         disabled={processing}
                                         placeholder="Password"
+                                        className="bg-white"
                                     />
                                     <InputError message={errors.password} />
                                 </div>
@@ -110,13 +113,14 @@ export default function Register() {
                                         onChange={(e) => setData('password_confirmation', e.target.value)}
                                         disabled={processing}
                                         placeholder="Confirm password"
+                                        className="bg-white"
                                     />
                                     <InputError message={errors.password_confirmation} />
                                 </div>
 
                                 <button
                                     type="submit"
-                                    className="mt-4 inline-flex w-full items-center justify-center gap-1 rounded bg-[#5e0404] px-6 py-2 text-white transition duration-300 ease-in-out hover:bg-[#1D1C1E] hover:text-whit cursor-pointer"
+                                    className="mt-4 inline-flex w-full items-center justify-center gap-1 rounded-sm bg-[#5e0404] px-6 py-2 text-white transition duration-300 ease-in-out hover:bg-[#1D1C1E] hover:text-whit cursor-pointer"
                                     tabIndex={5}
                                     disabled={processing}
                                 >
