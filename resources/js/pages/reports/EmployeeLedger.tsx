@@ -147,7 +147,7 @@ const EmployeeLedger: React.FC = () => {
                 {/* Ledger Table */}
                 <div className="overflow-x-auto">
                     <table className="w-full border-collapse border text-xs sm:text-sm">
-                        <thead className="bg-gray-100">
+                        <thead className="bg-background">
                             <tr>
                                 <th className="border p-2">Date</th>
                                 <th className="border p-2">Type</th>
@@ -171,7 +171,7 @@ const EmployeeLedger: React.FC = () => {
                                 </tr>
                             ))}
                         </tbody>
-                        <tfoot className="bg-gray-100 font-semibold">
+                        <tfoot className="bg-background font-semibold">
                             <tr>
                                 <td className="border p-2 text-center" colSpan={3}>
                                     Total

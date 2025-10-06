@@ -39,24 +39,31 @@ class PartyStockWithdrawController extends Controller
         $withdrawals = $rows->groupBy('ref_no')->map(function ($group) {
             $first = $group->first();
 
+            $amount = $group->sum(fn($m) => abs($m->total));         // 💰 positive money
+            $totalQty = $group->sum(fn($m) => abs($m->qty));         // 📦 total qty (positive)
+            $totalWeight = $group->sum(fn($m) => abs($m->weight ?? 0));
+
             return [
                 'id'                => $first->id,
                 'date'              => $first->date,
                 'ref_no'            => $first->ref_no,
                 'party_ledger_name' => $first->partyLedger->account_ledger_name ?? '',
                 'godown_name'       => $first->godownFrom->name ?? '',
-                'total'             => $group->sum('total'),   // numeric
+                'total'             => $group->sum('total'),          // (kept) signed sum
+                'amount'            => $amount,                       // ✅ new: positive withdraw amount
+                'total_qty'         => $totalQty,                     // optional
+                'total_weight'      => $totalWeight,                  // optional
                 'items'             => $group->map(function ($m) {
                     return [
                         'item_name' => $m->partyItem->item_name ?? '',
                         'unit_name' => $m->unit_name ?? '',
-                        'qty'       => abs($m->qty),            // make positive
+                        'qty'       => abs($m->qty),
                         'rate'      => $m->rate,
                         'total'     => abs($m->total),
                     ];
                 })->values(),
             ];
-        })->values();      // plain array
+        })->values();     // plain array
 
         return Inertia::render('crushing/WithdrawIndex', [
             'withdrawals' => $withdrawals,
@@ -81,7 +88,7 @@ class PartyStockWithdrawController extends Controller
             $units   = Unit::whereIn('created_by', user_scope_ids())
                 ->get(['id', 'name']);
 
-            $parties = AccountLedger::whereIn('ledger_type', ['accounts_receivable', ])
+            $parties = AccountLedger::whereIn('ledger_type', ['accounts_receivable',])
                 ->whereIn('created_by', user_scope_ids())
                 ->get(['id', 'account_ledger_name']);
 

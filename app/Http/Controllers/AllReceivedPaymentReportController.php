@@ -20,18 +20,21 @@ class AllReceivedPaymentReportController extends Controller
     {
         [$from, $to] = $this->normalizedRange($request);
 
+        $type = $request->string('type')->toString() ?: null; // ← normalize once
+
         $entries = $this->getEntries(
             $from,
             $to,
             ledgerId: $request->integer('ledger_id'),
-            modeId:   $request->integer('mode_id'),
-            type:     $request->string('type')->toString() ?: null
+            modeId: $request->integer('mode_id'),
+            type: $type
         );
 
         return Inertia::render('reports/AllReceivedPayment', [
             'entries'   => $entries,
             'from_date' => $from->toDateString(),
             'to_date'   => $to->toDateString(),
+            'type'      => $type,                 // ← expose to page
             'company'   => company_info(),
         ]);
     }
@@ -43,13 +46,13 @@ class AllReceivedPaymentReportController extends Controller
 
         $ledgers = \App\Models\AccountLedger::when(
             !$user->hasRole('admin'),
-            fn ($q) => $q->whereIn('created_by', $ids)
-        )->get(['id','account_ledger_name']);
+            fn($q) => $q->whereIn('created_by', $ids)
+        )->get(['id', 'account_ledger_name']);
 
         $modes = \App\Models\ReceivedMode::when(
             !$user->hasRole('admin'),
-            fn ($q) => $q->whereIn('created_by', $ids)
-        )->get(['id','mode_name']);
+            fn($q) => $q->whereIn('created_by', $ids)
+        )->get(['id', 'mode_name']);
 
         return Inertia::render('reports/AllReceivedPaymentFilter', [
             'ledgers' => $ledgers,
@@ -70,7 +73,7 @@ class AllReceivedPaymentReportController extends Controller
         );
 
         $company = company_info();
-        $thumb   = $company?->logo_thumb_path ? public_path('storage/'.$company->logo_thumb_path) : null;
+        $thumb   = $company?->logo_thumb_path ? public_path('storage/' . $company->logo_thumb_path) : null;
         $companyArr = [
             'company_name'     => $company->company_name ?? '',
             'phone'            => $company->phone ?? '',
@@ -80,11 +83,11 @@ class AllReceivedPaymentReportController extends Controller
         ];
 
         return Pdf::loadView('pdf.all-received-payment', [
-                'entries'  => $entries,
-                'from'     => $from->toDateString(),
-                'to'       => $to->toDateString(),
-                'company'  => (object)$companyArr,
-            ])
+            'entries'  => $entries,
+            'from'     => $from->toDateString(),
+            'to'       => $to->toDateString(),
+            'company'  => (object)$companyArr,
+        ])
             ->setPaper('A4', 'landscape')
             ->download('all-received-payment-report.pdf');
     }
@@ -144,7 +147,7 @@ class AllReceivedPaymentReportController extends Controller
 
             ->join('journal_entries as cp', function ($join) {
                 $join->on('cp.journal_id', '=', 'cash.journal_id')
-                     ->whereColumn('cp.id', '!=', 'cash.id'); // exclude self
+                    ->whereColumn('cp.id', '!=', 'cash.id'); // exclude self
             })
             ->join('account_ledgers as cp_ledger', 'cp.account_ledger_id', '=', 'cp_ledger.id')
             ->leftJoin('group_unders as cp_gu', 'cp_ledger.group_under_id', '=', 'cp_gu.id')
@@ -161,13 +164,13 @@ class AllReceivedPaymentReportController extends Controller
             // cash/bank side
             ->where(function ($q) use ($cashBankGroups) {
                 $q->whereIn('cash_ledger.ledger_type', ['cash', 'bank'])
-                  ->orWhereIn('cash_gu.name', $cashBankGroups);
+                    ->orWhereIn('cash_gu.name', $cashBankGroups);
             })
 
             // counterparty must be AR/AP (this also auto-excludes pure contra)
             ->where(function ($q) use ($arGroups, $apGroups) {
                 $q->whereIn('cp_ledger.ledger_type', ['customer', 'supplier'])
-                  ->orWhereIn('cp_gu.name', array_merge($arGroups, $apGroups));
+                    ->orWhereIn('cp_gu.name', array_merge($arGroups, $apGroups));
             })
 
             // Optional filters
@@ -199,8 +202,8 @@ class AllReceivedPaymentReportController extends Controller
 
         // Classify each pair in PHP (clear & easy to tweak)
         $classified = $rows->map(function ($r) use ($arGroups, $apGroups) {
-            $isCashBank = in_array($r->cash_ledger_type, ['cash','bank'])
-                || in_array($r->cash_group_name, ['Cash-in-Hand','Bank Account']);
+            $isCashBank = in_array($r->cash_ledger_type, ['cash', 'bank'])
+                || in_array($r->cash_group_name, ['Cash-in-Hand', 'Bank Account']);
 
             $isReceivable = ($r->cp_ledger_type === 'customer') || in_array($r->cp_group_name, $arGroups);
             $isPayable    = ($r->cp_ledger_type === 'supplier') || in_array($r->cp_group_name, $apGroups);
@@ -228,7 +231,7 @@ class AllReceivedPaymentReportController extends Controller
         })->filter()->values();
 
         // Apply 'type' filter if provided (Received/Payment)
-        if ($type && in_array($type, ['Received','Payment'])) {
+        if ($type && in_array($type, ['Received', 'Payment'])) {
             $classified = $classified->where('type', $type)->values();
         }
 
@@ -260,7 +263,7 @@ class AllReceivedPaymentReportController extends Controller
 
         return $query->when(
             !$user->hasRole('admin'),
-            fn ($q) => $q->whereIn('created_by', $ids)
+            fn($q) => $q->whereIn('created_by', $ids)
         );
     }
 }

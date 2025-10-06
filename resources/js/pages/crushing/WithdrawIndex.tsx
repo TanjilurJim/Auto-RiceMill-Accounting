@@ -2,21 +2,20 @@ import TableComponent from '@/components/TableComponent';
 import AppLayout from '@/layouts/app-layout';
 import { Head } from '@inertiajs/react';
 
+type Withdrawal = {
+  id: number;
+  date: string;
+  ref_no: string;
+  party_ledger_name: string;
+  godown_name: string;
+  total?: number;     // signed overall (optional)
+  amount?: number;    // positive overall (preferred)
+  total_qty?: number; // positive overall (preferred)
+  items: WithdrawalItem[];
+};
+
 interface Props {
-    withdrawals: {
-        id: number;
-        date: string;
-        ref_no: string;
-        party_ledger_name: string;
-        godown_name: string;
-        total: number;
-        items: {
-            item_name: string;
-            qty: number;
-            rate: number;
-            total: number;
-        }[];
-    }[];
+  withdrawals: Withdrawal[];
 }
 
 export default function PartyStockWithdrawIndex({ withdrawals }: Props) {

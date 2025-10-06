@@ -78,7 +78,7 @@ export default function AccountLedgerIndex({ accountLedgers }: { accountLedgers:
                     />
 
                     {/* Pagination (dark-friendly) */}
-                    {/* <div className="mt-6 flex justify-end gap-1">
+                    <div className="mt-6 flex justify-end gap-1">
                         {accountLedgers.links.map((link, index) => {
                             const isActive = link.active;
                             const isDisabled = !link.url;
@@ -100,7 +100,7 @@ export default function AccountLedgerIndex({ accountLedgers }: { accountLedgers:
                                 />
                             );
                         })}
-                    </div> */}
+                    </div>
                 </div>
             </div>
         </AppLayout>

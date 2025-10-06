@@ -62,12 +62,19 @@ interface Props {
 }
 
 /* ---------- helper for summary rows ---------- */
-const SummaryRow = ({ label, value, bold = false }: { label: string; value: number; bold?: boolean }) => (
+const SummaryRow = ({
+  label,
+  value,
+  bold = false,
+}: { label: string; value: number | string; bold?: boolean }) => {
+  const n = Number(value ?? 0);
+  return (
     <div className="flex justify-between">
-        <span className={bold ? 'font-semibold' : ''}>{label}</span>
-        <span className={bold ? 'font-semibold' : ''}>{value.toFixed(2)}</span>
+      <span className={bold ? 'font-semibold' : ''}>{label}</span>
+      <span className={bold ? 'font-semibold' : ''}>{n.toFixed(2)}</span>
     </div>
-);
+  );
+};
 
 export default function RentVoucherEdit({ voucher, lines, parties, items, modes, units }: Props) {
     /* ---------- form ---------- */
@@ -144,6 +151,7 @@ export default function RentVoucherEdit({ voucher, lines, parties, items, modes,
             <Head title="Rent Voucher Edit" />
 
             {/* back */}
+            <div className="text-end">
             <Link
                 href={route('party-stock.rent-voucher.index')}
                 className="inline-flex items-center rounded-lg border border-gray-300 bg-background px-6 py-3 text-base font-medium text-gray-700 transition-colors hover:bg-gray-50 focus:ring-2 focus:ring-gray-500 focus:ring-offset-2 focus:outline-none"
@@ -153,6 +161,7 @@ export default function RentVoucherEdit({ voucher, lines, parties, items, modes,
                 </svg>
                 Back to List
             </Link>
+            </div>
 
             {/* form */}
             <form onSubmit={submit} className="mx-auto max-w-6xl space-y-6 p-6">
@@ -261,7 +270,7 @@ export default function RentVoucherEdit({ voucher, lines, parties, items, modes,
                 </div>
 
                 {/* summary */}
-                <div className="rounded border bg-gray-50 p-4">
+                <div className="rounded border bg-background p-4">
                     <div className="grid gap-6 sm:grid-cols-2">
                         {/* left */}
                         <div className="space-y-2">

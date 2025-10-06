@@ -171,7 +171,7 @@ export default function Create({ workingOrders, products, godowns, autoVoucherNo
                                     type="text"
                                     value={autoVoucherNo}
                                     readOnly
-                                    className="w-full cursor-not-allowed rounded border bg-gray-100 px-3 py-2 text-sm"
+                                    className="w-full cursor-not-allowed rounded border bg-background px-3 py-2 text-sm"
                                 />
                             </div>
                             <div>

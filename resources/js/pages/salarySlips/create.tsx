@@ -227,7 +227,7 @@ export default function SalarySlipCreate({ employees }: { employees: Employee[] 
                             </div>
 
                             {/* Advance slip toggle */}
-                            <div className="rounded-md border bg-gray-50 p-3">
+                            <div className="rounded-md border bg-background p-3">
                                 <label className="flex items-center gap-2">
                                     <input
                                         type="checkbox"
@@ -276,13 +276,13 @@ export default function SalarySlipCreate({ employees }: { employees: Employee[] 
 
                         {/* Employees */}
                         <div>
-                            <h2 className="mb-3 border-b bg-gray-100 pb-1 text-lg font-semibold">Employees</h2>
+                            <h2 className="mb-3 border-b bg-background pb-1 text-lg font-semibold">Employees</h2>
 
                             {formError && <div className="mb-3 rounded-md border border-red-200 bg-red-50 p-3 text-sm text-red-700">{formError}</div>}
 
                             <div className="overflow-x-auto rounded border">
                                 <table className="min-w-full text-left text-sm">
-                                    <thead className="bg-gray-50">
+                                    <thead className="bg-background">
                                         <tr>
                                             <th className="border px-2 py-2">Employee</th>
                                             <th className="border px-2 py-2">Basic Salary (editable)</th>
@@ -301,7 +301,7 @@ export default function SalarySlipCreate({ employees }: { employees: Employee[] 
                                                 : null;
 
                                             return (
-                                                <tr key={index} className="align-top hover:bg-gray-50">
+                                                <tr key={index} className="align-top hover:bg-background">
                                                     {/* Employee */}
                                                     <td className="min-w-[280px] border px-2 py-2">
                                                         <Select
@@ -386,7 +386,7 @@ export default function SalarySlipCreate({ employees }: { employees: Employee[] 
 
                                     {/* Totals */}
                                     <tfoot>
-                                        <tr className="bg-gray-50 font-medium">
+                                        <tr className="bg-background font-medium">
                                             <td className="border px-2 py-2 text-right">Totals</td>
                                             <td className="border px-2 py-2"></td>
                                             <td className="border px-2 py-2"></td>

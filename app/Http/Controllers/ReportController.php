@@ -400,10 +400,14 @@ class ReportController extends Controller
         $user = auth()->user();
         $ids = user_scope_ids();
 
-        $query = Category::with(['items.stocks'])
-            ->when(!$user->hasRole('admin'), function ($q) use ($ids) {
-                $q->whereHas('items', fn($qq) => $qq->whereIn('created_by', $ids));
-            });
+        $query = Category::with([
+            'items' => function ($q) use ($user, $ids) {
+                if (!$user->hasRole('admin')) {
+                    $q->whereIn('created_by', $ids);
+                }
+                $q->with(['stocks', 'unit']); // ← eager-load unit here
+            },
+        ]);
 
         if ($categoryId) {
             $query->where('id', $categoryId);
@@ -578,79 +582,7 @@ class ReportController extends Controller
         });
     }
 
-    // itemWiseStockSummary
-    // public function itemWiseStockSummary(Request $request)
-    // {
-    //     $from = $request->input('from');
-    //     $to = $request->input('to');
-    //     $godownId = $request->input('godown_id');
-    //     $itemId = $request->input('item_id');
 
-    //     $query = Item::with(['unit', 'stocks'])
-    //         ->when(!auth()->user()->hasRole('admin'), function ($q) {
-    //             $q->where('created_by', auth()->id());
-    //         });
-
-    //     if ($itemId) {
-    //         $query->where('id', $itemId);
-    //     }
-
-    //     $items = $query->get()->map(function ($item) use ($from, $to, $godownId) {
-    //         $stocks = $item->stocks;
-    //         if ($godownId) {
-    //             $stocks = $stocks->where('godown_id', $godownId);
-    //         }
-
-    //         $totalQty = $stocks->sum('qty');
-
-    //         $totalPurchase = PurchaseItem::where('product_id', $item->id)
-    //             ->when($from && $to, fn($q) => $q->whereBetween('created_at', [$from, $to]))
-    //             ->sum('subtotal');
-
-    //         $totalSale = SaleItem::where('product_id', $item->id)
-    //             ->when($from && $to, fn($q) => $q->whereBetween('created_at', [$from, $to]))
-    //             ->sum('subtotal');
-
-    //         $totalSaleQty = SaleItem::where('product_id', $item->id)
-    //             ->when($from && $to, fn($q) => $q->whereBetween('created_at', [$from, $to]))
-    //             ->sum('qty');
-
-    //         $lastPurchase = PurchaseItem::where('product_id', $item->id)
-    //             ->when($from && $to, fn($q) => $q->whereBetween('created_at', [$from, $to]))
-    //             ->latest('created_at')->first();
-
-    //         $lastSale = SaleItem::where('product_id', $item->id)
-    //             ->when($from && $to, fn($q) => $q->whereBetween('created_at', [$from, $to]))
-    //             ->latest('created_at')->first();
-
-    //         return [
-    //             'item_name'           => $item->item_name,
-    //             'unit'                => optional($item->unit)->name ?? '',
-    //             'total_qty'           => $totalQty,
-    //             'total_purchase'      => $totalPurchase,
-    //             'total_sale'          => $totalSale,
-    //             'total_sale_qty'      => $totalSaleQty,
-    //             'last_purchase_at'    => optional($lastPurchase)->created_at,
-    //             'last_purchase_qty'   => optional($lastPurchase)->qty ?? 0,
-    //             'last_sale_at'        => optional($lastSale)->created_at,
-    //             'last_sale_qty'       => optional($lastSale)->qty ?? 0,
-    //         ];
-    //     });
-
-    //     return Inertia::render('reports/ItemWiseStockSummary', [
-    //         'items' => $items,
-    //         'godowns' => Godown::when(!auth()->user()->hasRole('admin'), fn($q) => $q->where('created_by', auth()->id()))
-    //             ->get(['id', 'name']),
-    //         'categories' => Category::when(!auth()->user()->hasRole('admin'), fn($q) => $q->where('created_by', auth()->id()))
-    //             ->get(['id', 'name']),
-    //         'company' => CompanySetting::where('created_by', auth()->id())->first(),
-    //         'filters' => [
-    //             'from' => $from,
-    //             'to' => $to,
-    //             'godown_id' => $godownId,
-    //         ],
-    //     ]);
-    // }
 
     public function itemWiseStockSummary(Request $request)
     {

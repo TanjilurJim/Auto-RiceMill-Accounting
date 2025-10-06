@@ -68,9 +68,9 @@ const InfoCard = ({
     highlight?: boolean;
     currency?: boolean;
 }) => (
-    <div className={`rounded-lg border p-4 shadow-sm ${highlight ? 'border-blue-200 bg-blue-50' : 'border-gray-200 bg-gray-50'}`}>
-        <div className="mb-1 text-sm font-medium text-gray-600">{label}</div>
-        <div className={`font-mono text-lg font-bold ${highlight ? 'text-blue-700' : 'text-gray-900'}`}>{currency ? `৳${value}` : value}</div>
+    <div className={`rounded-lg border p-4 shadow-sm ${highlight ? 'border-blue-200 bg-background' : 'border-gray-200 bg-background'}`}>
+        <div className="mb-1 text-sm font-medium text-foreground">{label}</div>
+        <div className={`font-mono text-lg font-bold ${highlight ? 'text-red-700' : 'text-foreground'}`}>{currency ? `৳${value}` : value}</div>
     </div>
 );
 
@@ -172,11 +172,11 @@ export default function RentVoucherShow() {
                                     </div>
                                     <div>
                                         <h1 className="text-2xl font-bold print:text-black">Rent Voucher</h1>
-                                        <p className="text-purple-100 print:text-gray-600">Official payment receipt</p>
+                                        <p className="text-purple-100 print:text-foreground">Official payment receipt</p>
                                     </div>
                                 </div>
                                 <div className="text-right">
-                                    <div className="text-sm text-purple-100 print:text-gray-600">Voucher No.</div>
+                                    <div className="text-sm text-purple-100 print:text-foreground">Voucher No.</div>
                                     <div className="text-xl font-bold print:text-black">{voucher.vch_no}</div>
                                 </div>
                             </div>
@@ -187,8 +187,8 @@ export default function RentVoucherShow() {
                             <div className="grid gap-6 md:grid-cols-2">
                                 {/* party */}
                                 <div className="space-y-4">
-                                    <h2 className="flex items-center space-x-2 text-lg font-semibold text-gray-900">
-                                        <svg className="h-5 w-5 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <h2 className="flex items-center space-x-2 text-lg font-semibold text-foreground">
+                                        <svg className="h-5 w-5 text-foreground" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                             <path
                                                 strokeLinecap="round"
                                                 strokeLinejoin="round"
@@ -198,16 +198,16 @@ export default function RentVoucherShow() {
                                         </svg>
                                         <span>Party Details</span>
                                     </h2>
-                                    <div className="rounded-lg bg-gray-50 p-4">
-                                        <div className="font-medium text-gray-900">{voucher.party.account_ledger_name}</div>
-                                        <div className="mt-1 text-sm text-gray-500">Account Ledger</div>
+                                    <div className="rounded-lg bg-background shadow-amber-50 p-4">
+                                        <div className="font-medium text-foreground">{voucher.party.account_ledger_name}</div>
+                                        <div className="mt-1 text-sm text-foreground">Account Ledger</div>
                                     </div>
                                 </div>
 
                                 {/* date & status */}
                                 <div className="space-y-4">
-                                    <h2 className="flex items-center space-x-2 text-lg font-semibold text-gray-900">
-                                        <svg className="h-5 w-5 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <h2 className="flex items-center space-x-2 text-lg font-semibold text-foreground">
+                                        <svg className="h-5 w-5 text-foreground" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                             <path
                                                 strokeLinecap="round"
                                                 strokeLinejoin="round"
@@ -219,11 +219,11 @@ export default function RentVoucherShow() {
                                     </h2>
                                     <div className="space-y-3">
                                         <div className="flex items-center justify-between">
-                                            <span className="text-sm text-gray-600">Date:</span>
+                                            <span className="text-sm text-foreground">Date:</span>
                                             <span className="font-medium">{voucher.date}</span>
                                         </div>
                                         <div className="flex items-center justify-between">
-                                            <span className="text-sm text-gray-600">Received Through:</span>
+                                            <span className="text-sm text-foreground">Received Through:</span>
                                             <span className="font-medium">
                                                 {voucher.received_mode
                                                     ? `${voucher.received_mode.mode_name}${voucher.received_mode.phone_number ? ' (' + voucher.received_mode.phone_number + ')' : ''}`
@@ -231,7 +231,7 @@ export default function RentVoucherShow() {
                                             </span>
                                         </div>
                                         <div className="flex items-center justify-between">
-                                            <span className="text-sm text-gray-600">Status:</span>
+                                            <span className="text-sm text-foreground">Status:</span>
                                             <StatusBadge status={voucher.balance} />
                                         </div>
                                     </div>
@@ -242,9 +242,9 @@ export default function RentVoucherShow() {
 
                     {/* ---------- Financial summary ---------- */}
                     <div className="bg-background mb-6 overflow-hidden rounded-lg shadow-sm print:rounded-none print:shadow-none">
-                        <div className="border-b border-gray-200 bg-gray-50 px-6 py-4">
-                            <h2 className="flex items-center text-lg font-semibold text-gray-900">
-                                <svg className="mr-2 h-5 w-5 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <div className="border-b border-gray-200 bg-background px-6 py-4">
+                            <h2 className="flex items-center text-lg font-semibold text-foreground">
+                                <svg className="mr-2 h-5 w-5 text-foreground" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path
                                         strokeLinecap="round"
                                         strokeLinejoin="round"
@@ -286,7 +286,7 @@ export default function RentVoucherShow() {
                                         <Dialog.Overlay className="fixed inset-0 bg-black/30" />
                                         <Dialog.Content className="fixed top-1/2 left-1/2 w-[600px] -translate-x-1/2 -translate-y-1/2 rounded-lg bg-background p-6 shadow-lg">
                                             <Dialog.Title className="mb-2 text-lg font-semibold">Settle Due</Dialog.Title>
-                                            <p className="mb-4 text-sm text-gray-600">
+                                            <p className="mb-4 text-sm text-foreground">
                                                 Remaining: <span className="font-mono">৳{money(remaining)}</span>
                                             </p>
 
@@ -392,19 +392,19 @@ export default function RentVoucherShow() {
                             <table className="w-full">
                                 <thead className="bg-gray-50">
                                     <tr>
-                                        <th className="border-b px-6 py-3 text-left text-xs font-medium tracking-wider text-gray-500 uppercase">
+                                        <th className="border-b px-6 py-3 text-left text-xs font-medium tracking-wider text-foreground uppercase">
                                             Date
                                         </th>
-                                        <th className="border-b px-6 py-3 text-left text-xs font-medium tracking-wider text-gray-500 uppercase">
+                                        <th className="border-b px-6 py-3 text-left text-xs font-medium tracking-wider text-foreground uppercase">
                                             Mode
                                         </th>
-                                        <th className="border-b px-6 py-3 text-left text-xs font-medium tracking-wider text-gray-500 uppercase">
+                                        <th className="border-b px-6 py-3 text-left text-xs font-medium tracking-wider text-foreground uppercase">
                                             Reference
                                         </th>
-                                        <th className="border-b px-6 py-3 text-left text-xs font-medium tracking-wider text-gray-500 uppercase">
+                                        <th className="border-b px-6 py-3 text-left text-xs font-medium tracking-wider text-foreground uppercase">
                                             Posted By
                                         </th>
-                                        <th className="border-b px-6 py-3 text-right text-xs font-medium tracking-wider text-gray-500 uppercase">
+                                        <th className="border-b px-6 py-3 text-right text-xs font-medium tracking-wider text-foreground uppercase">
                                             Amount
                                         </th>
                                     </tr>
@@ -412,13 +412,13 @@ export default function RentVoucherShow() {
                                 <tbody className="divide-y divide-gray-200 bg-background">
                                     {payments.length === 0 ? (
                                         <tr>
-                                            <td className="px-6 py-4 text-sm text-gray-500" colSpan={5}>
+                                            <td className="px-6 py-4 text-sm text-foreground" colSpan={5}>
                                                 No payments yet.
                                             </td>
                                         </tr>
                                     ) : (
                                         payments.map((p, idx) => (
-                                            <tr key={`${p.id ?? 'init'}-${idx}`} className="hover:bg-gray-50">
+                                            <tr key={`${p.id ?? 'init'}-${idx}`} className="hover:bg-background">
                                                 <td className="px-6 py-3 text-sm">{p.date}</td>
                                                 <td className="px-6 py-3 text-sm">
                                                     {p.received_mode ? (
@@ -437,12 +437,12 @@ export default function RentVoucherShow() {
                                         ))
                                     )}
                                 </tbody>
-                                <tfoot className="bg-gray-50">
+                                <tfoot className="bg-background">
                                     <tr>
-                                        <td className="px-6 py-3 text-right text-sm font-bold text-gray-900" colSpan={4}>
+                                        <td className="px-6 py-3 text-right text-sm font-bold text-foreground" colSpan={4}>
                                             Total Received
                                         </td>
-                                        <td className="px-6 py-3 text-right font-mono text-sm font-bold text-gray-900">
+                                        <td className="px-6 py-3 text-right font-mono text-sm font-bold text-foreground">
                                             ৳{money(voucher.received_total)}
                                         </td>
                                     </tr>

@@ -19,7 +19,7 @@ interface Stock {
     godown_name: string;
     qty: number;
     unit: string;
-    lot_no?: string | null; // 👈 add this since you use it below
+    lot_no?: string | null;
     total_purchase: number;
     total_sale: number;
     total_sale_qty: number;
@@ -41,7 +41,7 @@ interface Company {
 }
 
 interface Props {
-    stocks: Paginated<Stock>; // 👈 paginated, not array
+    stocks: Paginated<Stock>;
     filters: {
         from: string;
         to: string;
@@ -58,30 +58,33 @@ export default function StockSummary({ stocks, filters, company, grand, grandByG
     const rows = stocks.data ?? [];
     const perPage = stocks.per_page ?? 25;
 
-    // Totals for the CURRENT PAGE (not the whole dataset)
-    const totalPurchase = rows.reduce((sum, s) => sum + (s.total_purchase || 0), 0);
-    const totalSale = rows.reduce((sum, s) => sum + (s.total_sale || 0), 0);
+    // Totals for CURRENT PAGE
     const totalQty = rows.reduce((sum, s) => sum + (s.qty || 0), 0);
 
     const handlePrint = () => window.print();
 
     return (
-        <AppLayout title="Stock Summary Report">
+        <AppLayout>
             <Head title="Stock Summary Report" />
 
-            <div className="max-w-full space-y-4 p-4">
+            {/* Responsive container */}
+            <div className="mx-auto w-full max-w-screen-xl px-3 py-4">
                 <Card className="shadow-lg">
-                    <CardHeader className="relative bg-background/20 py-6 text-center">
+                    <CardHeader className="bg-background/20 relative py-6 text-center">
                         <div className="space-y-1">
                             {company?.logo_url && (
-                                <img src={company.logo_url} alt="Company Logo" className="mx-auto mb-2 h-20 object-contain print:h-12" />
+                                <img
+                                    src={company.logo_url}
+                                    alt="Company Logo"
+                                    className="mx-auto mb-2 h-16 w-auto object-contain sm:h-20 print:h-12"
+                                />
                             )}
 
-                            <h1 className="text-3xl font-bold uppercase">{company?.company_name ?? 'Company Name'}</h1>
-                            {company?.address && <p className="text-sm text-foreground">{company.address}</p>}
-                            {company?.mobile && <p className="text-sm text-foreground">Phone: {company.mobile}</p>}
+                            <h1 className="text-xl font-bold uppercase sm:text-3xl">{company?.company_name ?? 'Company Name'}</h1>
+                            {company?.address && <p className="text-foreground text-xs sm:text-sm">{company.address}</p>}
+                            {company?.mobile && <p className="text-foreground text-xs sm:text-sm">Phone: {company.mobile}</p>}
                             {(company?.email || company?.website) && (
-                                <p className="text-sm text-foreground">
+                                <p className="text-foreground text-xs sm:text-sm">
                                     {company?.email && <span>{company.email}</span>}
                                     {company?.email && company?.website && <span className="mx-1">|</span>}
                                     {company?.website && <span>{company.website}</span>}
@@ -90,21 +93,23 @@ export default function StockSummary({ stocks, filters, company, grand, grandByG
                         </div>
 
                         <div className="mt-4">
-                            <h2 className="text-xl font-semibold underline">Stock Summary Report</h2>
-                            <p className="text-sm text-foreground">
+                            <h2 className="text-lg font-semibold underline sm:text-xl">Stock Summary Report</h2>
+                            <p className="text-foreground text-xs sm:text-sm">
                                 From: <strong>{filters.from}</strong>, To: <strong>{filters.to}</strong>
                             </p>
                         </div>
 
-                        <div className="absolute top-6 right-4 print:hidden">
+                        {/* Change Filters link */}
+                        <div className="absolute top-6 right-4 hidden sm:block print:hidden">
                             <Link href={route('reports.stock-summary')} className="text-sm text-blue-600 hover:underline">
                                 Change Filters
                             </Link>
                         </div>
                     </CardHeader>
 
-                    <CardContent className="p-6">
-                        <div className="mb-4 flex items-center justify-between text-sm text-foreground">
+                    <CardContent className="p-4 sm:p-6">
+                        {/* Meta / pagination info */}
+                        <div className="text-foreground mb-4 flex flex-col items-start justify-between gap-2 text-xs sm:flex-row sm:items-center sm:text-sm">
                             <div>
                                 Stock from <strong>{filters.from}</strong> to <strong>{filters.to}</strong>
                             </div>
@@ -112,131 +117,222 @@ export default function StockSummary({ stocks, filters, company, grand, grandByG
                                 Page <strong>{stocks.current_page}</strong> of <strong>{stocks.last_page}</strong> • Total:{' '}
                                 <strong>{stocks.total}</strong>
                             </div>
+                            {/* Mobile “Change Filters” */}
+                            <Link href={route('reports.stock-summary')} className="text-blue-600 hover:underline sm:hidden">
+                                Change Filters
+                            </Link>
                         </div>
 
-                        <div className="overflow-x-auto">
-                            <table className="min-w-full border border-gray-300 text-sm print:text-xs">
-                                <thead className="bg-gray-100 print:bg-white">
-                                    <tr>
-                                        <th className="border px-2 py-1 text-left">#</th>
-                                        <th className="border px-2 py-1 text-left">Item Name</th>
-                                        <th className="border px-2 py-1 text-left">Godown</th>
-                                        <th className="border px-2 py-1 text-left">Qty (Unit)</th>
-                                        <th className="border px-2 py-1 text-left">Lot No</th>
-                                        <th className="border px-2 py-1 text-left">Last Purchase</th>
-                                        <th className="border px-2 py-1 text-left">Last Sale</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    {rows.length > 0 ? (
-                                        <>
-                                            {rows.map((stock, i) => (
-                                                <tr key={`${stock.item_name}-${i}`} className="print:bg-white">
-                                                    <td className="border px-2 py-1">
-                                                        {(stocks.current_page - 1) * 25 + (i + 1) /* adjust if per_page variable */}
+                        {/* ===== MOBILE (<md): Card list ===== */}
+                        <div className="space-y-3 md:hidden">
+                            {rows.length ? (
+                                <>
+                                    {rows.map((s, i) => (
+                                        <div key={`${s.item_name}-${i}`} className="bg-background rounded border p-3">
+                                            <div className="mb-1 flex items-center justify-between">
+                                                <div className="text-muted-foreground text-xs">#{(stocks.current_page - 1) * perPage + (i + 1)}</div>
+                                            </div>
+
+                                            <div className="text-sm font-semibold">{s.item_name}</div>
+                                            <div className="text-muted-foreground mt-0.5 text-xs">Godown: {s.godown_name}</div>
+                                            <div className="mt-1 text-sm">
+                                                Qty: <strong>{Number(s.qty).toFixed(2)}</strong>{' '}
+                                                <span className="text-xs text-gray-500">({s.unit})</span>
+                                            </div>
+                                            <div className="mt-1 text-xs">Lot: {s.lot_no || '-'}</div>
+
+                                            <div className="mt-2 grid grid-cols-2 gap-2 text-xs">
+                                                <div>
+                                                    <span className="text-muted-foreground">Last Purchase:</span>{' '}
+                                                    {s.last_purchase_at ? new Date(s.last_purchase_at).toLocaleDateString() : '-'}
+                                                </div>
+                                                <div>
+                                                    <span className="text-muted-foreground">Last Sale:</span>{' '}
+                                                    {s.last_sale_at ? new Date(s.last_sale_at).toLocaleDateString() : '-'}
+                                                </div>
+                                            </div>
+                                        </div>
+                                    ))}
+
+                                    {/* Totals (page & grand) */}
+                                    <div className="rounded border bg-gray-50 p-3 text-right font-semibold">
+                                        Total (this page): {totalQty.toFixed(2)}
+                                    </div>
+                                    <div className="rounded border bg-gray-100 p-3 text-right font-bold">
+                                        Grand Total (all pages): {Number(grand.total_qty).toFixed(2)}
+                                    </div>
+
+                                    {/* Closing stock summaries */}
+                                    <div className="bg-background rounded border p-3">
+                                        <strong>Closing Stock by Item (page):</strong>
+                                        <ul className="text-foreground mt-1 list-disc space-y-0.5 pl-5 text-sm">
+                                            {Object.entries(
+                                                rows.reduce<Record<string, number>>((acc, s) => {
+                                                    const key = `${s.item_name} (${s.unit})`;
+                                                    acc[key] = (acc[key] || 0) + Number(s.qty || 0);
+                                                    return acc;
+                                                }, {}),
+                                            ).map(([item, qty]) => (
+                                                <li key={item}>
+                                                    {item}: {qty.toFixed(2)}
+                                                </li>
+                                            ))}
+                                        </ul>
+                                    </div>
+
+                                    <div className="bg-background rounded border p-3">
+                                        <strong>Closing Stock by Godown → Item (all pages):</strong>
+                                        {Object.keys(grandByGodownItem).length === 0 ? (
+                                            <div className="text-foreground mt-1 text-sm">No data.</div>
+                                        ) : (
+                                            <div className="mt-2 space-y-2">
+                                                {Object.entries(grandByGodownItem).map(([godown, items]) => (
+                                                    <div key={godown}>
+                                                        <div className="font-semibold">{godown}</div>
+                                                        <ul className="text-foreground mt-1 list-disc space-y-0.5 pl-5 text-sm">
+                                                            {Object.entries(items).map(([itemLabel, qty]) => (
+                                                                <li key={`${godown}-${itemLabel}`}>
+                                                                    {itemLabel}: {Number(qty).toFixed(2)}
+                                                                </li>
+                                                            ))}
+                                                        </ul>
+                                                    </div>
+                                                ))}
+                                            </div>
+                                        )}
+                                    </div>
+                                </>
+                            ) : (
+                                <div className="bg-background rounded border p-6 text-center text-gray-500">No stock data found.</div>
+                            )}
+                        </div>
+
+                        {/* ===== DESKTOP (md+): Table ===== */}
+                        <div className="hidden md:block">
+                            <div className="bg-background overflow-x-auto rounded border border-gray-300 text-sm print:overflow-visible">
+                                <table className="min-w-full table-auto">
+                                    <thead className="bg-gray-100 print:bg-white">
+                                        <tr>
+                                            <th className="border px-2 py-1 text-left">#</th>
+                                            <th className="border px-2 py-1 text-left">Item Name</th>
+                                            <th className="border px-2 py-1 text-left">Godown</th>
+                                            <th className="border px-2 py-1 text-left">Qty (Unit)</th>
+                                            <th className="border px-2 py-1 text-left">Lot No</th>
+                                            <th className="border px-2 py-1 text-left">Last Purchase</th>
+                                            <th className="border px-2 py-1 text-left">Last Sale</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {rows.length > 0 ? (
+                                            <>
+                                                {rows.map((stock, i) => (
+                                                    <tr key={`${stock.item_name}-${i}`} className="print:bg-white">
+                                                        <td className="border px-2 py-1">{(stocks.current_page - 1) * perPage + (i + 1)}</td>
+                                                        <td className="border px-2 py-1">{stock.item_name}</td>
+                                                        <td className="border px-2 py-1">{stock.godown_name}</td>
+                                                        <td className="border px-2 py-1">
+                                                            {Number(stock.qty).toFixed(2)}{' '}
+                                                            <span className="text-xs text-gray-500">({stock.unit})</span>
+                                                        </td>
+                                                        <td className="border px-2 py-1">{stock.lot_no || '-'}</td>
+                                                        <td className="border px-2 py-1">
+                                                            {stock.last_purchase_at ? new Date(stock.last_purchase_at).toLocaleDateString() : '-'}
+                                                        </td>
+                                                        <td className="border px-2 py-1">
+                                                            {stock.last_sale_at ? new Date(stock.last_sale_at).toLocaleDateString() : '-'}
+                                                        </td>
+                                                    </tr>
+                                                ))}
+
+                                                {/* Totals (page) */}
+                                                <tr className="bg-gray-100 font-semibold print:bg-white">
+                                                    <td className="border px-2 py-1 text-right" colSpan={3}>
+                                                        Total (this page)
                                                     </td>
-                                                    <td className="border px-2 py-1">{stock.item_name}</td>
-                                                    <td className="border px-2 py-1">{stock.godown_name}</td>
-                                                    <td className="border px-2 py-1">
-                                                        {Number(stock.qty).toFixed(2)} <span className="text-xs text-gray-500">({stock.unit})</span>
+                                                    <td className="border px-2 py-1">{totalQty.toFixed(2)}</td>
+                                                    <td className="border px-2 py-1">—</td>
+                                                    <td className="border px-2 py-1">—</td>
+                                                    <td className="border px-2 py-1">—</td>
+                                                </tr>
+
+                                                {/* Grand total (all pages) */}
+                                                <tr className="bg-gray-200 font-bold print:bg-white">
+                                                    <td className="border px-2 py-1 text-right" colSpan={3}>
+                                                        Grand Total (all pages)
                                                     </td>
-                                                    <td className="border px-2 py-1">{stock.lot_no || '-'}</td>
-                                                    <td className="border px-2 py-1">
-                                                        {stock.last_purchase_at ? new Date(stock.last_purchase_at).toLocaleDateString() : '-'}
-                                                    </td>
-                                                    <td className="border px-2 py-1">
-                                                        {stock.last_sale_at ? new Date(stock.last_sale_at).toLocaleDateString() : '-'}
+                                                    <td className="border px-2 py-1">{Number(grand.total_qty).toFixed(2)}</td>
+                                                    <td className="border px-2 py-1">—</td>
+                                                    <td className="border px-2 py-1">—</td>
+                                                    <td className="border px-2 py-1">—</td>
+                                                </tr>
+
+                                                {/* Closing stock by item (this page) */}
+                                                <tr className="bg-background print:bg-white">
+                                                    <td className="border px-2 py-2 text-sm font-medium" colSpan={7}>
+                                                        <strong>Closing Stock&nbsp;by&nbsp;Item (page):</strong>
+                                                        <ul className="text-foreground mt-1 list-disc space-y-0.5 pl-5 text-sm">
+                                                            {Object.entries(
+                                                                rows.reduce<Record<string, number>>((acc, s) => {
+                                                                    const key = `${s.item_name} (${s.unit})`;
+                                                                    acc[key] = (acc[key] || 0) + Number(s.qty || 0);
+                                                                    return acc;
+                                                                }, {}),
+                                                            ).map(([item, qty]) => (
+                                                                <li key={item}>
+                                                                    {item}: {qty.toFixed(2)}
+                                                                </li>
+                                                            ))}
+                                                        </ul>
                                                     </td>
                                                 </tr>
-                                            ))}
+                                                <tr className="bg-background print:bg-white">
+                                                    <td className="border px-2 py-2 text-sm font-medium" colSpan={7}>
+                                                        <strong>Closing Stock by Godown → Item (all pages):</strong>
 
-                                            {/* Totals for CURRENT PAGE */}
-                                            <tr className="bg-gray-100 font-semibold print:bg-white">
-                                                <td className="border px-2 py-1 text-right" colSpan={3}>
-                                                    Total (this page)
-                                                </td>
-                                                <td className="border px-2 py-1">{totalQty.toFixed(2)}</td>
-                                                <td className="border px-2 py-1">—</td>
-                                                <td className="border px-2 py-1">—</td>
-                                                <td className="border px-2 py-1">—</td>
-                                            </tr>
-
-                                            {/* GRAND TOTAL across ALL PAGES */}
-                                            <tr className="bg-gray-200 font-bold print:bg-white">
-                                                <td className="border px-2 py-1 text-right" colSpan={3}>
-                                                    Grand Total (all pages)
-                                                </td>
-                                                <td className="border px-2 py-1">{Number(grand.total_qty).toFixed(2)}</td>
-                                                <td className="border px-2 py-1">—</td>
-                                                <td className="border px-2 py-1">—</td>
-                                                <td className="border px-2 py-1">—</td>
-                                            </tr>
-
-                                            {/* Closing stock by item (this page) */}
-                                            <tr className="bg-background print:bg-white">
-                                                <td className="border px-2 py-2 text-sm font-medium" colSpan={7}>
-                                                    <strong>Closing Stock&nbsp;by&nbsp;Item (page):</strong>
-                                                    <ul className="mt-1 list-disc space-y-0.5 pl-5 text-sm text-foreground">
-                                                        {Object.entries(
-                                                            rows.reduce<Record<string, number>>((acc, s) => {
-                                                                const key = `${s.item_name} (${s.unit})`;
-                                                                acc[key] = (acc[key] || 0) + Number(s.qty || 0);
-                                                                return acc;
-                                                            }, {}),
-                                                        ).map(([item, qty]) => (
-                                                            <li key={item}>
-                                                                {item}: {qty.toFixed(2)}
-                                                            </li>
-                                                        ))}
-                                                    </ul>
+                                                        {Object.keys(grandByGodownItem).length === 0 ? (
+                                                            <div className="text-foreground mt-1 text-sm">No data.</div>
+                                                        ) : (
+                                                            <div className="mt-2 space-y-2">
+                                                                {Object.entries(grandByGodownItem).map(([godown, items]) => (
+                                                                    <div key={godown}>
+                                                                        <div className="font-semibold">{godown}</div>
+                                                                        <ul className="text-foreground mt-1 list-disc space-y-0.5 pl-5 text-sm">
+                                                                            {Object.entries(items).map(([itemLabel, qty]) => (
+                                                                                <li key={`${godown}-${itemLabel}`}>
+                                                                                    {itemLabel}: {Number(qty).toFixed(2)}
+                                                                                </li>
+                                                                            ))}
+                                                                        </ul>
+                                                                    </div>
+                                                                ))}
+                                                            </div>
+                                                        )}
+                                                    </td>
+                                                </tr>
+                                            </>
+                                        ) : (
+                                            <tr>
+                                                <td colSpan={7} className="px-4 py-4 text-center text-gray-500">
+                                                    No stock data found.
                                                 </td>
                                             </tr>
-                                            <tr className="bg-background print:bg-white">
-                                                <td className="border px-2 py-2 text-sm font-medium" colSpan={7}>
-                                                    <strong>Closing Stock by Godown → Item (all pages):</strong>
-
-                                                    {Object.keys(grandByGodownItem).length === 0 ? (
-                                                        <div className="mt-1 text-sm text-foreground">No data.</div>
-                                                    ) : (
-                                                        <div className="mt-2 space-y-2">
-                                                            {Object.entries(grandByGodownItem).map(([godown, items]) => (
-                                                                <div key={godown}>
-                                                                    <div className="font-semibold">{godown}</div>
-                                                                    <ul className="mt-1 list-disc space-y-0.5 pl-5 text-sm text-foreground">
-                                                                        {Object.entries(items).map(([itemLabel, qty]) => (
-                                                                            <li key={`${godown}-${itemLabel}`}>
-                                                                                {itemLabel}: {Number(qty).toFixed(2)}
-                                                                            </li>
-                                                                        ))}
-                                                                    </ul>
-                                                                </div>
-                                                            ))}
-                                                        </div>
-                                                    )}
-                                                </td>
-                                            </tr>
-                                        </>
-                                    ) : (
-                                        <tr>
-                                            <td colSpan={7} className="px-4 py-4 text-center text-gray-500">
-                                                No stock data found.
-                                            </td>
-                                        </tr>
-                                    )}
-                                </tbody>
-                            </table>
+                                        )}
+                                    </tbody>
+                                </table>
+                            </div>
                         </div>
 
-                        <div className="mt-4 flex justify-end gap-2 print:hidden">
-                            <Button variant="outline" onClick={handlePrint}>
+                        {/* Actions: stack on mobile, inline on desktop */}
+                        <div className="mt-4 flex flex-col items-stretch gap-2 sm:flex-row sm:justify-end print:hidden">
+                            <Button variant="outline" onClick={handlePrint} className="w-full sm:w-auto">
                                 <Printer className="mr-2 h-4 w-4" /> Print
                             </Button>
 
                             <a
                                 href={route('reports.stock-summary.pdf', filters)}
                                 target="_blank"
-                                className="inline-flex items-center gap-1 rounded-md border px-4 py-2 text-sm hover:bg-gray-100"
                                 rel="noreferrer"
+                                className="inline-flex w-full items-center justify-center gap-1 rounded-md border px-4 py-2 text-sm hover:bg-gray-100 sm:w-auto"
                             >
                                 <FileText className="h-4 w-4" />
                                 Save as PDF
@@ -244,7 +340,7 @@ export default function StockSummary({ stocks, filters, company, grand, grandByG
 
                             <a
                                 href={route('reports.stock-summary.excel', filters)}
-                                className="inline-flex items-center gap-1 rounded-md border px-4 py-2 text-sm hover:bg-gray-100"
+                                className="inline-flex w-full items-center justify-center gap-1 rounded-md border px-4 py-2 text-sm hover:bg-gray-100 sm:w-auto"
                             >
                                 <FileSpreadsheet className="h-4 w-4" />
                                 Export Excel
@@ -252,7 +348,7 @@ export default function StockSummary({ stocks, filters, company, grand, grandByG
                         </div>
                     </CardContent>
 
-                    <div className="text-muted-foreground flex justify-between px-6 pb-6 text-sm">
+                    <div className="text-muted-foreground flex flex-col gap-2 px-4 pb-6 text-xs sm:flex-row sm:items-center sm:justify-between sm:px-6 sm:text-sm">
                         <span>Generated on {new Date().toLocaleString()}</span>
                         <span>
                             {company?.company_name} {company?.email ? `• ${company.email}` : ''}
@@ -261,7 +357,7 @@ export default function StockSummary({ stocks, filters, company, grand, grandByG
                 </Card>
             </div>
 
-            {/* 👇 pass paginator meta to your component */}
+            {/* Paginator */}
             <Pagination links={stocks.links} currentPage={stocks.current_page} lastPage={stocks.last_page} total={stocks.total} />
         </AppLayout>
     );

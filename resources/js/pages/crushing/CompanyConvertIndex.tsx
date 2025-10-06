@@ -59,7 +59,7 @@ export default function CompanyConvertIndex({ conversions, pagination }: Props) 
 
                 <div className="overflow-x-auto rounded-lg border border-slate-200 bg-background">
                     <table className="w-full text-sm">
-                        <thead className="bg-slate-50 text-slate-600">
+                        <thead className="bg-background text-foreground">
                             <tr>
                                 <th className="p-3 text-left">তারিখ</th>
                                 <th className="p-3 text-left">রেফারেন্স নং</th>
@@ -79,13 +79,13 @@ export default function CompanyConvertIndex({ conversions, pagination }: Props) 
 
                                 return (
                                     <React.Fragment key={c.ref_no}>
-                                        <tr className="hover:bg-slate-50">
+                                        <tr className="hover:bg-background">
                                             <td className="p-3">{fmtDate(c.date)}</td>
-                                            <td className="p-3 font-medium text-slate-800">{c.ref_no}</td>
+                                            <td className="p-3 font-medium text-foreground">{c.ref_no}</td>
                                             <td className="p-3">{c.godown_name || '—'}</td>
                                             <td className="p-3">{c.remarks || '—'}</td>
-                                            <td className="p-3 text-right">{net.toLocaleString()}</td>
-                                            <td className="p-3 text-right">
+                                            {/* <td className="p-3 text-right">{net.toLocaleString()}</td> */}
+                                            {/* <td className="p-3 text-right">
                                                 <button
                                                     type="button"
                                                     onClick={() => setOpen((s) => ({ ...s, [c.ref_no]: !s[c.ref_no] }))}
@@ -94,7 +94,7 @@ export default function CompanyConvertIndex({ conversions, pagination }: Props) 
                                                 >
                                                     {lines} {open[c.ref_no] ? '▲' : '▼'}
                                                 </button>
-                                            </td>
+                                            </td> */}
                                             <td className="p-3">
                                                 <div className="flex items-center justify-end gap-2">
                                                     <Link

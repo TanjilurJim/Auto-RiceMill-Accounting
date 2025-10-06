@@ -6,7 +6,7 @@ import { useTranslation } from '@/components/useTranslation';
 import AppLayout from '@/layouts/app-layout';
 import { cn } from '@/lib/utils';
 import { Head, Link, router, usePage } from '@inertiajs/react';
-import { ArrowRight, Building, CheckCircle2, CircleDollarSign, ReceiptText, RotateCcw, ShoppingCart, Wallet } from 'lucide-react';
+import { ArrowRight, Building, CheckCircle2, CircleDollarSign, RotateCcw, ShoppingCart, Wallet } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { Bar, BarChart, Cell, Legend, Line, LineChart, Pie, PieChart, ResponsiveContainer, Sector, Tooltip, XAxis, YAxis } from 'recharts';
 import '../echo';
@@ -99,7 +99,7 @@ export default function Dashboard({ runningDryers }: DashboardProps) {
         { title: t('cashReceived'), value: totalReceived, icon: Wallet, color: 'text-blue-600', bg: 'bg-blue-50' },
         { title: t('cashPaid'), value: totalPayment, icon: Wallet, color: 'text-red-600', bg: 'bg-red-50' },
         { title: t('netIncome'), value: 275000, icon: CircleDollarSign, color: 'text-emerald-600', bg: 'bg-emerald-50' },
-        { title: t('totalExpenses'), value: 210000, icon: ReceiptText, color: 'text-gray-700', bg: 'bg-gray-50' },
+        { title: t('totalExpenses'), value: 210000, icon: CircleDollarSign, color: 'text-gray-700', bg: 'bg-gray-50' },
         { title: t('salesReturns'), value: totalSalesReturns, icon: RotateCcw, color: 'text-fuchsia-600', bg: 'bg-fuchsia-50' },
         { title: t('purchaseReturns'), value: totalPurchaseReturns, icon: RotateCcw, color: 'text-cyan-600', bg: 'bg-cyan-50' },
         { title: t('openSalesOrders'), value: totalSalesOrders, icon: ShoppingCart, color: 'text-orange-600', bg: 'bg-orange-50' },

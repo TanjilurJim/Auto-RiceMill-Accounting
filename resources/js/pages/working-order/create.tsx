@@ -302,7 +302,7 @@ const WorkingOrderCreate: React.FC<Props> = ({ autoVoucherNo, products, godowns 
                                     >
 
                                         <div className="col-span-1 lg:col-span-5">
-                                            <label className="mb-2 block text-sm font-medium text-gray-700">Title</label>
+                                            <label className="mb-2 block text-sm font-medium text-foreground">Title</label>
                                             <input
                                                 type="text"
                                                 name="title"
@@ -315,7 +315,7 @@ const WorkingOrderCreate: React.FC<Props> = ({ autoVoucherNo, products, godowns 
                                         </div>
 
                                         <div className="col-span-1 lg:col-span-2">
-                                            <label className="mb-2 block text-sm font-medium text-gray-700">Qty</label>
+                                            <label className="mb-2 block text-sm font-medium text-foreground">Qty</label>
                                             <input
                                                 type="number"
                                                 name="quantity"
@@ -327,7 +327,7 @@ const WorkingOrderCreate: React.FC<Props> = ({ autoVoucherNo, products, godowns 
                                         </div>
 
                                         <div className="col-span-1 lg:col-span-2">
-                                            <label className="mb-2 block text-sm font-medium text-gray-700">Price</label>
+                                            <label className="mb-2 block text-sm font-medium text-foreground">Price</label>
                                             <input
                                                 type="number"
                                                 name="price"
@@ -357,7 +357,7 @@ const WorkingOrderCreate: React.FC<Props> = ({ autoVoucherNo, products, godowns 
                             </div> */}
 
                             {/* ───── Grand total card ───── */}
-                            <div className="mt-4 rounded border border-indigo-100 bg-indigo-50 px-4 py-3 shadow">
+                            <div className="mt-4 rounded border border-indigo-100 bg-background px-4 py-3 shadow">
                                 <div className="flex items-center justify-between">
                                     <span className="text-sm font-semibold text-gray-800">{t('woTotalAmountHeader')}</span>
                                     <span className="text-lg font-bold text-indigo-700">{grandTotal.toFixed(2)}</span>
