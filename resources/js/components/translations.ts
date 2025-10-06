@@ -374,7 +374,6 @@ export const translations = {
         purchases: 'Purchases',
         ledgers: 'Ledgers',
         stock: 'Stock',
-        fullscreen: 'Fullscreen',
         minimize: 'Minimize',
         maximize: 'Maximize',
 
@@ -1580,6 +1579,7 @@ export const translations = {
         srTotalLabel: 'Total',
         srPaidLabel: 'Paid',
         srRemainingLabel: 'Remaining',
+        exitFullScreen: 'Minimize',
     },
 
     bn: {
@@ -1599,8 +1599,8 @@ export const translations = {
         modelNumber: 'মডেল নম্বর',
         capacity: '(ক্ষমতা)',
         optional: '(ঐচ্ছিক)',
-        fullScreen: 'পূর্ণ পর্দায় যান',
-        exitFullScreen: 'পূর্ণ পর্দা থেকে বেরিয়ে আসুন',
+        fullScreen: 'পূর্ণ পর্দা',
+        exitFullScreen: 'ছোট করুন',
         subtotalPlaceholder: 'সাবটোটাল',
         returnReasonLabel: 'ফেরত কারণ',
         priceLabel: 'মূল্য',
