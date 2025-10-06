@@ -531,8 +531,13 @@ export function AppSidebar() {
         //     icon: BookOpen,
         // },
         {
-            title: t('support'),
+            title: t('support1'),
             href: 'https://wa.me/8801744333888',
+            icon: Phone,
+        },
+        {
+            title: t('support2'),
+            href: 'https://wa.me/8801750014052',
             icon: Phone,
         },
     ];

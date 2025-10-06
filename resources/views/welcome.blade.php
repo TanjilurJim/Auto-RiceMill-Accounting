@@ -1384,7 +1384,7 @@
             <footer class="relative pt-20 pb-10">
                 <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                     <!-- Top grid -->
-                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-12 mb-16">
+                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-16">
                         <!-- About US -->
                         <div class="space-y-6">
                             <div>
@@ -1413,52 +1413,75 @@
 
                         <!-- Contact US -->
                         <div class="space-y-6">
+                            {{-- title --}}
                             <h4
                                 class="text-sm font-bold uppercase mb-6 tracking-wider text-gray-900 flex items-center gap-2">
                                 <div class="w-1 h-6 bg-gradient-to-b from-[#B71F25] to-red-600 rounded-full"></div>
                                 <span class="lang-en">Contact US</span>
                                 <span class="lang-bn" style="display: none;">যোগাযোগ</span>
                             </h4>
-                            <div class="space-y-4">
-                                <div
-                                    class="flex items-center gap-3 p-3 rounded-lg bg-gray-50/80 border border-gray-200/80 hover:bg-gray-100/80 transition-all duration-300 shadow-sm group">
-                                    <div
-                                        class="w-10 h-10 bg-gradient-to-br from-[#B71F25] to-red-600 rounded-lg flex items-center justify-center">
-                                        <i data-lucide="phone" class="w-5 h-5 text-white"></i>
-                                    </div>
-                                    <span class="font-medium text-gray-800 flex-1 lang-en">01234-567890</span>
-                                    <span class="font-medium text-gray-800 flex-1 lang-bn"
-                                        style="display: none;">০১২৩৪-৫৬৭৮৯০</span>
 
-                                    <button onclick="copyToClipboard('+880 1234-567890', this)"
-                                        class="opacity-0 group-hover:opacity-100 w-8 h-8 bg-gray-200/80 hover:bg-[#B71F25] hover:text-white text-gray-600 rounded-lg flex items-center justify-center transition-all duration-300 ml-2"
+                            <div class="space-y-4">
+                                {{-- Phone number --}}
+                                <div
+                                    class="flex items-center justify-between gap-3 p-3 rounded-lg bg-gray-50/80 border border-gray-200/80 hover:bg-gray-100/80 transition-all duration-300 shadow-sm group w-full overflow-hidden">
+                                    {{-- Icon and Phone Number --}}
+                                    <div class="flex items-center gap-3 flex-1 ">
+                                        {{-- Icon --}}
+                                        <div
+                                            class="p-2 bg-gradient-to-br from-[#B71F25] to-red-600 rounded-lg flex items-center justify-center flex-shrink-0">
+                                            <i data-lucide="phone" class="w-5 h-5 text-white"></i>
+                                        </div>
+
+                                        {{-- Phone Number --}}
+                                        <div>
+                                            <span class="font-medium text-gray-800 lang-en truncate"
+                                                title="01750014052">01750014052</span>
+                                            <span class="font-medium text-gray-800 lang-bn truncate"
+                                                style="display: none;" title="০১৭৫০০১৪০৫২">০১৭৫০০১৪০৫২</span>
+                                        </div>
+                                    </div>
+
+                                    {{-- Copy button --}}
+                                    <button onclick="copyToClipboard('+880 1750-014052', this)"
+                                        class="opacity-0 group-hover:opacity-100 p-2 bg-gray-200/80 hover:bg-[#B71F25] hover:text-white text-gray-600 rounded-lg flex items-center justify-center transition-all duration-300 flex-shrink-0"
                                         title="Copy phone number">
                                         <i data-lucide="copy" class="w-4 h-4"></i>
                                     </button>
                                 </div>
+
+                                {{-- Email --}}
                                 <div
-                                    class="flex items-center gap-3 p-3 rounded-lg bg-gray-50/80 border border-gray-200/80 hover:bg-gray-100/80 transition-all duration-300 shadow-sm group">
-                                    <div
-                                        class="w-10 h-10 bg-gradient-to-br from-[#B71F25] to-red-600 rounded-lg flex items-center justify-center">
-                                        <i data-lucide="mail" class="w-5 h-5 text-white"></i>
+                                    class="flex justify-between items-center gap-3 p-3 rounded-lg bg-gray-50/80 border border-gray-200/80 hover:bg-gray-100/80 transition-all duration-300 shadow-sm group w-full overflow-hidden">
+                                    {{-- Icon and Email --}}
+                                    <div class="flex items-center gap-3 flex-1 min-w-0">
+                                        {{-- Icon --}}
+                                        <div
+                                            class="p-2 bg-gradient-to-br from-[#B71F25] to-red-600 rounded-lg flex items-center justify-center flex-shrink-0">
+                                            <i data-lucide="mail" class="w-5 h-5 text-white"></i>
+                                        </div>
+                                        <span class="font-medium text-gray-800 truncate"
+                                            title="info@ricemillerp.com">info@ricemillerp.com</span>
                                     </div>
-                                    <span class="font-medium text-gray-800 flex-1">info@ricemillerp.com</span>
+                                    {{-- Copy button --}}
                                     <button onclick="copyToClipboard('info@ricemillerp.com', this)"
-                                        class="opacity-0 group-hover:opacity-100 w-8 h-8 bg-gray-200/80 hover:bg-[#B71F25] hover:text-white text-gray-600 rounded-lg flex items-center justify-center transition-all duration-300 ml-2"
+                                        class="opacity-0 group-hover:opacity-100 p-2 bg-gray-200/80 hover:bg-[#B71F25] hover:text-white text-gray-600 rounded-lg flex items-center justify-center transition-all duration-300 flex-shrink-0"
                                         title="Copy email">
                                         <i data-lucide="copy" class="w-4 h-4"></i>
                                     </button>
                                 </div>
+
+                                {{-- Address --}}
                                 <div
                                     class="flex items-center gap-3 p-3 rounded-lg bg-gray-50/80 border border-gray-200/80 hover:bg-gray-100/80 transition-all duration-300 shadow-sm">
                                     <div
-                                        class="w-10 h-10 bg-gradient-to-br from-[#B71F25] to-red-600 rounded-lg flex items-center justify-center">
+                                        class="p-2 bg-gradient-to-br from-[#B71F25] to-red-600 rounded-lg flex items-center justify-center">
                                         <i data-lucide="map-pin" class="w-5 h-5 text-white"></i>
                                     </div>
-                                    <span class="font-medium text-gray-800 lang-en">123 Rice Mill Road, Dhaka</span>
-                                    <span class="font-medium text-gray-800 lang-bn" style="display: none;">১২৩ রাইস মিল
-                                        রোড,
-                                        ঢাকা</span>
+                                    <span class="font-medium text-gray-800 lang-en"> 400, Road - 06, Avenue - 01, Mirpur
+                                        DOHS, Level - 1, Dhaka</span>
+                                    <span class="font-medium text-gray-800 lang-bn" style="display: none;"> ৪০০, রোড - ০৬,
+                                        অ্যাভিনিউ - ০১, মিরপুর ডিওএইচএস, লেভেল - ১, ঢাকা</span>
                                 </div>
                             </div>
                         </div>
