@@ -41,16 +41,16 @@ export default function Register() {
                         {/* <div className="flex flex-col items-center gap-8"> */}
                             <a href={route('home')} className="flex flex-col items-center gap-2 font-medium">
                                 <div className="h-16 w-20 rounded-sm">
-                                    <AppLogoIcon className="fill-current text-[var(--foreground)] dark:text-white" />
+                                    <AppLogoIcon className="fill-current text-[var(--foreground)]" />
                                 </div>
                             </a>
-                            <h1 className="text-center text-2xl font-bold">Create an account</h1>
+                            <h1 className="text-center text-2xl font-bold text-black">Create an account</h1>
                         {/* </div> */}
                         {/* Register Form  */}
                         <form className="flex flex-col gap-6" onSubmit={submit}>
                             <div className="grid gap-6">
                                 <div className="grid gap-2">
-                                    <Label htmlFor="name">Name</Label>
+                                    <Label htmlFor="name" className='text-black'>Name</Label>
                                     <Input
                                         id="name"
                                         type="text"
@@ -62,13 +62,13 @@ export default function Register() {
                                         onChange={(e) => setData('name', e.target.value)}
                                         disabled={processing}
                                         placeholder="Full name"
-                                        className='bg-white'
+                                        className='bg-white text-black'
                                     />
                                     <InputError message={errors.name} className="mt-2" />
                                 </div>
 
                                 <div className="grid gap-2">
-                                    <Label htmlFor="email">Email address</Label>
+                                    <Label htmlFor="email" className='text-black'>Email address</Label>
                                     <Input
                                         id="email"
                                         type="email"
@@ -79,13 +79,13 @@ export default function Register() {
                                         onChange={(e) => setData('email', e.target.value)}
                                         disabled={processing}
                                         placeholder="email@example.com"
-                                        className="bg-white"
+                                        className="bg-white text-black"
                                     />
                                     <InputError message={errors.email} />
                                 </div>
 
                                 <div className="grid gap-2">
-                                    <Label htmlFor="password">Password</Label>
+                                    <Label htmlFor="password" className='text-black'>Password</Label>
                                     <Input
                                         id="password"
                                         type="password"
@@ -96,13 +96,13 @@ export default function Register() {
                                         onChange={(e) => setData('password', e.target.value)}
                                         disabled={processing}
                                         placeholder="Password"
-                                        className="bg-white"
+                                        className="bg-white text-black"
                                     />
                                     <InputError message={errors.password} />
                                 </div>
 
                                 <div className="grid gap-2">
-                                    <Label htmlFor="password_confirmation">Confirm password</Label>
+                                    <Label htmlFor="password_confirmation" className='text-black'>Confirm password</Label>
                                     <Input
                                         id="password_confirmation"
                                         type="password"
@@ -113,7 +113,7 @@ export default function Register() {
                                         onChange={(e) => setData('password_confirmation', e.target.value)}
                                         disabled={processing}
                                         placeholder="Confirm password"
-                                        className="bg-white"
+                                        className="bg-white text-black"
                                     />
                                     <InputError message={errors.password_confirmation} />
                                 </div>
@@ -129,9 +129,9 @@ export default function Register() {
                                 </button>
                             </div>
 
-                            <div className="text-muted-foreground text-center text-sm">
+                            <div className="text-black text-center text-sm">
                                 Already have an account?{' '}
-                                <TextLink href={route('login')} tabIndex={6}>
+                                <TextLink href={route('login')} tabIndex={6} className="text-black">
                                     Log in
                                 </TextLink>
                             </div>
