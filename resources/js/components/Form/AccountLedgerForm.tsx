@@ -45,11 +45,12 @@ const AccountLedgerForm: React.FC<AccountLedgerFormProps> = ({
     submitText,
     cancelHref,
 }) => {
-    const hasAnyError = Object.keys(errors || {}).length > 0;
     const t = useTranslation();
+    const hasAnyError = Object.keys(errors || {}).length > 0;
+
 
     LEDGER_TYPES = [
-        { value: 'accounts_receivable', label: t('formCustomerAccountsReceivable'), nature: 'asset', defaultDc: 'debit' },
+        { value: 'accounts_receivable', label: t('customerAccountsReceivable'), nature: 'asset', defaultDc: 'debit' },
         { value: 'accounts_payable', label: t('formSupplierAccountsPayable'), nature: 'liability', defaultDc: 'credit' },
         { value: 'cash_bank', label: t('formCashBank'), nature: 'asset', defaultDc: 'debit' },
         { value: 'inventory', label: t('formInventory'), nature: 'asset', defaultDc: 'debit' },
@@ -129,7 +130,7 @@ const AccountLedgerForm: React.FC<AccountLedgerFormProps> = ({
                 >
                     <option value="">{t('formSelectLedgerType')}</option>
                     <optgroup label={t('formAssets')}>
-                        <option value="accounts_receivable">{t('formCustomerAccountsReceivable')}</option>
+                        <option value="accounts_receivable">{t('customerAccountsReceivable')}</option>
                         <option value="cash_bank">{t('formCashBank')}</option>
                         <option value="inventory">{t('formInventory')}</option>
                     </optgroup>
