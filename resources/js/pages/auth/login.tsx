@@ -45,15 +45,15 @@ export default function Login({ status, canResetPassword }: LoginProps) {
                     <div className="flex flex-col gap-8 rounded-xl border border-gray-400 p-3 lg:p-8">
                         <a href={route('home')} className="flex flex-col items-center gap-2 font-medium">
                             <div className="h-16 w-20 rounded-sm">
-                                <AppLogoIcon className="fill-current text-[var(--foreground)] dark:text-white" />
+                                <AppLogoIcon className="fill-current text-[var(--foreground)]" />
                             </div>
                         </a>
-                        <h1 className="text-center text-2xl font-bold">Log in to account</h1>
+                        <h1 className="text-center text-2xl font-bold text-black">Log in to account</h1>
                         {/* Log in Form  */}
                         <form className="flex flex-col gap-6" onSubmit={submit}>
                             <div className="grid gap-6">
                                 <div className="grid gap-2">
-                                    <Label htmlFor="email">Email address</Label>
+                                    <Label htmlFor="email" className='text-black'>Email address</Label>
                                     <Input
                                         id="email"
                                         type="email"
@@ -64,13 +64,13 @@ export default function Login({ status, canResetPassword }: LoginProps) {
                                         value={data.email}
                                         onChange={(e) => setData('email', e.target.value)}
                                         placeholder="email@example.com"
-                                        className="bg-white"
+                                        className="bg-white text-black"
                                     />
                                     <InputError message={errors.email} />
                                 </div>
 
                                 <div className="grid gap-2">
-                                    <Label htmlFor="password">Password</Label>
+                                    <Label htmlFor="password" className='text-black'>Password</Label>
                                     <Input
                                         id="password"
                                         type="password"
@@ -80,7 +80,7 @@ export default function Login({ status, canResetPassword }: LoginProps) {
                                         value={data.password}
                                         onChange={(e) => setData('password', e.target.value)}
                                         placeholder="Password"
-                                        className="bg-white"
+                                        className="bg-white text-black"
                                     />
                                     <InputError message={errors.password} />
                                 </div>
@@ -96,11 +96,11 @@ export default function Login({ status, canResetPassword }: LoginProps) {
                                             tabIndex={3}
                                             className="peer h-4 w-4 rounded border-gray-300 text-[#F15A29] focus:ring-[#F15A29]"
                                         />
-                                        <Label htmlFor="remember">Remember me</Label>
+                                        <Label htmlFor="remember" className='text-black'>Remember me</Label>
                                     </div>
                                     <div className="flex items-center">
                                         {canResetPassword && (
-                                            <TextLink href={route('password.request')} className="ml-auto text-sm" tabIndex={5}>
+                                            <TextLink href={route('password.request')} className="ml-auto text-sm text-black" tabIndex={5}>
                                                 Forgot password?
                                             </TextLink>
                                         )}
@@ -119,16 +119,16 @@ export default function Login({ status, canResetPassword }: LoginProps) {
 
                                 <a
                                     href={route('google.redirect')}
-                                    className="inline-flex w-full items-center justify-center gap-2 rounded-sm border px-4 py-2 bg-white"
+                                    className="inline-flex w-full items-center justify-center gap-2 rounded-sm border px-4 py-2 bg-white text-black"
                                 >
                                     <FcGoogle className="h-5 w-5" />
                                     Continue with Google
                                 </a>
                             </div>
 
-                            <div className="text-muted-foreground text-center text-sm">
+                            <div className="text-black text-center text-sm">
                                 Don't have an account?{' '}
-                                <TextLink href={route('register')} tabIndex={5}>
+                                <TextLink href={route('register')} tabIndex={5} className="text-black">
                                     Sign up
                                 </TextLink>
                             </div>
