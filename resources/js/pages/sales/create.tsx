@@ -551,7 +551,7 @@ export default function SaleCreate({
                                                             </span>
                                                             <button
                                                                 type="button"
-                                                                className="rounded bg-emerald-600 px-2 py-[2px] text-white hover:bg-emerald-500"
+                                                                className="rounded bg-emerald-600 px-2 py-[2px] text-foreground hover:bg-emerald-500"
                                                                 onClick={() => handleItemChange(index, 'main_price', String(lot.saved_rate))}
                                                                 title="Use saved lot-wise unit price"
                                                             >
@@ -563,7 +563,7 @@ export default function SaleCreate({
                                                     {/* 2) Per-kg rate (always ৳/kg) + Use (converted to product unit) */}
                                                     {/* 2) Per-kg rate + Use (converted to product unit) */}
                                                     {lot.per_kg_rate != null && (
-                                                        <div className="flex items-center gap-2">
+                                                        <div className="flex items-center gap-2 ">
                                                             <span>
                                                                 Per-kg: <b>৳{Number(lot.per_kg_rate).toFixed(2)}/kg</b>
                                                             </span>
