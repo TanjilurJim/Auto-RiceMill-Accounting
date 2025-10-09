@@ -137,7 +137,7 @@ class PartyStockAdjustmentController extends Controller
         $costingPresets = data_get($setting, 'costings.items', []);
 
         return Inertia::render('crushing/ConvertForm', [
-            'parties'          => AccountLedger::whereIn('ledger_type', ['sales', 'income'])->get(['id', 'account_ledger_name']),
+            'parties'          => AccountLedger::whereIn('ledger_type', ['sales', 'income', 'accounts_receivable'])->get(['id', 'account_ledger_name']),
             'units'            => Unit::all(['id', 'name']),
             'godowns'          => Godown::all(['id', 'name']),
             'dryers'           => Dryer::forMyCompany()->get(['id', 'dryer_name', 'capacity']),

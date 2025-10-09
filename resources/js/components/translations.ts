@@ -1606,6 +1606,9 @@ export const translations = {
         godownSelectLabel: 'Select Godown',
         godownSelectPlaceholder: 'Select Godown...',
         itemSelectPlaceholder: 'Select Item...',
+        itemSelectLabel: "Item",
+        qtyBostaLabel: 'Qty (Bosta)',
+        rateLabel: 'Rate',
     },
 
     bn: {
