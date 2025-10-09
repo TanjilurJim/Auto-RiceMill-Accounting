@@ -412,7 +412,7 @@ export default function SaleCreate({
 
                                 {/* Phone */}
                                 <div>
-                                    <label className="mb-1 block text-sm font-medium text-foreground">Phone</label>
+                                    {/* <label className="mb-1 block text-sm font-medium text-foreground">Phone</label> */}
                                     <label className="text-foreground mb-1 block text-sm font-medium">Phone</label>
                                     <input
                                         type="text"
@@ -425,7 +425,7 @@ export default function SaleCreate({
                                 {/* Address */}
                                 <div>
                                     <label className="mb-1 block text-sm font-medium text-foreground">Address</label>
-                                    <label className="text-foreground mb-1 block text-sm font-medium">Address</label>
+                                    {/* <label className="text-foreground mb-1 block text-sm font-medium">Address</label> */}
                                     <input
                                         type="text"
                                         className="w-full rounded border p-2"
@@ -651,11 +651,11 @@ export default function SaleCreate({
                             {/* Section 2: Product Rows */}
                             <div>
                             
-                                <h2 className="text-foreground mb-3 border-b pb-1 text-lg font-semibold">Products</h2>
+                                <h2 className="text-foreground mb-3 border-b pb-1 text-lg font-semibold">Sales Information</h2>
 
                                 {data.sale_items.map((item, index) => (
                                     <div key={index} className="mb-3 grid grid-cols-12 items-end gap-2">
-                                        {/* ... your product inputs (Product, Qty, Price, etc.) */}
+                                    
                                     </div>
                                 ))}
                             </div>
@@ -750,7 +750,7 @@ export default function SaleCreate({
                                             </option>
                                         ))}
                                     </select>
-                                    <div className="mt-1 text-sm text-foreground">Projected Closing Bal.: {uiClosingBal}</div>
+                                    {/* <div className="mt-1 text-sm text-foreground">Projected Closing Bal.: {uiClosingBal}</div> */}
                                     <div className="text-foreground mt-1 text-sm">Projected Closing Bal.: {uiClosingBal}</div>
                                 </div>
                                 {/* Receive Amount */}
