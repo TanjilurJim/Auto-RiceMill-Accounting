@@ -26,7 +26,7 @@ const emailRegex = /^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}$/;
 const bangladeshMobileRegex = /^0[0-9]{10}$/; // lenient, adjust if you want
 
 // Frontend validator: only show user-friendly messages; match controller rules.
-function validateForm(data: Partial<DataShape>) {
+function validateForm(data: Partial<DataShape>, t: (key: string) => string) {
     const errs: Record<string, string> = {};
 
     // Required fields
@@ -103,6 +103,7 @@ export default function CreateAccountLedger({
     // Local (client) errors that never hit the server
     const [clientErrors, setClientErrors] = React.useState<Record<string, string>>({});
     const mergedErrors = { ...clientErrors, ...serverErrors };
+    const t = useTranslation();
 
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
@@ -119,7 +120,7 @@ export default function CreateAccountLedger({
         }
 
         // Run client validation
-        const errs = validateForm(data);
+        const errs = validateForm(data, t);
         if (Object.keys(errs).length) {
             setClientErrors(errs);
             scrollToFirstError(errs);
@@ -135,7 +136,6 @@ export default function CreateAccountLedger({
             },
         });
     };
-    const t = useTranslation();
 
     return (
         <AppLayout>

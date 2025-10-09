@@ -729,6 +729,7 @@ export default function ConvertForm({
                             </div>
                         </div>
 
+                        {/* দর নির্ধারণ */}
                         <div className="bg-background mt-4 rounded-xl border p-4 shadow-sm">
                             {/* Header */}
                             <div className="mb-3 flex items-center justify-between">
@@ -867,6 +868,7 @@ export default function ConvertForm({
                                 </div>
                             </div>
                         </div>
+                        {/* প্রোডাকশন খরচ */}
                         <CostingSection
                             value={data.costing.production_costs}
                             presets={costing_presets}
@@ -875,7 +877,7 @@ export default function ConvertForm({
                             onChange={(rows) => setData('costing', { ...(data.costing ?? { market_rate: '' }), production_costs: rows })}
                         />
 
-                        {/* Consumed */}
+                        {/* কনজিউমড পণ্য */}
                         <ConsumedTable
                             owner={data.owner}
                             rows={data.consumed}

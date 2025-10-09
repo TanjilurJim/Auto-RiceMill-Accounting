@@ -1,6 +1,6 @@
 import TableComponent from '@/components/TableComponent';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import React from 'react';
-import Select from 'react-select';
 import { ConsumedRow, ErrorsBag, Owner, RSOption, UnitLite } from './types';
 
 type CompanyItemOpt = {
@@ -31,39 +31,7 @@ interface Props {
     onRemove: (idx: number) => void;
     onPatch: (idx: number, patch: Partial<ConsumedRow>) => void;
 }
-const selectStyles = {
-    control: (base: any, state: any) => ({
-        ...base,
-        backgroundColor: 'var(--input)',
-        borderColor: state.isFocused ? 'var(--ring)' : 'var(--input)',
-        boxShadow: state.isFocused ? '0 0 0 2px var(--ring)' : 'none',
-        color: 'var(--foreground)',
-        minHeight: '2.5rem',
-        borderRadius: 'var(--radius-md)',
-    }),
-    singleValue: (base: any) => ({ ...base, color: 'var(--foreground)' }),
-    input: (base: any) => ({ ...base, color: 'var(--foreground)' }),
-    placeholder: (base: any) => ({ ...base, color: 'var(--muted-foreground)' }),
 
-    menu: (base: any) => ({
-        ...base,
-        backgroundColor: 'var(--popover)',
-        color: 'var(--popover-foreground)',
-        border: '1px solid var(--border)',
-    }),
-    option: (base: any, state: any) => ({
-        ...base,
-        backgroundColor: state.isSelected ? 'var(--primary)' : state.isFocused ? 'var(--accent)' : 'transparent',
-        color: state.isSelected ? 'var(--primary-foreground)' : 'var(--popover-foreground)',
-    }),
-
-    indicatorSeparator: (b: any) => ({ ...b, backgroundColor: 'var(--border)' }),
-    dropdownIndicator: (b: any) => ({ ...b, color: 'var(--muted-foreground)' }),
-    clearIndicator: (b: any) => ({ ...b, color: 'var(--muted-foreground)' }),
-
-    // if you render into a portal (recommended to avoid overflow issues)
-    menuPortal: (base: any) => ({ ...base, zIndex: 60 }), // adjust to your stack
-};
 const ConsumedTable: React.FC<Props> = React.memo(
     ({ owner, rows, units, errors, consumedOptsForParty, companyItemOpts, lotOptionsForItem, onAdd, onRemove, onPatch }) => {
         const err = (p: string) => (errors?.[p] as string) || undefined;
@@ -76,51 +44,78 @@ const ConsumedTable: React.FC<Props> = React.memo(
                     owner === 'party' ? (
                         <>
                             <Select
-                                classNamePrefix="rs"
-                                placeholder="Item"
-                                options={consumedOptsForParty}
-                                value={consumedOptsForParty.find((o) => o.value === String(row.party_item_id))}
-                                onChange={(sel) => {
-                                    const unit = (sel as PartyOpt | null)?.unit_name || '';
-                                    const puk = (sel as PartyOpt | null)?.per_unit_kg;
+                                value={row.party_item_id ? String(row.party_item_id) : ''}
+                                onValueChange={(value) => {
+                                    const selectedItem = consumedOptsForParty.find((o) => o.value === value);
+                                    const unit = selectedItem?.unit_name || '';
+                                    const puk = selectedItem?.per_unit_kg;
                                     const qtyNum = parseFloat(String(row.qty || '0')) || 0;
                                     const perKg = typeof puk === 'number' ? puk : unit.toLowerCase() === 'kg' ? 1 : undefined;
                                     const nextWeight = qtyNum > 0 && perKg ? String((qtyNum * perKg).toFixed(3)) : row.weight || '';
                                     onPatch(idx, {
-                                        party_item_id: sel?.value || '',
+                                        party_item_id: value || '',
                                         unit_name: unit,
                                         per_unit_kg: perKg,
                                         weight: nextWeight,
                                     });
                                 }}
-                                isClearable
-                                styles={selectStyles}
-                            />
+                            >
+                                {consumedOptsForParty && consumedOptsForParty.length === 0 ? (
+                                    <div className="mb-1 rounded bg-yellow-100 p-2 text-sm text-yellow-800">No items found for this party.</div>
+                                ) : (
+                                    <div>
+                                        <SelectTrigger className="w-full">
+                                            <SelectValue placeholder="Select item" />
+                                        </SelectTrigger>
+                                        <SelectContent position="popper" className="z-[100]" side="bottom" sideOffset={4}>
+                                            {consumedOptsForParty.map((option) => (
+                                                <SelectItem key={option.value} value={String(option.value)}>
+                                                    {option.label}
+                                                </SelectItem>
+                                            ))}
+                                        </SelectContent>
+                                    </div>
+                                )}
+                            </Select>
                             {err(`consumed.${idx}.party_item_id`) && <p className="text-xs text-red-500">{err(`consumed.${idx}.party_item_id`)}</p>}
                         </>
                     ) : (
                         <Select
-                            classNamePrefix="rs"
-                            placeholder="Item"
-                            options={companyItemOpts}
-                            value={companyItemOpts.find((o) => o.value === Number(row.item_id))}
-                            onChange={(sel) => onPatch(idx, { item_id: (sel?.value as any) || '', lot_id: '' })}
-                            styles={selectStyles}
-                        />
+                            value={row.item_id ? String(row.item_id) : ''}
+                            onValueChange={(value) => onPatch(idx, { item_id: value || '', lot_id: '' })}
+                        >
+                            <SelectTrigger className="w-full">
+                                <SelectValue placeholder="Item" />
+                            </SelectTrigger>
+                            <SelectContent position="popper" className="z-[100]" side="bottom" sideOffset={4}>
+                                {companyItemOpts.map((option) => (
+                                    <SelectItem key={option.value} value={String(option.value)}>
+                                        {option.label}
+                                    </SelectItem>
+                                ))}
+                            </SelectContent>
+                        </Select>
                     ),
             },
             owner === 'company' && {
                 header: 'লট/ব্যাচ নং',
                 accessor: (row: ConsumedRow, idx: number) => (
                     <Select
-                        classNamePrefix="rs"
-                        placeholder="Lot"
-                        options={lotOptionsForItem(row.item_id!)}
-                        value={lotOptionsForItem(row.item_id!).find((o) => o.value === Number(row.lot_id))}
-                        isDisabled={!row.item_id}
-                        onChange={(sel) => onPatch(idx, { lot_id: (sel?.value as any) || '' })}
-                        styles={selectStyles}
-                    />
+                        value={row.lot_id ? String(row.lot_id) : ''}
+                        onValueChange={(value) => onPatch(idx, { lot_id: value || '' })}
+                        disabled={!row.item_id}
+                    >
+                        <SelectTrigger className="w-full">
+                            <SelectValue placeholder="Lot" />
+                        </SelectTrigger>
+                        <SelectContent position="popper" className="z-[100]" side="bottom" sideOffset={4}>
+                            {lotOptionsForItem(row.item_id!).map((option) => (
+                                <SelectItem key={option.value} value={String(option.value)}>
+                                    {option.label}
+                                </SelectItem>
+                            ))}
+                        </SelectContent>
+                    </Select>
                 ),
             },
             {

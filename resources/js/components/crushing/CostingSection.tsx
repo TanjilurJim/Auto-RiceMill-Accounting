@@ -174,55 +174,51 @@ const CostingSection: React.FC<Props> = React.memo(({ value, presets, dhaanBosta
     }, 0);
 
     const selectStyles = {
-  control: (base: any, state: any) => ({
-    ...base,
-    backgroundColor: 'var(--input)',
-    borderColor: state.isFocused ? 'var(--ring)' : 'var(--input)',
-    boxShadow: state.isFocused ? '0 0 0 2px var(--ring)' : 'none',
-    color: 'var(--foreground)',
-    minHeight: '2.5rem',
-    borderRadius: 'var(--radius-md)',
-  }),
-  singleValue: (base: any) => ({ ...base, color: 'var(--foreground)' }),
-  input:       (base: any) => ({ ...base, color: 'var(--foreground)' }),
-  placeholder: (base: any) => ({ ...base, color: 'var(--muted-foreground)' }),
+        control: (base: any, state: any) => ({
+            ...base,
+            backgroundColor: 'var(--input)',
+            borderColor: state.isFocused ? 'var(--ring)' : 'var(--input)',
+            boxShadow: state.isFocused ? '0 0 0 2px var(--ring)' : 'none',
+            color: 'var(--foreground)',
+            minHeight: '2.5rem',
+            borderRadius: 'var(--radius-md)',
+        }),
+        singleValue: (base: any) => ({ ...base, color: 'var(--foreground)' }),
+        input: (base: any) => ({ ...base, color: 'var(--foreground)' }),
+        placeholder: (base: any) => ({ ...base, color: 'var(--muted-foreground)' }),
 
-  menu: (base: any) => ({
-    ...base,
-    backgroundColor: 'var(--popover)',
-    color: 'var(--popover-foreground)',
-    border: '1px solid var(--border)',
-  }),
-  option: (base: any, state: any) => ({
-    ...base,
-    backgroundColor: state.isSelected
-      ? 'var(--primary)'
-      : state.isFocused
-      ? 'var(--accent)'
-      : 'transparent',
-    color: state.isSelected ? 'var(--primary-foreground)' : 'var(--popover-foreground)',
-  }),
+        menu: (base: any) => ({
+            ...base,
+            backgroundColor: 'var(--popover)',
+            color: 'var(--popover-foreground)',
+            border: '1px solid var(--border)',
+        }),
+        option: (base: any, state: any) => ({
+            ...base,
+            backgroundColor: state.isSelected ? 'var(--primary)' : state.isFocused ? 'var(--accent)' : 'transparent',
+            color: state.isSelected ? 'var(--primary-foreground)' : 'var(--popover-foreground)',
+        }),
 
-  indicatorSeparator: (b: any) => ({ ...b, backgroundColor: 'var(--border)' }),
-  dropdownIndicator:  (b: any) => ({ ...b, color: 'var(--muted-foreground)' }),
-  clearIndicator:     (b: any) => ({ ...b, color: 'var(--muted-foreground)' }),
+        indicatorSeparator: (b: any) => ({ ...b, backgroundColor: 'var(--border)' }),
+        dropdownIndicator: (b: any) => ({ ...b, color: 'var(--muted-foreground)' }),
+        clearIndicator: (b: any) => ({ ...b, color: 'var(--muted-foreground)' }),
 
-  // if you render into a portal (recommended to avoid overflow issues)
-  menuPortal: (base: any) => ({ ...base, zIndex: 60 }), // adjust to your stack
-};
+        // if you render into a portal (recommended to avoid overflow issues)
+        menuPortal: (base: any) => ({ ...base, zIndex: 60 }), // adjust to your stack
+    };
 
     // Avoid SSR issues with menuPortalTarget
     const menuPortalTarget = typeof window !== 'undefined' ? document.body : undefined;
 
     return (
-        <div className="mt-8 rounded border bg-background p-4">
+        <div className="bg-background mt-8 rounded border p-4">
             {/* Header + Add button */}
             <div className="mb-3 flex items-center justify-between">
                 <h3 className="text-lg font-semibold">প্রোডাকশন খরচ</h3>
                 <button
                     type="button"
                     onClick={addRow}
-                    className="rounded-md bg-slate-800 px-3 py-1 text-sm text-background hover:bg-slate-700"
+                    className="text-background rounded-md bg-slate-800 px-3 py-1 text-sm hover:bg-slate-700"
                     title="Add row"
                 >
                     + Add row
@@ -234,7 +230,7 @@ const CostingSection: React.FC<Props> = React.memo(({ value, presets, dhaanBosta
                     const selectedPreset = row.preset_id ? presetOptions.find((o) => o.value === row.preset_id) : null;
 
                     return (
-                        <div key={row.id} className="grid grid-cols-1 md:grid-cols-5 gap-3">
+                        <div key={row.id} className="grid grid-cols-1 gap-3 md:grid-cols-5">
                             {/* Preset picker */}
                             <div className="">
                                 <span className="mb-1 text-sm">Preset</span>
@@ -313,7 +309,6 @@ const CostingSection: React.FC<Props> = React.memo(({ value, presets, dhaanBosta
                                         })
                                     }
                                     readOnly={!!row.preset_id}
-
                                 />
                             </div>
 
@@ -323,7 +318,7 @@ const CostingSection: React.FC<Props> = React.memo(({ value, presets, dhaanBosta
                                 <button
                                     type="button"
                                     onClick={() => removeRow(row.id)}
-                                    className="h-10 w-full rounded-md border border-red-300 text-sm text-red-600 hover:bg-red-100 mb-6"
+                                    className="mb-6 h-10 w-full rounded-md border border-red-300 text-sm text-red-600 hover:bg-red-100"
                                     title="Remove"
                                 >
                                     Remove

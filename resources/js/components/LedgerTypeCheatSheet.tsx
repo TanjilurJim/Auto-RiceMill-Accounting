@@ -13,33 +13,34 @@ export default function LedgerTypeCheatSheet() {
             type: i('customerAccountsReceivable'),
             group: i('sundryDebtors'),
             side: i('debit'),
-            rule: i('customerDuesRule'),
         },
-        { type: i('cashBank'), group: i('cashInHandBankAccount'), side: i('debit'), rule: i('actualOpeningBalanceRule') },
-        { type: i('inventoryTracksGoods'), group: i('currentAssets'), side: i('debit'), rule: i('inventoryRule') },
+        {
+            type: i('cashBank'),
+            group: i('cashInHandBankAccount'),
+            side: i('debit'),
+        },
+        { type: i('inventoryTracksGoods'), group: i('currentAssets'), side: i('debit') },
 
         // Liabilities & Equity
-        { type: i('supplierAccountsPayable'), group: i('sundryCreditors'), side: i('credit'), rule: i('supplierPayablesRule') },
+        { type: i('supplierAccountsPayable'), group: i('sundryCreditors'), side: i('credit') },
         {
             type: i('liabilityGeneral'),
             group: i('currentLiabilitiesLoans'),
             side: i('credit'),
-            rule: i('liabilityRule'),
         },
-        { type: i('equityCapital'), group: i('capitalAccount'), side: i('credit'), rule: i('equityRule') },
+        { type: i('equityCapital'), group: i('capitalAccount'), side: i('credit') },
 
         // Income
-        { type: i('salesIncome'), group: i('directIncome'), side: i('credit'), rule: i('salesIncomeRule') },
+        { type: i('salesIncome'), group: i('directIncome'), side: i('credit') },
         {
             type: i('otherIncome'),
             group: i('nonOperatingIncome'),
             side: i('credit'),
-            rule: i('otherIncomeRule'),
         },
 
         // Expenses
-        { type: i('cogs'), group: i('directExpenses'), side: i('debit'), rule: i('cogsRule') },
-        { type: i('operatingExpense'), group: i('indirectExpenses'), side: i('debit'), rule: i('operatingExpenseRule') },
+        { type: i('cogs'), group: i('directExpenses'), side: i('debit') },
+        { type: i('operatingExpense'), group: i('indirectExpenses'), side: i('debit') },
     ];
     return (
         <Dialog>
@@ -60,7 +61,6 @@ export default function LedgerTypeCheatSheet() {
                                 <TableHead>{i('ledgerType')}</TableHead>
                                 <TableHead>{i('typicalAccountGroup')}</TableHead>
                                 <TableHead>{i('debitCreditCol')}</TableHead>
-                                <TableHead>{i('openingBalanceRule')}</TableHead>
                             </TableRow>
                         </TableHeader>
                         <TableBody>
@@ -69,7 +69,7 @@ export default function LedgerTypeCheatSheet() {
                                     <TableCell>{row.type}</TableCell>
                                     <TableCell>{row.group}</TableCell>
                                     <TableCell>{row.side}</TableCell>
-                                    <TableCell>{row.rule}</TableCell>
+                                    {/* <TableCell>{row.rule}</TableCell> */}
                                 </TableRow>
                             ))}
                         </TableBody>

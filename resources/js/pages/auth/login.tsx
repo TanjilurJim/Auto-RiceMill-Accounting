@@ -1,6 +1,6 @@
 import { Head, useForm } from '@inertiajs/react';
-import { LoaderCircle } from 'lucide-react';
-import { FormEventHandler } from 'react';
+import { Eye, EyeOff, LoaderCircle } from 'lucide-react';
+import { FormEventHandler, useState } from 'react';
 
 import InputError from '@/components/input-error';
 import TextLink from '@/components/text-link';
@@ -29,6 +29,8 @@ export default function Login({ status, canResetPassword }: LoginProps) {
         remember: false,
     });
 
+    const [showPassword, setShowPassword] = useState(false);
+
     const submit: FormEventHandler = (e) => {
         e.preventDefault();
         post(route('login'), {
@@ -53,7 +55,9 @@ export default function Login({ status, canResetPassword }: LoginProps) {
                         <form className="flex flex-col gap-6" onSubmit={submit}>
                             <div className="grid gap-6">
                                 <div className="grid gap-2">
-                                    <Label htmlFor="email" className='text-black'>Email address</Label>
+                                    <Label htmlFor="email" className="text-black">
+                                        Email address
+                                    </Label>
                                     <Input
                                         id="email"
                                         type="email"
@@ -70,18 +74,30 @@ export default function Login({ status, canResetPassword }: LoginProps) {
                                 </div>
 
                                 <div className="grid gap-2">
-                                    <Label htmlFor="password" className='text-black'>Password</Label>
-                                    <Input
-                                        id="password"
-                                        type="password"
-                                        required
-                                        tabIndex={2}
-                                        autoComplete="current-password"
-                                        value={data.password}
-                                        onChange={(e) => setData('password', e.target.value)}
-                                        placeholder="Password"
-                                        className="bg-white text-black"
-                                    />
+                                    <Label htmlFor="password" className="text-black">
+                                        Password
+                                    </Label>
+                                    <div className="relative">
+                                        <Input
+                                            id="password"
+                                            type={showPassword ? 'text' : 'password'}
+                                            required
+                                            tabIndex={2}
+                                            autoComplete="current-password"
+                                            value={data.password}
+                                            onChange={(e) => setData('password', e.target.value)}
+                                            placeholder="Password"
+                                            className="bg-white pr-10 text-black"
+                                        />
+                                        <button
+                                            type="button"
+                                            className="absolute inset-y-0 right-0 flex items-center pr-3 text-gray-500 hover:text-gray-700 cursor-pointer"
+                                            onClick={() => setShowPassword(!showPassword)}
+                                            aria-label={showPassword ? 'Hide password' : 'Show password'}
+                                        >
+                                            {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                                        </button>
+                                    </div>
                                     <InputError message={errors.password} />
                                 </div>
 
@@ -96,7 +112,9 @@ export default function Login({ status, canResetPassword }: LoginProps) {
                                             tabIndex={3}
                                             className="peer h-4 w-4 rounded border-gray-300 text-[#F15A29] focus:ring-[#F15A29]"
                                         />
-                                        <Label htmlFor="remember" className='text-black'>Remember me</Label>
+                                        <Label htmlFor="remember" className="text-black">
+                                            Remember me
+                                        </Label>
                                     </div>
                                     <div className="flex items-center">
                                         {canResetPassword && (
@@ -109,7 +127,7 @@ export default function Login({ status, canResetPassword }: LoginProps) {
 
                                 <button
                                     type="submit"
-                                    className="mt-4 inline-flex w-full items-center justify-center gap-1 rounded-sm bg-[#5e0404] px-6 py-2 text-white transition duration-300 ease-in-out hover:bg-[#1D1C1E] hover:text-white cursor-pointer"
+                                    className="mt-4 inline-flex w-full cursor-pointer items-center justify-center gap-1 rounded-sm bg-[#5e0404] px-6 py-2 text-white transition duration-300 ease-in-out hover:bg-[#1D1C1E] hover:text-white"
                                     tabIndex={4}
                                     disabled={processing}
                                 >
@@ -119,14 +137,14 @@ export default function Login({ status, canResetPassword }: LoginProps) {
 
                                 <a
                                     href={route('google.redirect')}
-                                    className="inline-flex w-full items-center justify-center gap-2 rounded-sm border px-4 py-2 bg-white text-black"
+                                    className="inline-flex w-full items-center justify-center gap-2 rounded-sm border bg-white px-4 py-2 text-black"
                                 >
                                     <FcGoogle className="h-5 w-5" />
                                     Continue with Google
                                 </a>
                             </div>
 
-                            <div className="text-black text-center text-sm">
+                            <div className="text-center text-sm text-black">
                                 Don't have an account?{' '}
                                 <TextLink href={route('register')} tabIndex={5} className="text-black">
                                     Sign up
