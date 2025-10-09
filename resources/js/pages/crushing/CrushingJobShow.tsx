@@ -45,10 +45,10 @@ export default function CrushingJobShow({ job, lines }: JobShowProps) {
             <Head title={`Job ${job.ref_no}`} />
             <div className="p-4 sm:p-6 lg:p-8">
                 <div className="mb-6 flex flex-wrap items-center justify-between gap-4">
-                    <h1 className="text-2xl font-bold text-slate-800">Crushing Job Details</h1>
+                    <h1 className="text-2xl font-bold text-foreground">Crushing Job Details</h1>
                     <Link
                         href={route('crushing.jobs.index')}
-                        className="inline-flex items-center gap-2 rounded-md bg-background px-4 py-2 text-sm font-medium text-slate-700 shadow-sm ring-1 ring-slate-300 ring-inset hover:bg-slate-50"
+                        className="inline-flex items-center gap-2 rounded-md bg-background px-4 py-2 text-sm font-medium text-foreground shadow-sm ring-1 ring-slate-300 ring-inset hover:bg-background"
                     >
                         <ArrowLeft size={16} />
                         Back to Jobs
@@ -64,7 +64,7 @@ export default function CrushingJobShow({ job, lines }: JobShowProps) {
                     {job.status === 'stopped' && !job.posted_ref_no && (
                         <Link
                             href={route('party-stock.transfer.create', { job: job.id })}
-                            className="inline-flex items-center gap-2 rounded-md bg-indigo-600 px-4 py-2 text-sm font-semibold text-white hover:bg-indigo-500"
+                            className="inline-flex items-center gap-2 rounded-md bg-indigo-600 px-4 py-2 text-sm font-semibold text-foreground hover:bg-indigo-500"
                         >
                             Enter generated items
                         </Link>
@@ -73,7 +73,7 @@ export default function CrushingJobShow({ job, lines }: JobShowProps) {
                     {job.posted_ref_no && (
                         <Link
                             href={route('party-stock.transfer.index')}
-                            className="inline-flex items-center gap-2 rounded-md bg-green-600 px-4 py-2 text-sm font-semibold text-white hover:bg-green-500"
+                            className="inline-flex items-center gap-2 rounded-md bg-green-600 px-4 py-2 text-sm font-semibold text-foreground hover:bg-green-500"
                         >
                             View conversion
                         </Link>
@@ -98,7 +98,7 @@ export default function CrushingJobShow({ job, lines }: JobShowProps) {
                     </div>
 
                     {job.remarks && (
-                        <div className="mt-6 rounded-md bg-blue-50 p-4 text-sm text-blue-800 ring-1 ring-blue-200">
+                        <div className="mt-6 rounded-md bg-background p-4 text-sm text-blue-800 ring-1 ring-blue-200">
                             <strong className="font-semibold">Remarks:</strong> <span className="ml-1">{job.remarks}</span>
                         </div>
                     )}
@@ -106,7 +106,7 @@ export default function CrushingJobShow({ job, lines }: JobShowProps) {
                     {/* Lines */}
                     <div className="mt-8 overflow-x-auto">
                         <table className="w-full text-sm">
-                            <thead className="bg-gray-100">
+                            <thead className="bg-background">
                                 <tr>
                                     <th className="border p-2">Source</th>
                                     <th className="border p-2">Item</th>
@@ -117,7 +117,7 @@ export default function CrushingJobShow({ job, lines }: JobShowProps) {
                             </thead>
                             <tbody>
                                 {lines.map((l, i) => (
-                                    <tr key={i} className="hover:bg-slate-50">
+                                    <tr key={i} className="hover:bg-background">
                                         <td className="border p-2">{l.source}</td>
                                         <td className="border p-2">{l.source === 'company' ? (l.item ?? '—') : (l.party_item ?? '—')}</td>
                                         <td className="border p-2">{l.source === 'company' ? (l.lot ?? '—') : '—'}</td>
@@ -127,13 +127,13 @@ export default function CrushingJobShow({ job, lines }: JobShowProps) {
                                 ))}
                                 {lines.length === 0 && (
                                     <tr>
-                                        <td colSpan={5} className="p-4 text-center text-slate-500">
+                                        <td colSpan={5} className="p-4 text-center text-foreground">
                                             No lines found.
                                         </td>
                                     </tr>
                                 )}
                             </tbody>
-                            <tfoot className="bg-slate-100 font-semibold">
+                            <tfoot className="bg-background font-semibold">
                                 <tr>
                                     <td className="border p-2 text-right" colSpan={3}>
                                         Total
@@ -153,19 +153,19 @@ export default function CrushingJobShow({ job, lines }: JobShowProps) {
 function Meta({ icon, label, value }: { icon: React.ReactNode; label: string; value: string }) {
     return (
         <div className="flex items-center gap-3 text-sm">
-            <div className="text-slate-500">{icon}</div>
+            <div className="text-foreground">{icon}</div>
             <div>
-                <span className="font-semibold text-slate-800">{label}:</span>
-                <span className="ml-2 text-slate-600">{value}</span>
+                <span className="font-semibold text-foreground">{label}:</span>
+                <span className="ml-2 text-foreground">{value}</span>
             </div>
         </div>
     );
 }
 function Stat({ label, value }: { label: string; value: string }) {
     return (
-        <div className="rounded-lg border border-slate-200 bg-slate-50 p-3">
-            <div className="text-xs text-slate-500">{label}</div>
-            <div className="text-lg font-semibold text-slate-800">{value}</div>
+        <div className="rounded-lg border border-slate-200 bg-background p-3">
+            <div className="text-xs text-foreground">{label}</div>
+            <div className="text-lg font-semibold text-foreground">{value}</div>
         </div>
     );
 }

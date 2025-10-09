@@ -9,11 +9,24 @@ use Inertia\Inertia;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Password;
 
+use Illuminate\Validation\Rule;
+
 use Carbon\Carbon;
 use Illuminate\Support\Str;
 
 class UserController extends Controller
 {
+
+    private const SYNTHETIC_DOMAIN = 'no-mail.ricemillerp.com';
+
+    private function isSyntheticEmail(?string $email): bool
+    {
+        if (!$email) return false;
+        return str_ends_with(strtolower($email), '@'.self::SYNTHETIC_DOMAIN);
+    }
+
+
+
     public function index(Request $request)
     {
         $filter = $request->get('filter', 'all');
@@ -186,78 +199,108 @@ class UserController extends Controller
         $actor   = auth()->user();
         $isAdmin = $actor->hasRole('admin');
 
+        // Is the UI giving us a real email?
+        $hasRealEmail = filled($request->email) && !$this->isSyntheticEmail($request->email);
+
+        // Validation
         $request->validate([
             'name'  => 'required|string|max:255',
-            'email' => 'required|email|unique:users,email',
+            'email' => ['nullable','email', Rule::unique('users','email')], // ✨ nullable now
             'roles' => 'array',
 
             'mark_verified'     => 'sometimes|boolean',
             'send_invite'       => 'sometimes|boolean',
             'set_password_now'  => 'sometimes|boolean',
-            'password'          => [$request->boolean('set_password_now') ? 'required' : 'nullable', 'min:6', 'confirmed'],
 
-            // Trial fields validate only for admins (UI already hides for non-admins)
+            // If synthetic (or no real email), a password is required now
+            'password'          => [
+                $request->boolean('set_password_now') || !$hasRealEmail ? 'required' : 'nullable',
+                'min:6','confirmed'
+            ],
+
+            // (unchanged) trial fields
             'trial_mode' => 'nullable|in:add,set',
             'trial_days' => 'exclude_unless:trial_mode,add|nullable|integer|min:1|max:365',
             'trial_date' => 'exclude_unless:trial_mode,set|nullable|date|after:today',
         ]);
 
-        // Role safety
+        // Role safety (unchanged)
         $roleIds = $request->input('roles', []);
         if (!$isAdmin) {
-            $forbidden = \Spatie\Permission\Models\Role::where('name', 'admin')->pluck('id')->all();
+            $forbidden = Role::where('name','admin')->pluck('id')->all();
             $roleIds = array_values(array_diff($roleIds, $forbidden));
         }
 
         // Flow toggles
         $markVerified   = $isAdmin ? $request->boolean('mark_verified', true) : true;
-        $sendInvite     = $isAdmin ? $request->boolean('send_invite', true)   : true;
-        $setPasswordNow = $isAdmin ? $request->boolean('set_password_now', false) : false;
-        $rawPassword    = $setPasswordNow ? $request->input('password') : \Illuminate\Support\Str::random(32);
+        $sendInviteReq  = $isAdmin ? $request->boolean('send_invite', true)   : true;
 
-        // ---------- Trial logic ----------
+        // Decide the email we will persist
+        $email = $request->email;
+        if (!filled($email)) {
+            // Generate a guaranteed-unique placeholder
+            $email = Str::ulid().'@'.self::SYNTHETIC_DOMAIN;
+        }
+        $isSynthetic = $this->isSyntheticEmail($email);
+
+        // If synthetic, we can’t send email anywhere
+        $canReceiveEmail = !$isSynthetic && $hasRealEmail;
+        $sendInvite = $sendInviteReq && $canReceiveEmail;
+
+        // Password source
+        $setPasswordNow = $request->boolean('set_password_now') || !$canReceiveEmail;
+        $rawPassword    = $setPasswordNow ? $request->input('password') : Str::random(32);
+
+        // ---------- Trial logic (your original) ----------
         $trialEnds = null;
-
         if ($isAdmin && $request->filled('trial_mode')) {
-            // Admin can set/extend on create
             $base = now();
             if ($request->trial_mode === 'add' && $request->filled('trial_days')) {
-                $trialEnds = $base->clone()->addDays((int) $request->trial_days);
+                $trialEnds = $base->clone()->addDays((int)$request->trial_days);
             } elseif ($request->trial_mode === 'set' && $request->filled('trial_date')) {
                 $trialEnds = \Carbon\Carbon::parse($request->trial_date)->endOfDay();
             }
         } else {
-            // Non-admin creator: inherit group head's trial (top-most under admin).
-            // If group head has none, fallback to creator’s own trial.
-            $headId   = get_top_parent_id($actor);                 // helper you shared
+            $headId    = get_top_parent_id($actor);
             $groupHead = $headId ? \App\Models\User::find($headId) : null;
             $trialEnds = optional($groupHead)->trial_ends_at ?? $actor->trial_ends_at;
         }
 
-        // Create user (avoid fillable issues)
-        $user = new \App\Models\User([
+        // Create user
+        $user = new User([
             'name'       => $request->name,
-            'email'      => $request->email,
-            'password'   => \Illuminate\Support\Facades\Hash::make($rawPassword),
+            'email'      => $email,
+            'password'   => Hash::make($rawPassword),
             'created_by' => $actor->id,
         ]);
-        $user->trial_ends_at = $trialEnds;   // persist explicitly
+        $user->trial_ends_at = $trialEnds;
         $user->save();
 
         $user->syncRoles($roleIds);
 
-        if ($markVerified) {
+        // Verification: skip if synthetic; otherwise same as before
+        if ($markVerified || !$canReceiveEmail) {
             $user->forceFill(['email_verified_at' => now()])->save();
         } else {
             $user->sendEmailVerificationNotification();
         }
 
         if ($sendInvite) {
-            \Illuminate\Support\Facades\Password::sendResetLink(['email' => $user->email]);
+            Password::sendResetLink(['email' => $user->email]);
         }
 
-        return redirect()->route('users.index')->with('success', 'User created successfully.');
+        // Optionally show credentials ONCE when synthetic / setPasswordNow
+        if ($isSynthetic && $setPasswordNow) {
+            session()->flash('generated_credentials', [
+                'login'    => $user->email,
+                'password' => $request->input('password'),
+            ]);
+        }
+
+        return redirect()->route('users.index')
+            ->with('success', 'User created successfully.');
     }
+
 
 
 
