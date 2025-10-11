@@ -184,7 +184,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
 
 
     // account-groups  (make sure you seeded 'account-groups' module)
-    Route::resource('account-groups', AccountGroupController::class)->only(['index', ])
+    Route::resource('account-groups', AccountGroupController::class)->only(['index',])
         ->middleware(perm('account-groups', 'view'));
     Route::resource('account-groups', AccountGroupController::class)->only(['create', 'store'])
         ->middleware(perm('account-groups', 'create'));
@@ -192,7 +192,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
         ->middleware(perm('account-groups', 'edit'));
     Route::resource('account-groups', AccountGroupController::class)->only(['destroy'])
         ->middleware(perm('account-groups', 'delete'));
-        Route::resource('account-groups', AccountGroupController::class)->only(['show', ])
+    Route::resource('account-groups', AccountGroupController::class)->only(['show',])
         ->middleware(perm('account-groups', 'view'));
 
     //api
@@ -876,10 +876,8 @@ Route::middleware(['auth', 'verified'])->group(function () {
                 ->middleware(perm('crushing-voucher', 'edit'))->name('update');
 
             Route::post('{voucher}/settle', [RentVoucherController::class, 'settle'])
-        ->middleware(perm('crushing-voucher', 'create')) // or 'edit' if you don't have a 'receive' ability
-        ->name('settle');
-
-
+                ->middleware(perm('crushing-voucher', 'create')) // or 'edit' if you don't have a 'receive' ability
+                ->name('settle');
         });
     });
 
@@ -918,7 +916,37 @@ Route::middleware(['auth', 'verified'])->group(function () {
 
 
     // Dryer
-    Route::resource('dryers', DryerController::class)->middleware(perm('dryers', 'view'));
+    // Route::resource('dryers', DryerController::class)->middleware(perm('dryers', 'view'));
+
+    Route::prefix('dryers')->name('dryers.')->group(function () {
+        Route::get('/', [DryerController::class, 'index'])
+            ->middleware(perm('dryers', 'view'))
+            ->name('index');
+
+        Route::get('/create', [DryerController::class, 'create'])
+            ->middleware(perm('dryers', 'create'))
+            ->name('create');
+
+        Route::post('/', [DryerController::class, 'store'])
+            ->middleware(perm('dryers', 'create'))
+            ->name('store');
+
+        Route::get('/{dryer}', [DryerController::class, 'show'])
+            ->middleware(perm('dryers', 'view'))
+            ->name('show');
+
+        Route::get('/{dryer}/edit', [DryerController::class, 'edit'])
+            ->middleware(perm('dryers', 'edit'))
+            ->name('edit');
+
+        Route::put('/{dryer}', [DryerController::class, 'update'])
+            ->middleware(perm('dryers', 'edit'))
+            ->name('update');
+
+        Route::delete('/{dryer}', [DryerController::class, 'destroy'])
+            ->middleware(perm('dryers', 'delete'))
+            ->name('destroy');
+    });
 
     //Stock adding to inventory
     Route::get('stock-moves',            [StockMoveController::class, 'index']);
