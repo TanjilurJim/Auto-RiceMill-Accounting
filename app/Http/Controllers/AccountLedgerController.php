@@ -16,31 +16,68 @@ use function godown_scope_ids;
 
 class AccountLedgerController extends Controller
 {
-     private const ALLOWED_TYPES = [
-        'accounts_receivable','accounts_payable','cash_bank','inventory',
-        'sales_income','other_income','cogs','operating_expense','liability','equity',
+    private const ALLOWED_TYPES = [
+        'accounts_receivable',
+        'accounts_payable',
+        'cash_bank',
+        'inventory',
+        'sales_income',
+        'other_income',
+        'cogs',
+        'operating_expense',
+        'liability',
+        'equity',
     ];
 
-    public function index()
+    public function index(Request $request)
     {
         $query = AccountLedger::with(['accountGroup', 'groupUnder', 'creator']);
 
-        // Only restrict by created_by if not admin
-        // if (!auth()->user()->hasRole('admin')) {
-        //     $query->where('created_by', auth()->id());
-        // }
-
+        // scope (non-admin)
         if (!auth()->user()->hasRole('admin')) {
             $ids = godown_scope_ids();
             $query->whereIn('created_by', $ids);
         }
 
-        $accountLedgers = $query->paginate(10);
+        // --- filter: by ledger type ---
+        $type = $request->string('type')->toString();
+        if ($type && in_array($type, self::ALLOWED_TYPES, true)) {
+            $query->where('ledger_type', $type);
+        }
+
+        // --- search: name / reference / phone / group names ---
+        $search = trim((string)$request->input('search', ''));
+        if ($search !== '') {
+            $query->where(function ($q) use ($search) {
+                $q->where('account_ledger_name', 'like', "%{$search}%")
+                    ->orWhere('reference_number', 'like', "%{$search}%")
+                    ->orWhere('phone_number', 'like', "%{$search}%")
+                    ->orWhere('email', 'like', "%{$search}%")
+                    ->orWhereHas('accountGroup', fn($g) => $g->where('name', 'like', "%{$search}%"))
+                    ->orWhereHas('groupUnder', fn($g) => $g->where('name', 'like', "%{$search}%"));
+            });
+        }
+
+        $accountLedgers = $query
+            ->orderByDesc('id')
+            ->paginate(10)
+            ->appends([
+                'search' => $search ?: null,
+                'type'   => $type ?: null,
+            ]);
 
         return Inertia::render('account-ledgers/index', [
             'accountLedgers' => $accountLedgers,
+            // send current filters so UI stays in sync
+            'filters' => [
+                'search' => $search,
+                'type'   => $type,
+            ],
+            // optional: provide list for dropdown
+            'ledgerTypes' => array_values(self::ALLOWED_TYPES),
         ]);
     }
+
 
     public function create()
     {
@@ -61,17 +98,17 @@ class AccountLedgerController extends Controller
 
             // ✅ validation + guardrails
             $validated = $request->validate([
-                'account_ledger_name' => ['required','string','max:255'],
+                'account_ledger_name' => ['required', 'string', 'max:255'],
                 'ledger_type'         => ['required', Rule::in(self::ALLOWED_TYPES)],
-                'debit_credit'        => ['required', Rule::in(['debit','credit'])],
-                'opening_balance'     => ['nullable','numeric','min:0'],
-                'account_group_input' => ['required','string'], // will be parsed below
+                'debit_credit'        => ['required', Rule::in(['debit', 'credit'])],
+                'opening_balance'     => ['nullable', 'numeric', 'min:0'],
+                'account_group_input' => ['required', 'string'], // will be parsed below
                 'mark_for_user'       => ['boolean'],
-                'status'              => ['required', Rule::in(['active','inactive'])],
-                'phone_number'        => ['required','string','max:255'],
-                'email'               => ['nullable','email','max:255'],
-                'address'             => ['nullable','string'],
-                'reference_number'    => ['nullable','string','max:64'],
+                'status'              => ['required', Rule::in(['active', 'inactive'])],
+                'phone_number'        => ['required', 'string', 'max:255'],
+                'email'               => ['nullable', 'email', 'max:255'],
+                'address'             => ['nullable', 'string'],
+                'reference_number'    => ['nullable', 'string', 'max:64'],
                 'for_transition_mode' => ['boolean'],
             ]);
 
@@ -82,7 +119,8 @@ class AccountLedgerController extends Controller
             }
 
             // Parse "group_under-<id>" or "account_group-<id>"
-            $kind = null; $id = null;
+            $kind = null;
+            $id = null;
             if (str_contains($request->input('account_group_input'), '-')) {
                 [$kind, $id] = explode('-', $request->input('account_group_input'), 2);
             }
@@ -140,17 +178,17 @@ class AccountLedgerController extends Controller
     public function update(Request $request, AccountLedger $accountLedger)
     {
         $validated = $request->validate([
-            'account_ledger_name' => ['required','string','max:255'],
+            'account_ledger_name' => ['required', 'string', 'max:255'],
             'ledger_type'         => ['required', Rule::in(self::ALLOWED_TYPES)],
-            'debit_credit'        => ['required', Rule::in(['debit','credit'])],
-            'opening_balance'     => ['nullable','numeric','min:0'],
-            'account_group_input' => ['required','string'],
+            'debit_credit'        => ['required', Rule::in(['debit', 'credit'])],
+            'opening_balance'     => ['nullable', 'numeric', 'min:0'],
+            'account_group_input' => ['required', 'string'],
             'mark_for_user'       => ['boolean'],
-            'status'              => ['required', Rule::in(['active','inactive'])],
-            'phone_number'        => ['required','string','max:255'],
-            'email'               => ['nullable','email','max:255'],
-            'address'             => ['nullable','string'],
-            'reference_number'    => ['nullable','string','max:64'],
+            'status'              => ['required', Rule::in(['active', 'inactive'])],
+            'phone_number'        => ['required', 'string', 'max:255'],
+            'email'               => ['nullable', 'email', 'max:255'],
+            'address'             => ['nullable', 'string'],
+            'reference_number'    => ['nullable', 'string', 'max:64'],
             'for_transition_mode' => ['boolean'],
         ]);
 
@@ -208,7 +246,7 @@ class AccountLedgerController extends Controller
         return redirect()->route('account-ledgers.index')->with('success', 'Account Ledger deleted successfully.');
     }
 
-    
+
 
     public function storeFromModal(Request $request)
     {
