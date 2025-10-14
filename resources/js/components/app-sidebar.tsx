@@ -563,7 +563,7 @@ export function AppSidebar() {
     const filteredNavItems = filterNavItems(mainNavItems, roles);
 
     return (
-        <Sidebar collapsible="icon" variant="inset">
+        <Sidebar collapsible="icon" variant="inset" className='print:hidden' >
             {/* ---------- Logo ---------- */}
             <SidebarHeader>
                 <SidebarMenu>

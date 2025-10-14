@@ -18,6 +18,7 @@ class AccountLedger extends Model
         'phone_number',
         'email',
         'opening_balance',
+        'closing_balance',
         'debit_credit',
         'status',
         'account_group_id',

@@ -223,7 +223,7 @@ const AccountLedgerForm: React.FC<AccountLedgerFormProps> = ({
             {/* Opening Balance (optional – defaults to 0 if empty) */}
             <div className="col-span-1">
                 <label className="mb-1 block font-medium" htmlFor="opening_balance">
-                    {t('openingBalance')}
+                    {t('openingBalance')} 
                 </label>
                 <input
                     id="opening_balance"
@@ -236,9 +236,35 @@ const AccountLedgerForm: React.FC<AccountLedgerFormProps> = ({
                     aria-invalid={!!errors.opening_balance}
                     min={0}
                     placeholder={t('formOpeningBalancePlaceholder')}
+                    required
                 />
                 {errors.opening_balance && <p className="text-sm text-red-500">{errors.opening_balance}</p>}
             </div>
+            {/* Closing Balance (optional – defaults to Opening if empty) */}
+<div className="col-span-1">
+  <label className="mb-1 block font-medium" htmlFor="closing_balance">
+    {t('closingBalance')}
+  </label>
+  <input
+    id="closing_balance"
+    name="closing_balance"
+    type="number"
+    inputMode="decimal"
+    value={data.closing_balance ?? ''}
+    onChange={(e) => setData('closing_balance', e.target.value)}
+    className="w-full rounded border p-2 dark:border-neutral-700 dark:bg-neutral-800"
+    aria-invalid={!!errors.closing_balance}
+    min={0}
+    placeholder={t('Optional') /* e.g. “leave empty to use Opening” */}
+  />
+  {errors.closing_balance && (
+    <p className="text-sm text-red-500">{errors.closing_balance}</p>
+  )}
+  <p className="mt-1 text-xs text-muted-foreground">
+    {t('closingBalanceHelp') /* e.g. “Use this for brought-forward balance at go-live. Choose Dr/Cr above to indicate direction.” */}
+  </p>
+</div>
+
 
             {/* Debit/Credit (required, placeholder added) */}
             <div className="col-span-1">

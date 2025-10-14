@@ -11,6 +11,7 @@ type DataShape = {
     phone_number: string;
     email: string;
     opening_balance: string | number;
+    closing_balance?: string | number;
     ledger_type: string;
     debit_credit: string;
     status: 'active' | 'inactive';
@@ -31,6 +32,7 @@ function validateForm(data: Partial<DataShape>, t: (key: string) => string) {
 
     // Required fields
     if (!data.account_ledger_name?.trim()) errs.account_ledger_name = t('pleaseEnterLedgerName');
+    if (!data.opening_balance) errs.opening_balance = t('pleaseEnterOpeningBalance');
     if (!data.ledger_type) errs.ledger_type = t('pleaseSelectLedgerType');
     if (!data.debit_credit) errs.debit_credit = t('pleaseChooseDebitCredit');
     if (!data.status) errs.status = t('pleaseSelectStatus');
@@ -47,6 +49,13 @@ function validateForm(data: Partial<DataShape>, t: (key: string) => string) {
         const n = Number(data.opening_balance);
         if (Number.isNaN(n)) errs.opening_balance = t('openingBalanceMustBeNumber');
         else if (n < 0) errs.opening_balance = t('openingBalanceCannotBeNegative');
+    }
+
+    // 👉 Add THIS block right here:
+    if (data.closing_balance !== '' && data.closing_balance !== undefined) {
+        const n = Number(data.closing_balance);
+        if (Number.isNaN(n)) errs.closing_balance = t('closingBalanceMustBeNumber');
+        else if (n < 0) errs.closing_balance = t('closingBalanceCannotBeNegative');
     }
 
     // Account group input shape guard (matches controller expectation)
@@ -89,7 +98,8 @@ export default function CreateAccountLedger({
         account_ledger_name: '',
         phone_number: '',
         email: '',
-        opening_balance: '', // ← optional; we’ll default to 0 before submit
+        opening_balance: '',
+        closing_balance: '', // ← optional; we’ll default to 0 before submit
         ledger_type: '',
         debit_credit: '',
         status: 'active',
@@ -117,6 +127,9 @@ export default function CreateAccountLedger({
         // If opening balance empty, default to 0 (keeps UI simple, matches controller leniency)
         if (data.opening_balance === '' || data.opening_balance === undefined) {
             setData('opening_balance', 0);
+        }
+        if (data.closing_balance === '' || data.closing_balance === undefined) {
+            setData('closing_balance', data.opening_balance ?? 0);
         }
 
         // Run client validation

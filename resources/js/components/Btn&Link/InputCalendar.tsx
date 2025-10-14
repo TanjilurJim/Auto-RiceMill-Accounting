@@ -15,6 +15,8 @@ interface InputCalendarProps {
 const DISPLAY_FMT = 'DD-MM-YYYY';
 const STORAGE_FMT = 'YYYY-MM-DD';
 
+const THIS_YEAR = new Date().getFullYear();
+
 const InputCalendar: React.FC<InputCalendarProps> = ({ value, onChange, label = 'Select date', required }) => {
     const [open, setOpen] = React.useState(false);
 
@@ -43,10 +45,16 @@ const InputCalendar: React.FC<InputCalendarProps> = ({ value, onChange, label = 
                         mode="single"
                         selected={selectedDate}
                         onSelect={(date) => {
-                            onChange(date ? dayjs(date).format(STORAGE_FMT) : '');
+                            onChange(date ? dayjs(date).format('YYYY-MM-DD') : '');
                             setOpen(false);
                         }}
                         captionLayout="dropdown"
+                        // 👇 widen the allowed years (pick what you prefer)
+                        fromYear={THIS_YEAR - 50}
+                        toYear={THIS_YEAR + 50}
+                        // Optional: also bound by month if you want
+                        // fromMonth={new Date(THIS_YEAR - 50, 0, 1)}
+                        // toMonth={new Date(THIS_YEAR + 50, 11, 31)}
                     />
                 </PopoverContent>
             </Popover>

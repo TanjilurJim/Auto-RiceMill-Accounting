@@ -199,6 +199,7 @@ export const translations = {
         voucherHeader: 'Voucher',
         supplierHeader: 'Supplier',
         // godownHeader: 'Godown',
+        createGodownSubmit : 'Create Godown',
         salesmanHeader: 'Salesman',
         subApprovalHeader: 'Sub-Approval',
         respApprovalHeader: 'Resp-Approval',
@@ -532,6 +533,7 @@ export const translations = {
         pleaseEnterValidEmail: 'Please enter a valid email address.',
         useValidBDMobile: 'Use a valid BD mobile number (e.g., 01XXXXXXXXX).',
         openingBalanceMustBeNumber: 'Opening balance must be a number.',
+        openingBalance: 'Opening Balance',
         openingBalanceCannotBeNegative: 'Opening balance cannot be negative.',
         invalidAccountGroupSelection: 'Invalid account group selection.',
         // Account Ledgers (index.tsx)
@@ -2152,6 +2154,7 @@ export const translations = {
         openingBalanceMustBeNumber: 'প্রারম্ভিক ব্যালেন্স অবশ্যই একটি সংখ্যা হতে হবে।',
         openingBalanceCannotBeNegative: 'প্রারম্ভিক ব্যালেন্স ঋণাত্মক হতে পারে না।',
         invalidAccountGroupSelection: 'অবৈধ অ্যাকাউন্ট গ্রুপ নির্বাচন।',
+        openingBalance: 'প্রারম্ভিক ব্যালেন্স ',
         // Account Ledgers (index.tsx)
         accountLedgersHeader: 'অ্যাকাউন্ট লেজারের তালিকা',
         addNewLedger: '+ নতুন যোগ করুন',
@@ -2160,7 +2163,7 @@ export const translations = {
         accountName: 'অ্যাকাউন্টের নাম',
         mobileNo: 'মোবাইল নম্বর',
         groupUnderLedger: 'গ্রুপের অধীনে',
-        openingBalance: 'প্রারম্ভিক ব্যালেন্স',
+        peningBalance: 'প্রারম্ভিক ব্যালেন্স',
         closingBalance: 'সমাপ্ত ব্যালেন্স',
         debitCredit: 'ডেবিট/ক্রেডিট',
         createdByLedger: 'তৈরি করেছেন',

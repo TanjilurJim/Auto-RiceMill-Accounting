@@ -17,7 +17,7 @@ const Pagination: React.FC<PaginationProps> = ({ links = [], currentPage, lastPa
     };
 
     return (
-        <div className="my-4">
+        <div className="my-4 print:hidden">
             {/* Pagination Info */}
             <div className="mb-2 flex items-center justify-between text-sm text-gray-500">
                 <span>
