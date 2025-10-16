@@ -45,6 +45,7 @@ class DueController extends Controller
                     fn($qq) => $qq->where('item_name', 'like', "%{$search}%")
                 ))
             ->orderByDesc('date')
+            ->orderByDesc('id')
             ->paginate($perPage);
 
         /* ───── 2. keep the search term on every page link ───── */

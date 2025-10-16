@@ -111,16 +111,26 @@ class FinalizeSaleService
             /* ------------------------------
              * 4️⃣  Optional: immediate payment
              * ----------------------------*/
-            if (($request->amount_received ?? 0) > 0 && ($request->received_mode_id ?? false)) {
-                $mode = \App\Models\ReceivedMode::find($request->received_mode_id);
-                SalePaymentService::record(
-                    $sale,
-                    $request->amount_received,
-                    Carbon::parse($sale->date),
-                    $mode,
-                    'Initial payment on invoice approval'
-                );
+            /* ------------------------------
+ * 4️⃣  Optional: immediate payment
+ * ----------------------------*/
+            // Prefer payload (when approving instantly), otherwise fall back to sale fields
+            $amt    = $request->amount_received  ?? $sale->amount_received ?? 0;
+            $modeId = $request->received_mode_id ?? $sale->received_mode_id ?? null;
+
+            if ($amt > 0 && $modeId) {
+                $mode = \App\Models\ReceivedMode::find($modeId);
+                if ($mode) { // (optional) you can also re-check $mode->ledger->ledger_type === 'cash_bank'
+                    SalePaymentService::record(
+                        $sale,
+                        $amt,
+                        Carbon::parse($sale->date),
+                        $mode,
+                        'Initial payment on invoice approval'
+                    );
+                }
             }
+
 
             /* ------------------------------
              * 5️⃣  Inventory / COGS
@@ -163,58 +173,58 @@ class FinalizeSaleService
         });
     }
     private function validateRequest(Request $request)
-{
-    return $request->validate([
-        'date'         => 'required|date',
-        'godown_id'    => 'required|exists:godowns,id',
-        'salesman_id'  => 'required|exists:salesmen,id',
+    {
+        return $request->validate([
+            'date'         => 'required|date',
+            'godown_id'    => 'required|exists:godowns,id',
+            'salesman_id'  => 'required|exists:salesmen,id',
 
-        // customer ledger must be AR
-        'account_ledger_id' => [
-            'required',
-            Rule::exists('account_ledgers', 'id')->where(fn($q) => $q->where('ledger_type', 'accounts_receivable')),
-        ],
+            // customer ledger must be AR
+            'account_ledger_id' => [
+                'required',
+                Rule::exists('account_ledgers', 'id')->where(fn($q) => $q->where('ledger_type', 'accounts_receivable')),
+            ],
 
-        // inventory & cogs are required and type-checked
-        'inventory_ledger_id' => [
-            'required',
-            Rule::exists('account_ledgers','id')->where(fn($q) => $q->where('ledger_type','inventory')),
-        ],
-        'cogs_ledger_id' => [
-            'required',
-            Rule::exists('account_ledgers','id')->where(fn($q) => $q->where('ledger_type','cogs')),
-        ],
+            // inventory & cogs are required and type-checked
+            'inventory_ledger_id' => [
+                'required',
+                Rule::exists('account_ledgers', 'id')->where(fn($q) => $q->where('ledger_type', 'inventory')),
+            ],
+            'cogs_ledger_id' => [
+                'required',
+                Rule::exists('account_ledgers', 'id')->where(fn($q) => $q->where('ledger_type', 'cogs')),
+            ],
 
-        'sale_items'                 => 'required|array|min:1',
-        'sale_items.*.product_id'    => ['required','exists:items,id', function ($attr,$val,$fail) use ($request) {
-            if (!preg_match('/sale_items\.(\d+)\./',$attr,$m)) return;
-            $idx   = (int) $m[1];
-            $lotId = $request->input("sale_items.$idx.lot_id");
-            $ok = \App\Models\Lot::where('id',$lotId)->where('item_id',$val)->exists();
-            if (!$ok) $fail('Lot does not match item.');
-        }],
-        'sale_items.*.lot_id'        => 'required|exists:lots,id',
-        'sale_items.*.qty'           => 'required|numeric|min:0.01',
-        'sale_items.*.main_price'    => 'required|numeric|min:0',
-        'sale_items.*.discount'      => 'nullable|numeric|min:0',
-        'sale_items.*.discount_type' => 'required|in:bdt,percent',
-        'sale_items.*.subtotal'      => 'required|numeric|min:0',
+            'sale_items'                 => 'required|array|min:1',
+            'sale_items.*.product_id'    => ['required', 'exists:items,id', function ($attr, $val, $fail) use ($request) {
+                if (!preg_match('/sale_items\.(\d+)\./', $attr, $m)) return;
+                $idx   = (int) $m[1];
+                $lotId = $request->input("sale_items.$idx.lot_id");
+                $ok = \App\Models\Lot::where('id', $lotId)->where('item_id', $val)->exists();
+                if (!$ok) $fail('Lot does not match item.');
+            }],
+            'sale_items.*.lot_id'        => 'required|exists:lots,id',
+            'sale_items.*.qty'           => 'required|numeric|min:0.01',
+            'sale_items.*.main_price'    => 'required|numeric|min:0',
+            'sale_items.*.discount'      => 'nullable|numeric|min:0',
+            'sale_items.*.discount_type' => 'required|in:bdt,percent',
+            'sale_items.*.subtotal'      => 'required|numeric|min:0',
 
-        'received_mode_id' => [
-            'nullable',
-            'exists:received_modes,id',
-            function ($attr, $val, $fail) use ($request) {
-                if (($request->amount_received ?? 0) > 0) {
-                    $lt = \App\Models\ReceivedMode::with('ledger')->find($val)?->ledger?->ledger_type;
-                    if ($lt !== 'cash_bank') {
-                        $fail('Selected receive mode must map to a Cash/Bank ledger.');
+            'received_mode_id' => [
+                'nullable',
+                'exists:received_modes,id',
+                function ($attr, $val, $fail) use ($request) {
+                    if (($request->amount_received ?? 0) > 0) {
+                        $lt = \App\Models\ReceivedMode::with('ledger')->find($val)?->ledger?->ledger_type;
+                        if ($lt !== 'cash_bank') {
+                            $fail('Selected receive mode must map to a Cash/Bank ledger.');
+                        }
                     }
-                }
-            },
-        ],
-        'amount_received' => 'nullable|numeric|min:0',
-    ]);
-}
+                },
+            ],
+            'amount_received' => 'nullable|numeric|min:0',
+        ]);
+    }
 
     private function getSalesLedgerId(int $userId): int
     {

@@ -114,18 +114,24 @@ class SaleController extends Controller
     public function show(Sale $sale)
     {
 
-        $sale->load([
-            'saleItems.item.unit',
-            'godown',
-            'salesman',
-            'accountLedger',
-            'approvals.user',   // to see who approved / rejected
-        ]);
-        $sale->setAttribute('me', auth()->id());
+        $sale->load(['saleItems.item.unit', 'godown', 'salesman', 'accountLedger', 'approvals.user', 'payments']);
 
-        return Inertia::render('sales/show', [
-            'sale' => $sale,
-        ]);
+        $paidPosted     = (float) $sale->payments->sum('amount');
+        $interestPosted = (float) $sale->payments->sum('interest_amount');
+        $frontDoorPaid  = (float) ($sale->amount_received ?? 0);
+
+        $receivedDisplay = $sale->status === \App\Models\Sale::STATUS_APPROVED ? $paidPosted : $frontDoorPaid;
+        $due = $sale->status === \App\Models\Sale::STATUS_APPROVED
+            ? (float) $sale->outstanding
+            : max(0, (float) $sale->grand_total - $frontDoorPaid);
+
+        $sale->setAttribute('received_total', $paidPosted);
+        $sale->setAttribute('received_front', $frontDoorPaid);
+        $sale->setAttribute('received_display', $receivedDisplay);
+        $sale->setAttribute('interest_paid', $interestPosted);
+        $sale->setAttribute('due', $due);
+
+        return Inertia::render('sales/show', ['sale' => $sale]);
     }
 
 
@@ -168,6 +174,8 @@ class SaleController extends Controller
                 'grand_total'            => collect($request->sale_items)->sum('subtotal'),
                 'other_expense_ledger_id' => $request->other_expense_ledger_id,
                 'other_amount'           => $request->other_amount ?? 0,
+                'received_mode_id'  => $request->received_mode_id,
+                'amount_received'   => $request->amount_received ?? 0,
                 'total_due'              => collect($request->sale_items)->sum('subtotal'),
                 'status'                 => $flow === self::FLOW_NONE
                     ? Sale::STATUS_APPROVED
@@ -330,8 +338,8 @@ class SaleController extends Controller
                 'grand_total'          => collect($request->sale_items)->sum('subtotal'),
                 'other_expense_ledger_id' => $request->other_expense_ledger_id,
                 'other_amount'         => $request->other_amount ?? 0,
-                // 'received_mode_id'     => $request->received_mode_id,
-                // 'amount_received'      => $request->amount_received,
+                'received_mode_id'     => $request->received_mode_id,
+                'amount_received'      => $request->amount_received,
                 // 'total_due'            => $request->total_due,
                 // 'closing_balance'      => $request->closing_balance,
                 'total_due'             => collect($request->sale_items)->sum('subtotal'), // full for now
@@ -758,6 +766,9 @@ class SaleController extends Controller
                     : ($s->status === Sale::STATUS_PENDING_RESP ? 'pending'
                         : ($s->status === Sale::STATUS_REJECTED ? 'rejected' : '—')),
                 'resp_by'     => $s->respApprover?->name,
+                // 👇 NEW:
+                'received'    => (float) ($s->amount_received ?? 0),
+                'due'         => max(0, (float)$s->grand_total - (float)($s->amount_received ?? 0)),
             ]);
 
         return Inertia::render('sales/inbox/SubInbox', [
@@ -808,6 +819,9 @@ class SaleController extends Controller
                     : ($s->status === Sale::STATUS_PENDING_RESP ? 'pending'
                         : ($s->status === Sale::STATUS_REJECTED ? 'rejected' : '—')),
                 'resp_by'     => $s->respApprover?->name,
+
+                'received'    => (float) ($s->amount_received ?? 0),
+                'due'         => max(0, (float)$s->grand_total - (float)($s->amount_received ?? 0)),
             ]);
 
         return Inertia::render('sales/inbox/RespInbox', [

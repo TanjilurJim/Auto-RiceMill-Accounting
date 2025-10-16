@@ -46,6 +46,10 @@ interface Sale {
     sub_responsible_id: number;
     responsible_id: number;
     created_at: string;
+    received_display?: number; // what to show as “Amount Received”
+    received_total?: number; // sum of posted payments (optional detail)
+    interest_paid?: number; // sum of posted interest (optional detail)
+    due?: number;
 }
 
 /* -------------------------------------------------------------------------- */
@@ -156,8 +160,27 @@ export default function SaleShow({ sale }: { sale: Sale }) {
                         {/* Totals */}
                         <div className="flex justify-end bg-gray-50 p-4 dark:bg-neutral-800/50">
                             <div className="w-full max-w-xs space-y-2 text-sm">
-                                {/* <Row label="Subtotal" value={fmtMoney(sale.subtotal)} /> */}
-                                <Row label="Grand Total" value={fmtMoney(sale.grand_total)} bold />
+                                <Row label="Grand Total" value={fmtMoney(sale.grand_total)} />
+
+                                {/* NEW: Amount Received (fallback to 0 if not provided) */}
+                                <Row
+                                    label="Amount Received"
+                                    value={fmtMoney(Number.isFinite(sale.received_display ?? NaN) ? (sale.received_display as number) : 0)}
+                                />
+
+                                {/* Optional: Interest Paid (only if provided & > 0) */}
+                                {(sale.interest_paid ?? 0) > 0 && <Row label="Interest Paid" value={fmtMoney(sale.interest_paid as number)} />}
+
+                                {/* NEW: Due (bold) */}
+                                <Row
+                                    label="Due"
+                                    value={fmtMoney(
+                                        Number.isFinite(sale.due ?? NaN)
+                                            ? (sale.due as number)
+                                            : Math.max(0, sale.grand_total - (sale.received_display ?? 0)),
+                                    )}
+                                    bold
+                                />
                             </div>
                         </div>
                     </Card>
@@ -221,7 +244,7 @@ export default function SaleShow({ sale }: { sale: Sale }) {
 /*  Reusable helpers                                                          */
 function Card({ children, title, noPadding }: { children: React.ReactNode; title?: string; noPadding?: boolean }) {
     return (
-        <div className="rounded-lg border border-gray-200 bg-background shadow-sm dark:border-neutral-700 dark:bg-neutral-900">
+        <div className="bg-background rounded-lg border border-gray-200 shadow-sm dark:border-neutral-700 dark:bg-neutral-900">
             {title && <h2 className="px-6 pt-6 text-lg font-semibold">{title}</h2>}
             <div className={noPadding ? '' : 'p-6'}>{children}</div>
         </div>
@@ -274,7 +297,7 @@ function Modal({ children, onClose }: { children: React.ReactNode; onClose: () =
             {/* backdrop */}
             <div className="fixed inset-0 bg-black/60" onClick={onClose} />
             {/* dialog */}
-            <div className="relative z-10 w-full max-w-lg rounded-lg bg-background p-6 shadow-xl dark:bg-neutral-800">{children}</div>
+            <div className="bg-background relative z-10 w-full max-w-lg rounded-lg p-6 shadow-xl dark:bg-neutral-800">{children}</div>
         </div>
     );
 }

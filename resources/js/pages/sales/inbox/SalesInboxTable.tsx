@@ -33,6 +33,8 @@ interface SaleRow {
     sub_by?: string;
     resp_status: 'approved' | 'pending' | 'rejected' | '—';
     resp_by?: string;
+    received?: number | string;
+    due?: number | string;
 }
 
 interface SalePaginator {
@@ -99,7 +101,7 @@ export default function SalesInboxTable({ sales, approveRoute, rejectRoute }: Pr
 
     return (
         <>
-            <div className="overflow-hidden rounded-lg border border-gray-200 bg-background shadow-sm dark:border-neutral-700 dark:bg-neutral-900">
+            <div className="bg-background overflow-hidden rounded-lg border border-gray-200 shadow-sm dark:border-neutral-700 dark:bg-neutral-900">
                 <div className="overflow-x-auto">
                     <table className="w-full text-sm">
                         <thead className="border-b border-gray-200 bg-gray-50 text-left text-xs tracking-wider text-gray-600 uppercase dark:border-neutral-700 dark:bg-neutral-800 dark:text-gray-400">
@@ -118,8 +120,10 @@ export default function SalesInboxTable({ sales, approveRoute, rejectRoute }: Pr
                                 <th className="p-3">{t('customerHeader')}</th>
                                 <th className="p-3">{t('godownHeader')}</th>
                                 <th className="p-3">{t('salesmanHeader')}</th>
-                                <th className="p-3">{t('subApprovalHeader')}</th>
+                                {/* <th className="p-3">{t('subApprovalHeader')}</th> */}
                                 <th className="p-3">{t('respApprovalHeader')}</th>
+                                <th className="p-3 text-right">Received</th> {/* 👈 NEW */}
+                                <th className="p-3 text-right">Due</th>
                                 <th className="p-3 text-right">{t('totalHeader')}</th>
                                 <th className="p-3 text-center">{t('actionsHeader')}</th>
                             </tr>
@@ -145,13 +149,22 @@ export default function SalesInboxTable({ sales, approveRoute, rejectRoute }: Pr
                                         <td className="p-3">{row.customer ?? '—'}</td>
                                         <td className="p-3">{row.godown ?? '—'}</td>
                                         <td className="p-3">{row.salesman ?? '—'}</td>
-                                        <td className="p-3">
-                                            <StatusBadge status={row.sub_status} by={row.sub_by} />
-                                        </td>
+                                        {/* <td className="p-3">
+  <StatusBadge
+    status={row.sub_by ? 'approved' : row.sub_status}
+    by={row.sub_by}
+  />
+</td> */}
                                         <td className="p-3">
                                             <StatusBadge status={row.resp_status} by={row.resp_by} />
                                         </td>
+                                        <td className="p-3 text-right whitespace-nowrap">{fmtMoney(row.received ?? 0)} TK</td>
+                                        <td className="p-3 text-right whitespace-nowrap">
+                                            {fmtMoney(row.due ?? Math.max(0, Number(row.grand_total) - Number(row.received ?? 0)))} TK
+                                        </td>
+
                                         <td className="p-3 text-right font-medium whitespace-nowrap">{fmtMoney(row.grand_total)} TK</td>
+
                                         <td className="p-3">
                                             <div className="flex items-center justify-center gap-2">
                                                 <ActionButton
@@ -194,7 +207,7 @@ export default function SalesInboxTable({ sales, approveRoute, rejectRoute }: Pr
 
             {/* --- Bulk Actions Bar --- */}
             {selected.length > 0 && (
-                <div className="mt-4 rounded-lg border border-gray-200 bg-background px-4 py-3 shadow-sm dark:border-neutral-700 dark:bg-neutral-900">
+                <div className="bg-background mt-4 rounded-lg border border-gray-200 px-4 py-3 shadow-sm dark:border-neutral-700 dark:bg-neutral-900">
                     <div className="flex flex-wrap items-center justify-between gap-3">
                         <p className="text-sm font-medium">
                             <span className="font-bold">{selected.length}</span> {t('itemsSelected')}
@@ -233,17 +246,20 @@ export default function SalesInboxTable({ sales, approveRoute, rejectRoute }: Pr
 
             {/* --- Custom Confirmation Modal --- */}
             {modalState.isOpen && (
-                <div className="bg-opacity-50 fixed inset-0 z-50 flex items-center justify-center bg-black transition-opacity" aria-modal="true">
-                    <div className="w-full max-w-md transform rounded-lg bg-background p-6 shadow-xl transition-all dark:bg-neutral-800">
-                        <h3 className="text-lg leading-6 font-medium text-gray-900 dark:text-white">{t('confirmActionTitle')}</h3>
+                <div
+                    className="/* translucent dark overlay */ /* adds effect */ fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm transition-opacity"
+                    aria-modal="true"
+                >
+                    <div className="bg-background w-full max-w-md transform rounded-lg p-6 shadow-xl transition-all dark:bg-neutral-800">
+                        <h3 className="text-lg leading-6 font-medium text-foreground">{t('confirmActionTitle')}</h3>
                         <div className="mt-2">
-                            <p className="text-sm text-gray-500 dark:text-gray-400">{modalState.message}</p>
+                            <p className="text-sm text-foreground ">{modalState.message}</p>
                         </div>
                         <div className="mt-5 flex justify-end gap-3">
                             <button type="button" className="btn-gray" onClick={closeModal}>
                                 {t('cancelActionButton')}
                             </button>
-                            <button type="button" className="btn-sky" onClick={modalState.onConfirm}>
+                            <button type="button" className="btn-red" onClick={modalState.onConfirm}>
                                 {t('confirmButton')}
                             </button>
                         </div>

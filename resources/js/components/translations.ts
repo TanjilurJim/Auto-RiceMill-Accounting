@@ -101,7 +101,7 @@ export const translations = {
 
         // Error messages
         failedToCreateLedger: 'Failed to create ledger',
-
+approveSaleMessage : 'Approve this sale?',
         salesListTitle: 'Sales List',
         addSaleButtonText: '+ Add Sale',
         slHeader: 'SL',
@@ -190,7 +190,7 @@ export const translations = {
         printText: 'Print',
         defaultPageTitle: 'Title',
         filterSearchPlaceholder: 'Search customer / voucher...',
-        dateOfBirthLabel: 'Date of birth',
+        dateOfBirthLabel: 'Date',
         selectDateText: 'Select date',
         fromLabel: 'From',
         toLabel: 'To',
@@ -1290,6 +1290,7 @@ export const translations = {
         noSalesAwaitingMessage: 'No sales orders are awaiting your approval.',
         noApprovalsMessage: 'No approvals found.',
         addSalesReturnText: 'Add Sales Return',
+        noSalesFound: 'No sales orders found.',
 
         // Roles Module (ro-)
         'ro-dashboard': 'Dashboard',
@@ -1803,7 +1804,7 @@ export const translations = {
         printText: 'প্রিন্ট',
         defaultPageTitle: 'শিরোনাম',
         filterSearchPlaceholder: 'গ্রাহক / ভাউচার অনুসন্ধান করুন...',
-        dateOfBirthLabel: 'জন্ম তারিখ',
+        dateOfBirthLabel: 'তারিখ',
         selectDateText: 'তারিখ নির্বাচন করুন',
         fromLabel: 'থেকে',
         toLabel: 'পর্যন্ত',
