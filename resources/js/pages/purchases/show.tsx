@@ -1,5 +1,5 @@
-import AppLayout from '@/layouts/app-layout';
 import PageHeader from '@/components/PageHeader';
+import AppLayout from '@/layouts/app-layout';
 import {
     BuildingStorefrontIcon,
     CheckCircleIcon,
@@ -13,6 +13,9 @@ import {
     XCircleIcon,
     XMarkIcon, // Added for modal close
 } from '@heroicons/react/24/outline';
+import { Printer } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+
 import { Head, router } from '@inertiajs/react';
 import { useState } from 'react';
 
@@ -77,6 +80,10 @@ const fmtDateTime = (iso: string) => new Date(iso).toLocaleString('en-GB', { dat
 
 const fmtMoney = (n: number) => `${new Intl.NumberFormat('en-BD', { minimumFractionDigits: 2 }).format(n)} Tk`;
 
+const handlePrint = () => {
+    window.print();
+};
+
 // --- UI COMPONENTS (Polished) ---
 
 const StatusBadge = ({ status }: { status: Purchase['status'] }) => {
@@ -113,9 +120,11 @@ export default function PurchaseShow({ purchase, paid_summary }: { purchase: Pur
     return (
         <AppLayout>
             <Head title={`${purchase.voucher_no}`} />
-            <div className="h-full w-screen bg-background p-6 lg:w-full">
-                <div className="h-full rounded-lg bg-background p-6">
-                    <PageHeader title="" addLinkHref="/purchases" addLinkText="Back" />
+            <div className="bg-background h-full w-screen p-6 lg:w-full">
+                <div className="bg-background h-full rounded-lg p-6">
+                    <div className="print:hidden">
+                    <PageHeader title="" addLinkHref="/purchases" addLinkText="Back"  />
+                    </div>
 
                     <header className="mb-6 flex flex-wrap items-center justify-between gap-4">
                         <div>
@@ -126,12 +135,18 @@ export default function PurchaseShow({ purchase, paid_summary }: { purchase: Pur
                             <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">Created on {fmtDate(purchase.created_at)}</p>
                         </div>
                         <StatusBadge status={purchase.status} />
+                       
                     </header>
 
                     {/* --- Main Grid: Now responsive on medium screens --- */}
                     <div className="grid grid-cols-1 gap-8 md:grid-cols-3">
                         <div className="space-y-8 md:col-span-2">
+                             <Button variant="outline" onClick={handlePrint} className="w-full sm:w-auto print:hidden">
+                            <Printer className="mr-2 h-4 w-4" />
+                            Print
+                        </Button>
                             <Card title="Details">
+                                
                                 <div className="grid grid-cols-1 gap-x-6 gap-y-4 sm:grid-cols-2">
                                     <DetailItem icon={UserCircleIcon} label="Supplier" value={purchase.account_ledger.account_ledger_name} />
                                     <DetailItem icon={ClockIcon} label="Voucher Date" value={fmtDate(purchase.date)} />
@@ -301,7 +316,7 @@ export default function PurchaseShow({ purchase, paid_summary }: { purchase: Pur
 
 function Card({ children, title, noPadding }: { children: React.ReactNode; title?: string; noPadding?: boolean }) {
     return (
-        <div className="rounded-lg border border-gray-200 bg-background shadow-sm dark:border-neutral-700 dark:bg-neutral-900">
+        <div className="bg-background rounded-lg border border-gray-200 shadow-sm dark:border-neutral-700 dark:bg-neutral-900">
             {title && <h2 className="border-b border-gray-200 px-6 py-4 text-lg font-semibold dark:border-neutral-700">{title}</h2>}
             <div className={noPadding ? '' : 'p-6'}>{children}</div>
         </div>
@@ -355,7 +370,7 @@ function Modal({ children, show, onClose, title }: { children: React.ReactNode; 
     return (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
             <div className="fixed inset-0 bg-black/70" onClick={onClose} />
-            <div className="relative z-10 w-full max-w-lg rounded-lg bg-background shadow-xl dark:bg-neutral-900">
+            <div className="bg-background relative z-10 w-full max-w-lg rounded-lg shadow-xl dark:bg-neutral-900">
                 <header className="flex items-center justify-between border-b p-4 dark:border-neutral-700">
                     <h3 className="text-lg font-bold">{title}</h3>
                     <button onClick={onClose} className="rounded-full p-1 text-gray-400 hover:bg-gray-100 dark:hover:bg-neutral-800">

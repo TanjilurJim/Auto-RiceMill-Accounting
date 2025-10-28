@@ -18,7 +18,7 @@ interface SaleItem {
     subtotal: number;
 }
 
-export default function SaleInvoice({ sale, company }: { sale: any; company: any }) {
+export default function SaleInvoice({ sale, company, amountWords, }: { sale: any; company: any, amountWords: string; }) {
     const handlePrint = () => {
         window.print(); // Trigger the print dialog
     };
@@ -104,7 +104,7 @@ export default function SaleInvoice({ sale, company }: { sale: any; company: any
                 </div>
                 <div>
                     <p>
-                        <strong>Amount in Words:</strong> {/* Convert the number to words here */}
+                        <strong>Amount in Words:</strong> {/* Convert the number to words here */}{amountWords}
                     </p>
                 </div>
             </div>

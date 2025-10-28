@@ -5,10 +5,11 @@ namespace App\Http\Controllers;
 use App\Models\Shift;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
+use Carbon\Carbon;
 
 class ShiftController extends Controller
 {
-    
+
 
     public function index()
     {
@@ -33,28 +34,51 @@ class ShiftController extends Controller
 
     public function store(Request $request)
     {
-        // Validate the request
         $request->validate([
-            'name' => 'required|string|max:255',
-            'start_time' => 'required|date_format:H:i',
-            'end_time' => 'required|date_format:H:i|after:start_time',
+            'name'        => 'required|string|max:255',
+            'start_time'  => ['required', 'date_format:H:i'],
+            'end_time'    => [
+                'required',
+                'date_format:H:i',
+                function ($attr, $value, $fail) use ($request) {
+                    if (!$request->start_time) return;
+
+                    $start = Carbon::createFromFormat('H:i', $request->start_time);
+                    $end   = Carbon::createFromFormat('H:i', $value);
+
+                    // must be different
+                    if ($end->equalTo($start)) {
+                        return $fail('End time must be different from start time.');
+                    }
+
+                    // Allow both cases:
+                    // 1) same day: end > start
+                    // 2) overnight: end <= start (treated as next day)
+                    // => no fail needed here
+                }
+            ],
             'description' => 'nullable|string',
         ]);
 
-        // Create the new shift
+        // (Optional) compute duration in minutes (handles overnight)
+        $start = Carbon::createFromFormat('H:i', $request->start_time);
+        $end   = Carbon::createFromFormat('H:i', $request->end_time);
+        $normalizedEnd = $end->lessThanOrEqualTo($start) ? $end->copy()->addDay() : $end;
+        $durationMinutes = $start->diffInMinutes($normalizedEnd);
+
         Shift::create([
-            'name' => $request->name,
-            'start_time' => $request->start_time,
-            'end_time' => $request->end_time,
+            'name'        => $request->name,
+            'start_time'  => $request->start_time, // store as TIME (HH:MM)
+            'end_time'    => $request->end_time,   // store as TIME (HH:MM)
             'description' => $request->description,
-            'created_by' => auth()->id(),
+            'created_by'  => auth()->id(),
+            // 'duration_minutes' => $durationMinutes, // if you add this column later
         ]);
 
-        // Redirect with success message
         return redirect()->route('shifts.index')->with('success', 'Shift created successfully.');
     }
 
-   
+
 
     public function edit(Shift $shift)
     {
@@ -98,18 +122,27 @@ class ShiftController extends Controller
         }
 
         $request->validate([
-            'name' => 'required|string|max:255',
-            // 'start_time' => 'required|date_format:H:i',
-            'start_time' => 'required',
-            // 'end_time' => 'required|date_format:H:i|after:start_time',
-            'end_time' => 'required|after:start_time',
+            'name'        => 'required|string|max:255',
+            'start_time'  => ['required', 'date_format:H:i'],
+            'end_time'    => [
+                'required',
+                'date_format:H:i',
+                function ($attr, $value, $fail) use ($request) {
+                    if (!$request->start_time) return;
+                    $start = Carbon::createFromFormat('H:i', $request->start_time);
+                    $end   = Carbon::createFromFormat('H:i', $value);
+                    if ($end->equalTo($start)) {
+                        return $fail('End time must be different from start time.');
+                    }
+                }
+            ],
             'description' => 'nullable|string',
         ]);
 
         $shift->update([
-            'name' => $request->name,
-            'start_time' => $request->start_time,
-            'end_time' => $request->end_time,
+            'name'        => $request->name,
+            'start_time'  => $request->start_time,
+            'end_time'    => $request->end_time,
             'description' => $request->description,
         ]);
 
@@ -136,5 +169,4 @@ class ShiftController extends Controller
 
         return redirect()->route('shifts.index')->with('success', 'Shift deleted successfully.');
     }
-
 }

@@ -121,13 +121,13 @@ export default function SalePartyReport({
                             <a
                                 href={route('reports.sale.export', { tab: 'party', type: 'pdf', ...filters })}
                                 target="_blank"
-                                className="inline-flex items-center gap-1 rounded-md border px-4 py-2 text-sm hover:bg-gray-100"
+                                className="inline-flex items-center gap-1 rounded-md border px-4 py-2 text-sm hover:bg-background"
                             >
                                 <FileText className="h-4 w-4" /> {t('repSaveAsPdfText')}
                             </a>
                             <a
                                 href={route('reports.sale.export', { tab: 'party', type: 'xlsx', ...filters })}
-                                className="inline-flex items-center gap-1 rounded-md border px-4 py-2 text-sm hover:bg-gray-100"
+                                className="inline-flex items-center gap-1 rounded-md border px-4 py-2 text-sm hover:bg-background"
                             >
                                 <FileSpreadsheet className="h-4 w-4" /> {t('repSaveAsExcelText')}
                             </a>

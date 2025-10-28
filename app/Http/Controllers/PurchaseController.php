@@ -117,6 +117,7 @@ class PurchaseController extends Controller
             $stockItemsByGodown = $this->stockGroupedByGodown($visibleIds);
 
             $inventoryLedgers = AccountLedger::where('ledger_type', 'inventory')->get(['id', 'account_ledger_name', 'ledger_type']);
+            $supplierLedgers = AccountLedger::where('ledger_type', 'accounts_payable')->get(['id', 'account_ledger_name', 'ledger_type']);
             $receivedModes = ReceivedMode::with('ledger')->get(['id', 'mode_name', 'ledger_id']);
         } else {
             $userIds = godown_scope_ids();
@@ -131,6 +132,10 @@ class PurchaseController extends Controller
             $inventoryLedgers = AccountLedger::where('ledger_type', 'inventory')
                 ->whereIn('created_by', $userIds)
                 ->get(['id', 'account_ledger_name', 'ledger_type']);
+            $supplierLedgers = AccountLedger::where('ledger_type', 'accounts_payable')
+                ->whereIn('created_by', $userIds)
+                ->get(['id', 'account_ledger_name', 'ledger_type']);
+
             $receivedModes = ReceivedMode::with('ledger')
                 ->whereIn('created_by', $userIds)
                 ->get(['id', 'mode_name', 'ledger_id']);
@@ -143,6 +148,7 @@ class PurchaseController extends Controller
             'stockItemsByGodown' => $stockItemsByGodown,
             'items' => [],
             'inventoryLedgers' => $inventoryLedgers,
+            'supplierLedgers' => $supplierLedgers,
             'accountGroups' => AccountGroup::get(['id', 'name']),
             'receivedModes' => $receivedModes,
         ]);
@@ -158,8 +164,9 @@ class PurchaseController extends Controller
             'voucher_no' => 'nullable|unique:purchases,voucher_no',
             'godown_id' => 'required|exists:godowns,id',
             'salesman_id' => 'required|exists:salesmen,id',
-            'account_ledger_id' => 'required|exists:account_ledgers,id',
+            'account_ledger_id' => 'nullable|exists:account_ledgers,id',
             'inventory_ledger_id' => 'required|exists:account_ledgers,id',
+            // 'supplier_ledger_id' => 'required|exists:account_ledgers,id',
             'purchase_items' => 'required|array|min:1',
             'purchase_items.*.product_id' => 'required|exists:items,id',
             'purchase_items.*.qty' => 'required|numeric|min:0.01',

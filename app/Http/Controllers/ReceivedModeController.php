@@ -9,22 +9,7 @@ use function godown_scope_ids;
 
 class ReceivedModeController extends Controller
 {
-    // Display a listing of the received modes
-    // public function index()
-    // {
-    //     // Ensure you're paginating or fetching data properly
-    //     $receivedModes = ReceivedMode::query()
-    //         ->when(!auth()->user()->hasRole('admin'), function ($query) {
-    //             $query->where('created_by', auth()->id());
-    //         })
-    //         ->with('ledger')
-    //         ->paginate(10); // Use pagination for better performance
-    //     return inertia('received-modes/index', [
-    //         'receivedModes' => $receivedModes,
-    //         'currentPage' => $receivedModes->currentPage(),
-    //         'perPage' => $receivedModes->perPage(),
-    //     ]);
-    // }
+
 
     public function index()
     {
@@ -44,20 +29,7 @@ class ReceivedModeController extends Controller
         ]);
     }
 
-    // Show the form for creating a new received mode
-    // public function create()
-    // {
-    //     $ledgers = AccountLedger::query()
-    //         ->when(!auth()->user()->hasRole('admin'), function ($query) {
-    //             $query->where('created_by', auth()->id());
-    //         })
-    //         ->select('id', 'account_ledger_name', 'reference_number')
-    //         ->get();
-
-    //     return inertia('received-modes/create', [
-    //         'ledgers' => $ledgers,
-    //     ]);
-    // }
+ 
 
     public function create()
     {

@@ -24,54 +24,54 @@ class DueController extends Controller
         $search  = $request->string('q');
         $perPage = 10;
 
-        /* ───── 1. build the query & get the paginator ───── */
+        // One place to keep the same calculation the UI uses
+        $balanceExpr = "
+        ROUND(
+            grand_total
+            + (select coalesce(sum(interest_amount),0) from sale_payments where sale_id = sales.id)
+            - (select coalesce(sum(amount),0)          from sale_payments where sale_id = sales.id),
+            2
+        )
+    ";
+
         $paginator = Sale::with(['accountLedger', 'saleItems.item'])
-            ->whereRaw('(grand_total + (
-                       select coalesce(sum(interest_amount),0)
-                         from sale_payments
-                        where sale_id = sales.id)
-                     -
-                     (select coalesce(sum(amount),0)
-                        from sale_payments
-                       where sale_id = sales.id)) > 0')
-            ->when($search, fn($q) =>
-            $q->where('voucher_no', 'like', "%{$search}%")
-                ->orWhereHas(
-                    'accountLedger',
-                    fn($qq) => $qq->where('account_ledger_name', 'like', "%{$search}%")
-                )
-                ->orWhereHas(
-                    'saleItems.item',
-                    fn($qq) => $qq->where('item_name', 'like', "%{$search}%")
-                ))
+            ->select('sales.*')
+            ->selectRaw("$balanceExpr as balance_2dp")
+            ->whereRaw("$balanceExpr > 0")   // ← was ... ) > 0
+            // group the search ORs so they don't escape the main filter
+            ->when($search, function ($q) use ($search) {
+                $q->where(function ($qq) use ($search) {
+                    $qq->where('voucher_no', 'like', "%{$search}%")
+                        ->orWhereHas('accountLedger', fn($x) =>
+                        $x->where('account_ledger_name', 'like', "%{$search}%"))
+                        ->orWhereHas('saleItems.item', fn($x) =>
+                        $x->where('item_name', 'like', "%{$search}%"));
+                });
+            })
             ->orderByDesc('date')
             ->orderByDesc('id')
             ->paginate($perPage);
 
-        /* ───── 2. keep the search term on every page link ───── */
         if ($search) {
             $paginator->appends('q', $search);
         }
 
-        /* ───── 3. shape each row (this returns *another* paginator) ───── */
         $sales = $paginator->through(fn($s) => [
             'id'          => $s->id,
             'date'        => $s->date->toDateString(),
             'voucher_no'  => $s->voucher_no,
             'customer'    => $s->accountLedger?->account_ledger_name ?? 'N/A',
-
-            'sale_items'  => $s->saleItems->pluck('item.item_name')
-                ->take(3)->implode(', '),
+            'sale_items'  => $s->saleItems->pluck('item.item_name')->take(3)->implode(', '),
             'extra_count' => max(0, $s->saleItems->count() - 3),
-
-            'outstanding' => $s->outstanding,
+            'outstanding' => $s->balance_2dp, // ← keep UI in sync (optional)
         ]);
 
         return Inertia::render('dues/index', [
-            'sales'   => $sales,                // still a paginator object
+            'sales'   => $sales,
             'filters' => ['q' => $search],
         ]);
     }
+
 
 
 
@@ -169,35 +169,32 @@ class DueController extends Controller
     // app/Http/Controllers/DueController.php
     public function settled()
     {
-        /* Select invoices whose outstanding balance is ≤ 0
-       (over-payments stay “cleared”)                           */
+        $balanceExpr = "
+        ROUND(
+            grand_total
+            + (select coalesce(sum(interest_amount),0) from sale_payments where sale_id = sales.id)
+            - (select coalesce(sum(amount),0)          from sale_payments where sale_id = sales.id),
+            2
+        )
+    ";
+
         $sales = Sale::with(['accountLedger', 'payments'])
-            ->whereRaw('
-            (grand_total + (
-                select coalesce(sum(interest_amount),0)
-                from sale_payments
-                where sale_id = sales.id
-            ) - (
-                select coalesce(sum(amount),0)
-                from sale_payments
-                where sale_id = sales.id
-            )) <= 0
-        ')
+            ->select('sales.*')
+            ->selectRaw("$balanceExpr as balance_2dp")
+            ->whereRaw("$balanceExpr <= 0")  // ← was raw calc <= 0
             ->orderByDesc('date')
             ->get();
 
         return Inertia::render('dues/settled', [
             'sales' => $sales->map(fn($s) => [
-                'id'             => $s->id,
-                'date'           => $s->date->toDateString(),
-                'voucher_no'     => $s->voucher_no,
-                'customer'       => $s->accountLedger?->account_ledger_name ?? 'N/A',
-
-                /* handy summary numbers */
-                'total_sale'     => $s->grand_total,
-                'interest_paid'  => $s->payments->sum('interest_amount'),
-                'total_paid'     => $s->payments->sum('amount'),
-                'cleared_on'     => optional($s->payments->max('date'))->toDateString(),
+                'id'            => $s->id,
+                'date'          => $s->date->toDateString(),
+                'voucher_no'    => $s->voucher_no,
+                'customer'      => $s->accountLedger?->account_ledger_name ?? 'N/A',
+                'total_sale'    => $s->grand_total,
+                'interest_paid' => $s->payments->sum('interest_amount'),
+                'total_paid'    => $s->payments->sum('amount'),
+                'cleared_on'    => optional($s->payments->max('date'))->toDateString(),
             ]),
         ]);
     }

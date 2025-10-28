@@ -705,26 +705,27 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::redirect('/reports/sale', '/reports/sale/filter');
 
     /* =========================
-|  Sales Reports
-|=========================*/
+    |  Sales Reports
+    |=========================*/
 
 
     Route::prefix('reports/sale')->name('reports.sale.')->group(function () {
         Route::get('filter/{tab?}', [\App\Http\Controllers\SaleReportController::class, 'filter'])
             ->middleware(perm('sale-report', 'view'))
-            ->where('tab', 'category|item|party|godown|salesman|all|return')
+            ->where('tab', 'category|item|party|party_detail|godown|salesman|all|return') // ← add party_detail
             ->name('filter');
 
         Route::get('{tab}', [\App\Http\Controllers\SaleReportController::class, 'index'])
             ->middleware(perm('sale-report', 'view'))
-            ->where('tab', 'category|item|party|godown|salesman|all|return')
+            ->where('tab', 'category|item|party|party_detail|godown|salesman|all|return') // ← add party_detail
             ->name('index');
 
         Route::get('{tab}/export', [\App\Http\Controllers\SaleReportController::class, 'export'])
             ->middleware(perm('sale-report', 'export'))
-            ->where('tab', 'category|item|party|godown|salesman|all|return')
+            ->where('tab', 'category|item|party|party_detail|godown|salesman|all|return') // ← add party_detail
             ->name('export');
     });
+
 
 
     /* =========================

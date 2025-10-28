@@ -161,7 +161,7 @@
             </nav>
 
             <div class="px-4 py-3 border-t border-gray-200 dark:border-gray-700">
-                <p class="text-xs text-gray-500 dark:text-gray-400">© {{ date('Y') }} Rice Mill ERP</p>
+                <p class="text-xs text-gray-500 dark:text-gray-400">© {{ date('Y') }} Rice Mill ERP Software</p>
             </div>
         </aside>
 
@@ -185,7 +185,7 @@
                                 </h1>
                                 <p
                                     class="text-justify md:text-left text-sm lg:text-base text-dark  text-opacity-70 opacity-0 translate-y-8 transition-all duration-700 banner-animate py-4">
-                                    <span class="lang-en">Run your rice mill smarter with our intelligent Rice mill ERP.
+                                    <span class="lang-en">Run your rice mill smarter with our intelligent Rice mill ERP Software.
                                         Transform how you operate with our easy-to-use
                                         software connects everything procurement, milling, inventory, sales, and finance on
                                         one
@@ -239,7 +239,7 @@
                         <div class="col-span-12 md:col-span-12 lg:col-span-7 xl:col-span-6">
                             <div class="expand-container mt-0 lg:mt-4">
                                 <img src="{{ asset('assets/images/template/dashboard.webp') }}"
-                                    alt="A dashboard for Aponn Company's Rice Mill ERP, showing financial metrics, order statuses, and supplier payables, with a left-side menu and top quick action buttons."
+                                    alt="A dashboard for Aponn Company's Rice Mill ERP Software, showing financial metrics, order statuses, and supplier payables, with a left-side menu and top quick action buttons."
                                     class="rounded-lg shadow-lg" />
                             </div>
                         </div>
@@ -262,7 +262,7 @@
                         </span>
                     </h2>
                     <p class="text-lg text-gray-600 leading-relaxed">
-                        <span class="lang-en">Our Rice Mill ERP brings together all your essential operations –
+                        <span class="lang-en">Our Rice Mill ERP Software brings together all your essential operations –
                             procurement, milling, inventory, sales, and finance – into
                             one powerful central platform.
                             Break down data barriers and get crystal-clear visibility that helps you streamline operations,
@@ -609,7 +609,7 @@
                             <blockquote class="mb-8">
                                 <p
                                     class="text-xl md:text-2xl lg:text-3xl font-medium text-gray-900  leading-relaxed opacity-0 translate-y-8 transition-all duration-700 banner-animate">
-                                    <span class="lang-en">"Rice Mill ERP has completely transformed how we manage
+                                    <span class="lang-en">"Rice Mill ERP Software has completely transformed how we manage
                                         our business. From tracking daily crushing operations to
                                         managing supplier payments, everything is now organized
                                         and efficient. Our productivity has increased by 35%."</span>
@@ -1552,7 +1552,7 @@
                     <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-8 md:gap-0 mb-8">
                         {{-- Rice Mill ERP © 2025, All rights reserved. --}}
                         <div class="text-center md:text-left text-sm text-gray-600">
-                            <span class="lang-en">Rice Mill ERP © 2025, All rights reserved.</span>
+                            <span class="lang-en">Rice Mill ERP Software © 2025, All rights reserved.</span>
                             <span class="lang-bn" style="display: none;">রাইসমিল ইআরপি © ২০২৫, সকল অধিকার সংরক্ষিত।</span>
                         </div>
 

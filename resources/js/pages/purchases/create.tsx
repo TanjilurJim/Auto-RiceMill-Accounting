@@ -59,6 +59,7 @@ export default function PurchaseCreate({
     ledgers,
     items,
     inventoryLedgers, // ✅ add
+    supplierLedgers, // ✅ add
     accountGroups,
     receivedModes,
     stockItemsByGodown, // ✅ add
@@ -68,6 +69,7 @@ export default function PurchaseCreate({
     ledgers: Ledger[];
     items: Item[];
     inventoryLedgers: Ledger[]; // 👈
+    supplierLedgers: Ledger[]; // 👈
     accountGroups: { id: number; name: string }[];
     receivedModes: ReceivedMode[]; // 👈
     stockItemsByGodown: { [k: number]: StockRow[] }; //  👈  NEW
@@ -80,6 +82,7 @@ export default function PurchaseCreate({
         salesman_id: '',
         account_ledger_id: '',
         inventory_ledger_id: '',
+        // supplier_ledger_id: '',
         phone: '',
         address: '',
         shipping_details: '',
@@ -329,31 +332,39 @@ export default function PurchaseCreate({
                                 </div>
 
                                 <div>
-                                    {/* Party Ledger */}
-                                    <label className="invisible mb-1 block text-sm font-medium md:visible">{t('purchase-party-ledger-label')}</label>
-                                    <select
-                                        className="h-fit w-full border p-2"
-                                        value={data.account_ledger_id}
-                                        onChange={(e) => {
-                                            const val = e.target.value;
-                                            setData('account_ledger_id', val);
-                                            fetchBalance(val, 'party'); // ☑ now hits the new route
-                                        }}
-                                    >
-                                        <option value="">{t('purchase-select-supplier')}</option>
-                                        {ledgers.map((l) => (
-                                            <option key={l.id} value={l.id}>
-                                                {l.account_ledger_name}
-                                            </option>
-                                        ))}
-                                    </select>
+                                    <div>
+                                        <label className="invisible mb-1 block text-sm font-medium md:visible">
+                                            {t('purchase-party-ledger-label')}
+                                        </label>
+                                        <select
+                                            className="h-fit w-full border p-2"
+                                            value={data.account_ledger_id}
+                                            onChange={(e) => {
+                                                const val = e.target.value;
+                                                setData('account_ledger_id', val);
+                                                fetchBalance(val, 'party');
+                                            }}
+                                        >
+                                            <option value="">{t('purchase-select-supplier')}</option>
+                                            {(supplierLedgers ?? []).map((l) => (
+                                                <option key={l.id} value={l.id}>
+                                                    {l.account_ledger_name}
+                                                </option>
+                                            ))}
+                                        </select>
+                                        {partyBalance !== null && (
+                                            <div className="text-foreground col-span-2 py-0.5 text-xs">
+                                                {t('purchase-party-balance')}: {Number(partyBalance).toFixed(2)}
+                                            </div>
+                                        )}
+                                    </div>
 
                                     {/* Party balance label – put directly after the select */}
-                                    {partyBalance !== null && (
+                                    {/* {partyBalance !== null && (
                                         <div className="text-foreground col-span-2 py-0.5 text-xs">
                                             {t('purchase-party-balance')}: {Number(partyBalance).toFixed(2)}
                                         </div>
-                                    )}
+                                    )} */}
                                 </div>
 
                                 {/* Inventory Ledger */}

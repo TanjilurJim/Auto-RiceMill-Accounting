@@ -12,6 +12,7 @@ use App\Models\JournalEntry;
 use App\Models\AccountLedger;
 use App\Models\AccountGroup;
 use App\Models\GroupUnder;
+use Illuminate\Validation\ValidationException;
 use App\Models\Nature;
 use App\Models\User;
 use Illuminate\Support\Facades\DB;
@@ -88,8 +89,36 @@ class SalarySlipController extends Controller
             'salary_slip_employees.*.employee_id'       => 'required|exists:employees,id',
             'salary_slip_employees.*.basic_salary'      => 'required|numeric|min:0',
             'salary_slip_employees.*.additional_amount' => 'nullable|numeric|min:0',
-            // 'salary_slip_employees.*.advance_adjusted'  => 'nullable|numeric|min:0',
         ]);
+
+        // ❗ guard: prevent duplicate slips for same employee in same period
+        $empIds = collect($request->input('salary_slip_employees', []))
+            ->pluck('employee_id')
+            ->filter()
+            ->unique()
+            ->values();
+
+        $month = (int) $request->month;
+        $year  = (int) $request->year;
+
+        $ids = godown_scope_ids();
+
+        $dupes = \App\Models\SalarySlipEmployee::query()
+            ->whereIn('employee_id', $empIds)
+            ->whereHas('salarySlip', function ($q) use ($month, $year, $ids) {
+                $q->where('month', $month)
+                    ->where('year',  $year)
+                    ->when($ids !== null && !empty($ids), fn($qq) => $qq->whereIn('created_by', $ids));
+            })
+            ->with('employee:id,name')
+            ->get();
+
+        if ($dupes->isNotEmpty()) {
+            $names = $dupes->pluck('employee.name')->filter()->unique()->values()->all();
+            throw ValidationException::withMessages([
+                'salary_slip_employees' => ['Already created for this period: ' . implode(', ', $names)],
+            ]);
+        }
 
         DB::transaction(function () use ($request) {
             $salarySlip = SalarySlip::create([
@@ -201,6 +230,31 @@ class SalarySlipController extends Controller
             'salary_slip_employees.*.additional_amount' => 'nullable|numeric|min:0',
             // ⬆️ no advance_adjusted in the new model
         ]);
+
+        $empIds = collect($request->input('salary_slip_employees', []))
+            ->pluck('employee_id')->filter()->unique()->values();
+
+        $month = (int) $request->month;
+        $year  = (int) $request->year;
+        $ids   = godown_scope_ids();
+
+        $dupes = \App\Models\SalarySlipEmployee::query()
+            ->whereIn('employee_id', $empIds)
+            ->whereHas('salarySlip', function ($q) use ($month, $year, $salarySlip, $ids) {
+                $q->where('month', $month)
+                    ->where('year',  $year)
+                    ->where('id', '<>', $salarySlip->id)
+                    ->when($ids !== null && !empty($ids), fn($qq) => $qq->whereIn('created_by', $ids));
+            })
+            ->with('employee:id,name')
+            ->get();
+
+        if ($dupes->isNotEmpty()) {
+            $names = $dupes->pluck('employee.name')->filter()->unique()->values()->all();
+            throw ValidationException::withMessages([
+                'salary_slip_employees' => ['Already created for this period in another slip: ' . implode(', ', $names)],
+            ]);
+        }
 
         DB::transaction(function () use ($request, $salarySlip) {
 

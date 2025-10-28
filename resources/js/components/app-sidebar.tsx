@@ -267,22 +267,22 @@ export function AppSidebar() {
                 // Later you can add more inventory-related items here (e.g., Products, Stock Transfers, etc.)
             ],
         },
-        {
-            title: t('production'),
-            icon: Factory,
-            children: [
-                {
-                    title: t('workingOrder'),
-                    href: '/working-orders',
-                    icon: Workflow,
-                },
-                {
-                    title: t('finishedProducts'),
-                    href: '/finished-products',
-                    icon: Workflow,
-                },
-            ],
-        },
+        // {
+        //     title: t('production'),
+        //     icon: Factory,
+        //     children: [
+        //         {
+        //             title: t('workingOrder'),
+        //             href: '/working-orders',
+        //             icon: Workflow,
+        //         },
+        //         {
+        //             title: t('finishedProducts'),
+        //             href: '/finished-products',
+        //             icon: Workflow,
+        //         },
+        //     ],
+        // },
 
         {
             title: t('payroll'),

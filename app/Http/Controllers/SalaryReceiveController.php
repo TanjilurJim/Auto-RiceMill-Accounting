@@ -11,6 +11,7 @@ use App\Models\GroupUnder;
 use App\Models\Nature;
 use App\Models\AccountGroup;
 use App\Models\User;
+use App\Services\LedgerBalanceService;
 
 use App\Models\SalarySlip;
 use App\Models\Journal;
@@ -141,7 +142,7 @@ class SalaryReceiveController extends Controller
                 'amount'            => $request->amount,
                 'note'              => 'Salary settlement',
             ]);
-
+            LedgerBalanceService::recalc($employeeLiabLedger); // DR side
             // CR Cash/Bank
             \App\Models\JournalEntry::create([
                 'journal_id'        => $journal->id,
@@ -150,7 +151,7 @@ class SalaryReceiveController extends Controller
                 'amount'            => $request->amount,
                 'note'              => 'Paid via ' . $modeLedger->account_ledger_name,
             ]);
-
+            LedgerBalanceService::recalc($modeLedger);
             // Persist receive (derive employee_id from slip line)
             $receive = \App\Models\SalaryReceive::create([
                 'vch_no'                  => $request->vch_no,
@@ -175,6 +176,7 @@ class SalaryReceiveController extends Controller
             };
             $line->save();
         });
+
 
         return redirect()->route('salary-receives.index')
             ->with('success', 'Salary receive saved & journal posted!');
@@ -270,6 +272,7 @@ class SalaryReceiveController extends Controller
             // Ledgers
             $employeeLiabLedger = \App\Models\AccountLedger::where('employee_id', $line->employee_id)
                 ->where('ledger_type', 'employee')->firstOrFail();
+
             $modeLedger = \App\Models\ReceivedMode::with('ledger')
                 ->findOrFail($request->received_by)->ledger;
 
@@ -328,11 +331,16 @@ class SalaryReceiveController extends Controller
                 default => 'Partially Paid',
             };
             $line->save();
+
+            // 🔁 Sync cached balances
+            \App\Services\LedgerBalanceService::recalc($employeeLiabLedger);
+            \App\Services\LedgerBalanceService::recalc($modeLedger);
         });
 
         return redirect()->route('salary-receives.index')
             ->with('success', 'Salary receive updated!');
     }
+
 
 
 

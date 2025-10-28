@@ -115,6 +115,7 @@ class SaleReportController extends Controller
             'category' => $this->getCategoryData($filters),
             'item' => $this->getItemData($filters),
             'party' => $this->getPartyData($filters),
+            'party_detail' => $this->getPartyVoucherProfitData($filters),
             'godown' => $this->getGodownData($filters),
             'salesman' => $this->getSalesmanData($filters),
             'all' => $this->getAllProfitLossData($filters),
@@ -126,6 +127,7 @@ class SaleReportController extends Controller
             'category' => 'reports/SaleCategoryReport',
             'item' => 'reports/SaleItemReport',
             'party' => 'reports/SalePartyReport',
+            'party_detail' => 'reports/SalePartyVoucherReport',
             'godown' => 'reports/SaleGodownReport',
             'salesman' => 'reports/SaleSalesmanReport',
             'all' => 'reports/SaleAllProfitLossReport',
@@ -264,6 +266,46 @@ class SaleReportController extends Controller
             ->orderBy('sales.voucher_no')
             ->get();
     }
+
+    private function getPartyVoucherProfitData(array $f): \Illuminate\Support\Collection
+{
+    $ids = $this->allowedUserIds();
+
+    // Voucher-level totals grouped by party + voucher
+    return DB::table('sales as s')
+        ->join('sale_items as si', 'si.sale_id', '=', 's.id')
+        ->join('account_ledgers as a', 'a.id', '=', 's.account_ledger_id')
+        ->join('items as i', 'i.id', '=', 'si.product_id')
+        ->leftJoin('stocks as st', function ($j) {
+            $j->on('st.item_id', '=', 'si.product_id')
+              ->on('st.godown_id', '=', 's.godown_id')
+              ->on('st.lot_id', '=', 'si.lot_id')
+              ->on('st.created_by', '=', 's.created_by');
+        })
+        ->selectRaw('
+            s.date,
+            s.voucher_no,
+            a.account_ledger_name as party_name,
+            SUM(si.qty) as total_qty,
+            SUM(si.main_price * si.qty) as total_sales,
+            SUM(COALESCE(NULLIF(st.avg_cost,0), NULLIF(i.purchase_price,0), 0) * si.qty) as total_cost,
+            SUM((si.main_price - COALESCE(NULLIF(st.avg_cost,0), NULLIF(i.purchase_price,0), 0)) * si.qty) as total_profit
+        ')
+        ->when(!empty($f['year']) || (!empty($f['from_date']) && !empty($f['to_date'])), function ($q) use ($f) {
+            if (!empty($f['year'])) {
+                $q->whereYear('s.date', $f['year']);
+            } else {
+                $q->whereBetween('s.date', [$f['from_date'], $f['to_date']]);
+            }
+        })
+        ->when($f['party_id'] ?? null, fn($q, $id) => $q->where('a.id', $id))
+        ->when($ids, fn($q, $ids) => $q->whereIn('s.created_by', $ids))
+        ->groupBy('s.date', 's.voucher_no', 'a.account_ledger_name')
+        ->orderBy('a.account_ledger_name')
+        ->orderBy('s.date')
+        ->orderBy('s.voucher_no')
+        ->get();
+}
 
 
 

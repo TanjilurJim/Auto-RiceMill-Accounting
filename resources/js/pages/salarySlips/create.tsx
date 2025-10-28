@@ -52,23 +52,32 @@ export default function SalarySlipCreate({ employees }: { employees: Employee[] 
     // when toggling "advance", default the advance month/year to the
     // next month of the currently selected period (or next month from today)
     const ensureAdvanceMonth = () => {
-        let base = new Date();
-        if (data.year && data.month) base = new Date(data.year, data.month - 1, 1);
-        const m = base.getMonth() + 1; // 1..12
-        const y = base.getFullYear();
+        // If user already chose a base period, use that as the advance target.
+        if (data.month && data.year) {
+            setData('advance_month', data.month);
+            setData('advance_year', data.year);
+            return;
+        }
+
+        // Otherwise default to NEXT month from today.
+        const today = new Date();
+        const m = today.getMonth() + 1; // 1..12
+        const y = today.getFullYear();
         const nextM = m === 12 ? 1 : m + 1;
         const nextY = m === 12 ? y + 1 : y;
-        if (!data.advance_month || !data.advance_year) {
-            setData('advance_month', nextM);
-            setData('advance_year', nextY);
-        }
+
+        setData('advance_month', nextM);
+        setData('advance_year', nextY);
     };
 
-    const monthYearLabel = useMemo(() => {
-        if (!data.month || !data.year) return '';
-        const dt = new Date(data.year, data.month - 1);
-        return `Salary for: ${dt.toLocaleString('default', { month: 'long', year: 'numeric' })}`;
-    }, [data.month, data.year]);
+    const effective = useMemo(() => {
+        const month = data.is_advance ? data.advance_month : data.month;
+        const year = data.is_advance ? data.advance_year : data.year;
+
+        const text = month && year ? new Date(year, (month as number) - 1).toLocaleString('default', { month: 'long', year: 'numeric' }) : '';
+
+        return { month, year, text };
+    }, [data.is_advance, data.month, data.year, data.advance_month, data.advance_year]);
 
     const findEmp = (id: number | string | null | undefined) => employees.find((e) => e.id === Number(id || 0));
 
@@ -83,13 +92,19 @@ export default function SalarySlipCreate({ employees }: { employees: Employee[] 
         const rows = [...data.salary_slip_employees];
 
         if (field === 'employee_id') {
-            rows[index].employee_id = value;
-            const emp = findEmp(value);
-            // prefill but editable
+            const chosenId = Number(value || 0);
+            const exists = rows.some((r, i) => i !== index && Number(r.employee_id || 0) === chosenId);
+            if (exists) {
+                Swal.fire('Duplicate employee', 'This employee is already added to this slip.', 'warning');
+                return;
+            }
+
+            rows[index].employee_id = chosenId;
+            const emp = findEmp(chosenId);
             rows[index].basic_salary = emp ? String(emp.salary ?? 0) : '';
             rows[index] = recomputeRow(rows[index]);
         } else {
-            (rows[index] as any)[field] = value;
+            (rows[index] as any)[field] = value; // 👈 you were missing this branch
             rows[index] = recomputeRow(rows[index]);
         }
 
@@ -117,33 +132,56 @@ export default function SalarySlipCreate({ employees }: { employees: Employee[] 
         return { gross: gross.toFixed(2) };
     }, [data.salary_slip_employees]);
 
+    const validate = () => {
+        const ids = data.salary_slip_employees.map((r) => Number(r.employee_id || 0)).filter(Boolean);
+        const dup = ids.find((id, i) => ids.indexOf(id) !== i);
+        if (!ids.length) return 'Please add at least one employee.';
+        if (dup) return 'The same employee is selected more than once.';
+        if (!data.date) return 'Please choose a date.';
+
+        if (data.is_advance) {
+            if (!data.advance_month || !data.advance_year) return 'Select the advance period.';
+        } else {
+            if (!data.month || !data.year) return 'Please choose the salary period.';
+        }
+        return null;
+    };
+
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
         setFormError(null);
 
+        // ✅ Step 1: run validation before proceeding
+        const v = validate();
+        if (v) {
+            setFormError(v);
+            return; // stop submission if invalid
+        }
+
+        // ✅ Step 2: compute effective month/year
         const effectiveMonth = data.is_advance ? data.advance_month : data.month;
         const effectiveYear = data.is_advance ? data.advance_year : data.year;
 
-        // sanitize
-        const sanitizedRows = data.salary_slip_employees.map((r) => ({
-            employee_id: Number(r.employee_id || 0),
-            basic_salary: Number(r.basic_salary || 0),
-            additional_amount: Number(r.additional_amount || 0),
-            total_amount: Number(r.total_amount || 0),
-        }));
+        // ✅ Step 3: sanitize rows
+        const sanitizedRows = data.salary_slip_employees
+            .filter((r) => r.employee_id) // drop blank rows
+            .map((r) => ({
+                employee_id: Number(r.employee_id),
+                basic_salary: Number(r.basic_salary || 0),
+                additional_amount: Number(r.additional_amount || 0),
+                total_amount: Number(r.total_amount || 0),
+            }));
 
+        // ✅ Step 4: post the data
         post('/salary-slips', {
             data: {
                 voucher_number: data.voucher_number,
                 date: data.date,
-                month: data.month,
-                year: data.year,
-
-                // sent for record; backend can store or ignore (safe)
+                month: effective.month, // <- will be November once advance is checked
+                year: effective.year,
                 is_advance: !!data.is_advance,
                 advance_month: data.advance_month,
                 advance_year: data.advance_year,
-
                 salary_slip_employees: sanitizedRows,
             },
             onError: (err) => {
@@ -160,15 +198,21 @@ export default function SalarySlipCreate({ employees }: { employees: Employee[] 
         <AppLayout>
             <Head title="Create Salary Slip" />
             <div className="h-full w-screen p-4 md:p-12 lg:w-full">
-                <div className="h-full rounded-lg bg-background">
+                <div className="bg-background h-full rounded-lg">
                     <PageHeader title="Create New Salary Slip" addLinkHref="/salary-slips" addLinkText="Back" />
 
-                    <form onSubmit={handleSubmit} className="space-y-6 rounded-lg border bg-background p-6">
+                    <form onSubmit={handleSubmit} className="bg-background space-y-6 rounded-lg border p-6">
                         {/* Header */}
                         <div className="space-y-4">
                             <h2 className="pb-1 text-lg font-semibold">Salary Slip Information</h2>
 
-                            {data.month && data.year && <div className="text-sm font-medium text-gray-700 italic">{monthYearLabel}</div>}
+                            {effective.text && (
+                                <div className="text-sm font-medium text-gray-700 italic">
+                                    {data.is_advance ? 'Advance for: ' : 'Salary for: '}
+                                    {effective.text}
+                                    {data.date && <span className="ml-2 text-gray-500">(Payment date: {data.date})</span>}
+                                </div>
+                            )}
 
                             <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
                                 {/* Date */}
@@ -180,13 +224,15 @@ export default function SalarySlipCreate({ employees }: { employees: Employee[] 
                                     onChange={(e) => {
                                         const d = new Date(e.target.value);
                                         setData('date', e.target.value);
-                                        // if user hasn't chosen month/year yet, infer them
-                                        if (!data.month || !data.year) {
+
+                                        // infer base period only when NOT in advance mode
+                                        if (!data.is_advance && (!data.month || !data.year)) {
                                             setData('month', d.getMonth() + 1);
                                             setData('year', d.getFullYear());
                                         }
                                     }}
                                     required
+                                    disabled={data.is_advance}
                                 />
 
                                 {/* Period Month */}
@@ -195,6 +241,7 @@ export default function SalarySlipCreate({ employees }: { employees: Employee[] 
                                     value={data.month || ''}
                                     onChange={(e) => setData('month', parseInt(e.target.value))}
                                     required
+                                    disabled={data.is_advance}
                                 >
                                     <option value="">Select Month</option>
                                     {Array.from({ length: 12 }, (_, i) => (
@@ -210,6 +257,7 @@ export default function SalarySlipCreate({ employees }: { employees: Employee[] 
                                     value={data.year || ''}
                                     onChange={(e) => setData('year', parseInt(e.target.value))}
                                     required
+                                    disabled={data.is_advance}
                                 >
                                     <option value="">Select Year</option>
                                     {Array.from({ length: 6 }, (_, i) => {
@@ -227,21 +275,21 @@ export default function SalarySlipCreate({ employees }: { employees: Employee[] 
                             </div>
 
                             {/* Advance slip toggle */}
-                            <div className="rounded-md border bg-background p-3">
+                            <div className="bg-background rounded-md border p-3">
                                 <label className="flex items-center gap-2">
                                     <input
                                         type="checkbox"
                                         checked={!!data.is_advance}
                                         onChange={(e) => {
                                             setData('is_advance', e.target.checked);
-                                            if (e.target.checked) ensureAdvanceMonth();
+                                            if (e.target.checked) ensureAdvanceMonth(); // always copy/default
                                         }}
                                     />
                                     <span className="font-medium">This is an advance slip (paying before the period)</span>
                                 </label>
 
                                 {data.is_advance && (
-                                    <div className="mt-3 grid grid-cols-1 gap-3 md:grid-cols-2">
+                                    <div className="mt-3 grid grid-cols-1 gap-3 md:grid-cols-2 hidden">
                                         <select
                                             className="border p-2"
                                             value={data.advance_month || ''}
@@ -276,7 +324,7 @@ export default function SalarySlipCreate({ employees }: { employees: Employee[] 
 
                         {/* Employees */}
                         <div>
-                            <h2 className="mb-3 border-b bg-background pb-1 text-lg font-semibold">Employees</h2>
+                            <h2 className="bg-background mb-3 border-b pb-1 text-lg font-semibold">Employees</h2>
 
                             {formError && <div className="mb-3 rounded-md border border-red-200 bg-red-50 p-3 text-sm text-red-700">{formError}</div>}
 
@@ -301,7 +349,7 @@ export default function SalarySlipCreate({ employees }: { employees: Employee[] 
                                                 : null;
 
                                             return (
-                                                <tr key={index} className="align-top hover:bg-background">
+                                                <tr key={index} className="hover:bg-background align-top">
                                                     {/* Employee */}
                                                     <td className="min-w-[280px] border px-2 py-2">
                                                         <Select

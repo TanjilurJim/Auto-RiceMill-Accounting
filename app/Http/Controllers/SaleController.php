@@ -21,7 +21,9 @@ use App\Models\Stock;
 use App\Models\Journal;
 use App\Models\JournalEntry;
 use function company_info;
-use function numberToWords;
+// use function numberToWords;
+use function NumberToWords;;
+
 use function godown_scope_ids;
 use Illuminate\Support\Facades\DB;
 use App\Models\ReceivedMode;
@@ -521,7 +523,8 @@ class SaleController extends Controller
         return Inertia::render('sales/print/invoice', [
             'sale'        => $sale,
             'company'     => company_info(),                 // ← same helper
-            'amountWords' => numberToWords((int) $sale->grand_total),
+            'amountWords' => number_to_words_bd($sale->grand_total),
+
         ]);
     }
 
@@ -537,7 +540,8 @@ class SaleController extends Controller
         return Inertia::render('sales/print/truck-chalan', [
             'sale'        => $sale,
             'company'     => company_info(),
-            'amountWords' => numberToWords((int) $sale->grand_total),
+            'amountWords' => number_to_words_bd($sale->grand_total),
+
         ]);
     }
 
@@ -553,7 +557,8 @@ class SaleController extends Controller
         return Inertia::render('sales/print/load-slip', [
             'sale'        => $sale,
             'company'     => company_info(),
-            'amountWords' => numberToWords((int) $sale->grand_total),
+            'amountWords' => number_to_words_bd($sale->grand_total),
+
         ]);
     }
 
@@ -569,7 +574,8 @@ class SaleController extends Controller
         return Inertia::render('sales/print/gate-pass', [
             'sale'        => $sale,
             'company'     => company_info(),
-            'amountWords' => numberToWords((int) $sale->grand_total),
+            'amountWords' => number_to_words_bd($sale->grand_total),
+
         ]);
     }
 

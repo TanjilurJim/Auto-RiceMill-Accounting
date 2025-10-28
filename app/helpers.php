@@ -154,71 +154,71 @@ if (!function_exists('ownedByMe')) {
 
 
 
-if (! function_exists('numberToWords')) {
-    function numberToWords(float|int|string $amount): string
-    {
-        // ───── split into Taka / Paisa ─────
-        $amount        = round($amount, 2);              // 1.005 → 1.01
-        $taka          = (int) $amount;
-        $paisa         = (int) round(($amount - $taka) * 100);   // two digits
-        $takaWords     = $taka  ? _bdNumberToWords($taka)  : 'Zero';
-        $paisaWords    = $paisa ? _bdNumberToWords($paisa) : '';
+// if (! function_exists('numberToWords')) {
+//     function numberToWords(float|int|string $amount): string
+//     {
+//         // ───── split into Taka / Paisa ─────
+//         $amount        = round($amount, 2);              // 1.005 → 1.01
+//         $taka          = (int) $amount;
+//         $paisa         = (int) round(($amount - $taka) * 100);   // two digits
+//         $takaWords     = $taka  ? _bdNumberToWords($taka)  : 'Zero';
+//         $paisaWords    = $paisa ? _bdNumberToWords($paisa) : '';
 
-        return $paisa
-            ? "$takaWords Taka & $paisaWords paisa only"
-            : "$takaWords Taka only";
-    }
+//         return $paisa
+//             ? "$takaWords Taka & $paisaWords paisa only"
+//             : "$takaWords Taka only";
+//     }
 
-    /* ---------- helper (recursive) ---------- */
-    function _bdNumberToWords(int $n): string
-    {
-        $ones = [
-            0=>'',1=>'one',2=>'two',3=>'three',4=>'four',5=>'five',
-            6=>'six',7=>'seven',8=>'eight',9=>'nine',10=>'ten',
-            11=>'eleven',12=>'twelve',13=>'thirteen',14=>'fourteen',
-            15=>'fifteen',16=>'sixteen',17=>'seventeen',18=>'eighteen',
-            19=>'nineteen'
-        ];
-        $tens = [
-            2=>'twenty',3=>'thirty',4=>'forty',5=>'fifty',
-            6=>'sixty',7=>'seventy',8=>'eighty',9=>'ninety'
-        ];
+//     /* ---------- helper (recursive) ---------- */
+//     function _bdNumberToWords(int $n): string
+//     {
+//         $ones = [
+//             0=>'',1=>'one',2=>'two',3=>'three',4=>'four',5=>'five',
+//             6=>'six',7=>'seven',8=>'eight',9=>'nine',10=>'ten',
+//             11=>'eleven',12=>'twelve',13=>'thirteen',14=>'fourteen',
+//             15=>'fifteen',16=>'sixteen',17=>'seventeen',18=>'eighteen',
+//             19=>'nineteen'
+//         ];
+//         $tens = [
+//             2=>'twenty',3=>'thirty',4=>'forty',5=>'fifty',
+//             6=>'sixty',7=>'seventy',8=>'eighty',9=>'ninety'
+//         ];
 
-        // large-number map (Indian system)
-        $scales = [
-            10000000 => 'crore',
-            100000   => 'lakh',
-            1000     => 'thousand',
-            100      => 'hundred',
-        ];
+//         // large-number map (Indian system)
+//         $scales = [
+//             10000000 => 'crore',
+//             100000   => 'lakh',
+//             1000     => 'thousand',
+//             100      => 'hundred',
+//         ];
 
-        if ($n < 20) {
-            return $ones[$n];
-        }
-        if ($n < 100) {
-            $t   = intdiv($n, 10);
-            $r   = $n % 10;
-            return trim($tens[$t] . ($r ? ' ' . $ones[$r] : ''));
-        }
+//         if ($n < 20) {
+//             return $ones[$n];
+//         }
+//         if ($n < 100) {
+//             $t   = intdiv($n, 10);
+//             $r   = $n % 10;
+//             return trim($tens[$t] . ($r ? ' ' . $ones[$r] : ''));
+//         }
 
-        foreach ($scales as $divisor => $label) {
-            if ($n >= $divisor) {
-                $lead = intdiv($n, $divisor);
-                $rem  = $n % $divisor;
-                $str  = _bdNumberToWords($lead) . " $label";
-                if ($rem) {
-                    // add separator rules
-                    $str .= $divisor == 100 ? ' ' : ' ';
-                    $str .= _bdNumberToWords($rem);
-                }
-                return trim($str);
-            }
-        }
+//         foreach ($scales as $divisor => $label) {
+//             if ($n >= $divisor) {
+//                 $lead = intdiv($n, $divisor);
+//                 $rem  = $n % $divisor;
+//                 $str  = _bdNumberToWords($lead) . " $label";
+//                 if ($rem) {
+//                     // add separator rules
+//                     $str .= $divisor == 100 ? ' ' : ' ';
+//                     $str .= _bdNumberToWords($rem);
+//                 }
+//                 return trim($str);
+//             }
+//         }
 
-        /* for trillions and beyond (international grouping) */
-        return (string) $n;   // fallback, should not happen in normal use
-    }
-}
+//         /* for trillions and beyond (international grouping) */
+//         return (string) $n;   // fallback, should not happen in normal use
+//     }
+// }
 
 use App\Models\FinancialYear;
 use Carbon\Carbon;

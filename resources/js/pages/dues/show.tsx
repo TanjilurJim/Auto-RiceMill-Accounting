@@ -3,6 +3,7 @@ import PageHeader from '@/components/PageHeader';
 import AppLayout from '@/layouts/app-layout';
 import { PrinterIcon } from '@heroicons/react/24/outline';
 import { Head, useForm, usePage } from '@inertiajs/react';
+
 import React from 'react';
 /* ------------------------------------------------------------------ */
 /* Type helpers sent from the controller                             */
@@ -67,9 +68,9 @@ const handlePrint = () => {
 
 /** Displays a single row in the invoice item list. */
 const ItemRow = ({ i }: { i: Props['items'][number] }) => (
-    <li className="flex items-center justify-between border-b border-gray-100 py-3 text-sm transition-colors duration-200 last:border-none hover:bg-gray-50">
-        <span className="font-medium text-gray-800">{i.name}</span>
-        <span className="rounded-full bg-gray-100 px-2 py-1 text-xs font-semibold text-gray-600">
+    <li className="flex items-center justify-between border-b border-gray-100 py-3 text-sm transition-colors duration-200 last:border-none hover:bg-background">
+        <span className="font-medium text-foreground">{i.name}</span>
+        <span className="rounded-full bg-gray-100 px-2 py-1 text-xs font-semibold text-black">
             {i.qty} {i.unit}
         </span>
     </li>
@@ -79,7 +80,7 @@ const ItemRow = ({ i }: { i: Props['items'][number] }) => (
 function Stat({
     label,
     value,
-    color = 'text-gray-800',
+    color = 'text-foreground',
     bgColor = 'bg-gray-50',
     icon,
 }: {
@@ -144,20 +145,20 @@ function PaymentTimeline({ payments }: { payments: Payment[] }) {
                 <table className="min-w-full divide-y divide-gray-200">
                     <thead className="bg-gradient-to-r from-gray-50 to-gray-100">
                         <tr>
-                            <th className="px-6 py-4 text-left text-xs font-semibold tracking-wider text-gray-600 uppercase">Date</th>
-                            <th className="px-6 py-4 text-left text-xs font-semibold tracking-wider text-gray-600 uppercase">Mode</th>
-                            <th className="px-6 py-4 text-right text-xs font-semibold tracking-wider text-gray-600 uppercase">Principal Paid</th>
-                            <th className="px-6 py-4 text-right text-xs font-semibold tracking-wider text-gray-600 uppercase">Daily Interest</th>
-                            <th className="px-6 py-4 text-left text-xs font-semibold tracking-wider text-gray-600 uppercase">Note</th>
+                            <th className="px-6 py-4 text-left text-xs font-semibold tracking-wider text-foreground uppercase">Date</th>
+                            <th className="px-6 py-4 text-left text-xs font-semibold tracking-wider text-foreground uppercase">Mode</th>
+                            <th className="px-6 py-4 text-right text-xs font-semibold tracking-wider text-foreground uppercase">Principal Paid</th>
+                            <th className="px-6 py-4 text-right text-xs font-semibold tracking-wider text-foreground uppercase">Daily Interest</th>
+                            <th className="px-6 py-4 text-left text-xs font-semibold tracking-wider text-foreground uppercase">Note</th>
                         </tr>
                     </thead>
                     <tbody className="divide-y divide-gray-100 bg-background">
                         {payments.map((p, index) => (
                             <tr
                                 key={p.id}
-                                className={`transition-colors duration-150 hover:bg-gray-50 ${index % 2 === 0 ? 'bg-background' : 'bg-gray-50/50'}`}
+                                className={`transition-colors duration-150 hover:bg-background ${index % 2 === 0 ? 'bg-background' : 'bg-gray-50/50'}`}
                             >
-                                <td className="px-6 py-4 text-sm font-medium whitespace-nowrap text-gray-900">{formatDate(p.date)}</td>
+                                <td className="px-6 py-4 text-sm font-medium whitespace-nowrap text-foreground">{formatDate(p.date)}</td>
                                 <td className="px-6 py-4 whitespace-nowrap">
                                     <span
                                         className={`inline-flex rounded-full px-2 py-1 text-xs font-medium ${
@@ -167,7 +168,7 @@ function PaymentTimeline({ payments }: { payments: Payment[] }) {
                                         {p.received_mode ?? 'Not specified'}
                                     </span>
                                 </td>
-                                <td className="px-6 py-4 text-right font-mono text-sm font-semibold whitespace-nowrap text-gray-900">
+                                <td className="px-6 py-4 text-right font-mono text-sm font-semibold whitespace-nowrap text-foreground">
                                     {fmtCurrency(p.amount)}
                                 </td>
                                 <td className="px-6 py-4 text-right font-mono text-sm whitespace-nowrap">
@@ -177,7 +178,7 @@ function PaymentTimeline({ payments }: { payments: Payment[] }) {
                                         <span className="text-gray-400">—</span>
                                     )}
                                 </td>
-                                <td className="max-w-xs truncate px-6 py-4 text-sm text-gray-600">{p.note ?? '—'}</td>
+                                <td className="max-w-xs truncate px-6 py-4 text-sm text-foreground">{p.note ?? '—'}</td>
                             </tr>
                         ))}
                     </tbody>
@@ -236,7 +237,7 @@ export default function DueShow({ sale, items, payments, receivedModes }: Props)
 
 `}</style>
 
-            <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 p-4 md:p-6">
+            <div className="min-h-screen bg-background p-4 md:p-6">
                 <div className="mx-auto max-w-5xl space-y-8">
                     {/* Header with Print Button */}
                     <div className="no-print flex flex-col items-start justify-between gap-4 sm:flex-row sm:items-center">
@@ -246,7 +247,7 @@ export default function DueShow({ sale, items, payments, receivedModes }: Props)
                         <button
                             type="button"
                             onClick={handlePrint} // The same print handler function
-                            className="inline-flex items-center justify-center gap-2 rounded-md border border-gray-300 bg-background px-4 py-2 text-sm font-medium text-gray-700 shadow-sm transition-colors hover:bg-gray-50 focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 focus:outline-none"
+                            className="inline-flex items-center justify-center gap-2 rounded-md border border-gray-300 bg-background px-4 py-2 text-sm font-medium text-foreground shadow-sm transition-colors hover:bg-background focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 focus:outline-none"
                         >
                             <PrinterIcon className="h-5 w-5" aria-hidden="true" />
                             <span>Print Receipt</span>
@@ -276,7 +277,7 @@ export default function DueShow({ sale, items, payments, receivedModes }: Props)
                     {/* Invoice Items */}
                     <section className="overflow-hidden rounded-2xl border border-gray-200 bg-background shadow-sm">
                         <div className="border-b border-gray-200 bg-background px-6 py-4">
-                            <h3 className="text-lg font-semibold text-gray-800">Invoice Items</h3>
+                            <h3 className="text-lg font-semibold text-foreground">Invoice Items</h3>
                         </div>
                         <div className="p-6">
                             <ul className="space-y-1">
@@ -289,7 +290,7 @@ export default function DueShow({ sale, items, payments, receivedModes }: Props)
 
                     {/* Financial Summary */}
                     <section>
-                        <h2 className="mb-4 text-lg font-semibold text-gray-800">Financial Overview</h2>
+                        <h2 className="mb-4 text-lg font-semibold text-foreground">Financial Overview</h2>
                         <div className="break-inside-avoid">
                             <FinancialSnapshot s={sale} />
                         </div>
@@ -298,7 +299,7 @@ export default function DueShow({ sale, items, payments, receivedModes }: Props)
                     {/* New Payment Form */}
                     <section className="no-print overflow-hidden rounded-2xl border border-gray-200 bg-background shadow-sm">
                         <div className="border-b border-green-200 bg-gradient-to-r from-green-50 to-emerald-50 px-6 py-4">
-                            <h2 className="flex items-center gap-2 text-lg font-semibold text-gray-800">
+                            <h2 className="flex items-center gap-2 text-lg font-semibold text-black">
                                 <span>💳</span>
                                 Add New Payment
                             </h2>
@@ -307,7 +308,7 @@ export default function DueShow({ sale, items, payments, receivedModes }: Props)
                             <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-4">
                                 {/* Date */}
                                 <div className="space-y-2">
-                                    <label htmlFor="date" className="block text-sm font-semibold text-gray-700">
+                                    <label htmlFor="date" className="block text-sm font-semibold text-foreground">
                                         Payment Date
                                     </label>
                                     <input
@@ -321,7 +322,7 @@ export default function DueShow({ sale, items, payments, receivedModes }: Props)
 
                                 {/* Amount */}
                                 <div className="space-y-2">
-                                    <label htmlFor="amount" className="block text-sm font-semibold text-gray-700">
+                                    <label htmlFor="amount" className="block text-sm font-semibold text-foreground">
                                         Amount (৳)
                                     </label>
                                     <input
@@ -338,7 +339,7 @@ export default function DueShow({ sale, items, payments, receivedModes }: Props)
 
                                 {/* Payment Mode */}
                                 <div className="space-y-2">
-                                    <label htmlFor="mode" className="block text-sm font-semibold text-gray-700">
+                                    <label htmlFor="mode" className="block text-sm font-semibold text-foreground">
                                         Payment Method
                                     </label>
                                     <select
@@ -359,7 +360,7 @@ export default function DueShow({ sale, items, payments, receivedModes }: Props)
 
                                 {/* Note */}
                                 <div className="space-y-2">
-                                    <label htmlFor="note" className="block text-sm font-semibold text-gray-700">
+                                    <label htmlFor="note" className="block text-sm font-semibold text-foreground">
                                         Note (Optional)
                                     </label>
                                     <input
@@ -415,7 +416,7 @@ export default function DueShow({ sale, items, payments, receivedModes }: Props)
 
                     {/* Payment History */}
                     <section className="space-y-4">
-                        <h2 className="flex items-center gap-2 text-lg font-semibold text-gray-800">
+                        <h2 className="flex items-center gap-2 text-lg font-semibold text-foreground">
                             <span>📋</span>
                             Payment History
                         </h2>

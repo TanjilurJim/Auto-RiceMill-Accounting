@@ -24,6 +24,7 @@ export default function SaleReportFilter({ tab, categories, items, parties, godo
     const tabs = [
         { key: 'category', label: t('saleCategoryWiseTab') },
         { key: 'item', label: t('saleItemWiseTab') },
+        { key: 'party_detail', label: t('Party (Voucher Wise)') },
         { key: 'party', label: t('salePartyWiseTab') },
         { key: 'godown', label: t('saleGodownWiseTab') },
         { key: 'salesman', label: t('saleSalesmanWiseTab') },
@@ -176,6 +177,24 @@ export default function SaleReportFilter({ tab, categories, items, parties, godo
                                                 {items.map((i) => (
                                                     <option key={i.id} value={i.id}>
                                                         {i.item_name}
+                                                    </option>
+                                                ))}
+                                            </select>
+                                        </div>
+                                    )}
+
+                                    {is('party_detail') && (
+                                        <div>
+                                            <label className="block text-sm font-medium">{t('salePartyLabel')}</label>
+                                            <select
+                                                className="mt-1 w-full rounded border px-3 py-2"
+                                                value={data.party_id}
+                                                onChange={(e) => setData('party_id', e.target.value)}
+                                            >
+                                                <option value="">— All Parties —</option>
+                                                {parties.map((p) => (
+                                                    <option key={p.id} value={p.id}>
+                                                        {p.name}
                                                     </option>
                                                 ))}
                                             </select>

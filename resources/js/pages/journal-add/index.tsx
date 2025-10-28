@@ -65,7 +65,7 @@ export default function Index({ journals }: any) {
             <Head title={t('journalEntriesTitle')} />
             <div className="h-full w-screen lg:w-full">
                 <div className="h-full rounded-lg bg-background p-4 md:p-12">
-                    <PageHeader title={t('journalEntriesTitle')} addLinkHref="/journal-add/create" addLinkText={t('addJournalText')} />
+                    <PageHeader title={t('journalEntriesTitle')} />
 
                     <TableComponent
                         columns={columns}
