@@ -223,11 +223,11 @@ export function AppSidebar() {
                     href: '/dues/settled',
                     icon: ReceiptText,
                 },
-                {
-                    title: t('salesOrderList'),
-                    href: '/sales-orders',
-                    icon: Folder,
-                },
+                // {
+                //     title: t('salesOrderList'),
+                //     href: '/sales-orders',
+                //     icon: Folder,
+                // },
                 {
                     title: t('salesReturn'),
                     href: '/sales-returns',

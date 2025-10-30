@@ -1394,34 +1394,7 @@ class ReportController extends Controller
         return Excel::download(new AccountBookExport(collect($data['entries'])), 'account_book.xlsx');
     }
 
-    // exportAccountBookPDF 
-    // public function exportAccountBookPDF(Request $request)
-    // {
-    //     $data = $this->getAccountBookData($request);
-
-    //     $company = CompanySetting::firstWhere('created_by', auth()->id());
-    //     $ledger = AccountLedger::findOrFail($request->ledger_id);
-
-    //     $ledgerProfile = [
-    //         'id' => $ledger->id,
-    //         'account_ledger_name' => $ledger->account_ledger_name,
-    //         'phone_number' => $ledger->phone_number ?? '-',
-    //         'email' => $ledger->email ?? '-',
-    //         'address' => $ledger->address ?? '-',
-    //         'opening_balance' => (float) $ledger->opening_balance,
-    //         'debit_credit' => $ledger->debit_credit,
-    //     ];
-
-    //     return Pdf::loadView('pdf.account-book', [
-    //         'entries' => $data['entries'],
-    //         'opening_balance' => $data['opening_balance'],
-    //         'company' => $company,
-    //         'ledger' => $ledgerProfile,
-    //         'from' => $request->from,
-    //         'to' => $request->to,
-    //     ])->setPaper('a4', 'landscape')->download('account_book.pdf');
-    // }
-
+    
     public function exportAccountBookPDF(Request $request)
     {
         $data = $this->getAccountBookData($request);

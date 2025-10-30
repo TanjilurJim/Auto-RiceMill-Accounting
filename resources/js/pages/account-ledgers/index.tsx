@@ -128,7 +128,7 @@ export default function AccountLedgerIndex({ accountLedgers, filters, ledgerType
                 <option value="">{t('All Types') || 'All types'}</option>
                 {ledgerTypes.map((tpe) => (
                   <option key={tpe} value={tpe}>
-                    {tpe.replace(/_/g, ' ')}
+                    {tpe.replace(/_/g, ' ').toUpperCase()}
                   </option>
                 ))}
               </select>

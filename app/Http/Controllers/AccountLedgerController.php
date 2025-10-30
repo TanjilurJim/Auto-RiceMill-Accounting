@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\AccountLedger;
+use App\Services\OpeningBalancePosting;
 use App\Models\AccountGroup;
 use App\Models\GroupUnder;
 use Illuminate\Http\Request;
@@ -92,9 +93,9 @@ class AccountLedgerController extends Controller
     }
 
 
-    public function store(Request $request)
+    public function store(Request $request, OpeningBalancePosting $openingPoster)
     {
-        return DB::transaction(function () use ($request) {
+        return DB::transaction(function () use ($request, $openingPoster) {
 
             // ✅ validation + guardrails
             $validated = $request->validate([
@@ -143,14 +144,18 @@ class AccountLedgerController extends Controller
             }
 
             // Create
-            AccountLedger::create($validated + [
+            $ledger = AccountLedger::create($validated + [
                 'created_by' => auth()->id(),
                 'tenant_id'  => optional(auth()->user())->tenant_id, // if you use multi-tenant
             ]);
 
+            $openingPoster->sync($ledger, $request->input('opening_date'));
+
+
             return redirect()
                 ->route('account-ledgers.index')
                 ->with('success', 'Account ledger created successfully.');
+
         });
     }
 
