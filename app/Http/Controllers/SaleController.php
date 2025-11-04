@@ -992,3 +992,4 @@ class SaleController extends Controller
         return response()->json($payload);
     }
 }
+ 

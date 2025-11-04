@@ -1317,16 +1317,26 @@ class ReportController extends Controller
 
         // ── 5.  Opening balance before the FROM date ────────────────────────────────
         $openingBalance = JournalEntry::where('account_ledger_id', $ledgerId)
-            ->whereHas('journal', fn($q) => $q->where('date', '<', $from))
-            ->sum(DB::raw("CASE
-                          WHEN type = 'credit' THEN amount
-                          ELSE -amount
-                       END"));
+            ->where(function ($w) use ($from) {
+                $w->whereHas('journal', fn($q) => $q->where('date', '<', $from))
+                    ->orWhereHas(
+                        'journal',
+                        fn($q) =>
+                        $q->where('date', $from)->where('voucher_type', 'Opening')
+                    );
+            })
+            ->sum(DB::raw("CASE WHEN type='credit' THEN amount ELSE -amount END"));
 
         // ── 6.  Ledger transactions within the range ────────────────────────────────
-        $entries = JournalEntry::with(['journal', 'ledger'])   // 👈 eager-load ledger
+        $entries = JournalEntry::with(['journal', 'ledger'])
             ->where('account_ledger_id', $ledgerId)
-            ->whereHas('journal', fn($q) => $q->whereBetween('date', [$from, $to]))
+            ->whereHas('journal', function ($q) use ($from, $to) {
+                $q->whereBetween('date', [$from, $to])
+                    ->where(function ($w) use ($from) {
+                        $w->where('date', '!=', $from)             // any other day
+                            ->orWhere('voucher_type', '!=', 'Opening'); // or same day but not Opening
+                    });
+            })
             ->get()
             ->sortBy(fn($e) => $e->journal->date)
             ->values();
@@ -1394,7 +1404,7 @@ class ReportController extends Controller
         return Excel::download(new AccountBookExport(collect($data['entries'])), 'account_book.xlsx');
     }
 
-    
+
     public function exportAccountBookPDF(Request $request)
     {
         $data = $this->getAccountBookData($request);
@@ -1450,12 +1460,25 @@ class ReportController extends Controller
         $to = $request->to;
 
         $openingBalance = \App\Models\JournalEntry::where('account_ledger_id', $ledgerId)
-            ->whereHas('journal', fn($q) => $q->where('date', '<', $from))
-            ->sum(\DB::raw("CASE WHEN type = 'credit' THEN amount ELSE -amount END"));
+            ->where(function ($w) use ($from) {
+                $w->whereHas('journal', fn($q) => $q->where('date', '<', $from))
+                    ->orWhereHas(
+                        'journal',
+                        fn($q) =>
+                        $q->where('date', $from)->where('voucher_type', 'Opening')
+                    );
+            })
+            ->sum(\DB::raw("CASE WHEN type='credit' THEN amount ELSE -amount END"));
 
         $entries = \App\Models\JournalEntry::with(['journal', 'ledger'])
             ->where('account_ledger_id', $ledgerId)
-            ->whereHas('journal', fn($q) => $q->whereBetween('date', [$from, $to]))
+            ->whereHas('journal', function ($q) use ($from, $to) {
+                $q->whereBetween('date', [$from, $to])
+                    ->where(function ($w) use ($from) {
+                        $w->where('date', '!=', $from)
+                            ->orWhere('voucher_type', '!=', 'Opening');
+                    });
+            })
             ->get()
             ->sortBy(fn($e) => $e->journal->date)
             ->values()
@@ -1470,6 +1493,7 @@ class ReportController extends Controller
                     'credit'     => $entry->type === 'credit' ? (float) $entry->amount : 0.0,
                 ];
             });
+
 
         return [
             'entries' => $entries,
