@@ -103,7 +103,7 @@ class AccountLedgerController extends Controller
                 'ledger_type'         => ['required', Rule::in(self::ALLOWED_TYPES)],
                 'debit_credit'        => ['required', Rule::in(['debit', 'credit'])],
                 'opening_balance'     => ['nullable', 'numeric', 'min:0'],
-                'closing_balance' => ['nullable', 'numeric', 'min:0'], 
+                'closing_balance' => ['nullable', 'numeric', 'min:0'],
                 'account_group_input' => ['required', 'string'], // will be parsed below
                 'mark_for_user'       => ['boolean'],
                 'status'              => ['required', Rule::in(['active', 'inactive'])],
@@ -155,7 +155,6 @@ class AccountLedgerController extends Controller
             return redirect()
                 ->route('account-ledgers.index')
                 ->with('success', 'Account ledger created successfully.');
-
         });
     }
 
@@ -188,7 +187,7 @@ class AccountLedgerController extends Controller
             'ledger_type'         => ['required', Rule::in(self::ALLOWED_TYPES)],
             'debit_credit'        => ['required', Rule::in(['debit', 'credit'])],
             'opening_balance'     => ['nullable', 'numeric', 'min:0'],
-            'closing_balance' => ['nullable', 'numeric', 'min:0'], 
+            'closing_balance' => ['nullable', 'numeric', 'min:0'],
             'account_group_input' => ['required', 'string'],
             'mark_for_user'       => ['boolean'],
             'status'              => ['required', Rule::in(['active', 'inactive'])],
@@ -291,5 +290,66 @@ class AccountLedgerController extends Controller
             'closing_balance' => $ledger->closing_balance ?? $ledger->opening_balance ?? 0,
             'debit_credit' => $ledger->debit_credit ?? 'debit',
         ]);
+    }
+    // App\Http\Controllers\AccountLedgerController.php
+
+    public function searchSuppliers(Request $request)
+    {
+        $q = trim((string) $request->input('q', ''));
+
+        $query = AccountLedger::query()
+            ->select('id', 'account_ledger_name as label')  // react-select shape
+            ->where('ledger_type', 'accounts_payable');
+
+        if (!auth()->user()->hasRole('admin')) {
+            $ids = godown_scope_ids();
+            $query->whereIn('created_by', $ids);
+        }
+
+        if ($q !== '') {
+            $query->where(function ($qq) use ($q) {
+                $qq->where('account_ledger_name', 'like', "%{$q}%")
+                    ->orWhere('phone_number', 'like', "%{$q}%")
+                    ->orWhere('reference_number', 'like', "%{$q}%")
+                    ->orWhere('email', 'like', "%{$q}%");
+            });
+        }
+
+        return response()->json($query->orderBy('account_ledger_name')->limit(20)->get());
+    }
+
+    public function storeSupplier(Request $request, \App\Services\OpeningBalancePosting $openingPoster)
+    {
+        $data = $request->validate([
+            'name'            => ['required', 'string', 'max:255'],
+            'phone_number'    => ['nullable', 'string', 'max:255'],
+            'address'         => ['nullable', 'string', 'max:65535'],
+            // optional if you want to keep it flexible:
+            'group_under_id'  => ['nullable', 'integer'],
+        ]);
+
+        // if you prefer fixed mapping, hardcode or config-drive it:
+        $groupUnderId = $data['group_under_id'] ?? 8; // Sundry Creditors in your DB
+
+        $ledger = \App\Models\AccountLedger::create([
+            'account_ledger_name' => $data['name'],
+            'ledger_type'         => 'accounts_payable',
+            'debit_credit'        => 'credit',
+            'opening_balance'     => 0,
+            'closing_balance'     => 0,
+            'status'              => 'active',
+            'group_under_id'      => $groupUnderId,
+            'phone_number'        => $data['phone_number'] ?? '',
+            'address'             => $data['address'] ?? null,
+            'created_by'          => auth()->id(),
+        ]);
+
+        // Journalize opening (0) = no lines; fine to call or skip
+        $openingPoster->sync($ledger, null);
+
+        return response()->json([
+            'id'    => $ledger->id,
+            'label' => $ledger->account_ledger_name,
+        ], 201);
     }
 }

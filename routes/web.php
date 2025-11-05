@@ -218,6 +218,11 @@ Route::middleware(['auth', 'verified'])->group(function () {
 
     Route::get('/account-ledgers/{id}/balance', [AccountLedgerController::class, 'balance']);
 
+    Route::get('/account-ledgers/suppliers', [AccountLedgerController::class, 'searchSuppliers'])
+        ->name('account-ledgers.suppliers.search');
+    Route::post('/account-ledgers/suppliers', [AccountLedgerController::class, 'storeSupplier'])
+        ->name('account-ledgers.suppliers.store');
+
     /* =========================
 |  SALESMEN / GODOWNS
 |=========================*/

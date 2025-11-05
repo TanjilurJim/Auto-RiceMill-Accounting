@@ -125,7 +125,7 @@ class DashboardController extends Controller
             'opening_balance',
             'closing_balance'
         )
-            ->where('ledger_type', 'purchase')
+            ->where('ledger_type', 'accounts_payable')
             ->when(!$isAdmin, fn($q) => $q->whereIn('created_by', $userIds))
             ->get();
 
