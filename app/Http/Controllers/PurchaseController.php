@@ -154,6 +154,38 @@ class PurchaseController extends Controller
         ]);
     }
 
+
+    private function ensureInventoryLedgerForGodown(int $godownId, ?string $desiredName = null): int
+    {
+        $godown = \App\Models\Godown::findOrFail($godownId);
+        $name = $desiredName ?: ('Inventory - ' . $godown->name);
+
+        // try to find by (name, created_by) to keep tenant-safe dedupe
+        $existing = \App\Models\AccountLedger::where([
+            ['account_ledger_name', '=', $name],
+            ['ledger_type', '=', 'inventory'],
+            ['created_by', '=', auth()->id()],
+        ])->first();
+
+        if ($existing) return $existing->id;
+
+        $ledger = \App\Models\AccountLedger::create([
+            'account_ledger_name' => $name,
+            'ledger_type'         => 'inventory',
+            'debit_credit'        => 'debit',
+            'opening_balance'     => 0,
+            'closing_balance'     => 0,
+            'status'              => 'active',
+            'group_under_id'      => 2, // Current Assets
+            'account_group_id'    => 3,
+            'created_by'          => auth()->id(),
+        ]);
+
+        // Opening is zero, so OpeningBalancePosting would noop; safe to skip.
+        return $ledger->id;
+    }
+
+
     // Store purchase
     public function store(Request $request)
     {
@@ -165,7 +197,9 @@ class PurchaseController extends Controller
             'godown_id' => 'required|exists:godowns,id',
             'salesman_id' => 'required|exists:salesmen,id',
             'account_ledger_id' => 'nullable|exists:account_ledgers,id',
-            'inventory_ledger_id' => 'required|exists:account_ledgers,id',
+            // 'inventory_ledger_id' => 'required|exists:account_ledgers,id',
+            'inventory_ledger_id' => 'nullable|exists:account_ledgers,id',
+
             // 'supplier_ledger_id' => 'required|exists:account_ledgers,id',
             'purchase_items' => 'required|array|min:1',
             'purchase_items.*.product_id' => 'required|exists:items,id',
@@ -195,6 +229,11 @@ class PurchaseController extends Controller
         $grandTotal = $totalPrice - $totalDisc;                            // after discount
         /* -------------------------------------------------------------- */
 
+        $inventoryLedgerId = $request->inventory_ledger_id;
+        if (!$inventoryLedgerId) {
+            $inventoryLedgerId = $this->ensureInventoryLedgerForGodown((int) $request->godown_id);
+        }
+
         /* 3️⃣  Create header + lines (no stock / journal yet) */
         $purchase = null;
         DB::transaction(function () use (
@@ -206,6 +245,7 @@ class PurchaseController extends Controller
             $totalPrice,
             $totalDisc,
             $grandTotal,
+         $inventoryLedgerId,
         ) {
             $purchase = Purchase::create([
                 'date'               => $request->date,
@@ -213,7 +253,8 @@ class PurchaseController extends Controller
                 'godown_id'          => $request->godown_id,
                 'salesman_id'        => $request->salesman_id,
                 'account_ledger_id'  => $request->account_ledger_id,
-                'inventory_ledger_id' => $request->inventory_ledger_id,
+                // 'inventory_ledger_id' => $request->inventory_ledger_id,
+                'inventory_ledger_id' => $inventoryLedgerId,
                 'received_mode_id'   => $request->received_mode_id,
                 'amount_paid'        => $request->amount_paid ?? 0,
                 'phone'              => $request->phone,

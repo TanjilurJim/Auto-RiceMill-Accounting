@@ -367,13 +367,13 @@ export default function PurchaseCreate({
                                 </div>
 
                                 {/* Inventory Ledger */}
-                                <div>
-                                    <label className="invisible mb-1 block text-sm font-medium md:visible">
+                                {/* <div> */}
+                                    {/* <label className="invisible mb-1 block text-sm font-medium md:visible">
                                         {t('purchase-inventory-ledger-label')}
-                                    </label>
+                                    </label> */}
 
-                                    <div className="flex h-fit w-full flex-col items-center gap-2 md:flex-row">
-                                        <select
+                                    {/* <div className="flex h-fit w-full flex-col items-center gap-2 md:flex-row"> */}
+                                        {/* <select
                                             className={`${errors.godown_id ? 'border-red-500' : 'border-gray-300'} h-full w-full border p-2`}
                                             value={data.inventory_ledger_id}
                                             onChange={(e) => setData('inventory_ledger_id', e.target.value)}
@@ -384,24 +384,24 @@ export default function PurchaseCreate({
                                                     {l.account_ledger_name}
                                                 </option>
                                             ))}
-                                        </select>
+                                        </select> */}
 
-                                        {inventoryBalance !== null && (
+                                        {/* {inventoryBalance !== null && (
                                             <div className="text-foreground mt-1 text-xs">
                                                 {t('purchase-inventory-balance')}: {Number(inventoryBalance).toFixed(2)}
                                             </div>
-                                        )}
+                                        )} */}
 
                                         {/* Placeholder for Add Button — next step will handle modal */}
-                                        <button
+                                        {/* <button
                                             type="button"
                                             className="h-full w-full rounded bg-blue-500 p-2 text-white"
                                             onClick={() => setShowLedgerModal(true)}
                                         >
                                             {t('purchase-create-ledger-button')}
-                                        </button>
-                                    </div>
-                                </div>
+                                        </button> */}
+                                    {/* </div> */}
+                                {/* </div> */}
 
                                 {/* Phone and Address Inputs */}
                                 <div>
