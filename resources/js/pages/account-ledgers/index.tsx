@@ -83,7 +83,7 @@ export default function AccountLedgerIndex({ accountLedgers, filters, ledgerType
       className: 'w-2/12 text-right',
     },
     { header: t('debitCredit'), accessor: 'debit_credit', className: 'capitalize w-2/12' },
-    { header: t('createdBy'), accessor: (row: AccountLedger) => row.created_by?.name || 'N/A' },
+    // { header: t('createdBy'), accessor: (row: AccountLedger) => row.created_by?.name || 'N/A' },
   ];
 
   return (

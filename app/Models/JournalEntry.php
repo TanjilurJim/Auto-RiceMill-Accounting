@@ -18,4 +18,5 @@ class JournalEntry extends Model
     {
         return $this->belongsTo(Journal::class);
     }
+    
 }

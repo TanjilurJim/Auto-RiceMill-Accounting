@@ -10,6 +10,7 @@ use App\Http\Controllers\ItemController;
 use App\Http\Controllers\RoleController;
 use App\Http\Controllers\SaleController;
 use App\Http\Controllers\UnitController;
+use App\Http\Controllers\ExpenseController;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\DryerController;
 use App\Http\Controllers\ShiftController;
@@ -195,33 +196,86 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::resource('account-groups', AccountGroupController::class)->only(['show',])
         ->middleware(perm('account-groups', 'view'));
 
-    //api
-    Route::get('/account-ledgers/{ledger}/balance', function (AccountLedger $ledger) {
-        // if closing_balance is null, fall back to opening_balance
-        return response()->json([
-            'closing_balance' => $ledger->closing_balance ?? $ledger->opening_balance ?? 0,
-            'debit_credit'    => $ledger->debit_credit      // we may use this later
-        ]);
-    })->name('account-ledgers.balance');
+ /* =========================
+ | ACCOUNT LEDGERS
+ * ========================= */
 
-    Route::post('/account-ledgers/modal', [\App\Http\Controllers\AccountLedgerController::class, 'storeFromModal']);
+/* 1) API/static endpoints FIRST (no {id} yet) */
+Route::middleware(['auth'])->group(function () {
+    // Customers for Sales select
+    Route::get('/account-ledgers/customers', [AccountLedgerController::class, 'searchCustomers']);
+    Route::post('/account-ledgers/customers', [AccountLedgerController::class, 'storeCustomer']);
 
-    // account ledgers
-    Route::resource('account-ledgers', AccountLedgerController::class)->only(['index',])
-        ->middleware(perm('account-ledger', 'view'));
-    Route::resource('account-ledgers', AccountLedgerController::class)->only(['create', 'store'])
-        ->middleware(perm('account-ledger', 'create'));
-    Route::resource('account-ledgers', AccountLedgerController::class)->only(['edit', 'update'])
-        ->middleware(perm('account-ledger', 'edit'));
-    Route::resource('account-ledgers', AccountLedgerController::class)->only(['destroy'])
-        ->middleware(perm('account-ledger', 'delete'));
-
-    Route::get('/account-ledgers/{id}/balance', [AccountLedgerController::class, 'balance']);
-
+    // Suppliers
     Route::get('/account-ledgers/suppliers', [AccountLedgerController::class, 'searchSuppliers'])
         ->name('account-ledgers.suppliers.search');
     Route::post('/account-ledgers/suppliers', [AccountLedgerController::class, 'storeSupplier'])
         ->name('account-ledgers.suppliers.store');
+
+    // Modal create
+    Route::post('/account-ledgers/modal', [AccountLedgerController::class, 'storeFromModal']);
+});
+
+/* Balance endpoint (before {id}) — pick ONE style; this uses controller */
+Route::get('/account-ledgers/{id}/balance', [AccountLedgerController::class, 'balance'])
+    ->whereNumber('id')
+    ->name('account-ledgers.balance');
+
+/* (Optional) If you prefer the closure + model binding style, use this instead and delete the one above:
+
+Route::get('/account-ledgers/{ledger}/balance', function (AccountLedger $ledger) {
+    return response()->json([
+        'closing_balance' => $ledger->closing_balance ?? $ledger->opening_balance ?? 0,
+        'debit_credit'    => $ledger->debit_credit,
+    ]);
+})->name('account-ledgers.balance')->whereNumber('ledger');
+*/
+
+/* 2) Resource subsets (no show) */
+Route::resource('account-ledgers', AccountLedgerController::class)->only(['index'])
+    ->middleware(perm('account-ledger', 'view'));
+
+Route::resource('account-ledgers', AccountLedgerController::class)->only(['create', 'store'])
+    ->middleware(perm('account-ledger', 'create'));
+
+Route::resource('account-ledgers', AccountLedgerController::class)->only(['edit', 'update'])
+    ->middleware(perm('account-ledger', 'edit'));
+
+Route::resource('account-ledgers', AccountLedgerController::class)->only(['destroy'])
+    ->middleware(perm('account-ledger', 'delete'));
+
+/* 3) Finally, the minimal JSON SHOW — LAST and numeric-constrained */
+Route::get('/account-ledgers/{id}', [AccountLedgerController::class, 'show'])
+    ->whereNumber('id')
+    ->middleware(perm('account-ledger', 'view'));
+
+
+
+Route::resource('expenses', ExpenseController::class)
+    ->only(['index','create','store','show'])
+    ->middleware(perm('expenses','create')); // adjust perms
+
+// Optional: quick-create an expense head from modal
+Route::post('/expense-heads', function(Request $r) {
+    $r->validate([
+        'name' => ['required','string','max:255'],
+        'group_under_id' => ['nullable','integer'], // allow user to pick 11/30/31/33
+    ]);
+    $id = AccountLedger::create([
+        'account_ledger_name' => $r->name,
+        'ledger_type'         => 'operating_expense',
+        'debit_credit'        => 'debit',
+        'opening_balance'     => 0,
+        'closing_balance'     => 0,
+        'status'              => 'active',
+        'group_under_id'      => $r->group_under_id ?? 11,
+        'created_by'          => auth()->id(),
+    ])->id;
+
+    return response()->json(['id'=>$id], 201);
+});
+
+
 
     /* =========================
 |  SALESMEN / GODOWNS
@@ -409,15 +463,25 @@ Route::middleware(['auth', 'verified'])->group(function () {
 
 
     // received modes
-    Route::resource('received-modes', ReceivedModeController::class)->only(['index',])
+    Route::resource('received-modes', ReceivedModeController::class)
+        ->only(['index'])
         ->middleware(perm('received-modes', 'view'));
-    Route::resource('received-modes', ReceivedModeController::class)->only(['create', 'store'])
+
+    Route::resource('received-modes', ReceivedModeController::class)
+        ->only(['create', 'store'])
         ->middleware(perm('received-modes', 'create'));
-    Route::resource('received-modes', ReceivedModeController::class)->only(['edit', 'update'])
+
+    Route::resource('received-modes', ReceivedModeController::class)
+        ->only(['edit', 'update'])
         ->middleware(perm('received-modes', 'edit'));
-    Route::resource('received-modes', ReceivedModeController::class)->only(['destroy'])
+
+    Route::resource('received-modes', ReceivedModeController::class)
+        ->only(['destroy'])
         ->middleware(perm('received-modes', 'delete'));
-    Route::resource('received-modes', ReceivedModeController::class)->only(['show',])
+
+    // IMPORTANT: keep 'show' after 'create'
+    Route::resource('received-modes', ReceivedModeController::class)
+        ->only(['show'])
         ->middleware(perm('received-modes', 'view'));
 
     Route::resource('received-add', ReceivedAddController::class)->only(['index',])

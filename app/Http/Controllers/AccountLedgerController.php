@@ -352,4 +352,85 @@ class AccountLedgerController extends Controller
             'label' => $ledger->account_ledger_name,
         ], 201);
     }
+
+    public function searchCustomers(Request $request)
+    {
+        $q = trim((string) $request->input('q', ''));
+
+        $query = AccountLedger::query()
+            ->select('id', 'account_ledger_name as label') // react-select shape
+            ->where('ledger_type', 'accounts_receivable');
+
+        // scope for non-admins
+        if (!auth()->user()->hasRole('admin')) {
+            $ids = godown_scope_ids();
+            $query->whereIn('created_by', $ids);
+        }
+
+        if ($q !== '') {
+            $query->where(function ($qq) use ($q) {
+                $qq->where('account_ledger_name', 'like', "%{$q}%")
+                    ->orWhere('phone_number', 'like', "%{$q}%")
+                    ->orWhere('reference_number', 'like', "%{$q}%")
+                    ->orWhere('email', 'like', "%{$q}%");
+            });
+        }
+
+        return response()->json(
+            $query->orderBy('account_ledger_name')->limit(20)->get()
+        );
+    }
+
+    public function storeCustomer(Request $request, \App\Services\OpeningBalancePosting $openingPoster)
+    {
+        $data = $request->validate([
+            'name'         => ['required', 'string', 'max:255'],
+            'phone_number' => ['nullable', 'string', 'max:255'],
+            'address'      => ['nullable', 'string', 'max:65535'],
+            // group_under_id stays fixed to 7 for Sundry Debtors, but you can allow override if you want
+        ]);
+
+        // Force the required accounting shape for AR/customer
+        $ledger = \App\Models\AccountLedger::create([
+            'account_ledger_name' => $data['name'],
+            'ledger_type'         => 'accounts_receivable', // AR
+            'debit_credit'        => 'debit',
+            'opening_balance'     => 0,
+            'closing_balance'     => 0,
+            'status'              => 'active',
+            'group_under_id'      => 7,    // Sundry Debtors
+            'mark_for_user'       => 1,    // show in customer lists
+            'phone_number'        => $data['phone_number'] ?? '',
+            'address'             => $data['address'] ?? null,
+            'created_by'          => auth()->id(),
+        ]);
+
+        // If you post openings, keep this; opening is 0 so it’s a no-op
+        $openingPoster->sync($ledger, null);
+
+        return response()->json([
+            'id'    => $ledger->id,
+            'label' => $ledger->account_ledger_name,
+        ], 201);
+    }
+
+    /**
+     * Minimal JSON for preloading a ledger's label by id.
+     * Used by the select when it only has an ID initially.
+     */
+    public function show(int $id)
+    {
+        $row = AccountLedger::findOrFail($id);
+
+        // scope for non-admins
+        if (!auth()->user()->hasRole('admin')) {
+            $ids = godown_scope_ids();
+            abort_unless(in_array($row->created_by, $ids), 403);
+        }
+
+        return [
+            'id' => $row->id,
+            'account_ledger_name' => $row->account_ledger_name,
+        ];
+    }
 }
