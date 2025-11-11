@@ -102,20 +102,29 @@ export default function RentVoucherCreate({ today, generated_vch_no, parties, it
     const unitOpts = units.map((u) => ({ value: u.name, label: u.name }));
 
     /* ---------- previous balance fetch ---------- */
-    const [prevBal, setPrevBal] = React.useState<number>(0);
+    // const [prevBal, setPrevBal] = React.useState<number>(0);
+    const [prevBal, setPrevBal] = React.useState<number>(0); // signed display balance
+    const [prevRaw, setPrevRaw] = React.useState<{ bal: number; side: 'debit' | 'credit' } | null>(null);
 
     React.useEffect(() => {
         if (!data.party_ledger_id) {
             setPrevBal(0);
+            setPrevRaw(null);
             return;
         }
         axios
             .get(route('account-ledgers.balance', data.party_ledger_id))
             .then((res) => {
-                let bal = Number(res.data.closing_balance ?? 0);
-                setPrevBal(bal);
+                const raw = Number(res.data.closing_balance ?? 0);
+                const side = res.data.debit_credit === 'credit' ? 'credit' : 'debit';
+                const signed = side === 'credit' ? -raw : raw;
+                setPrevRaw({ bal: raw, side });
+                setPrevBal(signed);
             })
-            .catch(() => setPrevBal(0));
+            .catch(() => {
+                setPrevRaw(null);
+                setPrevBal(0);
+            });
     }, [data.party_ledger_id]);
 
     /* ---------- line helpers ---------- */
@@ -139,8 +148,8 @@ export default function RentVoucherCreate({ today, generated_vch_no, parties, it
     /* ---------- computed totals ---------- */
     const billTotal = data.lines.reduce((s, l) => s + l.amount, 0);
     const received = Number(data.received_amount || 0);
-    const subTotal = prevBal - billTotal;
-    const newBalance = subTotal + received;
+    const subTotal = prevBal + billTotal; // previous + bill
+    const newBalance = subTotal - received;
 
     /* ---------- dropdown options ---------- */
     const partyOpts = parties.map((p) => ({ value: String(p.id), label: p.account_ledger_name }));
@@ -332,7 +341,7 @@ export default function RentVoucherCreate({ today, generated_vch_no, parties, it
                                                 styles={selectStyles}
                                             />
                                         </div>
-                                        <div className='col-span-12 md:col-span-4'>
+                                        <div className="col-span-12 md:col-span-4">
                                             <input
                                                 type="number"
                                                 className="w-full rounded border p-2 text-right tabular-nums"

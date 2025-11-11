@@ -847,6 +847,9 @@ Route::post('/expense-heads', function(Request $r) {
 
     // Party Stock
 
+    Route::get('/api/parties/{party}/items', [\App\Http\Controllers\PartyStockMoveController::class, 'items'])
+    ->name('party.items');
+
     // Party stock flows
     Route::prefix('party-stock')->group(function () {
         // Deposit

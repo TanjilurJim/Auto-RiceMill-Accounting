@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Services\FinalizeRentVoucherService;
 use App\Models\RentVoucher;
 use App\Models\AccountLedger;
 use App\Models\Unit;
@@ -39,7 +40,7 @@ class RentVoucherController extends Controller
     }
 
     /* ----------  STORE  ---------- */
-    public function store(Request $r)
+    public function store(Request $r, FinalizeRentVoucherService $finalizer)
     {
         $v = $r->validate([
             'date'            => ['required', 'date'],
@@ -47,40 +48,33 @@ class RentVoucherController extends Controller
             'party_ledger_id' => ['required', 'exists:account_ledgers,id'],
             'lines'           => ['required', 'array', 'min:1'],
             'lines.*.party_item_id' => ['required', 'exists:party_items,id'],
-            'lines.*.unit_name'     => ['required', 'string', 'max:50'],  // NEW
+            'lines.*.unit_name'     => ['required', 'string', 'max:50'],
             'lines.*.qty'           => ['required', 'numeric', 'min:0.01'],
-            'lines.*.rate'    => ['required', 'numeric', 'min:0'],
-            // 'received_mode'   => ['required', 'string'],
-            'received_mode_id' => ['required', 'exists:received_modes,id'],
-            'received_amount'  => ['required', 'numeric', 'min:0'],
-            // 'received_amount' => ['required', 'numeric', 'min:0'],
-            'remarks'         => ['nullable', 'string'],
+            'lines.*.rate'          => ['required', 'numeric', 'min:0'],
+            'received_mode_id'      => ['required', 'exists:received_modes,id'],
+            'received_amount'       => ['required', 'numeric', 'min:0'],
+            'remarks'               => ['nullable', 'string'],
         ]);
 
-        DB::transaction(function () use ($v) {
+        $voucher = null;
 
-            /* ----------- 1.  Pull previous balance from ledger ----------- */
-            $ledger = \App\Models\AccountLedger::findOrFail($v['party_ledger_id']);
+        DB::transaction(function () use ($v, &$voucher) {
+            // 1) compute
+            $ledger  = \App\Models\AccountLedger::findOrFail($v['party_ledger_id']);
+            $prevBal = $ledger->debit_credit === 'credit'
+                ? - ($ledger->closing_balance ?? $ledger->opening_balance ?? 0)
+                : ($ledger->closing_balance ?? $ledger->opening_balance ?? 0);
 
-
-            $prevBal = $ledger->closing_balance ?? $ledger->opening_balance ?? 0;  // TODO: pull real balance from ledger if you track it
-
-            if ($ledger->debit_credit === 'credit') {
-                $prevBal = -$prevBal;
-            }
-
-            /* ----------- 2.  Calculate totals & balance  ----------- */
-            $grand = collect($v['lines'])->sum(fn($l) => $l['qty'] * $l['rate']);
+            $grand   = collect($v['lines'])->sum(fn($l) => $l['qty'] * $l['rate']);
             $balance = $prevBal + $grand - $v['received_amount'];
 
-            $voucher = RentVoucher::create([
-                'date'    => $v['date'],
-                'vch_no'  => $v['vch_no'],
-                'party_ledger_id' => $v['party_ledger_id'],
+            // 2) create header
+            $voucher = \App\Models\RentVoucher::create([
+                'date'             => $v['date'],
+                'vch_no'           => $v['vch_no'],
+                'party_ledger_id'  => $v['party_ledger_id'],
                 'grand_total'      => $grand,
                 'previous_balance' => $prevBal,
-
-                // 'received_mode'    => $v['received_mode'],
                 'received_mode_id' => $v['received_mode_id'],
                 'received_amount'  => $v['received_amount'],
                 'balance'          => $balance,
@@ -88,21 +82,27 @@ class RentVoucherController extends Controller
                 'created_by'       => auth()->id(),
             ]);
 
+            // 3) lines
             foreach ($v['lines'] as $l) {
                 $voucher->lines()->create([
                     'party_item_id' => $l['party_item_id'],
                     'unit_name'     => $l['unit_name'],
                     'qty'           => $l['qty'],
-                    // 'mon'           => $l['mon'],
                     'rate'          => $l['rate'],
                     'amount'        => $l['qty'] * $l['rate'],
                 ]);
             }
         });
 
+        // 4) post to Journal (+ optional initial receipt) via service
+        $finalizer->handle($voucher, [
+            'received_amount'  => $v['received_amount'],
+            'received_mode_id' => $v['received_mode_id'],
+        ]);
+
         return redirect()
             ->route('party-stock.rent-voucher.index')
-            ->with('success', 'Voucher saved');
+            ->with('success', 'Voucher saved & posted');
     }
 
     /* ----------  INDEX LIST  ---------- */
@@ -296,39 +296,32 @@ class RentVoucherController extends Controller
 
 
     /* ----------  UPDATE  ---------- */
-    public function update(Request $r, RentVoucher $voucher)
+    public function update(Request $r, RentVoucher $voucher, FinalizeRentVoucherService $finalizer)
     {
         $v = $r->validate([
             'date'            => ['required', 'date'],
-            'vch_no'          => [
-                'required',
-                'string',
-                'max:50',
-                'unique:rent_vouchers,vch_no,' . $voucher->id
-            ],
+            'vch_no'          => ['required', 'string', 'max:50', 'unique:rent_vouchers,vch_no,' . $voucher->id],
             'party_ledger_id' => ['required', 'exists:account_ledgers,id'],
             'lines'           => ['required', 'array', 'min:1'],
             'lines.*.party_item_id' => ['required', 'exists:party_items,id'],
             'lines.*.unit_name'     => ['required', 'string', 'max:50'],
             'lines.*.qty'           => ['required', 'numeric', 'min:0.01'],
             'lines.*.rate'          => ['required', 'numeric', 'min:0'],
-            'received_mode_id' => ['required', 'exists:received_modes,id'],
-            'received_amount'  => ['required', 'numeric', 'min:0'],
-            'remarks'          => ['nullable', 'string'],
+            'received_mode_id'      => ['required', 'exists:received_modes,id'],
+            'received_amount'       => ['required', 'numeric', 'min:0'],
+            'remarks'               => ['nullable', 'string'],
         ]);
 
         DB::transaction(function () use ($v, $voucher) {
-
-            /* --- recompute financials exactly like store() --- */
-            $ledger   = AccountLedger::findOrFail($v['party_ledger_id']);
-            $prevBal  = $ledger->debit_credit === 'credit'
+            // A) recompute finances
+            $ledger  = AccountLedger::findOrFail($v['party_ledger_id']);
+            $prevBal = $ledger->debit_credit === 'credit'
                 ? - ($ledger->closing_balance ?? $ledger->opening_balance ?? 0)
                 : ($ledger->closing_balance ?? $ledger->opening_balance ?? 0);
+            $grand   = collect($v['lines'])->sum(fn($l) => $l['qty'] * $l['rate']);
+            $balance = $prevBal + $grand - $v['received_amount'];
 
-            $grand    = collect($v['lines'])->sum(fn($l) => $l['qty'] * $l['rate']);
-            $balance  = $prevBal + $grand - $v['received_amount'];
-
-            /* --- update voucher --- */
+            // B) update header
             $voucher->update([
                 'date'             => $v['date'],
                 'vch_no'           => $v['vch_no'],
@@ -342,7 +335,7 @@ class RentVoucherController extends Controller
                 'updated_by'       => auth()->id(),
             ]);
 
-            /* --- refresh line items (simplest: delete & recreate) --- */
+            // C) refresh lines
             $voucher->lines()->delete();
             foreach ($v['lines'] as $l) {
                 $voucher->lines()->create([
@@ -355,8 +348,15 @@ class RentVoucherController extends Controller
             }
         });
 
+        // D) rollback previous posting (journal + initial receipt), then repost
+        $finalizer->rollback($voucher);
+        $finalizer->handle($voucher, [
+            'received_amount'  => $v['received_amount'],
+            'received_mode_id' => $v['received_mode_id'],
+        ]);
+
         return redirect()
             ->route('party-stock.rent-voucher.index')
-            ->with('success', 'Voucher updated');
+            ->with('success', 'Voucher updated & reposted');
     }
 }

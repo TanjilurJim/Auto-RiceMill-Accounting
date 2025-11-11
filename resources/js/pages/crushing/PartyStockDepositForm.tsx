@@ -4,9 +4,9 @@ import { Head, useForm } from '@inertiajs/react';
 import axios from 'axios';
 import React from 'react';
 import Select from 'react-select';
+import CreatableSelect from 'react-select/creatable';
 
 import TableComponent from '@/components/TableComponent';
-import CreatableSelect from 'react-select/creatable';
 
 interface Props {
     parties: { id: number; account_ledger_name: string }[];
@@ -34,6 +34,7 @@ export default function PartyStockDepositForm({ parties, godowns, units, today, 
     const { data, setData, post, processing, errors, reset } = useForm({
         date: today,
         party_ledger_id: '',
+        party_name: '',
         godown_id_to: '',
         ref_no: generated_ref_no,
         remarks: '',
@@ -55,7 +56,11 @@ export default function PartyStockDepositForm({ parties, godowns, units, today, 
             return;
         }
         axios.get(route('party.items', { party: data.party_ledger_id })).then((res) => {
-            const opts = res.data.map((x: any) => ({ value: x.item_name, label: x.item_name }));
+            const opts = res.data.map((x: any) => ({
+                value: x.item_name,
+                label: x.item_name,
+                unit_name: x.unit_name ?? null, // carry unit_name to autofill
+            }));
             setItemOptions(opts);
         });
     }, [data.party_ledger_id]);
@@ -154,10 +159,21 @@ export default function PartyStockDepositForm({ parties, godowns, units, today, 
             header: 'পণ্য',
             accessor: (row: DepositRow, index: number) => (
                 <CreatableSelect
-                    isDisabled={!data.party_ledger_id}
+                    // removed: isDisabled={!data.party_ledger_id}
                     options={itemOptions}
                     value={row.item_name ? { value: row.item_name, label: row.item_name } : null}
-                    onChange={(sel) => handleFieldChange(index, 'item_name', sel?.value ?? '')}
+                    onChange={(sel: any) => {
+                        // set item name
+                        handleFieldChange(index, 'item_name', sel?.value ?? '');
+                        // if this existing option has a known unit, set it too
+                        if (sel?.unit_name) {
+                            onUnitChange(index, sel.unit_name);
+                        }
+                    }}
+                    onCreateOption={(newLabel: string) => {
+                        // user typed a brand new item — set the name and keep unit blank for now
+                        handleFieldChange(index, 'item_name', newLabel);
+                    }}
                     placeholder="পণ্য"
                     isClearable
                     menuPortalTarget={typeof window !== 'undefined' ? document.body : undefined}
@@ -237,7 +253,7 @@ export default function PartyStockDepositForm({ parties, godowns, units, today, 
                     <h1 className="mb-4 text-xl font-bold">পার্টির পণ্য জমা ফর্ম</h1>
 
                     <form onSubmit={handleSubmit} className="space-y-6">
-                        <div className="grid grid-cols-1 md:grid-cols-2 items-end gap-4">
+                        <div className="grid grid-cols-1 items-end gap-4 md:grid-cols-2">
                             <div>
                                 <InputCalendar
                                     label="তারিখ"
@@ -250,18 +266,35 @@ export default function PartyStockDepositForm({ parties, godowns, units, today, 
 
                             <div>
                                 <label className="mb-1 block font-medium">পার্টি</label>
-                                <Select
+                                <CreatableSelect
                                     options={parties.map((p) => ({ value: p.id, label: p.account_ledger_name }))}
-                                    value={parties
-                                        .map((p) => ({ value: p.id, label: p.account_ledger_name }))
-                                        .find((opt) => opt.value === Number(data.party_ledger_id))}
-                                    onChange={(selected) => setData('party_ledger_id', selected?.value || '')}
+                                    value={
+                                        data.party_ledger_id
+                                            ? parties
+                                                  .map((p) => ({ value: p.id, label: p.account_ledger_name }))
+                                                  .find((opt) => opt.value === Number(data.party_ledger_id)) || null
+                                            : data.party_name
+                                              ? { value: data.party_name, label: data.party_name }
+                                              : null
+                                    }
+                                    onChange={(selected) => {
+                                        // picked an existing party -> keep id, clear name
+                                        setData('party_ledger_id', selected?.value || '');
+                                        setData('party_name', '');
+                                    }}
+                                    onCreateOption={(inputValue) => {
+                                        // typed a new party -> set name, clear id (controller will auto-create)
+                                        setData('party_name', inputValue);
+                                        setData('party_ledger_id', '');
+                                    }}
                                     classNamePrefix="react-select"
-                                    placeholder="পার্টি খুঁজুন..."
+                                    placeholder="পার্টি খুঁজুন বা নতুন লিখুন…"
                                     isClearable
                                     styles={selectStyles}
                                 />
-                                {errors.party_ledger_id && <p className="text-sm text-red-500">{errors.party_ledger_id}</p>}
+                                {(errors.party_ledger_id || errors.party_name) && (
+                                    <p className="text-sm text-red-500">{errors.party_ledger_id || errors.party_name}</p>
+                                )}
                             </div>
 
                             <div>

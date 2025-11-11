@@ -22,7 +22,7 @@ class UserController extends Controller
     private function isSyntheticEmail(?string $email): bool
     {
         if (!$email) return false;
-        return str_ends_with(strtolower($email), '@'.self::SYNTHETIC_DOMAIN);
+        return str_ends_with(strtolower($email), '@' . self::SYNTHETIC_DOMAIN);
     }
 
 
@@ -92,9 +92,15 @@ class UserController extends Controller
     {
         $user = User::with('roles')->findOrFail($id);
         // 🛡 Restrict managers from editing users outside their scope
-        if (!auth()->user()->hasRole('admin') && $user->created_by !== auth()->id()) {
-            abort(403, 'Unauthorized');
-        }
+        // if (
+        //     !auth()->user()->hasRole('admin') &&
+        //     (
+        //         !auth()->user()->can('users.edit') ||
+        //         $user->created_by !== auth()->id()
+        //     )
+        // ) {
+        //     abort(403, 'Unauthorized');
+        // }
 
         $roles = Role::query()
             ->when(!auth()->user()->hasRole('admin'), function ($query) {
@@ -205,7 +211,7 @@ class UserController extends Controller
         // Validation
         $request->validate([
             'name'  => 'required|string|max:255',
-            'email' => ['nullable','email', Rule::unique('users','email')], // ✨ nullable now
+            'email' => ['nullable', 'email', Rule::unique('users', 'email')], // ✨ nullable now
             'roles' => 'array',
 
             'mark_verified'     => 'sometimes|boolean',
@@ -215,7 +221,8 @@ class UserController extends Controller
             // If synthetic (or no real email), a password is required now
             'password'          => [
                 $request->boolean('set_password_now') || !$hasRealEmail ? 'required' : 'nullable',
-                'min:6','confirmed'
+                'min:6',
+                'confirmed'
             ],
 
             // (unchanged) trial fields
@@ -227,7 +234,7 @@ class UserController extends Controller
         // Role safety (unchanged)
         $roleIds = $request->input('roles', []);
         if (!$isAdmin) {
-            $forbidden = Role::where('name','admin')->pluck('id')->all();
+            $forbidden = Role::where('name', 'admin')->pluck('id')->all();
             $roleIds = array_values(array_diff($roleIds, $forbidden));
         }
 
@@ -239,7 +246,7 @@ class UserController extends Controller
         $email = $request->email;
         if (!filled($email)) {
             // Generate a guaranteed-unique placeholder
-            $email = Str::ulid().'@'.self::SYNTHETIC_DOMAIN;
+            $email = Str::ulid() . '@' . self::SYNTHETIC_DOMAIN;
         }
         $isSynthetic = $this->isSyntheticEmail($email);
 

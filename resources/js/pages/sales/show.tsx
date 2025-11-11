@@ -27,6 +27,8 @@ interface SaleItem {
     item: { item_name: string; unit: { name: string } };
     qty: number;
     main_price: number;
+    discount?: number; // ← add
+    discount_type?: 'bdt' | 'percent'; // ← add
     subtotal: number;
 }
 
@@ -109,7 +111,7 @@ export default function SaleShow({ sale }: { sale: Sale }) {
         <AppLayout title={`Sale ${sale.voucher_no}`}>
             {/* ------------------------------------------------------------------ */}
             {/* Header                                                             */}
-            <header className="mb-6 flex flex-wrap items-center justify-between gap-4">
+            <header className="mx-2 mb-6 flex flex-wrap items-center justify-between gap-4">
                 <div>
                     <h1 className="text-2xl font-bold text-gray-800 dark:text-gray-200">Voucher #{sale.voucher_no}</h1>
                     <p className="text-sm text-gray-500 dark:text-gray-400">Created {fmtDate(sale.created_at)}</p>
@@ -119,7 +121,7 @@ export default function SaleShow({ sale }: { sale: Sale }) {
 
             {/* ------------------------------------------------------------------ */}
             {/* Grid                                                               */}
-            <div className="grid grid-cols-1 gap-8 lg:grid-cols-3">
+            <div className="mx-2 grid grid-cols-1 gap-8 lg:grid-cols-3">
                 {/* ---------------- Left column ----------------------------------- */}
                 <div className="space-y-8 lg:col-span-2">
                     {/* Details */}
@@ -140,20 +142,44 @@ export default function SaleShow({ sale }: { sale: Sale }) {
                                     <th className="p-4">Item</th>
                                     <th className="p-4 text-right">Qty</th>
                                     <th className="p-4 text-right">Price</th>
+                                    <th className="p-4 text-right">Discount</th>   
                                     <th className="p-4 text-right">Subtotal</th>
                                 </tr>
                             </thead>
                             <tbody className="divide-y divide-gray-200 dark:divide-neutral-800">
-                                {sale.sale_items.map((it) => (
-                                    <tr key={it.id}>
-                                        <td className="p-4 font-medium">{it.item.item_name}</td>
-                                        <td className="p-4 text-right">
-                                            {it.qty} {it.item.unit.name}
-                                        </td>
-                                        <td className="p-4 text-right">{fmtMoney(it.main_price)}</td>
-                                        <td className="p-4 text-right font-semibold">{fmtMoney(it.subtotal)}</td>
-                                    </tr>
-                                ))}
+                                {sale.sale_items.map((it) => {
+                                    const discountLabel =
+                                        it.discount && it.discount > 0
+                                            ? it.discount_type === 'percent'
+                                                ? `${it.discount}%`
+                                                : fmtMoney(it.discount)
+                                            : '—';
+
+                                    const netUnit =
+                                        it.discount && it.discount > 0
+                                            ? it.discount_type === 'percent'
+                                                ? it.main_price * (1 - it.discount / 100)
+                                                : it.main_price - it.discount
+                                            : it.main_price;
+
+                                    return (
+                                        <tr key={it.id}>
+                                            <td className="p-4 font-medium">{it.item.item_name}</td>
+                                            <td className="p-4 text-right">
+                                                {it.qty} {it.item.unit.name}
+                                            </td>
+                                            <td className="p-4 text-right">
+                                                {/* show unit price, and (optionally) net unit if discounted */}
+                                                <div>{fmtMoney(it.main_price)}</div>
+                                                {it.discount && it.discount > 0 && (
+                                                    <div className="text-xs text-gray-500">Net: {fmtMoney(netUnit)}</div>
+                                                )}
+                                            </td>
+                                            <td className="p-4 text-right">{discountLabel}</td>
+                                            <td className="p-4 text-right font-semibold">{fmtMoney(it.subtotal)}</td>
+                                        </tr>
+                                    );
+                                })}
                             </tbody>
                         </table>
 
