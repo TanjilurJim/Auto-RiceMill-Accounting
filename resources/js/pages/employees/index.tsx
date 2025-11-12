@@ -12,6 +12,7 @@ interface Employee {
     id: number;
     name: string;
     email: string;
+    joining_date: Date;
     mobile: string;
     salary: number;
     department: { name: string };
@@ -37,7 +38,7 @@ export default function EmployeeIndex({ employees }: { employees: Paginated<Empl
     const columns = [
         { header: '#', accessor: (_: Employee, i?: number) => (i ?? 0) + 1, className: 'text-center' },
         { header: t('empIndexNameHeader'), accessor: 'name' },
-        { header: t('empIndexEmailHeader'), accessor: 'email' },
+        { header: t('Joining Date'), accessor: 'joining_date' },
         { header: t('empIndexMobileHeader'), accessor: 'mobile' },
         { header: t('empIndexSalaryHeader'), accessor: 'salary' },
         { header: t('empIndexDepartmentHeader'), accessor: (row: Employee) => row.department?.name },

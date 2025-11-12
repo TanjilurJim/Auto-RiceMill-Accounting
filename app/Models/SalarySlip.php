@@ -5,9 +5,11 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use App\Traits\BelongsToTenant;
+use App\Traits\EnsuresWithinFinancialYear;
+
 class SalarySlip extends Model
 {
-    use HasFactory, BelongsToTenant;
+    use HasFactory, BelongsToTenant, EnsuresWithinFinancialYear;
 
     protected $fillable = [
         'voucher_number',
@@ -15,10 +17,20 @@ class SalarySlip extends Model
         'month',         // ✅ add this
         'year',          // ✅ and this
         'created_by',
-        'is_advance'
+        'is_advance',
+        'financial_year_id',
     ];
 
-    protected $casts = ['is_advance' => 'bool',];
+    // ensure date is cast to Carbon so the trait can use the instance
+    protected $casts = [
+        'is_advance' => 'bool',
+        'date' => 'date:d-m-Y', // <<< important
+    ];
+
+    // tell the trait to validate by the salary PERIOD (month + year)
+    protected $financialYearValidateBy = 'period';
+    protected $financialYearPeriodMonthColumn = 'month';
+    protected $financialYearPeriodYearColumn = 'year';
 
     // Relationship to SalarySlipEmployee model
     public function salarySlipEmployees()

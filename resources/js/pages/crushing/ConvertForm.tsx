@@ -564,6 +564,16 @@ export default function ConvertForm({
 
     const consumedOpts = partyItemOptions(data.party_ledger_id);
 
+    const partyGeneratedItemOpts = React.useMemo(() => {
+        // reuse partyItemOptions which is already scoped to selected party+godown
+        return partyItemOptions(data.party_ledger_id || '').map((o: PartyItemOpt) => ({
+            value: String(o.value),
+            label: String(o.label),
+            unit_name: o.unit_name,
+            per_unit_kg: o.per_unit_kg,
+        }));
+    }, [data.party_ledger_id, data.godown_id, available_stock]); // rebuild when party/godown/stock changes
+
     useEffect(() => {
         if (!__DEV__) return;
         console.log('[ConvertForm] consumedOpts:', consumedOpts);
@@ -900,6 +910,8 @@ export default function ConvertForm({
                                 onRemove={(i) => removeLine('generated', i)}
                                 onPatch={patchGenerated}
                                 flashMain={flashMain}
+                                partySelected={!!data.party_ledger_id}
+                                partyItemOpts={partyGeneratedItemOpts} // <-- NEW prop
                             />
                         ) : (
                             <GeneratedCompanyTable

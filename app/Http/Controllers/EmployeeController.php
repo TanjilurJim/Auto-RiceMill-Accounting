@@ -96,7 +96,7 @@ class EmployeeController extends Controller
             ]);
 
             //  Auto-create Ledger for Employee
-            $groupUnder = GroupUnder::where('name', 'Sundry Creditors')->firstOrFail();
+            $groupUnder = GroupUnder::where('name', 'Current Liabilities')->firstOrFail();
             $nature     = Nature::where('name', 'Liabilities')->firstOrFail();
 
             $accountGroup = AccountGroup::firstOrCreate(

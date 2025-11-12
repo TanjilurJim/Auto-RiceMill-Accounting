@@ -22,7 +22,9 @@ type Row = {
     total_amount: string | number; // gross = basic + additional
 };
 
-export default function SalarySlipCreate({ employees }: { employees: Employee[] }) {
+type FY = { id: number; start_date: string; end_date: string } | null;
+
+export default function SalarySlipCreate({ employees, current_financial_year }: { employees: Employee[]; current_financial_year: FY }) {
     const { data, setData, post, processing, errors } = useForm({
         voucher_number: '',
         date: '',
@@ -38,6 +40,7 @@ export default function SalarySlipCreate({ employees }: { employees: Employee[] 
     });
 
     const [formError, setFormError] = useState<string | null>(null);
+    const [periodError, setPeriodError] = useState<string | null>(null);
 
     // voucher on mount
     useEffect(() => {
@@ -132,12 +135,65 @@ export default function SalarySlipCreate({ employees }: { employees: Employee[] 
         return { gross: gross.toFixed(2) };
     }, [data.salary_slip_employees]);
 
+    const parseDate = (iso: string) => {
+        const d = new Date(iso);
+        d.setHours(0, 0, 0, 0);
+        return d;
+    };
+
+    const periodDate = (month?: number | null, year?: number | null) => {
+        if (!month || !year) return null;
+        return new Date(year, (month as number) - 1, 1);
+    };
+
+    const isPeriodInsideFY = (month?: number | null, year?: number | null) => {
+        if (!current_financial_year) return false;
+        const p = periodDate(month, year);
+        if (!p) return false;
+        const s = new Date(current_financial_year.start_date);
+        s.setHours(0, 0, 0, 0);
+        const e = new Date(current_financial_year.end_date);
+        e.setHours(23, 59, 59, 999);
+        return p >= s && p <= e;
+    };
+
+    const isDateInsideFY = (dateStr?: string) => {
+        if (!current_financial_year || !dateStr) return false;
+        const d = parseDate(dateStr);
+        const s = new Date(current_financial_year.start_date);
+        s.setHours(0, 0, 0, 0);
+        const e = new Date(current_financial_year.end_date);
+        e.setHours(23, 59, 59, 999);
+        return d >= s && d <= e;
+    };
+
     const validate = () => {
         const ids = data.salary_slip_employees.map((r) => Number(r.employee_id || 0)).filter(Boolean);
         const dup = ids.find((id, i) => ids.indexOf(id) !== i);
         if (!ids.length) return 'Please add at least one employee.';
         if (dup) return 'The same employee is selected more than once.';
         if (!data.date) return 'Please choose a date.';
+
+        if (!current_financial_year) return 'No open financial year. Contact admin.';
+
+        // FY checks:
+        if (!current_financial_year) return 'No open financial year. Contact admin.';
+
+        // If using advance -> check advance period; otherwise check base period
+        const checkMonth = data.is_advance ? data.advance_month : data.month;
+        const checkYear = data.is_advance ? data.advance_year : data.year;
+
+        if (!checkMonth || !checkYear) return data.is_advance ? 'Select the advance period.' : 'Please choose the salary period.';
+
+        // check the period is inside current FY
+        if (!isPeriodInsideFY(checkMonth, checkYear)) {
+            return `Selected period (${checkYear}-${String(checkMonth).padStart(2, '0')}) is outside the open financial year (${current_financial_year.start_date} — ${current_financial_year.end_date}).`;
+        }
+
+        // also check payment date is inside FY (optional but recommended)
+        if (!isDateInsideFY(data.date)) {
+            return `Payment date (${data.date}) is outside the open financial year (${current_financial_year.start_date} — ${current_financial_year.end_date}).`;
+        }
 
         if (data.is_advance) {
             if (!data.advance_month || !data.advance_year) return 'Select the advance period.';
@@ -222,13 +278,37 @@ export default function SalarySlipCreate({ employees }: { employees: Employee[] 
                                     placeholder="Date"
                                     value={data.date}
                                     onChange={(e) => {
-                                        const d = new Date(e.target.value);
-                                        setData('date', e.target.value);
+                                        const val = e.target.value;
+                                        const d = new Date(val);
+                                        setData('date', val);
 
                                         // infer base period only when NOT in advance mode
                                         if (!data.is_advance && (!data.month || !data.year)) {
                                             setData('month', d.getMonth() + 1);
                                             setData('year', d.getFullYear());
+
+                                            // validate period immediately after inferring
+                                            if (!isPeriodInsideFY(d.getMonth() + 1, d.getFullYear())) {
+                                                setPeriodError(
+                                                    `Selected period (${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}) is outside the open financial year (${current_financial_year?.start_date} — ${current_financial_year?.end_date}).`,
+                                                );
+                                            } else {
+                                                setPeriodError(null);
+                                            }
+                                        }
+
+                                        // always validate payment date against FY
+                                        if (!isDateInsideFY(val)) {
+                                            setPeriodError(
+                                                `Payment date (${val}) is outside the open financial year (${current_financial_year?.start_date} — ${current_financial_year?.end_date}).`,
+                                            );
+                                        } else {
+                                            // if period was okay keep it, otherwise clear
+                                            if (data.is_advance) {
+                                                if (isPeriodInsideFY(data.advance_month, data.advance_year)) setPeriodError(null);
+                                            } else {
+                                                if (isPeriodInsideFY(data.month, data.year)) setPeriodError(null);
+                                            }
                                         }
                                     }}
                                     required
@@ -239,7 +319,18 @@ export default function SalarySlipCreate({ employees }: { employees: Employee[] 
                                 <select
                                     className="border p-2"
                                     value={data.month || ''}
-                                    onChange={(e) => setData('month', parseInt(e.target.value))}
+                                    onChange={(e) => {
+                                        const m = parseInt(e.target.value) || null;
+                                        setData('month', m);
+                                        const y = data.year;
+                                        if (!isPeriodInsideFY(m, y)) {
+                                            setPeriodError(
+                                                `Selected period (${y || '—'}-${String(m || 0).padStart(2, '0')}) is outside the open financial year (${current_financial_year?.start_date} — ${current_financial_year?.end_date}).`,
+                                            );
+                                        } else {
+                                            setPeriodError(null);
+                                        }
+                                    }}
                                     required
                                     disabled={data.is_advance}
                                 >
@@ -255,7 +346,18 @@ export default function SalarySlipCreate({ employees }: { employees: Employee[] 
                                 <select
                                     className="border p-2"
                                     value={data.year || ''}
-                                    onChange={(e) => setData('year', parseInt(e.target.value))}
+                                    onChange={(e) => {
+                                        const y = parseInt(e.target.value) || null;
+                                        setData('year', y);
+                                        const m = data.month;
+                                        if (!isPeriodInsideFY(m, y)) {
+                                            setPeriodError(
+                                                `Selected period (${y || '—'}-${String(m || 0).padStart(2, '0')}) is outside the open financial year (${current_financial_year?.start_date} — ${current_financial_year?.end_date}).`,
+                                            );
+                                        } else {
+                                            setPeriodError(null);
+                                        }
+                                    }}
                                     required
                                     disabled={data.is_advance}
                                 >
@@ -272,53 +374,101 @@ export default function SalarySlipCreate({ employees }: { employees: Employee[] 
 
                                 {/* Voucher */}
                                 <input type="text" className="w-full rounded border p-2" value={data.voucher_number} readOnly />
-                            </div>
 
-                            {/* Advance slip toggle */}
-                            <div className="bg-background rounded-md border p-3">
-                                <label className="flex items-center gap-2">
-                                    <input
-                                        type="checkbox"
-                                        checked={!!data.is_advance}
-                                        onChange={(e) => {
-                                            setData('is_advance', e.target.checked);
-                                            if (e.target.checked) ensureAdvanceMonth(); // always copy/default
-                                        }}
-                                    />
-                                    <span className="font-medium">This is an advance slip (paying before the period)</span>
-                                </label>
+                                {/* Inline period error (spans full width) */}
+                                {periodError && <div className="col-span-1 mt-2 text-sm text-red-600 md:col-span-2">{periodError}</div>}
 
-                                {data.is_advance && (
-                                    <div className="mt-3 grid grid-cols-1 gap-3 md:grid-cols-2 hidden">
-                                        <select
-                                            className="border p-2"
-                                            value={data.advance_month || ''}
-                                            onChange={(e) => setData('advance_month', parseInt(e.target.value))}
-                                        >
-                                            <option value="">Advance for — Month</option>
-                                            {Array.from({ length: 12 }, (_, i) => (
-                                                <option key={i + 1} value={i + 1}>
-                                                    {new Date(0, i).toLocaleString('default', { month: 'long' })}
-                                                </option>
-                                            ))}
-                                        </select>
-                                        <select
-                                            className="border p-2"
-                                            value={data.advance_year || ''}
-                                            onChange={(e) => setData('advance_year', parseInt(e.target.value))}
-                                        >
-                                            <option value="">Advance for — Year</option>
-                                            {Array.from({ length: 6 }, (_, i) => {
-                                                const y = new Date().getFullYear() - 1 + i;
-                                                return (
-                                                    <option key={y} value={y}>
-                                                        {y}
+                                {/* Advance slip toggle */}
+                                <div className="bg-background col-span-1 rounded-md border p-3 md:col-span-2">
+                                    <label className="flex items-center gap-2">
+                                        <input
+                                            type="checkbox"
+                                            checked={!!data.is_advance}
+                                            onChange={(e) => {
+                                                const checked = e.target.checked;
+                                                setData('is_advance', checked);
+                                                if (checked) {
+                                                    ensureAdvanceMonth();
+                                                    // validate the advance period after setting defaults
+                                                    const am = data.advance_month || data.month;
+                                                    const ay = data.advance_year || data.year;
+                                                    if (!isPeriodInsideFY(am, ay)) {
+                                                        setPeriodError(
+                                                            `Selected advance period (${ay || '—'}-${String(am || 0).padStart(2, '0')}) is outside the open financial year (${current_financial_year?.start_date} — ${current_financial_year?.end_date}).`,
+                                                        );
+                                                    } else {
+                                                        setPeriodError(null);
+                                                    }
+                                                } else {
+                                                    // switching off advance — revalidate base period/date
+                                                    if (!isPeriodInsideFY(data.month, data.year) || !isDateInsideFY(data.date)) {
+                                                        setPeriodError(
+                                                            `Selected period/date is outside the open financial year (${current_financial_year?.start_date} — ${current_financial_year?.end_date}).`,
+                                                        );
+                                                    } else {
+                                                        setPeriodError(null);
+                                                    }
+                                                }
+                                            }}
+                                        />
+                                        <span className="font-medium">This is an advance slip (paying before the period)</span>
+                                    </label>
+
+                                    {data.is_advance && (
+                                        <div className="mt-3 grid grid-cols-1 gap-3 md:grid-cols-2">
+                                            <select
+                                                className="border p-2"
+                                                value={data.advance_month || ''}
+                                                onChange={(e) => {
+                                                    const m = parseInt(e.target.value) || null;
+                                                    setData('advance_month', m);
+                                                    const y = data.advance_year;
+                                                    if (!isPeriodInsideFY(m, y)) {
+                                                        setPeriodError(
+                                                            `Selected advance period (${y || '—'}-${String(m || 0).padStart(2, '0')}) is outside the open financial year (${current_financial_year?.start_date} — ${current_financial_year?.end_date}).`,
+                                                        );
+                                                    } else {
+                                                        setPeriodError(null);
+                                                    }
+                                                }}
+                                            >
+                                                <option value="">Advance for — Month</option>
+                                                {Array.from({ length: 12 }, (_, i) => (
+                                                    <option key={i + 1} value={i + 1}>
+                                                        {new Date(0, i).toLocaleString('default', { month: 'long' })}
                                                     </option>
-                                                );
-                                            })}
-                                        </select>
-                                    </div>
-                                )}
+                                                ))}
+                                            </select>
+
+                                            <select
+                                                className="border p-2"
+                                                value={data.advance_year || ''}
+                                                onChange={(e) => {
+                                                    const y = parseInt(e.target.value) || null;
+                                                    setData('advance_year', y);
+                                                    const m = data.advance_month;
+                                                    if (!isPeriodInsideFY(m, y)) {
+                                                        setPeriodError(
+                                                            `Selected advance period (${y || '—'}-${String(m || 0).padStart(2, '0')}) is outside the open financial year (${current_financial_year?.start_date} — ${current_financial_year?.end_date}).`,
+                                                        );
+                                                    } else {
+                                                        setPeriodError(null);
+                                                    }
+                                                }}
+                                            >
+                                                <option value="">Advance for — Year</option>
+                                                {Array.from({ length: 6 }, (_, i) => {
+                                                    const y = new Date().getFullYear() - 1 + i;
+                                                    return (
+                                                        <option key={y} value={y}>
+                                                            {y}
+                                                        </option>
+                                                    );
+                                                })}
+                                            </select>
+                                        </div>
+                                    )}
+                                </div>
                             </div>
                         </div>
 

@@ -27,13 +27,20 @@ class AuthenticatedSessionController extends Controller
     /**
      * Handle an incoming authentication request.
      */
-    public function store(LoginRequest $request): RedirectResponse
+    public function store(LoginRequest $request)
     {
         $request->authenticate();
 
         $request->session()->regenerate();
 
-        return redirect()->intended(route('dashboard', absolute: false));
+        // FLASH: tell the frontend to reload once on first app load after login
+        $request->session()->flash('first_app_load', true);
+
+        // build intended URL and force a hard location redirect so client fetches fresh cookies & tokens
+        $intendedUrl = redirect()->intended(route('dashboard', [], false))->getTargetUrl();
+
+        // Inertia::location() returns an Inertia\Response so make the method accept that type
+        return Inertia::location($intendedUrl);
     }
 
     /**

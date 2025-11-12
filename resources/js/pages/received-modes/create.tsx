@@ -30,7 +30,7 @@ export default function Create() {
           <PageHeader title={t('createReceivedModeTitle')} addLinkHref="/received-modes" addLinkText={t('backText')} />
 
           <form onSubmit={handleSubmit} className="space-y-6">
-            <div className="rounded-lg border bg-white p-6 shadow">
+            <div className="rounded-lg border bg-background p-6 shadow">
               <h2 className="mb-4 border-b pb-2 text-lg font-semibold text-gray-700">
                 {t('modeInformationHeader')}
               </h2>
@@ -45,7 +45,7 @@ export default function Create() {
                     type="text"
                     value={data.mode_name}
                     onChange={(e) => setData('mode_name', e.target.value)}
-                    className="block w-full rounded-md border border-gray-300 px-4 py-2 text-sm shadow-sm focus:border-blue-500 focus:ring focus:ring-blue-200"
+                    className="block w-full rounded-md border border-gray-300 px-4 py-2 text-sm shadow-sm focus:border-blue-500 focus:ring focus:ring-blue-200 bg-brackground"
                     placeholder={t('modeNamePlaceholder')}
                   />
                   {errors.mode_name && <p className="mt-1 text-xs text-red-500">{errors.mode_name}</p>}

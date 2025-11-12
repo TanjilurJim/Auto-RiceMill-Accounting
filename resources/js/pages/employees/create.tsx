@@ -195,7 +195,7 @@ export default function CreateEmployee({ departments, designations, shifts, refe
                                     {errors.salary && <p className="text-sm text-red-500">{errors.salary}</p>}
                                 </div>
 
-                                <div>
+                                {/* <div>
                                     <label className="mb-1 block text-sm font-medium">{t('empAdvanceLabel')}</label>
                                     <input
                                         type="number"
@@ -205,7 +205,7 @@ export default function CreateEmployee({ departments, designations, shifts, refe
                                         placeholder={t('empAdvancePlaceholder')}
                                     />
                                     {errors.advance_amount && <p className="text-sm text-red-500">{errors.advance_amount}</p>}
-                                </div>
+                                </div> */}
 
                                 <div>
                                     <label className="mb-1 block text-sm font-medium">{t('empJoiningDateLabel')}</label>

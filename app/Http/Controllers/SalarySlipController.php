@@ -6,6 +6,9 @@ use App\Models\SalarySlip;
 use App\Models\SalarySlipEmployee;
 use App\Models\Employee;
 use Illuminate\Http\Request;
+use App\Models\FinancialYear;
+use Carbon\Carbon;
+
 use Inertia\Inertia;
 use App\Models\Journal;
 use App\Models\JournalEntry;
@@ -70,10 +73,18 @@ class SalarySlipController extends Controller
                 ];
             });
 
+        $currentFy = FinancialYear::where('is_closed', false)->orderByDesc('start_date')->first();
+
         return Inertia::render('salarySlips/create', [
-            'employees' => $employees
+            'employees' => $employees,
+            'current_financial_year' => $currentFy ? [
+                'id' => $currentFy->id,
+                'start_date' => $currentFy->start_date->toDateString(),
+                'end_date' => $currentFy->end_date->toDateString(),
+            ] : null,
         ]);
     }
+
 
 
     // Store salary slip
@@ -90,6 +101,27 @@ class SalarySlipController extends Controller
             'salary_slip_employees.*.basic_salary'      => 'required|numeric|min:0',
             'salary_slip_employees.*.additional_amount' => 'nullable|numeric|min:0',
         ]);
+
+        // Early guard: ensure there is an open financial year and the requested period sits inside it
+        $currentFy = FinancialYear::where('is_closed', false)->orderByDesc('start_date')->first();
+        if (! $currentFy) {
+            throw ValidationException::withMessages(['financial_year' => 'No open financial year. Contact admin.']);
+        }
+
+        try {
+            $periodDate = Carbon::create((int)$request->year, (int)$request->month, 1)->startOfDay();
+        } catch (\Exception $e) {
+            throw ValidationException::withMessages(['month' => 'Invalid salary period (month/year).']);
+        }
+
+        $fyStart = Carbon::parse($currentFy->start_date)->startOfDay();
+        $fyEnd   = Carbon::parse($currentFy->end_date)->endOfDay();
+
+        if (! $periodDate->between($fyStart, $fyEnd)) {
+            throw ValidationException::withMessages([
+                'month' => "Selected salary period ({$periodDate->toDateString()}) is outside the open financial year ({$fyStart->toDateString()} - {$fyEnd->toDateString()}).",
+            ]);
+        }
 
         // ❗ guard: prevent duplicate slips for same employee in same period
         $empIds = collect($request->input('salary_slip_employees', []))
@@ -120,19 +152,15 @@ class SalarySlipController extends Controller
             ]);
         }
 
-        DB::transaction(function () use ($request) {
+        DB::transaction(function () use ($request, $currentFy) {
             $salarySlip = SalarySlip::create([
-                'voucher_number' => $request->voucher_number,
-                'date'           => $request->date,
-                'month'          => $request->month,
-                'year'           => $request->year,
-                'is_advance'     => (bool) $request->boolean('is_advance'),
-
-                // optionally persist the two fields if you add columns:
-                // 'is_advance'     => $request->boolean('is_advance'),
-                // 'advance_month'  => $request->advance_month,
-                // 'advance_year'   => $request->advance_year,
-                'created_by'     => auth()->id(),
+                'voucher_number'   => $request->voucher_number,
+                'date'             => $request->date,
+                'month'            => $request->month,
+                'year'             => $request->year,
+                'is_advance'       => (bool) $request->boolean('is_advance'),
+                'financial_year_id' => $currentFy->id, // persist current open FY
+                'created_by'       => auth()->id(),
             ]);
 
             foreach ($request->salary_slip_employees as $row) {
@@ -150,7 +178,7 @@ class SalarySlipController extends Controller
 
             $journal = \App\Models\Journal::create([
                 'date'       => $request->date,
-                'voucher_no' => 'JRN-' . \Illuminate\Support\Str::upper(\Illuminate\Support\Str::random(6)),
+                'voucher_no' => 'JRN-' . Str::upper(Str::random(6)),
                 'narration'  => "Accrued salaries for Slip #{$salarySlip->voucher_number}",
                 'created_by' => auth()->id(),
             ]);
@@ -185,6 +213,7 @@ class SalarySlipController extends Controller
         return redirect()->route('salary-slips.index')
             ->with('success', 'Salary slip created and accrued successfully!');
     }
+
 
 
 
