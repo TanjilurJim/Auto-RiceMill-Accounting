@@ -9,7 +9,7 @@ use App\Traits\EnsuresWithinFinancialYear;
 
 class SalarySlip extends Model
 {
-    use HasFactory, BelongsToTenant, EnsuresWithinFinancialYear;
+    use HasFactory, BelongsToTenant ;
 
     protected $fillable = [
         'voucher_number',
@@ -28,9 +28,9 @@ class SalarySlip extends Model
     ];
 
     // tell the trait to validate by the salary PERIOD (month + year)
-    protected $financialYearValidateBy = 'period';
-    protected $financialYearPeriodMonthColumn = 'month';
-    protected $financialYearPeriodYearColumn = 'year';
+    // protected $financialYearValidateBy = 'period';
+    // protected $financialYearPeriodMonthColumn = 'month';
+    // protected $financialYearPeriodYearColumn = 'year';
 
     // Relationship to SalarySlipEmployee model
     public function salarySlipEmployees()

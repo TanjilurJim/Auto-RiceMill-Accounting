@@ -475,6 +475,10 @@ Route::post('/expense-heads', function(Request $r) {
         ->only(['edit', 'update'])
         ->middleware(perm('received-modes', 'edit'));
 
+    Route::post('received-modes/{receivedMode}/receive', [ReceivedModeController::class, 'receive'])
+    ->name('received-modes.receive')
+    ->middleware(perm('received-modes', 'create')); // or 'create', up to you
+
     Route::resource('received-modes', ReceivedModeController::class)
         ->only(['destroy'])
         ->middleware(perm('received-modes', 'delete'));
@@ -483,6 +487,8 @@ Route::post('/expense-heads', function(Request $r) {
     Route::resource('received-modes', ReceivedModeController::class)
         ->only(['show'])
         ->middleware(perm('received-modes', 'view'));
+
+
 
     Route::resource('received-add', ReceivedAddController::class)->only(['index',])
         ->middleware(perm('received-add', 'view'));

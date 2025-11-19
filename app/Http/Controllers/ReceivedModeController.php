@@ -50,10 +50,10 @@ class ReceivedModeController extends Controller
 
         // Ensure a proper cash/bank ledger exists and get its id
         [$ledgerId, $ledger] = $this->ensureCashBankLedger(
-            modeName:    $validated['mode_name'],
-            modeKind:    $validated['mode_kind'],
-            phone:       $validated['phone_number'] ?? null,
-            opening:     $opening,
+            modeName: $validated['mode_name'],
+            modeKind: $validated['mode_kind'],
+            phone: $validated['phone_number'] ?? null,
+            opening: $opening,
             openingDate: $openingDate
         );
 
@@ -142,29 +142,36 @@ class ReceivedModeController extends Controller
                 $existing->phone_number = $phone;
                 $dirty = true;
             }
-            if ($dirty) $existing->save();
 
-            // If an opening is provided (or changed), sync Opening journal
+            // If opening changed, update opening_balance but DON'T blindly set closing_balance here.
             if ($opening > 0 && (float)$existing->opening_balance !== $opening) {
                 $existing->opening_balance = $opening;
                 $existing->debit_credit    = 'debit';
-                $existing->closing_balance = $opening;
-                $existing->save();
+                // DO NOT set closing_balance here to avoid double-apply.
+                $dirty = true;
+            }
 
+            if ($dirty) $existing->save();
+
+            // If an opening is provided (or changed), sync Opening journal
+            if ($opening > 0 && (float) $existing->opening_balance === $opening) {
                 app(OpeningBalancePosting::class)->sync($existing, $openingDate);
+
+                // Now recalc the cached closing balance from journals (single canonical path)
+                \App\Services\LedgerBalanceService::recalc($existing);
             }
 
             return [$existing->id, $existing];
         }
 
-        // Create fresh ledger
+        // Create fresh ledger WITHOUT setting closing_balance to opening
         $ledger = AccountLedger::create([
             'account_ledger_name' => $name,
             'ledger_type'         => 'cash_bank',
             'debit_credit'        => 'debit',
             'status'              => 'active',
             'opening_balance'     => $opening,
-            'closing_balance'     => $opening, // cached
+            // 'closing_balance'  => $opening, // removed: don't pre-write the cached closing balance
             'group_under_id'      => $groupUnderId, // 17 cash, 18 bank
             'account_group_id'    => null,
             'phone_number'        => $phone,
@@ -173,8 +180,98 @@ class ReceivedModeController extends Controller
 
         if ($opening > 0) {
             app(OpeningBalancePosting::class)->sync($ledger, $openingDate);
+
+            // Recompute the closing_balance from journals so cache matches source-of-truth.
+            \App\Services\LedgerBalanceService::recalc($ledger);
         }
 
         return [$ledger->id, $ledger];
+    }
+
+    public function show(ReceivedMode $receivedMode)
+    {
+        $receivedMode->load('ledger');
+
+        $ledger = $receivedMode->ledger;
+
+        // Fetch transactions for this ledger — eager-load journal to avoid lazy-loading error
+        $transactions = \App\Models\JournalEntry::query()
+            ->with(['journal:id,date,voucher_type,narration']) // eager-load the journal relation (select only needed columns)
+            ->where('account_ledger_id', $ledger->id)
+            ->orderByDesc('id')
+            ->get()
+            ->map(function ($j) {
+                // JournalEntry in your code stores type = 'debit'|'credit' and amount = numeric
+                $debit  = ($j->type === 'debit')  ? (float) $j->amount : 0.0;
+                $credit = ($j->type === 'credit') ? (float) $j->amount : 0.0;
+
+                return [
+                    'id'     => $j->id,
+                    'date'   => optional($j->journal)->date ?? $j->created_at->toDateString(),
+                    'type'   => optional($j->journal)->voucher_type ?? 'Journal',
+                    'debit'  => $debit,
+                    'credit' => $credit,
+                    'note'   => optional($j->journal)->narration ?? $j->note ?? null,
+                ];
+            });
+
+        return inertia('received-modes/show', [
+            'receivedMode' => $receivedMode,
+            'ledger'       => $ledger,
+            'transactions' => $transactions,
+        ]);
+    }
+
+
+    public function receive(Request $request, ReceivedMode $receivedMode)
+    {
+        $validated = $request->validate([
+            'amount' => ['required', 'numeric', 'min:0.01'],
+            'note'   => ['nullable', 'string'],
+        ]);
+
+        $ledger = $receivedMode->ledger;
+        $amount = (float) $validated['amount'];
+        $note   = $validated['note'] ?? 'Received money';
+
+        // 1. Create Journal header
+        $journal = \App\Models\Journal::create([
+            'date'         => now()->toDateString(),
+            'voucher_no'   => 'RCV-' . $ledger->id . '-' . now()->timestamp,
+            'voucher_type' => 'Receive',
+            'narration'    => $note,
+            'created_by'   => auth()->id(),
+        ]);
+
+        // 2. Debit the cash/bank ledger (increase)
+        \App\Models\JournalEntry::create([
+            'journal_id'        => $journal->id,
+            'account_ledger_id' => $ledger->id,
+            'type'              => 'debit',
+            'amount'            => $amount,
+            'note'              => $note,
+        ]);
+
+        // 3. Credit "Suspense" or "Capital" or just skip if no opposite ledger needed.
+        // Preferably define a ledger for money inflow:
+        $inflowLedger = setting('received_mode_inflow_ledger')
+            ?: config('accounts.default_income_ledger_id'); // fallback
+
+        if ($inflowLedger) {
+            \App\Models\JournalEntry::create([
+                'journal_id'        => $journal->id,
+                'account_ledger_id' => $inflowLedger,
+                'type'              => 'credit',
+                'amount'            => $amount,
+                'note'              => $note,
+            ]);
+
+            \App\Services\LedgerService::adjust($inflowLedger, 'credit', $amount);
+        }
+
+        // 4. Update the balance of the cash/bank ledger:
+        \App\Services\LedgerService::adjust($ledger->id, 'debit', $amount);
+
+        return back()->with('success', 'Money added successfully.');
     }
 }

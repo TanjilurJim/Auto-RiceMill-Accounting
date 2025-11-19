@@ -1,12 +1,12 @@
-import { Head, useForm } from '@inertiajs/react';
-import { Eye, EyeOff, LoaderCircle } from 'lucide-react';
-import { FormEventHandler, useState } from 'react';
-
 import InputError from '@/components/input-error';
 import TextLink from '@/components/text-link';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import AuthLayout from '@/layouts/auth-layout';
+import { Head, useForm } from '@inertiajs/react';
+import { Eye, EyeOff, LoaderCircle } from 'lucide-react';
+import { FormEventHandler, useState } from 'react';
+import ReCAPTCHA from 'react-google-recaptcha';
 
 import AppLogoIcon from '@/components/app-logo-icon';
 import { FcGoogle } from 'react-icons/fc';
@@ -15,26 +15,43 @@ type LoginForm = {
     email: string;
     password: string;
     remember: boolean;
+    'g-recaptcha-response'?: string;
 };
 
 interface LoginProps {
     status?: string;
     canResetPassword: boolean;
 }
-
-export default function Login({ status, canResetPassword }: LoginProps) {
+<script src="https://www.google.com/recaptcha/api.js" async defer></script>
+export default function Login({ status, canResetPassword, recaptcha_site_key }: LoginProps & { recaptcha_site_key?: string }) {
     const { data, setData, post, processing, errors, reset } = useForm<Required<LoginForm>>({
         email: '',
         password: '',
         remember: false,
+        'g-recaptcha-response': '',
     });
 
     const [showPassword, setShowPassword] = useState(false);
+    const [recaptchaRef, setRecaptchaRef] = useState<ReCAPTCHA | null>(null);
 
     const submit: FormEventHandler = (e) => {
         e.preventDefault();
+
+        // if site key configured, require token client-side
+        if (recaptcha_site_key && !data['g-recaptcha-response']) {
+            // optionally show UI message
+            alert('Please complete the captcha.');
+            return;
+        }
+
         post(route('login'), {
-            onFinish: () => reset('password'),
+            onFinish: () => {
+                // reset password for security
+                reset('password');
+                // reset reCAPTCHA widget (client-side)
+                if (recaptchaRef) recaptchaRef.reset();
+                setData('g-recaptcha-response', '');
+            },
         });
     };
 
@@ -51,6 +68,7 @@ export default function Login({ status, canResetPassword }: LoginProps) {
                             </div>
                         </a>
                         <h1 className="text-center text-2xl font-bold text-black">Log in to account</h1>
+
                         {/* Log in Form  */}
                         <form className="flex flex-col gap-6" onSubmit={submit}>
                             <div className="grid gap-6">
@@ -91,7 +109,7 @@ export default function Login({ status, canResetPassword }: LoginProps) {
                                         />
                                         <button
                                             type="button"
-                                            className="absolute inset-y-0 right-0 flex items-center pr-3 text-gray-500 hover:text-gray-700 cursor-pointer"
+                                            className="absolute inset-y-0 right-0 flex cursor-pointer items-center pr-3 text-gray-500 hover:text-gray-700"
                                             onClick={() => setShowPassword(!showPassword)}
                                             aria-label={showPassword ? 'Hide password' : 'Show password'}
                                         >
@@ -125,6 +143,18 @@ export default function Login({ status, canResetPassword }: LoginProps) {
                                     </div>
                                 </div>
 
+                                {/* Insert reCAPTCHA BEFORE submit */}
+                                {recaptcha_site_key ? (
+                                    <div className="flex justify-center">
+                                        <ReCAPTCHA
+                                            ref={(r) => setRecaptchaRef(r)}
+                                            sitekey={recaptcha_site_key}
+                                            onChange={(token) => setData('g-recaptcha-response', token || '')}
+                                        />
+                                    </div>
+                                ) : null}
+                                {errors['g-recaptcha-response'] && <p className="mt-2 text-sm text-red-600">{errors['g-recaptcha-response']}</p>}
+
                                 <button
                                     type="submit"
                                     className="mt-4 inline-flex w-full cursor-pointer items-center justify-center gap-1 rounded-sm bg-[#5e0404] px-6 py-2 text-white transition duration-300 ease-in-out hover:bg-[#1D1C1E] hover:text-white"
@@ -151,6 +181,25 @@ export default function Login({ status, canResetPassword }: LoginProps) {
                                 </TextLink>
                             </div>
                         </form>
+                        <div className="rounded bg-gray-100 p-3 text-center text-sm text-gray-700">
+                            <p className="font-semibold">Demo Login</p>
+                            <p>
+                                Email: <span className="font-mono">company@no-mail.ricemillerp.com</span>
+                            </p>
+                            <p>
+                                Password: <span className="font-mono">password</span>
+                            </p>
+                            <button
+                                type="button"
+                                className="mt-2 text-blue-600 underline"
+                                onClick={() => {
+                                    setData('email', 'company@no-mail.ricemillerp.com');
+                                    setData('password', 'password');
+                                }}
+                            >
+                                Autofill Demo Credentials
+                            </button>
+                        </div>
                     </div>
                 </div>
             </div>

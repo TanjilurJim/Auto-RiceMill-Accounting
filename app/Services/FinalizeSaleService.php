@@ -59,8 +59,41 @@ class FinalizeSaleService
                     'created_by' => $sale->created_by,
                 ])->value('avg_cost') ?? 0;
 
-                if ($unitCost == 0) {
-                    $unitCost = Item::find($row->product_id)->purchase_price ?? 0;
+                // If avg_cost missing or zero, try latest StockMove for that lot (purchase/in or purchase)
+                if (empty($unitCost) || $unitCost == 0) {
+                    $move = \App\Models\StockMove::where('lot_id', $row->lot_id)
+                        ->where('item_id', $row->product_id)
+                        ->whereIn('type', ['in', 'purchase'])
+                        ->orderByDesc('id')
+                        ->first();
+
+                    if ($move) {
+                        // 1) Prefer explicit unit_cost (per unit/bosta) on the stock_move
+                        if (!is_null($move->unit_cost) && (float)$move->unit_cost > 0) {
+                            $unitCost = (float) $move->unit_cost;
+                        } else {
+                            // 2) Try meta.per_kg_rate -> convert to per-unit using unit weight
+                            $meta = is_array($move->meta) ? $move->meta : (json_decode($move->meta ?? '{}', true) ?: []);
+                            $perKg = isset($meta['per_kg_rate']) ? (float)$meta['per_kg_rate'] : null;
+                            $unitWeight = isset($meta['unit_weight']) ? (float)$meta['unit_weight'] : null;
+
+                            // fallback: try Lot.unit_weight if meta didn't include it
+                            if ((!$unitWeight || $unitWeight <= 0) && $row->lot_id) {
+                                $lot = \App\Models\Lot::find($row->lot_id);
+                                $unitWeight = $lot?->unit_weight ? (float)$lot->unit_weight : $unitWeight;
+                            }
+
+                            if ($perKg && $unitWeight && $unitWeight > 0) {
+                                // perKg is TK/kg, unitWeight is kg per unit -> unit cost = perKg * unitWeight
+                                $unitCost = $perKg * $unitWeight;
+                            }
+                        }
+                    }
+                }
+
+                // final fallback: item.purchase_price (per unit)
+                if (empty($unitCost) || $unitCost == 0) {
+                    $unitCost = \App\Models\Item::find($row->product_id)->purchase_price ?? 0;
                 }
 
                 $costByItem[$row->product_id] = ($costByItem[$row->product_id] ?? 0)
