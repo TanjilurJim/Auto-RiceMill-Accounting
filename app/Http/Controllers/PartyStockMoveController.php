@@ -18,6 +18,36 @@ use Illuminate\Pagination\LengthAwarePaginator;
 
 class PartyStockMoveController extends Controller
 {
+
+    private function ensurePartyLedger(string $name): int
+    {
+        $name = trim($name);
+
+        // get numeric id (prefer lookup by name to avoid hard-coding)
+        $sundryDebtorsId = \App\Models\GroupUnder::where('name', 'Sundry Debtors')->value('id') ?? 7;
+
+        // find existing for this user under Sundry Debtors
+        $existing = AccountLedger::where([
+            ['ledger_type', '=', 'accounts_receivable'],
+            ['group_under_id', '=', $sundryDebtorsId],
+            ['account_ledger_name', '=', $name],
+            ['created_by', '=', auth()->id()],
+        ])->first();
+
+        if ($existing) return $existing->id;
+
+        return AccountLedger::create([
+            'account_ledger_name' => $name,
+            'ledger_type'         => 'accounts_receivable',
+            'debit_credit'        => 'debit',
+            'opening_balance'     => 0,
+            'closing_balance'     => 0,
+            'status'              => 'active',
+            'group_under_id'      => $sundryDebtorsId,    // <-- numeric
+            'created_by'          => auth()->id(),
+        ])->id;
+    }
+
     public function create()
     {
         $dateStr = now()->format('Ymd');
@@ -25,11 +55,12 @@ class PartyStockMoveController extends Controller
         $generatedRefNo = "PSD-$dateStr-$random";
 
         return Inertia::render('crushing/PartyStockDepositForm', [
-            'parties' => AccountLedger::whereIn('ledger_type', ['accounts_receivable'])
-
+            // keep this list tight to crushing-parties only:
+            'parties' => AccountLedger::where('ledger_type', 'accounts_receivable')
+                ->where('group_under_id', 7)
                 ->get(['id', 'account_ledger_name']),
-            // 'items'   => Item::where(createdByMeOnly())->get(['id', 'item_name', 'unit_id']),
-            'units' => Unit::all(['id', 'name']),
+
+            'units'   => Unit::all(['id', 'name']),
             'godowns' => Godown::all(['id', 'name']),
             'today'   => now()->toDateString(),
             'generated_ref_no' => $generatedRefNo,
@@ -38,31 +69,61 @@ class PartyStockMoveController extends Controller
 
     public function store(Request $request)
     {
-        // Validate the request
+        // Accept either an existing party_ledger_id OR a new party_name (Creatable)
         $validated = $request->validate([
-            'date'             => ['required', 'date'],
-            'party_ledger_id'  => ['required', 'exists:account_ledgers,id'],
-            'godown_id_to'     => ['required', 'exists:godowns,id'],
-            'ref_no'           => ['nullable', 'string', 'max:255'],
-            'remarks'          => ['nullable', 'string'],
-            'deposits'         => ['required', 'array', 'min:1'],
-            'deposits.*.item_name'      => ['required', 'string', 'max:255'],
-            'deposits.*.qty'    => ['required', 'numeric', 'min:0.01'],
-            'deposits.*.unit_id'        => ['nullable', 'exists:units,id'],
-            'deposits.*.unit_name' => ['nullable', 'string'],
-            'deposits.*.rate'   => ['required', 'numeric', 'min:0'],  // Ensure rate is required
+            'date'              => ['required', 'date'],
+            'party_ledger_id'   => ['nullable', 'exists:account_ledgers,id'],
+            'party_name'        => ['nullable', 'string', 'max:255'],   // NEW
+            'godown_id_to'      => ['required', 'exists:godowns,id'],
+            'ref_no'            => ['nullable', 'string', 'max:255'],
+            'remarks'           => ['nullable', 'string'],
+            'deposits'          => ['required', 'array', 'min:1'],
+            'deposits.*.item_name'   => ['required', 'string', 'max:255'],
+            'deposits.*.qty'         => ['required', 'numeric', 'min:0.01'],
+            'deposits.*.unit_id'     => ['nullable', 'exists:units,id'],
+            'deposits.*.unit_name'   => ['nullable', 'string'],
+            'deposits.*.rate'        => ['required', 'numeric', 'min:0'],
 
-            'deposits.*.bosta_weight'   => ['nullable', 'numeric', 'min:0'],  // new
-            'deposits.*.weight'   => ['nullable', 'numeric', 'min:0'],  // new
+            'deposits.*.bosta_weight' => ['nullable', 'numeric', 'min:0'],
+            'deposits.*.weight'      => ['nullable', 'numeric', 'min:0'],
         ]);
 
-        DB::transaction(function () use ($validated) {
+        // Exactly one of party_ledger_id or party_name must be present
+        $hasId   = !empty($validated['party_ledger_id']);
+        $hasName = !empty($validated['party_name']);
+
+        if (!($hasId xor $hasName)) {
+            return back()
+                ->withErrors(['party_ledger_id' => 'Choose an existing party OR type a new party name.'])
+                ->withInput();
+        }
+
+        // Resolve the party id: ensure/create if a new name was typed
+        $partyId = $hasId
+            ? (int) $validated['party_ledger_id']
+            : $this->ensurePartyLedger($validated['party_name']);
+
+        // Lightweight guard when an existing id is provided: must be A/R under group 35
+        // Lightweight guard when an existing id is provided: must be A/R under Sundry Debtors
+        if ($hasId) {
+            $lt = AccountLedger::where('id', $partyId)->value('ledger_type');
+            $gu = AccountLedger::where('id', $partyId)->value('group_under_id');
+            $sundryDebtorsId = \App\Models\GroupUnder::where('name', 'Sundry Debtors')->value('id') ?? 7;
+
+            if ($lt !== 'accounts_receivable' || (int)$gu !== (int)$sundryDebtorsId) {
+                return back()
+                    ->withErrors(['party_ledger_id' => 'Selected party must be an A/R ledger under Sundry Debtors.'])
+                    ->withInput();
+            }
+        }
+
+        DB::transaction(function () use ($validated, $partyId) {
             foreach ($validated['deposits'] as $deposit) {
                 $unitId = \App\Models\Unit::where('name', $deposit['unit_name'])->value('id');
 
                 $partyItem = \App\Models\PartyItem::firstOrCreate(
                     [
-                        'party_ledger_id' => $validated['party_ledger_id'],
+                        'party_ledger_id' => $partyId,
                         'item_name'       => trim($deposit['item_name']),
                     ],
                     [
@@ -76,28 +137,28 @@ class PartyStockMoveController extends Controller
                 $unitName = strtolower((string)($deposit['unit_name'] ?? ''));
                 $perBosta = isset($deposit['bosta_weight']) ? (float)$deposit['bosta_weight'] : 0.0;
 
-                // Prefer client calc only if > 0; otherwise recompute
+                // Prefer client calc if present; otherwise recompute
                 $weight = isset($deposit['weight']) ? (float)$deposit['weight'] : 0.0;
                 if ($weight <= 0) {
                     if ($unitName === 'kg') {
                         $weight = $qty;
                     } elseif ($unitName === 'bosta' && $perBosta > 0) {
-                        $weight = $qty * $perBosta; // kg
+                        $weight = $qty * $perBosta;
                     } else {
-                        $weight = null; // unknown
+                        $weight = null;
                     }
                 }
 
                 \App\Models\PartyStockMove::create([
                     'date'            => $validated['date'],
-                    'party_ledger_id' => $validated['party_ledger_id'],
+                    'party_ledger_id' => $partyId,
                     'party_item_id'   => $partyItem->id,
                     'godown_id_from'  => null,
                     'godown_id_to'    => $validated['godown_id_to'],
                     'qty'             => $qty,
-                    'weight'          => $weight !== null ? round(abs($weight), 3) : null, // store +ve kg
+                    'weight'          => $weight !== null ? round(abs($weight), 3) : null,
                     'rate'            => $rate,
-                    'total'           => bcmul($qty, $rate, 2), // rate per-bosta stays qty×rate
+                    'total'           => bcmul($qty, $rate, 2),
                     'move_type'       => 'deposit',
                     'ref_no'          => $validated['ref_no'] ?? null,
                     'remarks'         => $validated['remarks'] ?? null,
@@ -110,7 +171,7 @@ class PartyStockMoveController extends Controller
                     'party_item_id' => $partyItem->id,
                     'godown_id'     => $validated['godown_id_to'],
                 ]);
-                $stock->party_ledger_id = $validated['party_ledger_id'];
+                $stock->party_ledger_id = $partyId;
                 $stock->qty        = ($stock->qty ?? 0) + $qty;
                 $stock->unit_name  = $deposit['unit_name'] ?? $stock->unit_name;
                 $stock->created_by = auth()->id();
@@ -118,11 +179,23 @@ class PartyStockMoveController extends Controller
             }
         });
 
-
-        // Redirect back with success message
         return redirect()->route('party-stock.deposit.index')->with('success', 'পণ্য জমা সফলভাবে হয়েছে।');
     }
 
+    public function items(\App\Models\AccountLedger $party)
+    {
+        // Return party's saved item names (and unit_name if you want to auto-fill)
+        $rows = \App\Models\PartyItem::with('unit:id,name')
+            ->where('party_ledger_id', $party->id)
+            ->orderBy('item_name')
+            ->get()
+            ->map(fn($pi) => [
+                'item_name' => $pi->item_name,
+                'unit_name' => $pi->unit?->name,     // optional helper for the UI
+            ]);
+
+        return response()->json($rows);
+    }
 
     // Method to display the list of deposits
     public function index()

@@ -268,21 +268,21 @@ class SaleReportController extends Controller
     }
 
     private function getPartyVoucherProfitData(array $f): \Illuminate\Support\Collection
-{
-    $ids = $this->allowedUserIds();
+    {
+        $ids = $this->allowedUserIds();
 
-    // Voucher-level totals grouped by party + voucher
-    return DB::table('sales as s')
-        ->join('sale_items as si', 'si.sale_id', '=', 's.id')
-        ->join('account_ledgers as a', 'a.id', '=', 's.account_ledger_id')
-        ->join('items as i', 'i.id', '=', 'si.product_id')
-        ->leftJoin('stocks as st', function ($j) {
-            $j->on('st.item_id', '=', 'si.product_id')
-              ->on('st.godown_id', '=', 's.godown_id')
-              ->on('st.lot_id', '=', 'si.lot_id')
-              ->on('st.created_by', '=', 's.created_by');
-        })
-        ->selectRaw('
+        // Voucher-level totals grouped by party + voucher
+        return DB::table('sales as s')
+            ->join('sale_items as si', 'si.sale_id', '=', 's.id')
+            ->join('account_ledgers as a', 'a.id', '=', 's.account_ledger_id')
+            ->join('items as i', 'i.id', '=', 'si.product_id')
+            ->leftJoin('stocks as st', function ($j) {
+                $j->on('st.item_id', '=', 'si.product_id')
+                    ->on('st.godown_id', '=', 's.godown_id')
+                    ->on('st.lot_id', '=', 'si.lot_id')
+                    ->on('st.created_by', '=', 's.created_by');
+            })
+            ->selectRaw('
             s.date,
             s.voucher_no,
             a.account_ledger_name as party_name,
@@ -291,21 +291,21 @@ class SaleReportController extends Controller
             SUM(COALESCE(NULLIF(st.avg_cost,0), NULLIF(i.purchase_price,0), 0) * si.qty) as total_cost,
             SUM((si.main_price - COALESCE(NULLIF(st.avg_cost,0), NULLIF(i.purchase_price,0), 0)) * si.qty) as total_profit
         ')
-        ->when(!empty($f['year']) || (!empty($f['from_date']) && !empty($f['to_date'])), function ($q) use ($f) {
-            if (!empty($f['year'])) {
-                $q->whereYear('s.date', $f['year']);
-            } else {
-                $q->whereBetween('s.date', [$f['from_date'], $f['to_date']]);
-            }
-        })
-        ->when($f['party_id'] ?? null, fn($q, $id) => $q->where('a.id', $id))
-        ->when($ids, fn($q, $ids) => $q->whereIn('s.created_by', $ids))
-        ->groupBy('s.date', 's.voucher_no', 'a.account_ledger_name')
-        ->orderBy('a.account_ledger_name')
-        ->orderBy('s.date')
-        ->orderBy('s.voucher_no')
-        ->get();
-}
+            ->when(!empty($f['year']) || (!empty($f['from_date']) && !empty($f['to_date'])), function ($q) use ($f) {
+                if (!empty($f['year'])) {
+                    $q->whereYear('s.date', $f['year']);
+                } else {
+                    $q->whereBetween('s.date', [$f['from_date'], $f['to_date']]);
+                }
+            })
+            ->when($f['party_id'] ?? null, fn($q, $id) => $q->where('a.id', $id))
+            ->when($ids, fn($q, $ids) => $q->whereIn('s.created_by', $ids))
+            ->groupBy('s.date', 's.voucher_no', 'a.account_ledger_name')
+            ->orderBy('a.account_ledger_name')
+            ->orderBy('s.date')
+            ->orderBy('s.voucher_no')
+            ->get();
+    }
 
 
 
@@ -438,24 +438,68 @@ class SaleReportController extends Controller
     {
         $allowedUserIds = $this->allowedUserIds();
 
-        // We will value COGS by the lot-level weighted-average cost kept in `stocks`.
-        // That’s exactly what FinalizeSaleService used to post COGS, so reports align.
+        // Subquery: latest stock_move per lot (type IN 'in','purchase')
+        $latestMovesSub = DB::table('stock_moves as sm_outer')
+            ->select('sm.*')
+            ->from('stock_moves as sm')
+            ->join(
+                DB::raw('(SELECT lot_id, MAX(id) AS maxid FROM stock_moves WHERE `type` IN ("in","purchase") GROUP BY lot_id) as mx'),
+                function ($join) {
+                    $join->on('sm.lot_id', '=', 'mx.lot_id')
+                        ->on('sm.id', '=', 'mx.maxid');
+                }
+            );
 
+        // NOTE: we will use leftJoinSub below; some DB drivers need the subquery as a query builder.
+        $latestMoves = DB::table(DB::raw('(SELECT sm.* FROM stock_moves sm JOIN (SELECT lot_id, MAX(id) AS maxid FROM stock_moves WHERE `type` IN ("in","purchase") GROUP BY lot_id) mx ON sm.lot_id = mx.lot_id AND sm.id = mx.maxid)'))
+            ->select(DB::raw('sm.*'));
+
+        // If year filter provided -> monthly summary
         if (!empty($f['year'])) {
-            // ── Month summary: profit = Σ((sale_price - lot_avg_cost) * qty)
             return DB::table('sales as s')
                 ->join('sale_items as si', 'si.sale_id', '=', 's.id')
                 ->join('items as i', 'i.id', '=', 'si.product_id')
-                // lot-level cost
+
+                // left join stocks (lot-level avg_cost)
                 ->leftJoin('stocks as st', function ($j) {
                     $j->on('st.item_id', '=', 'si.product_id')
                         ->on('st.godown_id', '=', 's.godown_id')
                         ->on('st.lot_id', '=', 'si.lot_id')
                         ->on('st.created_by', '=', 's.created_by');
                 })
+
+                // left join lots (to access lot.unit_weight)
+                ->leftJoin('lots as l', 'l.id', '=', 'si.lot_id')
+
+                // left join latest stock_move per lot (alias sm)
+                ->leftJoin(DB::raw(
+                    '(SELECT sm.* FROM stock_moves sm JOIN (SELECT lot_id, MAX(id) AS maxid FROM stock_moves WHERE `type` IN ("in","purchase") GROUP BY lot_id) mx ON sm.lot_id = mx.lot_id AND sm.id = mx.maxid) as sm'
+                ), 'sm.lot_id', '=', 'si.lot_id')
+
                 ->selectRaw('
                 MONTH(s.date) as month,
-                SUM( (si.main_price - COALESCE(st.avg_cost, i.purchase_price, 0)) * si.qty ) as profit
+                SUM( (si.main_price - COALESCE(
+                    NULLIF(st.avg_cost, 0),
+                    -- sm.unit_cost if present
+                    NULLIF(sm.unit_cost, 0),
+                    -- else try sm.meta.per_kg_rate * unit_weight (unit_weight from sm.meta, lots.unit_weight or items.weight)
+                    (CASE
+                        WHEN sm.meta IS NOT NULL AND JSON_EXTRACT(sm.meta, "$.per_kg_rate") IS NOT NULL THEN
+                            (CAST(JSON_UNQUOTE(JSON_EXTRACT(sm.meta, "$.per_kg_rate")) AS DECIMAL(20,6))
+                             *
+                             COALESCE(
+                                CAST(JSON_UNQUOTE(JSON_EXTRACT(sm.meta, "$.unit_weight")) AS DECIMAL(20,6)),
+                                l.unit_weight,
+                                i.weight,
+                                0
+                             )
+                            )
+                        ELSE NULL
+                    END),
+                    -- fallback item purchase_price
+                    NULLIF(i.purchase_price, 0),
+                    0
+                )) * si.qty ) as profit
             ')
                 ->whereYear('s.date', $f['year'])
                 ->when($allowedUserIds, fn($q, $ids) => $q->whereIn('s.created_by', $ids))
@@ -464,34 +508,88 @@ class SaleReportController extends Controller
                 ->get();
         }
 
-        // ── Detailed rows
+        // Detailed rows (date range)
         return DB::table('sales as s')
             ->join('sale_items as si', 'si.sale_id', '=', 's.id')
             ->join('items as i', 'i.id', '=', 'si.product_id')
             ->join('units as u', 'u.id', '=', 'i.unit_id')
-            // lot-level cost
+
+            // left join stocks (lot-level avg_cost)
             ->leftJoin('stocks as st', function ($j) {
                 $j->on('st.item_id', '=', 'si.product_id')
                     ->on('st.godown_id', '=', 's.godown_id')
                     ->on('st.lot_id', '=', 'si.lot_id')
-                    ->on('st.created_by', '=', 's.created_by'); // keep if you truly multi-tenant by created_by
+                    ->on('st.created_by', '=', 's.created_by');
             })
+
+            // left join lots for lot.unit_weight
+            ->leftJoin('lots as l', 'l.id', '=', 'si.lot_id')
+
+            // left join latest stock_move per lot (alias sm)
+            ->leftJoin(DB::raw(
+                '(SELECT sm.* FROM stock_moves sm JOIN (SELECT lot_id, MAX(id) AS maxid FROM stock_moves WHERE `type` IN ("in","purchase") GROUP BY lot_id) mx ON sm.lot_id = mx.lot_id AND sm.id = mx.maxid) as sm'
+            ), 'sm.lot_id', '=', 'si.lot_id')
+
             ->selectRaw('
-    s.date,
-    s.voucher_no,
-    i.item_name,
-    si.qty,
-    u.name as unit_name,
-    si.main_price as sale_price,
-    COALESCE(NULLIF(st.avg_cost, 0), NULLIF(i.purchase_price, 0), 0) as purchase_price,
-    (si.main_price - COALESCE(NULLIF(st.avg_cost, 0), NULLIF(i.purchase_price, 0), 0)) * si.qty as profit
-')
+            s.date,
+            s.voucher_no,
+            i.item_name,
+            si.qty,
+            u.name as unit_name,
+            si.main_price as sale_price,
+
+            -- compute cost price using fallbacks:
+            -- 1) st.avg_cost (if non-zero)
+            -- 2) sm.unit_cost (if non-zero)
+            -- 3) sm.meta.per_kg_rate * unit_weight (unit_weight from meta or lot or item)
+            -- 4) i.purchase_price
+            COALESCE(
+                NULLIF(st.avg_cost, 0),
+                NULLIF(sm.unit_cost, 0),
+                (CASE
+                    WHEN sm.meta IS NOT NULL AND JSON_EXTRACT(sm.meta, "$.per_kg_rate") IS NOT NULL THEN
+                        (CAST(JSON_UNQUOTE(JSON_EXTRACT(sm.meta, "$.per_kg_rate")) AS DECIMAL(20,6))
+                         *
+                         COALESCE(
+                            CAST(JSON_UNQUOTE(JSON_EXTRACT(sm.meta, "$.unit_weight")) AS DECIMAL(20,6)),
+                            l.unit_weight,
+                            i.weight,
+                            0
+                         )
+                        )
+                    ELSE NULL
+                END),
+                NULLIF(i.purchase_price, 0),
+                0
+            ) as purchase_price,
+
+            (si.main_price - COALESCE(
+                NULLIF(st.avg_cost, 0),
+                NULLIF(sm.unit_cost, 0),
+                (CASE
+                    WHEN sm.meta IS NOT NULL AND JSON_EXTRACT(sm.meta, "$.per_kg_rate") IS NOT NULL THEN
+                        (CAST(JSON_UNQUOTE(JSON_EXTRACT(sm.meta, "$.per_kg_rate")) AS DECIMAL(20,6))
+                         *
+                         COALESCE(
+                            CAST(JSON_UNQUOTE(JSON_EXTRACT(sm.meta, "$.unit_weight")) AS DECIMAL(20,6)),
+                            l.unit_weight,
+                            i.weight,
+                            0
+                         )
+                        )
+                    ELSE NULL
+                END),
+                NULLIF(i.purchase_price, 0),
+                0
+            )) * si.qty as profit
+        ')
             ->whereBetween('s.date', [$f['from_date'], $f['to_date']])
             ->when($allowedUserIds, fn($q, $ids) => $q->whereIn('s.created_by', $ids))
             ->orderBy('s.date')
             ->orderBy('s.voucher_no')
             ->get();
     }
+
 
 
 

@@ -22,6 +22,8 @@ type Row = {
     total_amount: string | number; // gross = basic + additional
 };
 
+type FY = { id: number; start_date: string; end_date: string } | null;
+
 export default function SalarySlipCreate({ employees }: { employees: Employee[] }) {
     const { data, setData, post, processing, errors } = useForm({
         voucher_number: '',
@@ -139,11 +141,13 @@ export default function SalarySlipCreate({ employees }: { employees: Employee[] 
         if (dup) return 'The same employee is selected more than once.';
         if (!data.date) return 'Please choose a date.';
 
+        // If using advance -> check advance period; otherwise check base period
         if (data.is_advance) {
             if (!data.advance_month || !data.advance_year) return 'Select the advance period.';
         } else {
             if (!data.month || !data.year) return 'Please choose the salary period.';
         }
+
         return null;
     };
 
@@ -222,8 +226,9 @@ export default function SalarySlipCreate({ employees }: { employees: Employee[] 
                                     placeholder="Date"
                                     value={data.date}
                                     onChange={(e) => {
-                                        const d = new Date(e.target.value);
-                                        setData('date', e.target.value);
+                                        const val = e.target.value;
+                                        const d = new Date(val);
+                                        setData('date', val);
 
                                         // infer base period only when NOT in advance mode
                                         if (!data.is_advance && (!data.month || !data.year)) {
@@ -239,7 +244,9 @@ export default function SalarySlipCreate({ employees }: { employees: Employee[] 
                                 <select
                                     className="border p-2"
                                     value={data.month || ''}
-                                    onChange={(e) => setData('month', parseInt(e.target.value))}
+                                    onChange={(e) => {
+                                        setData('month', parseInt(e.target.value));
+                                    }}
                                     required
                                     disabled={data.is_advance}
                                 >
@@ -255,7 +262,9 @@ export default function SalarySlipCreate({ employees }: { employees: Employee[] 
                                 <select
                                     className="border p-2"
                                     value={data.year || ''}
-                                    onChange={(e) => setData('year', parseInt(e.target.value))}
+                                    onChange={(e) => {
+                                        setData('year', parseInt(e.target.value));
+                                    }}
                                     required
                                     disabled={data.is_advance}
                                 >
@@ -272,53 +281,57 @@ export default function SalarySlipCreate({ employees }: { employees: Employee[] 
 
                                 {/* Voucher */}
                                 <input type="text" className="w-full rounded border p-2" value={data.voucher_number} readOnly />
-                            </div>
 
-                            {/* Advance slip toggle */}
-                            <div className="bg-background rounded-md border p-3">
-                                <label className="flex items-center gap-2">
-                                    <input
-                                        type="checkbox"
-                                        checked={!!data.is_advance}
-                                        onChange={(e) => {
-                                            setData('is_advance', e.target.checked);
-                                            if (e.target.checked) ensureAdvanceMonth(); // always copy/default
-                                        }}
-                                    />
-                                    <span className="font-medium">This is an advance slip (paying before the period)</span>
-                                </label>
+                                {/* Advance slip toggle */}
+                                <div className="bg-background col-span-1 rounded-md border p-3 md:col-span-2">
+                                    <label className="flex items-center gap-2">
+                                        <input
+                                            type="checkbox"
+                                            checked={!!data.is_advance}
+                                            onChange={(e) => {
+                                                const checked = e.target.checked;
+                                                setData('is_advance', checked);
+                                                if (checked) {
+                                                    ensureAdvanceMonth();
+                                                }
+                                            }}
+                                        />
+                                        <span className="font-medium">This is an advance slip (paying before the period)</span>
+                                    </label>
 
-                                {data.is_advance && (
-                                    <div className="mt-3 grid grid-cols-1 gap-3 md:grid-cols-2 hidden">
-                                        <select
-                                            className="border p-2"
-                                            value={data.advance_month || ''}
-                                            onChange={(e) => setData('advance_month', parseInt(e.target.value))}
-                                        >
-                                            <option value="">Advance for — Month</option>
-                                            {Array.from({ length: 12 }, (_, i) => (
-                                                <option key={i + 1} value={i + 1}>
-                                                    {new Date(0, i).toLocaleString('default', { month: 'long' })}
-                                                </option>
-                                            ))}
-                                        </select>
-                                        <select
-                                            className="border p-2"
-                                            value={data.advance_year || ''}
-                                            onChange={(e) => setData('advance_year', parseInt(e.target.value))}
-                                        >
-                                            <option value="">Advance for — Year</option>
-                                            {Array.from({ length: 6 }, (_, i) => {
-                                                const y = new Date().getFullYear() - 1 + i;
-                                                return (
-                                                    <option key={y} value={y}>
-                                                        {y}
+                                    {data.is_advance && (
+                                        <div className="mt-3 grid grid-cols-1 gap-3 md:grid-cols-2">
+                                            <select
+                                                className="border p-2"
+                                                value={data.advance_month || ''}
+                                                onChange={(e) => setData('advance_month', parseInt(e.target.value))}
+                                            >
+                                                <option value="">Advance for — Month</option>
+                                                {Array.from({ length: 12 }, (_, i) => (
+                                                    <option key={i + 1} value={i + 1}>
+                                                        {new Date(0, i).toLocaleString('default', { month: 'long' })}
                                                     </option>
-                                                );
-                                            })}
-                                        </select>
-                                    </div>
-                                )}
+                                                ))}
+                                            </select>
+
+                                            <select
+                                                className="border p-2"
+                                                value={data.advance_year || ''}
+                                                onChange={(e) => setData('advance_year', parseInt(e.target.value))}
+                                            >
+                                                <option value="">Advance for — Year</option>
+                                                {Array.from({ length: 6 }, (_, i) => {
+                                                    const y = new Date().getFullYear() - 1 + i;
+                                                    return (
+                                                        <option key={y} value={y}>
+                                                            {y}
+                                                        </option>
+                                                    );
+                                                })}
+                                            </select>
+                                        </div>
+                                    )}
+                                </div>
                             </div>
                         </div>
 

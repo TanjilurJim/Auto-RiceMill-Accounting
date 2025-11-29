@@ -6,6 +6,7 @@ use App\Models\Sale;
 use Illuminate\Validation\ValidationException;
 use App\Services\SalePaymentService;
 use App\Services\LedgerService;
+use function user_scope_ids;
 use App\Services\FinalizeSaleService;
 use Carbon\Carbon;          // already there if you date-parse elsewhere
 use Spatie\Permission\Models\Permission;
@@ -136,6 +137,63 @@ class SaleController extends Controller
         return Inertia::render('sales/show', ['sale' => $sale]);
     }
 
+    private function ensureInventoryLedgerForGodown(int $godownId, ?string $desiredName = null): int
+    {
+        $godown = \App\Models\Godown::findOrFail($godownId);
+        $name   = $desiredName ?: ('Inventory - ' . $godown->name);
+
+        $existing = \App\Models\AccountLedger::where([
+            ['account_ledger_name', '=', $name],
+            ['ledger_type', '=', 'inventory'],
+            ['created_by', '=', auth()->id()],
+        ])->first();
+
+        if ($existing) {
+            return $existing->id;
+        }
+
+        $ledger = \App\Models\AccountLedger::create([
+            'account_ledger_name' => $name,
+            'ledger_type'         => 'inventory',
+            'debit_credit'        => 'debit',
+            'opening_balance'     => 0,
+            'closing_balance'     => 0,
+            'status'              => 'active',
+            'group_under_id'      => 2,  // Current Assets (same as Purchases)
+            'account_group_id'    => 3,
+            'created_by'          => auth()->id(),
+        ]);
+
+        return $ledger->id;
+    }
+
+    private function ensureCogsLedger(): int
+    {
+        // Prefer “first existing COGS for this user” to avoid dupes
+        $existing = \App\Models\AccountLedger::where([
+            ['ledger_type', '=', 'cogs'],
+            ['created_by', '=', auth()->id()],
+        ])->first();
+
+        if ($existing) {
+            return $existing->id;
+        }
+
+        // Create the default COGS ledger
+        $ledger = \App\Models\AccountLedger::create([
+            'account_ledger_name' => 'COGS',   // keep it simple/global
+            'ledger_type'         => 'cogs',
+            'debit_credit'        => 'debit',
+            'opening_balance'     => 0,
+            'closing_balance'     => 0,
+            'status'              => 'active',
+            'group_under_id'      => 9,        // Direct Expenses
+            'account_group_id'    => null,
+            'created_by'          => auth()->id(),
+        ]);
+
+        return $ledger->id;
+    }
 
 
     public function store(Request $request, FinalizeSaleService $finalizer)
@@ -148,6 +206,12 @@ class SaleController extends Controller
             ?? 'SAL-' . now()->format('Ymd') . '-' . str_pad(Sale::max('id') + 1, 4, '0', STR_PAD_LEFT);
 
         $flow = auth()->user()->company->sale_approval_flow ?? self::FLOW_NONE;
+
+        $inventoryLedgerId = $request->inventory_ledger_id
+            ?: $this->ensureInventoryLedgerForGodown((int) $request->godown_id);
+
+        $cogsLedgerId = $request->cogs_ledger_id
+            ?: $this->ensureCogsLedger();
 
         /* 📝 3. header + lines — all inside one TX */
         DB::beginTransaction();
@@ -166,8 +230,13 @@ class SaleController extends Controller
                 'truck_rent'             => $request->truck_rent,
                 'rent_advance'           => $request->rent_advance,
                 'net_rent'               => $request->net_rent,
-                'inventory_ledger_id'    => $request->inventory_ledger_id,
-                'cogs_ledger_id'         => $request->cogs_ledger_id,
+
+
+
+                'inventory_ledger_id' => $inventoryLedgerId,
+                'cogs_ledger_id'      => $cogsLedgerId,
+
+    
                 'truck_driver_name'      => $request->truck_driver_name,
                 'driver_address'         => $request->driver_address,
                 'driver_mobile'          => $request->driver_mobile,
@@ -291,6 +360,12 @@ class SaleController extends Controller
 
         $this->validateRequest($request);
 
+        $inventoryLedgerId = $request->inventory_ledger_id
+            ?: $this->ensureInventoryLedgerForGodown((int) $request->godown_id);
+
+        $cogsLedgerId = $request->cogs_ledger_id
+            ?: $this->ensureCogsLedger();
+
         DB::beginTransaction();
 
         try {
@@ -333,8 +408,8 @@ class SaleController extends Controller
                 'truck_driver_name'    => $request->truck_driver_name,
                 'driver_address'       => $request->driver_address,
                 'driver_mobile'        => $request->driver_mobile,
-                'inventory_ledger_id'  => $request->inventory_ledger_id,
-                'cogs_ledger_id'       => $request->cogs_ledger_id,
+                'inventory_ledger_id' => $inventoryLedgerId,
+                'cogs_ledger_id'      => $cogsLedgerId,
                 'total_qty'            => collect($request->sale_items)->sum('qty'),
                 'total_discount'       => collect($request->sale_items)->sum('discount'),
                 'grand_total'          => collect($request->sale_items)->sum('subtotal'),
@@ -456,22 +531,22 @@ class SaleController extends Controller
             // Cr Inventory (at cost)
             JournalEntry::create([
                 'journal_id'        => $journal->id,
-                'account_ledger_id' => $request->inventory_ledger_id,
+                'account_ledger_id' => $inventoryLedgerId,
                 'type'              => 'credit',
                 'amount'            => $totalCost,
                 'note'              => 'Inventory out (at cost)',
             ]);
-            LedgerService::adjust($request->inventory_ledger_id, 'credit', $totalCost);
+            LedgerService::adjust($inventoryLedgerId, 'credit', $totalCost);
 
             // Dr COGS
             JournalEntry::create([
                 'journal_id'        => $journal->id,
-                'account_ledger_id' => $request->cogs_ledger_id,
+                'account_ledger_id' => $cogsLedgerId,
                 'type'              => 'debit',
                 'amount'            => $totalCost,
                 'note'              => 'Cost of Goods Sold',
             ]);
-            LedgerService::adjust($request->cogs_ledger_id, 'debit', $totalCost);
+            LedgerService::adjust($cogsLedgerId, 'debit', $totalCost);
 
             DB::commit();
             return redirect()->route('sales.index')

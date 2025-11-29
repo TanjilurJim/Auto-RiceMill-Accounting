@@ -32,6 +32,11 @@ class Employee extends Model
         'created_by',
     ];
 
+    protected $casts = [
+        'joining_date' => 'date:d-m-Y',
+        
+    ];
+
     /* ───── Relationships ───── */
     public function department()
     {

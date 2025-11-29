@@ -125,7 +125,7 @@ class DashboardController extends Controller
             'opening_balance',
             'closing_balance'
         )
-            ->where('ledger_type', 'purchase')
+            ->where('ledger_type', 'accounts_payable')
             ->when(!$isAdmin, fn($q) => $q->whereIn('created_by', $userIds))
             ->get();
 
@@ -148,6 +148,28 @@ class DashboardController extends Controller
 
         $totalPurchaseDue = $mapped->sum('payable');
 
+        $balanceExpr = "COALESCE(account_ledgers.closing_balance, account_ledgers.opening_balance, 0)";
+
+        // Cash in hand: group_under_id = 17
+        $totalCashInHand = DB::table('account_ledgers')
+            ->when(!$isAdmin, fn($q) => $q->whereIn('created_by', $userIds))
+            ->where('ledger_type', 'cash_bank')
+            ->where('group_under_id', 17)
+            ->selectRaw("SUM(CASE WHEN debit_credit = 'debit' THEN {$balanceExpr} ELSE -{$balanceExpr} END) as total")
+            ->value('total') ?? 0;
+
+        // Bank balances: group_under_id = 18
+        $totalBankBalances = DB::table('account_ledgers')
+            ->when(!$isAdmin, fn($q) => $q->whereIn('created_by', $userIds))
+            ->where('ledger_type', 'cash_bank')
+            ->where('group_under_id', 18)
+            ->selectRaw("SUM(CASE WHEN debit_credit = 'debit' THEN {$balanceExpr} ELSE -{$balanceExpr} END) as total")
+            ->value('total') ?? 0;
+
+        // normalize to float
+        $totalCashInHand = (float) $totalCashInHand;
+        $totalBankBalances = (float) $totalBankBalances;
+
 
         return Inertia::render('dashboard', [
             'totalSales' => $totalSales,
@@ -159,14 +181,15 @@ class DashboardController extends Controller
             'totalPayment' => $totalPayment,
             'totalWorkOrders' => $totalWorkOrders,
             'completedWorkOrders' => $completedWorkOrders,
-
+            'totalCashInHand' => $totalCashInHand,
+            'totalBankBalances' => $totalBankBalances,
             'totalDues'             => $totalDues,
             'clearedDuesCount'   => $totalClearedDues,
             'purchasePayableTotal' => $totalPurchaseDue,
             'topPurchaseSuppliers' => $topPayables,
 
             'runningDryers'         => $runningDryers,
-            'tenantId'      => auth()->user()->tenant_id, 
+            'tenantId'      => auth()->user()->tenant_id,
         ]);
     }
 }

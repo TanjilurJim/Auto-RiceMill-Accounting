@@ -72,7 +72,7 @@ class LedgerGroupReportController extends Controller
     //     });
 
     //     $company = company_info();
-        
+
 
     //     return Inertia::render('reports/LedgerGroupSummary', [
     //         'data' => $data,
@@ -109,10 +109,20 @@ class LedgerGroupReportController extends Controller
         $ids = user_scope_ids();
 
         $groups = GroupUnder::with(['ledgers' => function ($q) use ($groupId, $ids, $user) {
-            $q->select('id', 'account_ledger_name', 'phone_number', 'group_under_id')
+            $q->select('id', 'account_ledger_name', 'phone_number', 'group_under_id', 'ledger_type')
                 ->when($groupId, fn($q) => $q->where('group_under_id', $groupId))
-                ->when(!$user->hasRole('admin'), fn($q) => $q->whereIn('created_by', $ids));
-        }])->when($groupId, fn($q) => $q->where('id', $groupId))->get();
+                ->when(!$user->hasRole('admin'), fn($q) => $q->whereIn('created_by', $ids))
+                // Hard guard: if group is 35 (Crushing Income), show only income-ish ledgers
+                ->when($groupId == 35, fn($q) => $q->whereIn('ledger_type', [
+                    'service_income',
+                    'crushing_income',
+                    'sales_income',
+                    'income',
+                    'other_income'
+                ]));
+        }])
+            ->when($groupId, fn($q) => $q->where('id', $groupId))
+            ->get();
 
         $data = $groups->map(function ($group) use ($from, $to) {
             $ledgers = $group->ledgers->map(function ($ledger) use ($from, $to) {
@@ -158,6 +168,4 @@ class LedgerGroupReportController extends Controller
             'group_label' => $groupLabel,
         ]);
     }
-
-
 }

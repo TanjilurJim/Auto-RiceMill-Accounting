@@ -2,6 +2,7 @@ import ActionFooter from '@/components/ActionFooter';
 import InputCalendar from '@/components/Btn&Link/InputCalendar';
 import { confirmDialog } from '@/components/confirmDialog';
 import PageHeader from '@/components/PageHeader';
+import SupplierCreatableSelect from '@/components/SupplierCreatableSelect';
 import AppLayout from '@/layouts/app-layout';
 import { Head, useForm } from '@inertiajs/react';
 import axios from 'axios';
@@ -336,22 +337,20 @@ export default function PurchaseCreate({
                                         <label className="invisible mb-1 block text-sm font-medium md:visible">
                                             {t('purchase-party-ledger-label')}
                                         </label>
-                                        <select
-                                            className="h-fit w-full border p-2"
+
+                                        <SupplierCreatableSelect
                                             value={data.account_ledger_id}
-                                            onChange={(e) => {
-                                                const val = e.target.value;
+                                            onSelectedLedgerId={(id) => {
+                                                const val = id ? String(id) : '';
                                                 setData('account_ledger_id', val);
-                                                fetchBalance(val, 'party');
+                                                if (val) fetchBalance(val, 'party');
+                                                else setPartyBalance(null);
                                             }}
-                                        >
-                                            <option value="">{t('purchase-select-supplier')}</option>
-                                            {(supplierLedgers ?? []).map((l) => (
-                                                <option key={l.id} value={l.id}>
-                                                    {l.account_ledger_name}
-                                                </option>
-                                            ))}
-                                        </select>
+                                            // pass phone/address so the created ledger keeps them
+                                            phone={data.phone}
+                                            address={data.address}
+                                        />
+
                                         {partyBalance !== null && (
                                             <div className="text-foreground col-span-2 py-0.5 text-xs">
                                                 {t('purchase-party-balance')}: {Number(partyBalance).toFixed(2)}
@@ -368,13 +367,13 @@ export default function PurchaseCreate({
                                 </div>
 
                                 {/* Inventory Ledger */}
-                                <div>
-                                    <label className="invisible mb-1 block text-sm font-medium md:visible">
+                                {/* <div> */}
+                                    {/* <label className="invisible mb-1 block text-sm font-medium md:visible">
                                         {t('purchase-inventory-ledger-label')}
-                                    </label>
+                                    </label> */}
 
-                                    <div className="flex h-fit w-full flex-col items-center gap-2 md:flex-row">
-                                        <select
+                                    {/* <div className="flex h-fit w-full flex-col items-center gap-2 md:flex-row"> */}
+                                        {/* <select
                                             className={`${errors.godown_id ? 'border-red-500' : 'border-gray-300'} h-full w-full border p-2`}
                                             value={data.inventory_ledger_id}
                                             onChange={(e) => setData('inventory_ledger_id', e.target.value)}
@@ -385,24 +384,24 @@ export default function PurchaseCreate({
                                                     {l.account_ledger_name}
                                                 </option>
                                             ))}
-                                        </select>
+                                        </select> */}
 
-                                        {inventoryBalance !== null && (
+                                        {/* {inventoryBalance !== null && (
                                             <div className="text-foreground mt-1 text-xs">
                                                 {t('purchase-inventory-balance')}: {Number(inventoryBalance).toFixed(2)}
                                             </div>
-                                        )}
+                                        )} */}
 
                                         {/* Placeholder for Add Button — next step will handle modal */}
-                                        <button
+                                        {/* <button
                                             type="button"
                                             className="h-full w-full rounded bg-blue-500 p-2 text-white"
                                             onClick={() => setShowLedgerModal(true)}
                                         >
                                             {t('purchase-create-ledger-button')}
-                                        </button>
-                                    </div>
-                                </div>
+                                        </button> */}
+                                    {/* </div> */}
+                                {/* </div> */}
 
                                 {/* Phone and Address Inputs */}
                                 <div>

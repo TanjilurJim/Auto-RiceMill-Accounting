@@ -6,6 +6,9 @@ use App\Models\SalarySlip;
 use App\Models\SalarySlipEmployee;
 use App\Models\Employee;
 use Illuminate\Http\Request;
+use App\Models\FinancialYear;
+use Carbon\Carbon;
+
 use Inertia\Inertia;
 use App\Models\Journal;
 use App\Models\JournalEntry;
@@ -70,10 +73,18 @@ class SalarySlipController extends Controller
                 ];
             });
 
+        $currentFy = FinancialYear::where('is_closed', false)->orderByDesc('start_date')->first();
+
         return Inertia::render('salarySlips/create', [
-            'employees' => $employees
+            'employees' => $employees,
+            'current_financial_year' => $currentFy ? [
+                'id' => $currentFy->id,
+                'start_date' => $currentFy->start_date->toDateString(),
+                'end_date' => $currentFy->end_date->toDateString(),
+            ] : null,
         ]);
     }
+
 
 
     // Store salary slip
@@ -83,7 +94,7 @@ class SalarySlipController extends Controller
             'voucher_number' => 'required|unique:salary_slips,voucher_number',
             'date'           => 'required|date',
             'month'          => 'required|integer|min:1|max:12',
-            'year'           => 'required|integer|min:2020',
+            'year'           => 'required|integer|min:1900',
             'is_advance'     => 'sometimes|boolean',
             'salary_slip_employees'                     => 'required|array|min:1',
             'salary_slip_employees.*.employee_id'       => 'required|exists:employees,id',
@@ -127,11 +138,7 @@ class SalarySlipController extends Controller
                 'month'          => $request->month,
                 'year'           => $request->year,
                 'is_advance'     => (bool) $request->boolean('is_advance'),
-
-                // optionally persist the two fields if you add columns:
-                // 'is_advance'     => $request->boolean('is_advance'),
-                // 'advance_month'  => $request->advance_month,
-                // 'advance_year'   => $request->advance_year,
+                // note: intentionally NOT setting 'financial_year_id'
                 'created_by'     => auth()->id(),
             ]);
 
@@ -150,7 +157,7 @@ class SalarySlipController extends Controller
 
             $journal = \App\Models\Journal::create([
                 'date'       => $request->date,
-                'voucher_no' => 'JRN-' . \Illuminate\Support\Str::upper(\Illuminate\Support\Str::random(6)),
+                'voucher_no' => 'JRN-' . Str::upper(Str::random(6)),
                 'narration'  => "Accrued salaries for Slip #{$salarySlip->voucher_number}",
                 'created_by' => auth()->id(),
             ]);
@@ -185,6 +192,8 @@ class SalarySlipController extends Controller
         return redirect()->route('salary-slips.index')
             ->with('success', 'Salary slip created and accrued successfully!');
     }
+
+
 
 
 

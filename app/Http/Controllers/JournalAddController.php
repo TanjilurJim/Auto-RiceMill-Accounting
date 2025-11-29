@@ -10,6 +10,7 @@ use App\Models\AccountLedger;
 use App\Models\CompanySetting;
 
 use function godown_scope_ids;
+use function number_to_words_bd;
 
 class JournalAddController extends Controller
 {
@@ -193,7 +194,7 @@ class JournalAddController extends Controller
     //     // Instead, you just calculate totals dynamically when needed.
 
     //     $journal->voucher_type = 'Journal';
-        
+
     //     $journal->save();
 
     //     // First, delete all the current entries for this journal
@@ -282,34 +283,6 @@ class JournalAddController extends Controller
     }
 
 
-    // Print method remains the same
-    // public function print($voucherNo)
-    // public function print($voucher_no)
-    // {
-    //     // $journal = Journal::with('rows.ledger')
-    //     //     ->where('voucher_no', $voucherNo)
-    //     //     ->where('created_by', auth()->id())
-    //     //     ->firstOrFail();
-    //     $journal = Journal::with(['entries.ledger'])
-    //     ->where('voucher_no', $voucher_no)
-    //     ->firstOrFail();
-
-    //     $company =  CompanySetting::where('created_by', auth()->id())->first();
-
-    //     return Inertia::render('journal-add/print', [
-    //     // return Inertia::render('journal-add.print', [
-    //         'company' => $company,
-    //         'journal' => $journal,
-    //         // 'amount_in_words' => numberToWords($journal->total_debit),
-
-    //         // 'amount_in_words' => numberToWords($journal->total_debit->where('type', 'debit')->sum('amount')),
-
-    //         'amount_in_words' => numberToWords(
-    //             ($journal->entries ? $journal->entries->where('type', 'debit')->sum('amount') : 0)
-    //         ),
-
-    //     ]);
-    // }
 
     public function print($voucher_no)
     {
@@ -325,43 +298,13 @@ class JournalAddController extends Controller
         return Inertia::render('journal-add/print', [
             'company' => $company,
             'journal' => $journal,
-            'amount_in_words' => numberToWords(
+            'amount_in_words' => number_to_words_bd( // <-- call the right name
                 ($journal->entries ? $journal->entries->where('type', 'debit')->sum('amount') : 0)
             ),
         ]);
     }
 
-    // public function destroy($id)
-    // {
-    //     $journal = Journal::with('entries.ledger')->findOrFail($id);
 
-    //     // Check if the current user is authorized to delete the journal
-    //     if ($journal->created_by !== auth()->id() && !auth()->user()->hasRole('admin')) {
-    //         return redirect()->route('journal-add.index')->withErrors('Unauthorized action.');
-    //     }
-
-    //     // Update ledger balances first (undo the effect of journal entries)
-    //     foreach ($journal->entries as $entry) {
-    //         $ledger = AccountLedger::findOrFail($entry->account_ledger_id);
-    //         $currentBalance = $ledger->closing_balance ?? $ledger->opening_balance ?? 0;
-
-    //         if ($entry->type === 'debit') {
-    //             $ledger->closing_balance = $currentBalance - $entry->amount;
-    //         } else {
-    //             $ledger->closing_balance = $currentBalance + $entry->amount;
-    //         }
-
-    //         $ledger->save();
-    //     }
-
-    //     // Delete the journal entries associated with this journal
-    //     $journal->entries()->delete();
-
-    //     // Now delete the journal itself
-    //     $journal->delete();
-
-    //     return redirect()->route('journal-add.index')->with('success', 'Journal entry deleted successfully.');
-    // }
 
     public function destroy($id)
     {
@@ -390,5 +333,4 @@ class JournalAddController extends Controller
 
         return redirect()->route('journal-add.index')->with('success', 'Journal entry deleted successfully.');
     }
-
 }

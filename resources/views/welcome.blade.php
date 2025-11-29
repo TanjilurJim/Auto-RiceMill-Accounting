@@ -1,6 +1,6 @@
 @extends('layouts.marketing')
 
-@section('title', 'Rice Mill ERP - Auto Rice Mill Software')
+@section('title', 'Rice Mill ERP | Auto Rice Mill Software - Free Trial')
 @section('meta_description', 'Custom Rice Mill ERP page with full HTML control - no JavaScript interference')
 
 @push('styles')
@@ -1398,9 +1398,7 @@
                                     class="bg-gradient-to-br from-gray-50/80 to-gray-100/50 p-6 rounded-xl backdrop-blur-sm border border-gray-200/80 shadow-lg">
                                     <p class="text-gray-700 leading-relaxed text-sm">
                                         <span class="lang-en">
-                                            Ricemill ERP is the all-in-one platform for global rice industry leaders. It
-                                            seamlessly connects procurement, milling, inventory, sales, and finance on one
-                                            dashboard.
+                                            Rice mill software ERP is an all-in-one rice mill software built to manage milling, inventory, purchase, sales, and accounts with real-time accuracy.
                                         </span>
                                         <span class="lang-bn" style="display: none;">
                                             রাইসমিল ইআরপি হল বিশ্বব্যাপী চাল শিল্প নেতাদের জন্য অল-ইন-ওয়ান প্ল্যাটফর্ম। এটি

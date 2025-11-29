@@ -69,7 +69,7 @@ class ProfitLossController extends Controller
         $ids  = user_scope_ids();
 
         // Canonical classification by ledger_type
-        $incomeTypes  = ['sales_income', 'other_income', 'income'];            // include legacy 'income'
+        $incomeTypes  = ['sales_income', 'other_income', 'service_income', 'crushing_income', 'income'];            // include legacy 'income'
         $expenseTypes = ['cogs', 'operating_expense', 'expense'];              // include legacy 'expense'
 
         // Base relation for sums (date + tenant scope)
@@ -113,14 +113,19 @@ class ProfitLossController extends Controller
         $oiDebits       = (float) $sumDebits(['other_income', 'income']);
         $otherIncome    = $oiCredits - $oiDebits;
 
+        $svcCredits    = (float) $sumCredits(['service_income', 'crushing_income']);
+        $svcDebits     = (float) $sumDebits(['service_income', 'crushing_income']);
+        $serviceIncome = $svcCredits - $svcDebits;
+
         $grossProfit    = $sales - $cogs;
-        $netProfit      = $grossProfit - $expenses + $otherIncome;
+        $netProfit      = $grossProfit - $expenses + $otherIncome + $serviceIncome;
 
         $figures = [
             'sales'        => round($sales, 2),
             'cogs'         => round($cogs, 2),
             'expenses'     => round($expenses, 2),
             'otherIncome'  => round($otherIncome, 2),
+            'serviceIncome' => round($serviceIncome, 2), 
             'grossProfit'  => round($grossProfit, 2),
             'netProfit'    => round($netProfit, 2),
         ];
@@ -194,7 +199,7 @@ class ProfitLossController extends Controller
                 'side'  => $side,               // 'income' | 'expense' | 'neutral'
                 'value' => round($value, 2),
             ];
-        })->filter(fn ($row) => $row['value'] != 0.0)->values();
+        })->filter(fn($row) => $row['value'] != 0.0)->values();
 
         /* ---------- company info ---------- */
         $co = company_info() ?: (object)[

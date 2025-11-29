@@ -49,6 +49,8 @@ export default function Dashboard({ runningDryers }: DashboardProps) {
     const totalWorkOrders = page.totalWorkOrders ?? 0;
     const completedWorkOrders = page.completedWorkOrders ?? 0;
     const totalDues = page.totalDues ?? 0;
+    const totalCashInHand = page.totalCashInHand ?? 0;
+    const totalBankBalances = page.totalBankBalances ?? 0;
     const clearedDuesCount = page.clearedDuesCount ?? 0;
     const purchasePayableTotal = page.purchasePayableTotal ?? 0;
     const topPurchaseSuppliers = (page.topPurchaseSuppliers ?? []) as Array<{ id: number; name: string; payable: number }>;
@@ -95,6 +97,9 @@ export default function Dashboard({ runningDryers }: DashboardProps) {
     ];
     const kpis = [
         { title: t('totalSales'), value: totalSales, icon: CircleDollarSign, color: 'text-green-600', bg: 'bg-green-50' },
+
+        { title: ('Cash In Hand'), value: totalCashInHand, icon: Wallet, color: 'text-emerald-600', bg: 'bg-emerald-50' },
+        { title: ('Bank Balances'), value: totalBankBalances, icon: Building, color: 'text-blue-600', bg: 'bg-blue-50' },
         { title: t('totalPurchases'), value: totalPurchases, icon: ShoppingCart, color: 'text-orange-600', bg: 'bg-orange-50' },
         { title: t('cashReceived'), value: totalReceived, icon: Wallet, color: 'text-blue-600', bg: 'bg-blue-50' },
         { title: t('cashPaid'), value: totalPayment, icon: Wallet, color: 'text-red-600', bg: 'bg-red-50' },

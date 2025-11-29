@@ -62,6 +62,7 @@ class HandleInertiaRequests extends Middleware
             ...parent::share($request),
             'name' => config('app.name'),
             'quote' => ['message' => trim($message), 'author' => trim($author)],
+            'firstAppReload' => $request->session()->pull('first_app_load', false),
             'auth' => [
                 'user' => $request->user() ? $request->user()->load('roles') : null,
 
